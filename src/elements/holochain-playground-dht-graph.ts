@@ -1,6 +1,8 @@
 import { LitElement, html, query, css } from 'lit-element';
 import cytoscape from 'cytoscape';
 import { Dialog } from '@material/mwc-dialog';
+import '@material/mwc-icon-button';
+import '@material/mwc-button';
 
 import { dnaNodes } from '../processors/graph';
 import { blackboardConnect } from '../blackboard/blackboard-connect';
@@ -86,11 +88,6 @@ export class DHTGraph extends blackboardConnect<Playground>(
     this.cy.on('tap', 'node', (evt) => {
       this.blackboard.update('activeAgentId', evt.target.id());
       this.blackboard.update('activeEntryId', null);
-    });
-
-    this.addEventListener('entry-committed', (e: CustomEvent) => {
-      this.requestUpdate();
-      this.highlightNodesWithEntry(e.detail.entryId);
     });
   }
 

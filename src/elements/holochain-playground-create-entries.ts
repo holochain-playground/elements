@@ -6,7 +6,6 @@ import '@material/mwc-dialog';
 import '@material/mwc-radio';
 import '@material/mwc-formfield';
 import { sharedStyles } from './sharedStyles';
-import { Cell } from '../types/cell';
 import { TextArea } from '@material/mwc-textarea';
 import { TextFieldBase } from '@material/mwc-textfield/mwc-textfield-base';
 import { EntryType, Entry, hashEntry } from '../types/entry';

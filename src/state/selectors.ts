@@ -5,7 +5,9 @@ export const selectCellCount = (state: Playground) =>
   selectActiveCells(state).length;
 
 export const selectActiveCells = (state: Playground) =>
-  state.conductors.map((c) => c.cells[state.activeDNA]).filter((c) => !!c);
+  state.conductors
+    .map((c) => c.cells[state.activeDNA])
+    .filter((c) => !!c);
 
 export const selectGlobalDHTOps = (state: Playground) => {
   let dhtOps = 0;
@@ -17,7 +19,9 @@ export const selectGlobalDHTOps = (state: Playground) => {
   return dhtOps;
 };
 
-export const selectHoldingCells = (state: Playground) => (entryId: string) =>
+export const selectHoldingCells = (state: Playground) => (
+  entryId: string
+) =>
   selectActiveCells(state).filter(
     (c) =>
       !!Object.values(c.DHTOpTransforms).find(
@@ -57,7 +61,9 @@ export const selectUniqueDHTOps = (state: Playground) => {
   return Object.keys(globalDHTOps).length;
 };
 
-export const selectEntryMetadata = (state: Playground) => (entryId: string) => {
+export const selectEntryMetadata = (state: Playground) => (
+  entryId: string
+) => {
   if (!state.activeDNA) return undefined;
   for (const conductor of state.conductors) {
     const entry = conductor.cells[state.activeDNA].getEntryMetadata(entryId);
@@ -114,7 +120,9 @@ export const selectCell = (state: Playground) => (
   dna: string,
   agentId: string
 ) => {
-  const conductor = state.conductors.find((c) => c.agentIds.includes(agentId));
+  const conductor = state.conductors.find((c) =>
+    c.agentIds.includes(agentId)
+  );
 
   return conductor ? conductor.cells[dna] : null;
 };

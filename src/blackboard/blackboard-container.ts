@@ -2,7 +2,7 @@ import { Constructor, LitElement } from 'lit-element';
 import { Blackboard } from './blackboard';
 import { CustomElement } from './custom-element';
 
-export interface BlackboardContainerElement<S> extends HTMLElement {
+export interface BlackboardContainerElement<S> extends CustomElement {
   blackboard: Blackboard<S>;
 }
 
@@ -12,7 +12,7 @@ export const blackboardContainer = <
 >(
   blackboardId: string,
   baseElement: T
-): Constructor<BlackboardContainerElement<S>> => {
+): Constructor<LitElement & BlackboardContainerElement<S>> => {
   abstract class BlackboardContainer extends baseElement
     implements BlackboardContainerElement<S> {
     blackboard: Blackboard<S>;

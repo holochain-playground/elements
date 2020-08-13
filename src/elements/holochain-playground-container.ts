@@ -2,7 +2,14 @@ import { Snackbar } from '@material/mwc-snackbar';
 import '@material/mwc-circular-progress';
 
 import { blackboardContainer } from '../blackboard/blackboard-container';
-import { LitElement, html, css, query, property } from 'lit-element';
+import {
+  LitElement,
+  html,
+  css,
+  query,
+  property,
+  PropertyValues,
+} from 'lit-element';
 import { Playground } from '../state/playground';
 import { connectToConductors } from '../processors/connect-to-conductors';
 import {
@@ -10,20 +17,31 @@ import {
   deserializePlayground,
 } from '../processors/serialize';
 import { Blackboard } from '../blackboard/blackboard';
-import { buildPlayground } from '../processors/build-playground';
+import { Conductor } from '../types/conductor';
+import { buildSimulatedPlayground } from '../processors/build-simulated-playground';
+import { hash } from '../processors/hash';
 
 export class PlaygroundContainer extends blackboardContainer<Playground>(
   'holochain-playground',
   LitElement
 ) {
-  @property({ type: Object })
-  initialPlayground: Playground;
+  @property({ type: Array })
+  private initialConductors: Conductor[] | undefined;
+
+  @property({ type: Number })
+  numberOfSimulatedConductors: number = 10;
+
+  @property({ type: Array })
+  conductorsUrls: string[] | undefined;
+
+  @property({ type: Number })
+  redundancyFactor: number = 3;
 
   @query('#snackbar')
-  snackbar: Snackbar;
+  private snackbar: Snackbar;
 
   @property({ type: String })
-  message: string | undefined;
+  private message: string | undefined;
 
   static get styles() {
     return css`
@@ -33,23 +51,33 @@ export class PlaygroundContainer extends blackboardContainer<Playground>(
     `;
   }
 
-  buildInitialSimulatedPlayground() {
-    return buildPlayground('dna1', 10);
-  }
-
   buildBlackboard() {
-    return new Blackboard(null, {
+    const initialPlayground: Playground = {
+      activeAgentId: undefined,
+      activeDNA: undefined,
+      activeEntryId: undefined,
+      conductors: [],
+      conductorsUrls: this.conductorsUrls,
+      redundancyFactor: this.redundancyFactor,
+    };
+
+    return new Blackboard(initialPlayground, {
       persistId: 'holochain-playground',
       serializer: serializePlayground,
       deserializer: deserializePlayground,
     });
   }
 
-  firstUpdated() {
-    if (!this.initialPlayground || !this.initialPlayground.conductorsUrls) {
-      this.buildInitialSimulatedPlayground().then((playground) =>
-        this.blackboard.updateState(playground)
+  async firstUpdated() {
+    if (!this.conductorsUrls) {
+      const dnaHash = await hash('dna1');
+      this.initialConductors = await buildSimulatedPlayground(
+        dnaHash,
+        this.numberOfSimulatedConductors
       );
+
+      this.blackboard.update('activeDNA', dnaHash);
+      this.blackboard.update('conductors', this.initialConductors);
     }
 
     this.blackboard.select('conductorsUrls').subscribe(async (urls) => {
@@ -62,6 +90,17 @@ export class PlaygroundContainer extends blackboardContainer<Playground>(
         }
       }
     });
+  }
+
+  updated(changedValues: PropertyValues) {
+    super.updated(changedValues);
+
+    if (changedValues.has('conductorsUrls')) {
+      this.blackboard.update('conductorsUrls', this.conductorsUrls);
+    }
+    if (changedValues.has('redundancyFactor')) {
+      this.blackboard.update('redundancyFactor', this.redundancyFactor);
+    }
   }
 
   showError(error: string) {
