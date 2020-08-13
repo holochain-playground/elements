@@ -3,10 +3,11 @@
     "build": "rimraf dist && rollup -c rollup.config.ts",
     "dev": "rimraf dist && rollup -c rollup.config.ts -w",
     "test": "karma start --coverage",
-    "analize": "wca analyze --features cssproperty member slot event --outFile custom-elements.json",
     "test:watch": "concurrently --kill-others --names tsc,karma \"npm run tsc:watch\" \"karma start --auto-watch=true --single-run=false\"",
+    "analize": "wca analyze --features cssproperty member slot event --outFile custom-elements.json",
     "storybook": "start-storybook -p 8001",
     "storybook:build": "build-storybook",
+    "storybook:publish": "gh-pages -d dist",
     "build:publish": "npm run build && cp -t dist package.json package-lock.json README.md && cd dist && npm publish"
   },
   "devDependencies": {
@@ -43,6 +44,7 @@
     "core-js": "^3.6.5",
     "deepmerge": "^3.2.0",
     "es-dev-server": "^1.5.0",
+    "gh-pages": "^3.1.0",
     "rimraf": "^2.6.3",
     "rollup": "^2.6.0",
     "rollup-plugin-multi-input": "^1.1.1",
