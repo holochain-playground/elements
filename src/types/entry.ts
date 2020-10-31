@@ -1,38 +1,25 @@
 import { hash } from '../processors/hash';
+import { CapClaim, ZomeCallCapGrant } from './capabilities';
 
-export interface EntryContent<E extends EntryType, P> {
-  type: E;
-  payload: P;
+export enum EntryType {
+  Agent = 'Agent',
+  App = 'App',
+  CapClaim = 'CapTokenGrant',
+  CapGrant = 'CapTokenClaim',
+}
+
+export interface EntryContent<E extends EntryType, C> {
+  entry_type: E;
+  content: C;
 }
 
 export type Entry =
-  | EntryContent<EntryType.DNA, string>
-  | EntryContent<EntryType.AgentId, string>
-  | EntryContent<EntryType.CreateEntry, { content: any; type: string }>
-  | EntryContent<EntryType.RemoveEntry, { deletedEntry: string }>
-  | EntryContent<
-      EntryType.LinkAdd,
-      { base: string; target: string; type: string; tag: string }
-    >
-  | EntryContent<
-      EntryType.LinkRemove,
-      { base: string; target: string; type: string; timestamp: number }
-    >
-  | EntryContent<EntryType.CapTokenGrant, any>
-  | EntryContent<EntryType.CapTokenClaim, any>;
-
-export enum EntryType {
-  DNA = 'DNA',
-  AgentId = 'AgentId',
-  CreateEntry = 'CreateEntry',
-  RemoveEntry = 'RemoveEntry',
-  LinkAdd = 'LinkAdd',
-  LinkRemove = 'LinkRemove',
-  CapTokenGrant = 'CapTokenGrant',
-  CapTokenClaim = 'CapTokenClaim',
-}
+  | EntryContent<EntryType.Agent, string>
+  | EntryContent<EntryType.App, any>
+  | EntryContent<EntryType.CapGrant, ZomeCallCapGrant>
+  | EntryContent<EntryType.CapClaim, CapClaim>;
 
 export async function hashEntry(entry: Entry): Promise<string> {
-  if (entry.type === EntryType.AgentId) return entry.payload;
+  if (entry.entry_type === EntryType.Agent) return entry.content;
   return hash(entry);
 }

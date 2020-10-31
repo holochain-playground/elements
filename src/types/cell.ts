@@ -10,7 +10,7 @@ import {
 import { Entry, EntryType, hashEntry } from './entry';
 import { hash, distance, compareBigInts } from '../processors/hash';
 import { Header } from './header';
-import { NetworkMessageType, NetworkMessage, SendMessage } from './network';
+import { NetworkMessageType, NetworkMessage } from './network';
 import { Conductor } from './conductor';
 
 export const AGENT_HEADERS = 'AGENT_HEADERS';
