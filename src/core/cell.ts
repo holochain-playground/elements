@@ -59,12 +59,16 @@ export class Cell {
 
   triggerWorkflow(workflow: Task<any>) {
     this.#pendingWorkflows.push(workflow);
+
+    setTimeout(() => this._runPendingWorkflows());
   }
 
-  _runWorkflows() {
-    for (const workflow of this.#pendingWorkflows) {
-      this.executor.execute(workflow);
-    }
+  async _runPendingWorkflows() {
+    const promises = this.#pendingWorkflows.map((w) =>
+      this.executor.execute(w)
+    );
+
+    await Promise.all(promises);
 
     this.#pendingWorkflows = [];
   }
