@@ -3,7 +3,7 @@ import { sharedStyles } from './sharedStyles';
 import { Playground } from '../state/playground';
 import { blackboardConnect } from '../blackboard/blackboard-connect';
 import { selectActiveCell, selectCell } from '../state/selectors';
-import { Cell } from '../types/cell';
+import { Cell } from '../core/cell';
 
 import '@alenaksu/json-viewer';
 

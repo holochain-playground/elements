@@ -4,7 +4,6 @@ export type Dictionary<T> = {
 
 export type Hash = string;
 export type AgentPubKey = string;
-export type Timestamp = [number, number];
 
 export type EntryVisibility = string;
 export type AppEntryType = {
@@ -12,4 +11,3 @@ export type AppEntryType = {
   zome_id: number;
   visibility: EntryVisibility;
 };
-export type EntryType = AgentPubKey | AppEntryType | 'CapClaim' | 'CapGrant';

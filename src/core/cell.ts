@@ -1,4 +1,4 @@
-import { Dictionary } from './common';
+import { AgentPubKey, Dictionary, Hash } from '../types/common';
 import {
   DHTOp,
   entryToDHTOps,
@@ -6,122 +6,81 @@ import {
   DHTOpType,
   hashDHTOp,
   sortDHTOps,
-} from './dht-op';
-import { Entry, EntryType, hashEntry } from './entry';
+} from '../types/dht-op';
+import { Entry, EntryType, hashEntry } from '../types/entry';
 import { hash, distance, compareBigInts } from '../processors/hash';
-import { Header } from './header';
-import { NetworkMessageType, NetworkMessage } from './network';
+import { Header } from '../types/header';
+import { NetworkMessageType, NetworkMessage, Network } from './network';
 import { Conductor } from './conductor';
+import { CellState } from '../types/cell-state';
+import { genesis } from './workflows/genesis';
+import { Executor, Task } from '../executor/executor';
+import { ImmediateExecutor } from '../executor/immediate-executor';
+import { callZomeFn } from './workflows/call_zome_fn';
+import { SimulatedDna } from '../dnas/simulated-dna';
 
-export const AGENT_HEADERS = 'AGENT_HEADERS';
-export const CRUDStatus = 'CRUDStatus';
-export const REPLACES = 'REPLACES';
-export const REPLACED_BY = 'REPLACED_BY';
-export const DELETED_BY = 'DELETED_BY';
-export const HEADERS = 'HEADERS';
-export const LINKS_TO = 'LINKS_TO';
-
-export interface EntryMetadata {
-  CRUDStatus: string;
-  REPLACES: string | undefined;
-  REPLACED_BY: string | undefined;
-  DELETED_BY: string | undefined;
-  HEADERS: Dictionary<Header>;
-  LINKS_TO: Array<{
-    target: string;
-    tag: string;
-    type: string;
-    timestamp: string;
-  }>;
-  AGENT_HEADERS?: Dictionary<Header>;
-}
-
-export interface CASMetadata {
-  CRUDStatus: string;
-  REPLACES: string | undefined;
-  REPLACED_BY: string[];
-  DELETED_BY: string | undefined;
-  HEADERS: string[];
-  LINKS_TO: Array<{
-    target: string;
-    tag: string;
-    type: string;
-    timestamp: number;
-  }>;
-  AGENT_HEADERS?: string[];
-}
-
-export interface CellContents {
-  dna: string;
-  agentId: string;
-  redundancyFactor: number;
-  peers: string[];
-  sourceChain: string[];
-  CAS: Dictionary<any>;
-  CASMeta: Dictionary<CASMetadata>; // For the moment only DHT shard
-  DHTOpTransforms: Dictionary<DHTOp>;
-}
+export type CellId = [AgentPubKey, Hash];
 
 export class Cell {
-  sourceChain: string[] = [];
-  CAS: Dictionary<any> = {};
-  CASMeta: Dictionary<CASMetadata> = {}; // For the moment only DHT shard
-  DHTOpTransforms: Dictionary<DHTOp> = {};
+  #pendingWorkflows: Array<Task<any>> = [];
+  executor: Executor = new ImmediateExecutor();
 
-  constructor(
+  private constructor(
     public conductor: Conductor,
-    public dna: string,
-    public agentId: string,
-    public redundancyFactor: number,
-    public peers: string[]
+    public state: CellState,
+    public simulatedDna?: SimulatedDna | undefined
   ) {}
 
-  static from(conductor: Conductor, contents: CellContents) {
-    const cell = new Cell(
-      conductor,
-      contents.dna,
-      contents.agentId,
-      contents.redundancyFactor,
-      contents.peers
-    );
-    cell.sourceChain = contents.sourceChain;
-    cell.CAS = contents.CAS;
-    cell.CASMeta = contents.CASMeta;
-    cell.DHTOpTransforms = contents.DHTOpTransforms;
+  static async create(
+    conductor: Conductor,
+    simulatedDna: SimulatedDna,
+    agentId: AgentPubKey,
+    dnaHash: Hash,
+    membrane_proof: any
+  ): Promise<Cell> {
+    const newCellState: CellState = {
+      CAS: {},
+      CASMeta: {},
+      integratedDHTOps: {},
+      authoredDHTOps: {},
+      sourceChain: [],
+    };
+
+    const cell = new Cell(conductor, newCellState, simulatedDna);
+
+    await cell.executor.execute({
+      name: 'Genesis Workflow',
+      description: 'Initialize the cell with all the needed databases',
+      task: () => genesis(agentId, dnaHash, membrane_proof)(cell.state),
+    });
+
     return cell;
   }
 
-  toContents(): CellContents {
-    return {
-      CAS: this.CAS,
-      CASMeta: this.CASMeta,
-      DHTOpTransforms: this.DHTOpTransforms,
-      agentId: this.agentId,
-      dna: this.dna,
-      peers: this.peers,
-      redundancyFactor: this.redundancyFactor,
-      sourceChain: this.sourceChain,
-    };
+  triggerWorkflow(workflow: Task<any>) {
+    this.#pendingWorkflows.push(workflow);
   }
 
-  async init() {
-    await this.createEntry(
-      { type: EntryType.DNA, payload: this.dna },
-      undefined
-    );
-    await this.createEntry(
-      { type: EntryType.AgentId, payload: this.agentId },
-      undefined
-    );
+  _runWorkflows() {
+    for (const workflow of this.#pendingWorkflows) {
+      this.executor.execute(workflow);
+    }
+
+    this.#pendingWorkflows = [];
   }
 
-  async createEntry(entry: Entry, replaces: string | undefined) {
-    const entryId = await hashEntry(entry);
-
-    this.CAS[entryId] = entry;
-
-    const header = await this.createHeader(entryId, replaces);
-    this.publishEntry(entry, header);
+  callZomeFn(args: {
+    zome: string;
+    fnName: string;
+    payload: any;
+    cap: string;
+  }): Promise<T> {
+    return this.executor.execute({
+      name: 'Call Zome Function Workflow',
+      description: `Zome: ${args.zome}, Function name: ${args.fnName}`,
+      task: () =>
+        callZomeFn(args.zome, args.fnName, args.payload, args.cap)(this),
+    });
   }
 
   async publishEntry(entry: Entry, header: Header) {

@@ -1,5 +1,5 @@
 import { Dictionary } from './common';
-import { Cell, CellContents } from './cell';
+import { Cell, CellContents } from '../core/cell';
 import { hash } from '../processors/hash';
 import { SendMessage, NetworkMessage } from './network';
 

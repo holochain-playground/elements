@@ -1,8 +1,10 @@
-import { DHTOp } from "./dht-op";
+import { Dictionary } from '../types/common';
+import { DHTOp } from '../types/dht-op';
+import { CellId } from './cell';
 
 export enum NetworkMessageType {
   Publish,
-  GetEntry
+  GetEntry,
 }
 
 export interface NetworkMessageBody<T, P> {
@@ -11,7 +13,10 @@ export interface NetworkMessageBody<T, P> {
 }
 
 export type NetworkMessage =
-  | NetworkMessageBody<NetworkMessageType.Publish, {dhtOpId: string, dhtOp: DHTOp}>
+  | NetworkMessageBody<
+      NetworkMessageType.Publish,
+      { dhtOpId: string; dhtOp: DHTOp }
+    >
   | NetworkMessageBody<NetworkMessageType.GetEntry, string>;
 
 export type SendMessage = (
@@ -20,3 +25,7 @@ export type SendMessage = (
   toAgentId: string,
   message: NetworkMessage
 ) => any;
+
+export class Network {
+  peersByCell: Array<[CellId, string[]]>;
+}

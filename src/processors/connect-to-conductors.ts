@@ -5,7 +5,7 @@ import { Conductor } from '../types/conductor';
 import { hookUpConductors } from './message';
 import { Header } from '../types/header';
 import { Entry, EntryType } from '../types/entry';
-import { CellContents, Cell } from '../types/cell';
+import { CellContents, Cell } from '../core/cell';
 import { entryToDHTOps, hashDHTOp } from '../types/dht-op';
 
 export function checkConnection(url: string): Promise<void> {

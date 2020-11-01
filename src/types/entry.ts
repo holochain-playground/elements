@@ -1,25 +1,20 @@
 import { hash } from '../processors/hash';
 import { CapClaim, ZomeCallCapGrant } from './capabilities';
 
-export enum EntryType {
-  Agent = 'Agent',
-  App = 'App',
-  CapClaim = 'CapTokenGrant',
-  CapGrant = 'CapTokenClaim',
-}
+export type EntryType = 'Agent' | { App: string } | 'CapClaim' | 'CapGrant';
 
-export interface EntryContent<E extends EntryType, C> {
+export interface EntryContent<E extends string, C> {
   entry_type: E;
   content: C;
 }
 
 export type Entry =
-  | EntryContent<EntryType.Agent, string>
-  | EntryContent<EntryType.App, any>
-  | EntryContent<EntryType.CapGrant, ZomeCallCapGrant>
-  | EntryContent<EntryType.CapClaim, CapClaim>;
+  | EntryContent<'Agent', string>
+  | EntryContent<'App', any>
+  | EntryContent<'CapGrant', ZomeCallCapGrant>
+  | EntryContent<'CapClaim', CapClaim>;
 
 export async function hashEntry(entry: Entry): Promise<string> {
-  if (entry.entry_type === EntryType.Agent) return entry.content;
+  if (entry.entry_type === 'Agent') return entry.content;
   return hash(entry);
 }

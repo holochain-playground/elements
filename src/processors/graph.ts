@@ -1,4 +1,4 @@
-import { Cell } from "../types/cell";
+import { Cell } from "../core/cell";
 import { location, compareBigInts } from "./hash";
 import { Header } from "../types/header";
 import { Entry, EntryType } from "../types/entry";
