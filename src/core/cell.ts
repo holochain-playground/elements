@@ -1,7 +1,6 @@
 import { AgentPubKey, Dictionary, Hash } from '../types/common';
 import {
   DHTOp,
-  entryToDHTOps,
   neighborhood,
   DHTOpType,
   hashDHTOp,
@@ -10,14 +9,15 @@ import {
 import { Entry, EntryType, hashEntry } from '../types/entry';
 import { hash, distance, compareBigInts } from '../processors/hash';
 import { Header } from '../types/header';
-import { NetworkMessageType, NetworkMessage, Network } from './network';
+import { Network } from './network';
 import { Conductor } from './conductor';
 import { CellState } from '../types/cell-state';
-import { genesis } from './workflows/genesis';
+import { genesis } from './cell/workflows/genesis';
 import { Executor, Task } from '../executor/executor';
 import { ImmediateExecutor } from '../executor/immediate-executor';
-import { callZomeFn } from './workflows/call_zome_fn';
+import { callZomeFn } from './cell/workflows/call_zome_fn';
 import { SimulatedDna } from '../dnas/simulated-dna';
+import { getCellId } from './cell/source-chain/utils';
 
 export type CellId = [AgentPubKey, Hash];
 
@@ -30,6 +30,10 @@ export class Cell {
     public state: CellState,
     public simulatedDna?: SimulatedDna | undefined
   ) {}
+
+  get cellId(): CellId {
+    return getCellId(this.state);
+  }
 
   static async create(
     conductor: Conductor,

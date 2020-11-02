@@ -1,8 +1,9 @@
-import { Task } from '../../executor/executor';
-import { CellState } from '../../types/cell-state';
-import { elementToDHTOps } from '../../types/dht-op';
-import { Cell } from '../cell';
-import { getElement } from '../cell/source-chain/utils';
+import { Task } from '../../../executor/executor';
+import { hash } from '../../../processors/hash';
+import { AuthoredDhtOpsValue, CellState } from '../../../types/cell-state';
+import { elementToDHTOps } from '../../../types/dht-op';
+import { Cell } from '../../cell';
+import { getElement } from '../source-chain/utils';
 import { publish_dht_ops_task } from './publish_dht_ops';
 
 export function produce_dht_ops_task(cell: Cell): Task<void> {
@@ -21,7 +22,16 @@ export const produce_dht_ops = async (cell: Cell): Promise<void> => {
     const element = getElement(cell.state, newHeaderHash);
     const dhtOps = await elementToDHTOps(element);
 
-    cell.state.authoredDHTOps[newHeaderHash] = dhtOps;
+    for (const dhtOp of dhtOps) {
+      const dhtOpHash = await hash(dhtOp);
+      const dhtOpValue = {
+        op: dhtOp,
+        last_publish_time: undefined,
+        receipt_count: 0,
+      };
+
+      cell.state.authoredDHTOps[dhtOpHash] = dhtOpValue;
+    }
   }
 
   cell.triggerWorkflow(publish_dht_ops_task(cell));

@@ -1,7 +1,7 @@
 import { Dictionary } from './common';
 import { Cell, CellContents } from '../core/cell';
 import { hash } from '../processors/hash';
-import { SendMessage, NetworkMessage } from './network';
+import { SendMessage, NetworkMessage, Network } from './network';
 
 export interface ConductorContents {
   agentIds: string[];
@@ -19,6 +19,7 @@ export class Conductor {
   agentIds: string[];
   readonly cells: Dictionary<Cell> = {};
   sendMessage: SendMessage;
+  network: Network;
 
   readyPromise: Promise<string[]>;
 

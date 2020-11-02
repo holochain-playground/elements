@@ -1,7 +1,8 @@
 import { CellState } from '../../../types/cell-state';
 import { AgentPubKey, Hash } from '../../../types/common';
-import { Header, HeaderType } from '../../../types/header';
+import { Dna, Header, HeaderType } from '../../../types/header';
 import { Element } from '../../../types/element';
+import { CellId } from '../../cell';
 
 export function getTipOfChain(cellState: CellState): string {
   return cellState.sourceChain[0];
@@ -9,6 +10,13 @@ export function getTipOfChain(cellState: CellState): string {
 
 export function getAuthor(cellState: CellState): AgentPubKey {
   return getHeaderAt(cellState, 0).author;
+}
+
+export function getDnaHash(state: CellState): Hash {
+  const firstHeaderHash = state.sourceChain[state.sourceChain.length - 1];
+
+  const dna: Dna = state.CAS[firstHeaderHash];
+  return dna.hash;
 }
 
 export function getHeaderAt(cellState: CellState, index: number): Header {
@@ -28,4 +36,10 @@ export function getElement(state: CellState, headerHash: Hash): Element {
     maybe_entry = state.CAS[header.entry_hash];
   }
   return { header, maybe_entry };
+}
+
+export function getCellId(state: CellState): CellId {
+  const author = getAuthor(state);
+  const dna = getDnaHash(state);
+  return [author, dna];
 }

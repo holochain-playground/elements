@@ -1,10 +1,10 @@
-import { CellState } from '../../types/cell-state';
-import { AgentPubKey, Hash } from '../../types/common';
-import { putElement } from '../cell/source-chain/actions';
+import { CellState } from '../../../types/cell-state';
+import { AgentPubKey, Hash } from '../../../types/common';
+import { putElement } from '../source-chain/actions';
 import {
   buildAgentValidationPkg,
   buildDna,
-} from '../cell/source-chain/builder-headers';
+} from '../source-chain/builder-headers';
 
 export const genesis = (
   agentId: AgentPubKey,

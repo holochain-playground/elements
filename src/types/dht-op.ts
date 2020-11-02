@@ -138,10 +138,6 @@ export async function neighborhood(dhtOp: DHTOp): Promise<string> {
   }
 }
 
-export async function hashDHTOp(dhtOp: DHTOp): Promise<string> {
-  return hash(dhtOp.header);
-}
-
 export function sortDHTOps(dhtOps: DHTOp[]): DHTOp[] {
   const prio = (dhtOp: DHTOp) =>
     DHT_SORT_PRIORITY.findIndex((type) => type === dhtOp.type);
