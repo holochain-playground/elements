@@ -1,8 +1,9 @@
 import { CellState } from '../../../types/cell-state';
-import { AgentPubKey, Hash } from '../../../types/common';
+import { AgentPubKey, Dictionary, Hash } from '../../../types/common';
 import { Dna, Header, HeaderType } from '../../../types/header';
 import { Element } from '../../../types/element';
 import { CellId } from '../../cell';
+import { DHTOp } from '../../../types/dht-op';
 
 export function getTipOfChain(cellState: CellState): string {
   return cellState.sourceChain[0];
@@ -42,4 +43,16 @@ export function getCellId(state: CellState): CellId {
   const author = getAuthor(state);
   const dna = getDnaHash(state);
   return [author, dna];
+}
+
+export function getNonPublishedDhtOps(state: CellState): Dictionary<DHTOp> {
+  const nonPublishedDhtOps = {};
+  for (const dhtOpHash of Object.keys(state.authoredDHTOps)) {
+    const authoredValue = state.authoredDHTOps[dhtOpHash];
+    if (authoredValue.last_publish_time === undefined) {
+      nonPublishedDhtOps[dhtOpHash] = authoredValue.op;
+    }
+  }
+
+  return nonPublishedDhtOps;
 }

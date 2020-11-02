@@ -1,7 +1,9 @@
 import { Dictionary } from './common';
-import { Cell, CellContents } from '../core/cell';
+import { Cell, CellContents, CellId } from '../core/cell';
 import { hash } from '../processors/hash';
 import { SendMessage, NetworkMessage, Network } from './network';
+import { P2pCell } from './network/p2p-cell';
+import { Hash } from '../types/common';
 
 export interface ConductorContents {
   agentIds: string[];
@@ -18,8 +20,7 @@ export type ConductorOptions =
 export class Conductor {
   agentIds: string[];
   readonly cells: Dictionary<Cell> = {};
-  sendMessage: SendMessage;
-  network: Network;
+  networkSim: SendMessage;
 
   readyPromise: Promise<string[]>;
 
@@ -82,11 +83,14 @@ export class Conductor {
     this.cells[dna].init();
   }
 
-  inboundNetworkMessage(
-    dna: string,
-    fromAgentId: string,
-    message: NetworkMessage
-  ): any {
-    return this.cells[dna].handleNetworkMessage(fromAgentId, message);
+  createP2pCell(cellId: CellId): P2pCell {
+    return new P2pCell(this, cellId, this.peers);
   }
+
+  sendMessage<T>(
+    dna: Hash,
+    fromAgent: Hash,
+    toAgent: Hash,
+    message: NetworkMessage<T>
+  ): Promise<T> {}
 }

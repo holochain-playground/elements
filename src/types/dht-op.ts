@@ -117,7 +117,7 @@ export async function elementToDHTOps(element: Element): Promise<DHTOp[]> {
   return allDhtOps;
 }
 
-export async function neighborhood(dhtOp: DHTOp): Promise<string> {
+export async function getDHTOpBasis(dhtOp: DHTOp): Promise<string> {
   switch (dhtOp.type) {
     case DHTOpType.StoreElement:
       return hash(dhtOp.header);

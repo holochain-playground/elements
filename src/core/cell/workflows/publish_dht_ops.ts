@@ -1,8 +1,8 @@
 import { Task } from '../../../executor/executor';
-import { CellState } from '../../../types/cell-state';
-import { elementToDHTOps } from '../../../types/dht-op';
+import { Dictionary, Hash } from '../../../types/common';
+import { DHTOp, getDHTOpBasis } from '../../../types/dht-op';
 import { Cell } from '../../cell';
-import { getElement } from '../source-chain/utils';
+import { getNonPublishedDhtOps } from '../source-chain/utils';
 
 export function publish_dht_ops_task(cell: Cell): Task<void> {
   return {
@@ -14,5 +14,28 @@ export function publish_dht_ops_task(cell: Cell): Task<void> {
 }
 
 export const publish_dht_ops = async (cell: Cell): Promise<void> => {
-  cell.conductor.network.publish(cell.cellId)
+  const dhtOps = getNonPublishedDhtOps(cell.state);
+
+  const dhtOpsByBasis: Dictionary<Dictionary<DHTOp>> = {};
+
+  for (const dhtOpHash of Object.keys(dhtOps)) {
+    const dhtOp = dhtOps[dhtOpHash];
+    const basis = await getDHTOpBasis(dhtOp);
+
+    if (!dhtOpsByBasis[basis]) dhtOpsByBasis[basis] = {};
+
+    dhtOpsByBasis[basis][dhtOpHash] = dhtOp;
+  }
+
+  const promises = Object.entries(dhtOpsByBasis).map(
+    async ([basis, dhtOps]) => {
+      await cell.p2p.publish(basis, dhtOps);
+
+      for (const dhtOpHash of Object.keys(dhtOps)) {
+        cell.state.authoredDHTOps[dhtOpHash].last_publish_time = Date.now();
+      }
+    }
+  );
+
+  await Promise.all(promises);
 };
