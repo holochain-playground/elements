@@ -1,7 +1,4 @@
 import { expect, fixture, html } from '@open-wc/testing';
-import '../dist/elements/holochain-playground-container';
-/* 
-import '../dist/elements/holochain-playground-dht-graph';
 
 describe('Plugin - semantic-dom-diff', () => {
   it('can semantically compare full dom trees', async () => {
@@ -13,4 +10,3 @@ describe('Plugin - semantic-dom-diff', () => {
     expect(el).dom.to.equal('<div><h1>Hey</h1></div>');
   });
 });
- */

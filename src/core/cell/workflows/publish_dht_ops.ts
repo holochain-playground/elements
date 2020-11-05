@@ -13,6 +13,7 @@ export function publish_dht_ops_task(cell: Cell): Task<void> {
   };
 }
 
+// From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/publish_dht_ops_workflow.rs
 export const publish_dht_ops = async (cell: Cell): Promise<void> => {
   const dhtOps = getNonPublishedDhtOps(cell.state);
 
@@ -29,6 +30,7 @@ export const publish_dht_ops = async (cell: Cell): Promise<void> => {
 
   const promises = Object.entries(dhtOpsByBasis).map(
     async ([basis, dhtOps]) => {
+      // Publish the operations
       await cell.p2p.publish(basis, dhtOps);
 
       for (const dhtOpHash of Object.keys(dhtOps)) {

@@ -1,6 +1,6 @@
 import { Task } from '../../../executor/executor';
 import { hash } from '../../../processors/hash';
-import { AuthoredDhtOpsValue, CellState } from '../../../types/cell-state';
+import { CellState } from '../../../types/cell-state';
 import { elementToDHTOps } from '../../../types/dht-op';
 import { Cell } from '../../cell';
 import { getElement } from '../source-chain/utils';
@@ -15,6 +15,7 @@ export function produce_dht_ops_task(cell: Cell): Task<void> {
   };
 }
 
+// From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/produce_dht_ops_workflow.rs
 export const produce_dht_ops = async (cell: Cell): Promise<void> => {
   const newHeaderHashes = getNewHeaders(cell.state);
 
