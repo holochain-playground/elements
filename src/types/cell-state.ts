@@ -6,10 +6,10 @@ export interface CellState {
   sourceChain: string[];
   CAS: Dictionary<any>;
   metadata: Metadata; // For the moment only DHT shard
-  integratedDHTOps: Dictionary<IntegratedDhtOpsValue>;
-  authoredDHTOps: Dictionary<AuthoredDhtOpsValue>; // Key is the hash of the DHT op
-  integrationLimbo: Dictionary<IntegrationLimboValue>;
-  validationLimbo: Dictionary<ValidationLimboValue>;
+  integratedDHTOps: Dictionary<IntegratedDhtOpsValue>;    // Key is the hash of the DHT op
+  authoredDHTOps: Dictionary<AuthoredDhtOpsValue>;        // Key is the hash of the DHT op
+  integrationLimbo: Dictionary<IntegrationLimboValue>;    // Key is the hash of the DHT op
+  validationLimbo: Dictionary<ValidationLimboValue>;      // Key is the hash of the DHT op
 }
 
 export interface IntegratedDhtOpsValue {

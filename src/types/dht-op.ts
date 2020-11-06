@@ -143,3 +143,9 @@ export function sortDHTOps(dhtOps: DHTOp[]): DHTOp[] {
     DHT_SORT_PRIORITY.findIndex((type) => type === dhtOp.type);
   return dhtOps.sort((dhtA: DHTOp, dhtB: DHTOp) => prio(dhtA) - prio(dhtB));
 }
+
+export function getEntry(dhtOp: DHTOp): Entry | undefined {
+  if (dhtOp.type === DHTOpType.StoreEntry) return dhtOp.entry;
+  else if (dhtOp.type === DHTOpType.StoreElement) return dhtOp.maybe_entry;
+  return undefined;
+}

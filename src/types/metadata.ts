@@ -3,7 +3,7 @@ import { Dictionary, Hash } from './common';
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/state/metadata.rs
 
 export interface Metadata {
-  system_meta: Dictionary<SysMetaVal>;
+  system_meta: Dictionary<SysMetaVal[]>; // Stores an array of headers
   link_meta: Dictionary<LinkMetaVal>;
   misc_meta: Dictionary<MiscMetaVal>;
 }
@@ -42,7 +42,15 @@ export type MiscMetaVal =
     }
   | 'StoreElement'
   | { ChainItem: number }
-  | { ChainObserved: HighestObserved };
+  | { ChainObserved: HighestObserved }
+  | { ChainStatus: ChainStatus };
+
+export enum ChainStatus {
+  Empty,
+  Valid,
+  Forked,
+  Invalid,
+}
 
 export interface HighestObserved {
   header_seq: number;

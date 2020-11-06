@@ -5,7 +5,7 @@ import {
   ValidationStatus,
 } from '../../../types/cell-state';
 import { Cell } from '../../cell';
-import { getLimboDhtOps } from '../dht/get';
+import { getValidationLimboDhtOps } from '../dht/get';
 import {
   deleteValidationLimboValue,
   putIntegrationLimboValue,
@@ -14,7 +14,7 @@ import { integrate_dht_ops_task } from './integrate_dht_ops';
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/app_validation_workflow.rs
 export const app_validation = async (cell: Cell): Promise<void> => {
-  const pendingDhtOps = getLimboDhtOps(
+  const pendingDhtOps = getValidationLimboDhtOps(
     cell.state,
     ValidationLimboStatus.SysValidated
   );
