@@ -2,17 +2,25 @@ import { compareBigInts, distance } from '../../processors/hash';
 import { AgentPubKey, Dictionary, Hash } from '../../types/common';
 import { DHTOp } from '../../types/dht-op';
 import { CellId } from '../cell';
-import { Conductor } from '../conductor';
-import { NetworkMessage } from '../network';
+import { Network, NetworkMessage } from '../network';
+
+export type P2pCellState = {
+  peers: string[];
+  redundancyFactor: number;
+};
 
 // From: https://github.com/holochain/holochain/blob/develop/crates/holochain_p2p/src/types/actor.rs
 export class P2pCell {
+  peers: string[];
+  redundancyFactor: number;
+
   constructor(
-    protected conductor: Conductor,
+    state: P2pCellState,
     protected cellId: CellId,
-    protected peers: Array<AgentPubKey> = [],
-    protected redundancyFactor: number = 3
-  ) {}
+    protected network: Network
+  ) {
+    this.peers = state.peers;
+  }
 
   async join(dnaHash: Hash, agent_pub_key: AgentPubKey): Promise<void> {}
 
@@ -65,7 +73,7 @@ export class P2pCell {
 
     if (!agentId) throw new Error('Agent was not found');
 
-    return this.conductor.sendMessage(
+    return this.network.sendMessage(
       this.cellId[1],
       this.cellId[0],
       agentId,

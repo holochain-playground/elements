@@ -9,6 +9,7 @@ import { callZomeFn } from './cell/workflows/call_zome_fn';
 import { SimulatedDna } from '../dnas/simulated-dna';
 import { getCellId } from './cell/source-chain/utils';
 import { P2pCell } from './network/p2p-cell';
+import { incoming_dht_ops } from './cell/workflows/incoming_dht_ops';
 
 export type CellId = [AgentPubKey, Hash];
 
@@ -16,8 +17,7 @@ export class Cell {
   #pendingWorkflows: Array<Task<any>> = [];
   executor: Executor = new ImmediateExecutor();
 
-  private constructor(
-    public conductor: Conductor,
+  constructor(
     public state: CellState,
     public p2p: P2pCell,
     public simulatedDna?: SimulatedDna | undefined
@@ -31,25 +31,30 @@ export class Cell {
     conductor: Conductor,
     simulatedDna: SimulatedDna,
     agentId: AgentPubKey,
-    dnaHash: Hash,
     membrane_proof: any
   ): Promise<Cell> {
     const newCellState: CellState = {
       CAS: {},
-      CASMeta: {},
+      integrationLimbo: {},
+      metadata: {
+        link_meta: {},
+        misc_meta: {},
+        system_meta: {},
+      },
+      validationLimbo: {},
       integratedDHTOps: {},
       authoredDHTOps: {},
       sourceChain: [],
     };
 
-    const p2p = conductor.createP2pCell([agentId, dnaHash]);
+    const p2p = conductor.network.createP2pCell([agentId, simulatedDna.hash]);
 
-    const cell = new Cell(conductor, newCellState, p2p, simulatedDna);
+    const cell = new Cell(newCellState, p2p, simulatedDna);
 
     await cell.executor.execute({
       name: 'Genesis Workflow',
       description: 'Initialize the cell with all the needed databases',
-      task: () => genesis(agentId, dnaHash, membrane_proof)(cell.state),
+      task: () => genesis(agentId, simulatedDna.hash, membrane_proof)(cell.state),
     });
 
     return cell;
@@ -71,6 +76,8 @@ export class Cell {
     this.#pendingWorkflows = [];
   }
 
+  /** Workflows */
+
   callZomeFn(args: {
     zome: string;
     fnName: string;
@@ -91,5 +98,7 @@ export class Cell {
     from_agent: AgentPubKey,
     dht_hash: Hash, // The basis for the DHTOps
     ops: Dictionary<DHTOp>
-  ): Promise<void> {}
+  ): Promise<void> {
+    return incoming_dht_ops(dht_hash, ops, from_agent)(this);
+  }
 }

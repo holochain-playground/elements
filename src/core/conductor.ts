@@ -1,96 +1,45 @@
-import { Dictionary } from './common';
-import { Cell, CellContents, CellId } from '../core/cell';
+import { Cell, CellId } from '../core/cell';
 import { hash } from '../processors/hash';
-import { SendMessage, NetworkMessage, Network } from './network';
-import { P2pCell } from './network/p2p-cell';
-import { Hash } from '../types/common';
+import { Network, NetworkState } from './network';
+import { CellState } from '../types/cell-state';
+import { SimulatedDna } from '../dnas/simulated-dna';
 
-export interface ConductorContents {
-  agentIds: string[];
-  cells: Dictionary<CellContents>;
-  redundancyFactor: number;
+export interface ConductorState {
+  cellsState: Array<{ id: CellId; state: CellState; dna?: SimulatedDna }>;
+  networkState: NetworkState;
 }
 
-export type ConductorOptions =
-  | {
-      seed: string;
-    }
-  | { agentIds: string[] };
-
 export class Conductor {
-  agentIds: string[];
-  readonly cells: Dictionary<Cell> = {};
-  networkSim: SendMessage;
+  readonly cells: Array<{ id: CellId; cell: Cell }>;
+  network: Network;
 
-  readyPromise: Promise<string[]>;
-
-  constructor(
-    protected redundancyFactor: number,
-    protected options?: ConductorOptions
-  ) {
-    if (options && (options as { agentIds: string[] }).agentIds) {
-      this.agentIds = (options as { agentIds: string[] }).agentIds;
-    } else {
-      let seed;
-      if (options && (options as any).seed) {
-        seed = (options as any).seed;
-      } else {
-        seed = Math.random().toString().substring(2);
-      }
-      this.readyPromise = hash(`${seed}${0}`).then(
-        (h) => (this.agentIds = [h])
-      );
-    }
+  constructor(state: ConductorState) {
+    this.network = new Network(state.networkState);
+    this.cells = state.cellsState.map(({ id, state, dna }) => ({
+      id,
+      cell: new Cell(state, this.network.createP2pCell(id), dna),
+    }));
   }
 
-  static from(contents: ConductorContents) {
-    const conductor = new Conductor(contents.redundancyFactor, {
-      agentIds: contents.agentIds,
-    });
-    for (const [key, cell] of Object.entries(contents.cells)) {
-      conductor.cells[key] = Cell.from(conductor, cell);
-    }
-
-    return conductor;
-  }
-
-  ready(): Promise<void> {
-    if (this.agentIds) return new Promise((r) => r());
-    else return new Promise((r) => this.readyPromise.then(() => r()));
-  }
-
-  toContents(): ConductorContents {
-    const cellContents = {};
-    for (const [key, cell] of Object.entries(this.cells)) {
-      cellContents[key] = cell.toContents();
-    }
-    return {
-      agentIds: this.agentIds,
-      redundancyFactor: this.redundancyFactor,
-      cells: cellContents,
+  static async new(): Promise<Conductor> {
+    const state: ConductorState = {
+      cellsState: [],
+      networkState: {
+        p2pCellsState: [],
+      },
     };
+
+    return new Conductor(state);
   }
 
-  installDna(dna: string, peers: string[]): Cell {
-    const agentId = this.agentIds[0];
-    const cell = new Cell(this, dna, agentId, this.redundancyFactor, peers);
-    this.cells[dna] = cell;
+  async installDna(dna: SimulatedDna, membrane_proof: any): Promise<Cell> {
+    const rand = Math.random().toString();
+    const agentId = await hash(rand);
+
+    const cell = await Cell.create(this, dna, agentId, membrane_proof);
+
+    this.cells.push({ id: cell.cellId, cell });
 
     return cell;
   }
-
-  initDna(dna: string) {
-    this.cells[dna].init();
-  }
-
-  createP2pCell(cellId: CellId): P2pCell {
-    return new P2pCell(this, cellId, this.peers);
-  }
-
-  sendMessage<T>(
-    dna: Hash,
-    fromAgent: Hash,
-    toAgent: Hash,
-    message: NetworkMessage<T>
-  ): Promise<T> {}
 }
