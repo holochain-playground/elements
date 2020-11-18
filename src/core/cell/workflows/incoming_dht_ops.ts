@@ -3,7 +3,7 @@ import {
   ValidationLimboValue,
 } from '../../../types/cell-state';
 import { AgentPubKey, Dictionary, Hash } from '../../../types/common';
-import { DHTOp, getDHTOpBasis } from '../../../types/dht-op';
+import { DHTOp } from '../../../types/dht-op';
 import { Cell } from '../../cell';
 import { putValidationLimboValue } from '../dht/put';
 import { sys_validation_task } from './sys_validation';

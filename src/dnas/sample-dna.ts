@@ -11,11 +11,12 @@ export const sampleZome: SimulatedZome = {
   ],
 };
 
-export async function sampleDna(): Promise<SimulatedDna> {
+export function sampleDna(): SimulatedDna {
+  const zomes = {
+    sample: sampleZome,
+  };
   return {
-    hash: await hash('asdfasf'),
-    zomes: {
-      sample: sampleZome,
-    },
+    hash: hash(zomes),
+    zomes,
   };
 }

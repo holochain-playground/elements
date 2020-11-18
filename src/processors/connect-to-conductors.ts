@@ -1,5 +1,4 @@
-import { connect } from '@holochain/hc-web-client';
-import { Blackboard } from '../blackboard/blackboard';
+/* import { Blackboard } from '../blackboard/blackboard';
 import { Playground } from '../state/playground';
 import { Conductor } from '../types/conductor';
 import { hookUpConductors } from './message';
@@ -36,7 +35,6 @@ export async function connectToConductors(
     activeDNA: null,
     activeEntryId: null,
     conductors: [],
-    redundancyFactor: 1,
     conductorsUrls,
   };
 
@@ -284,3 +282,4 @@ export function processLinkContent(
     tag: typeTag[1],
   };
 }
+ */

@@ -1,4 +1,11 @@
-import { AgentPubKey, Dictionary, Hash } from '../types/common';
+import {
+  AgentPubKey,
+  CellId,
+  Dictionary,
+  getAgentPubKey,
+  getDnaHash,
+  Hash,
+} from '../types/common';
 import { DHTOp } from '../types/dht-op';
 import { Conductor } from './conductor';
 import { CellState } from '../types/cell-state';
@@ -11,11 +18,10 @@ import { getCellId } from './cell/source-chain/utils';
 import { P2pCell } from './network/p2p-cell';
 import { incoming_dht_ops } from './cell/workflows/incoming_dht_ops';
 
-export type CellId = [AgentPubKey, Hash];
-
 export class Cell {
-  #pendingWorkflows: Array<Task<any>> = [];
   executor: Executor = new ImmediateExecutor();
+  #pendingWorkflows: Array<Task<any>> = [];
+  #signalListeners: Array<(s: string) => void> = [];
 
   constructor(
     public state: CellState,
@@ -25,6 +31,14 @@ export class Cell {
 
   get cellId(): CellId {
     return getCellId(this.state);
+  }
+
+  get agentPubKey(): AgentPubKey {
+    return getAgentPubKey(this.cellId);
+  }
+
+  get dnaHash(): Hash {
+    return getDnaHash(this.cellId);
   }
 
   static async create(
@@ -37,7 +51,7 @@ export class Cell {
       CAS: {},
       integrationLimbo: {},
       metadata: {
-        link_meta: {},
+        link_meta: [],
         misc_meta: {},
         system_meta: {},
       },
@@ -54,10 +68,15 @@ export class Cell {
     await cell.executor.execute({
       name: 'Genesis Workflow',
       description: 'Initialize the cell with all the needed databases',
-      task: () => genesis(agentId, simulatedDna.hash, membrane_proof)(cell.state),
+      task: () =>
+        genesis(agentId, simulatedDna.hash, membrane_proof)(cell.state),
     });
 
     return cell;
+  }
+
+  getState(): CellState {
+    return this.state;
   }
 
   triggerWorkflow(workflow: Task<any>) {
@@ -67,9 +86,12 @@ export class Cell {
   }
 
   async _runPendingWorkflows() {
-    const promises = this.#pendingWorkflows.map((w) =>
-      this.executor.execute(w)
-    );
+    const promises = this.#pendingWorkflows.map((w) => {
+      this.sendCellSignal(`Before: ${w.name}`);
+      this.executor
+        .execute(w)
+        .then(() => this.sendCellSignal(`After: ${w.name}`));
+    });
 
     await Promise.all(promises);
 
@@ -100,5 +122,14 @@ export class Cell {
     ops: Dictionary<DHTOp>
   ): Promise<void> {
     return incoming_dht_ops(dht_hash, ops, from_agent)(this);
+  }
+
+  /** Simulation helpers */
+  public onCellSignal(listener: (message: string) => void) {
+    this.#signalListeners.push(listener);
+  }
+
+  private sendCellSignal(message: string) {
+    this.#signalListeners.forEach((l) => l(message));
   }
 }

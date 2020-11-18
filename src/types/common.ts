@@ -5,9 +5,12 @@ export type Dictionary<T> = {
 export type Hash = string;
 export type AgentPubKey = string;
 
-export type EntryVisibility = string;
-export type AppEntryType = {
-  id: number;
-  zome_id: number;
-  visibility: EntryVisibility;
-};
+export type CellId = [AgentPubKey, Hash];
+
+export function getAgentPubKey(cellId: CellId): AgentPubKey {
+  return cellId[0];
+}
+
+export function getDnaHash(cellId: CellId): Hash {
+  return cellId[1];
+}

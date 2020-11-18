@@ -1,80 +1,44 @@
-import multihashing from 'multihashing-async';
-
-import { Buffer } from 'buffer';
-import CID from 'cids';
-import bitwise from 'bitwise';
 import { Dictionary } from '../types/common';
-import { Encoding } from '@holochain/hcid-js';
+import blake from 'blakejs';
+import * as base64 from 'byte-base64';
 
-export async function hash(content: any): Promise<string> {
+// From https://github.com/holochain/holochain/blob/dc0cb61d0603fa410ac5f024ed6ccfdfc29715b3/crates/holo_hash/src/encode.rs
+
+export function hash(content: any): string {
   const contentString =
     typeof content === 'string' ? content : JSON.stringify(content);
-  const buffer = Buffer.from(contentString, 'utf-8');
 
-  const encoded = await multihashing(buffer, 'sha2-256');
-  const cid = new CID(0, 'dag-pb', encoded);
+  const hashBytes = blake.blake2b(contentString, null, 32);
 
-  return cid.toString();
+  return base64.bytesToBase64(hashBytes);
 }
 
 export const hashLocation: Dictionary<number> = {};
-(new Encoding('hcs0') as any).then((enc) => (window['enc'] = enc));
-
-function hashBytes(hash: string): Uint8Array {
-  try {
-    return multihashing.multihash.fromB58String(hash).slice(2);
-  } catch (e) {
-    return window['enc'].decode(hash);
-  }
-}
 
 export function location(hash: string): number {
   if (hashLocation[hash]) return hashLocation[hash];
 
-  const bytes = hashBytes(hash);
-  const hexes = arrayToHexes(bytes);
+  const hash128: Uint8Array = blake.blake2b(hash, null, 16);
 
-  let xor = Buffer.from(hexes[0].slice(2), 'hex');
+  const out = [hash128[0], hash128[1], hash128[2], hash128[3]];
 
-  for (let i = 1; i < hexes.length; i++) {
-    xor = bitwise.buffer.xor(xor, Buffer.from(hexes[i].slice(2), 'hex'));
+  for (let i = 4; i < 16; i += 4) {
+    out[0] = out[0] ^ hash128[i];
+    out[1] = out[1] ^ hash128[i + 1];
+    out[2] = out[2] ^ hash128[i + 2];
+    out[3] = out[3] ^ hash128[i + 3];
   }
-  const location = xor.readUIntBE(0, xor.length);
 
-  hashLocation[hash] = location;
-
-  return location;
+  const view = new DataView(new Uint8Array(out), 0);
+  return view.getUint32(0, false);
 }
 
-const limit = Math.pow(2, 32) - 1;
-
+// We return the distance as the shortest distance between two hashes in the circle
 export function distance(hash1: string, hash2: string): number {
   const location1 = location(hash1);
   const location2 = location(hash2);
 
-  if (location2 >= location1) return location2 - location1;
-  return limit - location1 + location2 + 1;
-}
-
-export function arrayToHexes(array: Uint8Array): string[] {
-  var hexes = [];
-
-  const sliceSize = array.length / 8;
-
-  for (let i = 0; i < 8; i++) {
-    const subarray = array.subarray(i * sliceSize, (i + 1) * sliceSize);
-    let hex = [];
-    subarray.forEach(function (i) {
-      var h = i.toString(16);
-      if (h.length % 2) {
-        h = '0' + h;
-      }
-      hex.push(h);
-    });
-    hexes.push('0x' + hex.join(''));
-  }
-
-  return hexes;
+  return Math.min(location1 - location2, location2 - location1);
 }
 
 export function compareBigInts(a: number, b: number): number {

@@ -1,7 +1,7 @@
 import { hash } from '../../../processors/hash';
 import { CellState } from '../../../types/cell-state';
 import { AgentPubKey, Hash } from '../../../types/common';
-import { Entry, EntryType } from '../../../types/entry';
+import { Entry, EntryType, hashEntry } from '../../../types/entry';
 import {
   AgentValidationPkg,
   Create,
@@ -34,12 +34,12 @@ export function buildAgentValidationPkg(
   return pkg;
 }
 
-export async function buildCreate(
+export function buildCreate(
   state: CellState,
   entry: Entry,
   entry_type: EntryType
-): Promise<Create> {
-  const entry_hash = await hash(entry);
+): Create {
+  const entry_hash = hashEntry(entry);
 
   const create: Create = {
     ...buildCommon(state),

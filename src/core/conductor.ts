@@ -21,7 +21,7 @@ export class Conductor {
     }));
   }
 
-  static async new(): Promise<Conductor> {
+  static async create(): Promise<Conductor> {
     const state: ConductorState = {
       cellsState: [],
       networkState: {
@@ -30,6 +30,16 @@ export class Conductor {
     };
 
     return new Conductor(state);
+  }
+
+  getState(): ConductorState {
+    return {
+      networkState: this.network.getState(),
+      cellsState: this.cells.map((c) => ({
+        id: c.id,
+        state: c.cell.getState(),
+      })),
+    };
   }
 
   async installDna(dna: SimulatedDna, membrane_proof: any): Promise<Cell> {
@@ -41,5 +51,11 @@ export class Conductor {
     this.cells.push({ id: cell.cellId, cell });
 
     return cell;
+  }
+
+  getCells(dnaHash: string): Cell[] {
+    return this.cells
+      .filter((cell) => cell.id[1] === dnaHash)
+      .map((c) => c.cell);
   }
 }

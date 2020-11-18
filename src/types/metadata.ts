@@ -1,10 +1,13 @@
 import { Dictionary, Hash } from './common';
+import { NewEntryHeader } from './header';
+import { Timestamp } from './timestamp';
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/state/metadata.rs
 
 export interface Metadata {
-  system_meta: Dictionary<SysMetaVal[]>; // Stores an array of headers
-  link_meta: Dictionary<LinkMetaVal>;
+  // Stores an array of headers indexed by entry hash
+  system_meta: Dictionary<SysMetaVal[]>;
+  link_meta: Array<{ key: LinkMetaKey; value: LinkMetaVal }>;
   misc_meta: Dictionary<MiscMetaVal>;
 }
 
@@ -28,10 +31,31 @@ export type SysMetaVal =
       CustomPackage: Hash;
     };
 
+export function getSysMetaValHeaderHash(
+  sys_meta_val: SysMetaVal
+): Hash | undefined {
+  if ((sys_meta_val as { NewEntry: Hash }).NewEntry)
+    return (sys_meta_val as { NewEntry: Hash }).NewEntry;
+  if ((sys_meta_val as { Update: Hash }).Update)
+    return (sys_meta_val as { Update: Hash }).Update;
+  if ((sys_meta_val as { Delete: Hash }).Delete)
+    return (sys_meta_val as { Delete: Hash }).Delete;
+  if ((sys_meta_val as { Activity: Hash }).Activity)
+    return (sys_meta_val as { Activity: Hash }).Activity;
+  return undefined;
+}
+
+export interface LinkMetaKey {
+  base: Hash;
+  zome_id: number;
+  tag: any;
+  header_hash: Hash;
+}
+
 export interface LinkMetaVal {
   link_add_hash: Hash;
   target: Hash;
-  timestamp: number;
+  timestamp: Timestamp;
   zome_id: number;
   tag: any;
 }
@@ -41,7 +65,7 @@ export type MiscMetaVal =
       EntryStatus: EntryDhtStatus;
     }
   | 'StoreElement'
-  | { ChainItem: number }
+  | { ChainItem: Timestamp }
   | { ChainObserved: HighestObserved }
   | { ChainStatus: ChainStatus };
 
@@ -73,4 +97,10 @@ export enum EntryDhtStatus {
   Withdrawn,
   /// **not implemented** We have agreed to drop this [Entry] content from the system. Header can stay with no entry
   Purged,
+}
+
+export interface EntryDetails {
+  headers: NewEntryHeader[];
+  links: LinkMetaVal[];
+  dhtStatus: EntryDhtStatus;
 }

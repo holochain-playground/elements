@@ -7,13 +7,15 @@ import {
 } from '../../../types/cell-state';
 import { Hash } from '../../../types/common';
 import { DHTOp, DHTOpType, getEntry } from '../../../types/dht-op';
+import { hashEntry } from '../../../types/entry';
 import { Header, HeaderType } from '../../../types/header';
 import {
   ChainStatus,
   EntryDhtStatus,
+  LinkMetaKey,
+  LinkMetaVal,
   SysMetaVal,
 } from '../../../types/metadata';
-import { Cell } from '../../cell';
 
 export const putValidationLimboValue = (
   dhtOpHash: Hash,
@@ -37,13 +39,13 @@ export const putIntegrationLimboValue = (
 };
 
 export const putDhtOpData = (dhtOp: DHTOp) => async (state: CellState) => {
-  const headerHash = await hash(dhtOp.header);
+  const headerHash = hash(dhtOp.header);
   state.CAS[headerHash] = dhtOp.header;
 
   const entry = getEntry(dhtOp);
 
   if (entry) {
-    const entryHash = await hash(entry);
+    const entryHash = hashEntry(entry);
     state.CAS[entryHash] = entry;
   }
 };
@@ -103,13 +105,21 @@ export const putDhtOpMetadata = (dhtOp: DHTOp) => async (state: CellState) => {
       EntryStatus: EntryDhtStatus.Dead,
     };
   } else if (dhtOp.type === DHTOpType.RegisterAddLink) {
-    state.metadata.link_meta[headerHash] = {
+    const key: LinkMetaKey = {
+      base: dhtOp.header.base_address,
+      header_hash: headerHash,
+      tag: dhtOp.header.tag,
+      zome_id: dhtOp.header.zome_id,
+    };
+    const value: LinkMetaVal = {
       link_add_hash: headerHash,
       tag: dhtOp.header.tag,
       target: dhtOp.header.target_address,
       timestamp: dhtOp.header.timestamp,
       zome_id: dhtOp.header.zome_id,
     };
+    state.metadata.link_meta.push({ key, value });
+    
   } else if (dhtOp.type === DHTOpType.RegisterRemoveLink) {
     const val: SysMetaVal = {
       DeleteLink: headerHash,

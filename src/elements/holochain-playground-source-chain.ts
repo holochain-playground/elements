@@ -8,7 +8,7 @@ import { isEqual } from 'lodash-es';
 import { sharedStyles } from './sharedStyles';
 import { Playground } from '../state/playground';
 import { blackboardConnect } from '../blackboard/blackboard-connect';
-import { selectActiveCell, selectActiveEntry } from '../state/selectors';
+import { selectActiveCell } from '../state/selectors';
 cytoscape.use(dagre); // register extension
 
 export class SourceChain extends blackboardConnect<Playground>(

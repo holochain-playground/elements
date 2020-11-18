@@ -1,21 +1,8 @@
-import { SendMessage, NetworkMessage } from "../types/network";
-import { Conductor } from "../types/conductor";
-
+import { Conductor } from '../core/conductor';
 export function hookUpConductors(conductors: Conductor[]) {
-  const sendMessage: SendMessage = (
-    dna: string,
-    fromAgentId: string,
-    toAgentId: string,
-    message: NetworkMessage
-  ) => {
-    const conductor = conductors.find((c) =>
-      c.agentIds.find((a) => a === toAgentId)
-    );
-    if (conductor)
-      return conductor.inboundNetworkMessage(dna, fromAgentId, message);
-  };
-
-  for (const conductor of conductors) {
-    conductor.sendMessage = sendMessage;
+  for (let i = 1; i < conductors.length; i++) {
+    for (let j = 0; j < i; j++) {
+      conductors[i].network.connectWith(conductors[j]);
+    }
   }
 }

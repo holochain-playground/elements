@@ -1,16 +1,15 @@
-import { Conductor } from "../types/conductor";
-import { hookUpConductors } from "./message";
+import { Conductor } from '../core/conductor';
+import { SimulatedDna } from '../dnas/simulated-dna';
+import { hookUpConductors } from './message';
 
 export async function createConductors(
   conductorsToCreate: number,
   currentConductors: Conductor[],
-  redundancyFactor: number,
-  dna: string
+  dna: SimulatedDna
 ): Promise<Conductor[]> {
   const newConductors: Conductor[] = [];
   for (let i = 0; i < conductorsToCreate; i++) {
-    const conductor = new Conductor(redundancyFactor);
-    await conductor.ready()
+    const conductor = await Conductor.create();
     newConductors.push(conductor);
   }
 
@@ -18,17 +17,9 @@ export async function createConductors(
 
   hookUpConductors(allConductors);
 
-  const peers = allConductors.map((c) => c.agentIds[0]);
-
   for (const conductor of newConductors) {
-    conductor.installDna(
-      dna,
-      peers.filter((p) => p !== conductor.agentIds[0])
-    );
+    conductor.installDna(dna, null);
   }
 
-  for (const conductor of newConductors) {
-    conductor.initDna(dna);
-  }
   return allConductors;
 }

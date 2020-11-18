@@ -1,4 +1,6 @@
-import { AgentPubKey, EntryType, Hash, Timestamp } from './common';
+import { AgentPubKey, Hash } from './common';
+import { EntryType } from './entry';
+import { Timestamp } from './timestamp';
 
 export enum HeaderType {
   Dna = 'Dna',

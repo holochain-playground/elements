@@ -1,10 +1,10 @@
-import { Conductor } from '../types/conductor';
+import { Conductor } from "../core/conductor";
+import { Hash } from "../types/common";
 
 export interface Playground {
-  activeDNA: string;
-  activeAgentId: string | undefined;
-  activeEntryId: string | undefined;
+  activeDNA: Hash;
+  activeAgentId: Hash | undefined;
+  activeEntryId: Hash | undefined;
   conductors: Conductor[];
-  redundancyFactor: number;
   conductorsUrls: string[] | undefined;
 }

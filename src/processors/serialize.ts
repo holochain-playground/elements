@@ -1,15 +1,15 @@
+import { Conductor } from '../core/conductor';
 import { Playground } from '../state/playground';
-import { Conductor } from '../types/conductor';
 import { hookUpConductors } from './message';
 
 export function serializePlayground(state: Playground): string {
   if (!state) return '';
 
-  const conductorContents = state.conductors.map((c) => c.toContents());
+  const conductorStates = state.conductors.map((c) => c.getState());
 
   const preState = {
     ...state,
-    conductors: conductorContents,
+    conductors: conductorStates,
   };
   return JSON.stringify(preState);
 }
@@ -19,7 +19,7 @@ export function deserializePlayground(stateString: string): Playground {
 
   const preState = JSON.parse(stateString);
 
-  const conductors = preState.conductors.map((c) => Conductor.from(c));
+  const conductors = preState.conductors.map((c) => new Conductor(c));
 
   hookUpConductors(conductors);
 

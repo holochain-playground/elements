@@ -1,11 +1,11 @@
-import { Playground } from "../state/playground";
-import { Conductor } from "../types/conductor";
-import { hookUpConductors } from "./message";
+import { Conductor } from '../core/conductor';
+import { Playground } from '../state/playground';
+import { hookUpConductors } from './message';
 
 export function downloadFile(name: string, blob: Blob) {
   const url = window.URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.style.display = "none";
+  const a = document.createElement('a');
+  a.style.display = 'none';
   a.href = url;
   // the filename you want
   a.download = name;
@@ -15,7 +15,7 @@ export function downloadFile(name: string, blob: Blob) {
 }
 
 export function fileToPlayground(json): Playground {
-  const conductors = json.conductors.map((c) => Conductor.from(c));
+  const conductors = json.conductors.map((c) => new Conductor(c));
   hookUpConductors(conductors);
   return {
     ...json,

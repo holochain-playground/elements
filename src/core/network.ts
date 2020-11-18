@@ -8,8 +8,11 @@ export interface NetworkState {
 }
 
 export class Network {
-  p2pCells: Array<{ id: CellId; p2pCell: P2pCell }>; // Cell connection segmentated by [dna][agent_pub_key]
-  peerCells: Dictionary<Dictionary<Cell>>; // Cell connection segmentated by [dna][agent_pub_key]
+  // P2pCells contained in this conductor
+  p2pCells: Array<{ id: CellId; p2pCell: P2pCell }>;
+
+  // Cell connection segmentated by [dna][agent_pub_key]
+  peerCells: Dictionary<Dictionary<Cell>>;
 
   constructor(state: NetworkState) {
     this.p2pCells = state.p2pCellsState.map((s) => ({
@@ -18,10 +21,23 @@ export class Network {
     }));
   }
 
-  connectWith(dnaHash: Hash, conductor: Conductor) {
-    for (const cell of conductor.cells) {
-      if (cell.id[1] === dnaHash) {
-        this.peerCells[dnaHash][cell.id[0]] = cell.cell;
+  getState(): NetworkState {
+    return {
+      p2pCellsState: this.p2pCells.map((c) => ({
+        id: c.id,
+        state: c.p2pCell.getState(),
+      })),
+    };
+  }
+
+  // TODO: change this to simulate networking if necessary
+  connectWith(conductor: Conductor) {
+    for (const myCells of this.p2pCells) {
+      const cellDna = myCells.id[1];
+      for (const cell of conductor.cells) {
+        if (cell.id[1] === cellDna) {
+          this.peerCells[cellDna][cell.id[0]] = cell.cell;
+        }
       }
     }
   }
@@ -50,7 +66,7 @@ export class Network {
     toAgent: Hash,
     message: NetworkMessage<T>
   ): Promise<T> {
-    return message(this.peerCells[dna][toAgent])
+    return message(this.peerCells[dna][toAgent]);
   }
 }
 

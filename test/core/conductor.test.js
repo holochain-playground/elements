@@ -1,5 +1,6 @@
 import { expect, fixture, html } from '@open-wc/testing';
 
+
 describe('Plugin - semantic-dom-diff', () => {
   it('can semantically compare full dom trees', async () => {
     const el = await fixture(

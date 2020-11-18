@@ -22,6 +22,13 @@ export class P2pCell {
     this.peers = state.peers;
   }
 
+  getState(): P2pCellState {
+    return {
+      peers: this.peers,
+      redundancyFactor: this.redundancyFactor,
+    };
+  }
+
   async join(dnaHash: Hash, agent_pub_key: AgentPubKey): Promise<void> {}
 
   async leave(dnaHash: Hash, agent_pub_key: AgentPubKey): Promise<void> {}
@@ -48,6 +55,10 @@ export class P2pCell {
     _options: any // TODO: complete?
   ): Promise<Element | undefined> {
     return undefined;
+  }
+
+  public getNeighbors(): Array<AgentPubKey> {
+    return this.peers;
   }
 
   private _getClosestNeighbors(

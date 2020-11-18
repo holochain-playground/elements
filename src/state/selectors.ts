@@ -1,40 +1,42 @@
 import { Playground } from './playground';
-import { DHTOp, DHTOpType } from '../types/dht-op';
+import { Cell } from '../core/cell';
+import { getEntryDetails, isHoldingEntry } from '../core/cell/dht/get';
+import { Conductor } from '../core/conductor';
+import { AgentPubKey, Hash } from '../types/common';
 
 export const selectCellCount = (state: Playground) =>
   selectActiveCells(state).length;
 
-export const selectActiveCells = (state: Playground) =>
-  state.conductors
-    .map((c) => c.cells[state.activeDNA])
-    .filter((c) => !!c);
+export const selectActiveCells = (state: Playground): Cell[] => {
+  const cells: Cell[][] = state.conductors.map((c) =>
+    c.cells
+      .filter((cell) => cell.cell.dnaHash === state.activeDNA)
+      .map((c) => c.cell)
+  );
+  return [].concat(...cells);
+};
 
 export const selectGlobalDHTOps = (state: Playground) => {
   let dhtOps = 0;
 
   for (const cell of selectActiveCells(state)) {
-    dhtOps += Object.keys(cell.DHTOpTransforms).length;
+    dhtOps += Object.keys(cell.state.integratedDHTOps).length;
   }
 
   return dhtOps;
 };
 
-export const selectHoldingCells = (state: Playground) => (
-  entryId: string
-) =>
-  selectActiveCells(state).filter(
-    (c) =>
-      !!Object.values(c.DHTOpTransforms).find(
-        (dhtOp: DHTOp) =>
-          dhtOp.type === DHTOpType.StoreEntry &&
-          dhtOp.header.entry_address === entryId
-      )
+export const selectHoldingCells = (state: Playground) => (entryHash: string) =>
+  selectActiveCells(state).filter((cell) =>
+    isHoldingEntry(cell.state, entryHash)
   );
 
 export const selectActiveConductor = (state: Playground) =>
   state.activeAgentId
     ? state.conductors.find((conductor) =>
-        conductor.agentIds.find((agentId) => agentId === state.activeAgentId)
+        conductor.cells.find(
+          (cell) => cell.cell.agentPubKey === state.activeAgentId
+        )
       )
     : undefined;
 
@@ -45,7 +47,8 @@ export const selectActiveCell = (state: Playground) => {
 
   return Object.values(conductor.cells).find(
     (cell) =>
-      cell.agentId === state.activeAgentId && cell.dna == state.activeDNA
+      cell.cell.agentPubKey === state.activeAgentId &&
+      cell.cell.dnaHash == state.activeDNA
   );
 };
 
@@ -53,7 +56,7 @@ export const selectUniqueDHTOps = (state: Playground) => {
   const globalDHTOps = {};
 
   for (const cell of selectActiveCells(state)) {
-    for (const hash of Object.keys(cell.DHTOpTransforms)) {
+    for (const hash of Object.keys(cell.state.integratedDHTOps)) {
       globalDHTOps[hash] = {};
     }
   }
@@ -61,18 +64,30 @@ export const selectUniqueDHTOps = (state: Playground) => {
   return Object.keys(globalDHTOps).length;
 };
 
-export const selectEntryMetadata = (state: Playground) => (
-  entryId: string
+export const selectEntryDetails = (state: Playground) => (
+  entryHash: string
 ) => {
   if (!state.activeDNA) return undefined;
   for (const conductor of state.conductors) {
-    const entry = conductor.cells[state.activeDNA].getEntryMetadata(entryId);
+    const cell = conductor.cells.find(
+      (c) => c.cell.dnaHash === state.activeDNA
+    );
+    if (cell) {
+      const details = getEntryDetails(cell.cell.state, entryHash);
 
-    if (entry) {
-      return entry;
+      if (details) {
+        return details;
+      }
     }
   }
   return undefined;
+};
+
+export const selectActiveCellForConductor = (state: Playground) => (
+  conductor: Conductor
+) => {
+  const cell = conductor.cells.find((c) => c.cell.dnaHash === state.activeDNA);
+  return cell ? cell.cell : undefined;
 };
 
 export const selectActiveEntry = (state: Playground) => {
@@ -80,10 +95,11 @@ export const selectActiveEntry = (state: Playground) => {
   return selectEntry(state)(state.activeEntryId);
 };
 
-export const selectEntry = (state: Playground) => (entryId: string) => {
+export const selectEntry = (state: Playground) => (entryHash: string) => {
   if (!state.activeDNA) return undefined;
   for (const conductor of state.conductors) {
-    const entry = conductor.cells[state.activeDNA].CAS[entryId];
+    const cell = selectActiveCellForConductor(state)(conductor);
+    const entry = cell.state.CAS[entryHash];
     if (entry) {
       return entry;
     }
@@ -95,7 +111,7 @@ export const selectMedianHoldingDHTOps = (state: Playground) => {
   const holdingDHTOps = [];
 
   for (const cell of selectActiveCells(state)) {
-    holdingDHTOps.push(Object.keys(cell.DHTOpTransforms).length);
+    holdingDHTOps.push(Object.keys(cell.state.integratedDHTOps).length);
   }
 
   holdingDHTOps.sort();
@@ -110,19 +126,23 @@ export const selectAllDNAs = (state: Playground) => {
 
   for (const conductor of state.conductors) {
     for (const cell of Object.values(conductor.cells)) {
-      dnas[cell.dna] = true;
+      dnas[cell.cell.dnaHash] = true;
     }
   }
   return Object.keys(dnas);
 };
 
 export const selectCell = (state: Playground) => (
-  dna: string,
-  agentId: string
+  dnaHash: Hash,
+  agentId: AgentPubKey
 ) => {
-  const conductor = state.conductors.find((c) =>
-    c.agentIds.includes(agentId)
-  );
+  for (const conductor of state.conductors) {
+    for (const cell of conductor.cells) {
+      if (cell.cell.agentPubKey === agentId && cell.cell.dnaHash === dnaHash) {
+        return cell.cell;
+      }
+    }
+  }
 
-  return conductor ? conductor.cells[dna] : null;
+  return undefined;
 };
