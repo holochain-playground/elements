@@ -25,7 +25,16 @@ export default {
 
 export const Simple = () => {
   return html`
-    <holochain-playground-container>
+    <holochain-playground-container
+      id="container"
+      @ready=${() => {
+        const container = document.getElementById('container');
+        container.blackboard.update(
+          'activeAgentId',
+          container.blackboard.state.conductors[0].cells[0].cell.agentPubKey
+        );
+      }}
+    >
       <holochain-playground-source-chain
         style="height: 100vh"
       ></holochain-playground-source-chain>

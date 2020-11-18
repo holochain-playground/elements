@@ -29,7 +29,7 @@ export function location(hash: string): number {
     out[3] = out[3] ^ hash128[i + 3];
   }
 
-  const view = new DataView(new Uint8Array(out), 0);
+  const view = new DataView(new Uint8Array(out).buffer, 0);
   return view.getUint32(0, false);
 }
 

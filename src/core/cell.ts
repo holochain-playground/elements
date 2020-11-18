@@ -69,7 +69,7 @@ export class Cell {
       name: 'Genesis Workflow',
       description: 'Initialize the cell with all the needed databases',
       task: () =>
-        genesis(agentId, simulatedDna.hash, membrane_proof)(cell.state),
+        genesis(agentId, simulatedDna.hash, membrane_proof)(cell),
     });
 
     return cell;

@@ -19,6 +19,7 @@ export class Network {
       id: s.id,
       p2pCell: new P2pCell(s.state, s.id, this),
     }));
+    this.peerCells = {};
   }
 
   getState(): NetworkState {
@@ -36,6 +37,7 @@ export class Network {
       const cellDna = myCells.id[1];
       for (const cell of conductor.cells) {
         if (cell.id[1] === cellDna) {
+          if (!this.peerCells[cellDna]) this.peerCells[cellDna] = {};
           this.peerCells[cellDna][cell.id[0]] = cell.cell;
         }
       }
@@ -46,7 +48,7 @@ export class Network {
     const peersOfTheSameDna = this.peerCells[cellId[1]];
     const peersAlreadyKnown = peersOfTheSameDna
       ? Object.keys(peersOfTheSameDna)
-      : undefined;
+      : [];
 
     const state: P2pCellState = {
       peers: peersAlreadyKnown,

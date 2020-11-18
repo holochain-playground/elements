@@ -51,17 +51,17 @@
           "default": "10"
         },
         {
-          "name": "redundancyFactor",
-          "type": "number",
-          "default": "3"
-        },
-        {
           "name": "blackboard",
           "type": "Blackboard<S>"
         },
         {
           "name": "isConnected",
           "type": "boolean"
+        }
+      ],
+      "events": [
+        {
+          "name": "ready"
         }
       ]
     },
@@ -272,11 +272,6 @@
         {
           "name": "conductorsUrls",
           "type": "string[] | undefined"
-        },
-        {
-          "name": "redundancyFactor",
-          "type": "number",
-          "default": "3"
         }
       ],
       "properties": [
@@ -292,12 +287,6 @@
           "type": "string[] | undefined"
         },
         {
-          "name": "redundancyFactor",
-          "attribute": "redundancyFactor",
-          "type": "number",
-          "default": "3"
-        },
-        {
           "name": "state",
           "type": "S"
         },
@@ -308,6 +297,11 @@
         {
           "name": "isConnected",
           "type": "boolean"
+        }
+      ],
+      "events": [
+        {
+          "name": "ready"
         }
       ]
     },

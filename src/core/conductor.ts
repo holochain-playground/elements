@@ -45,7 +45,7 @@ export class Conductor {
 
   async installDna(dna: SimulatedDna, membrane_proof: any): Promise<Cell> {
     const rand = Math.random().toString();
-    const agentId = await hash(rand);
+    const agentId = hash(rand);
 
     const cell = await Cell.create(this, dna, agentId, membrane_proof);
 

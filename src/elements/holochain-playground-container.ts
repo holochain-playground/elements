@@ -18,8 +18,8 @@ import {
 } from '../processors/serialize';
 import { Blackboard } from '../blackboard/blackboard';
 import { buildSimulatedPlayground } from '../processors/build-simulated-playground';
-import { hash } from '../processors/hash';
 import { Conductor } from '../core/conductor';
+import { VirtualTimeScheduler } from 'rxjs';
 
 export class PlaygroundContainer extends blackboardContainer<Playground>(
   'holochain-playground',
@@ -33,9 +33,6 @@ export class PlaygroundContainer extends blackboardContainer<Playground>(
 
   @property({ type: Array })
   conductorsUrls: string[] | undefined;
-
-  @property({ type: Number })
-  redundancyFactor: number = 3;
 
   @query('#snackbar')
   private snackbar: Snackbar;
@@ -60,22 +57,27 @@ export class PlaygroundContainer extends blackboardContainer<Playground>(
       conductorsUrls: this.conductorsUrls,
     };
 
-    return new Blackboard(initialPlayground, {
+    return new Blackboard(
+      initialPlayground /* {
       persistId: 'holochain-playground',
       serializer: serializePlayground,
       deserializer: deserializePlayground,
-    });
+    } */
+    );
   }
 
   async firstUpdated() {
     if (!this.conductorsUrls) {
-      const dnaHash = await hash('dna1');
       this.initialConductors = await buildSimulatedPlayground(
         this.numberOfSimulatedConductors
       );
 
+      const dnaHash = this.initialConductors[0].cells[0].cell.dnaHash;
+
       this.blackboard.update('activeDNA', dnaHash);
       this.blackboard.update('conductors', this.initialConductors);
+
+      this.dispatchEvent(new CustomEvent('ready'));
     }
 
     this.blackboard.select('conductorsUrls').subscribe(async (urls) => {

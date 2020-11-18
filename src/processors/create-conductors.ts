@@ -15,11 +15,11 @@ export async function createConductors(
 
   const allConductors = [...currentConductors, ...newConductors];
 
-  hookUpConductors(allConductors);
-
   for (const conductor of newConductors) {
-    conductor.installDna(dna, null);
+    await conductor.installDna(dna, null);
   }
+
+  hookUpConductors(allConductors);
 
   return allConductors;
 }
