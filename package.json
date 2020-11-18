@@ -9,8 +9,8 @@
     "dev": "rimraf dist && rollup -c rollup.config.ts -w",
     "test": "karma start --coverage",
     "test:watch": "concurrently --kill-others --names tsc,karma \"npm run tsc:watch\" \"karma start --auto-watch=true --single-run=false\"",
-    "analize": "wca analyze --features cssproperty member slot event --outFile custom-elements.json",
-    "storybook": "start-storybook -p 8001",
+    "analyze": "wca analyze --features cssproperty member slot event --outFile custom-elements.json",
+    "storybook": "npm run build && npm run analyze && start-storybook -p 8001",
     "storybook:build": "build-storybook",
     "storybook:publish": "gh-pages -d dist",
     "build:publish": "npm run build && cp -t dist package.json package-lock.json README.md && cd dist && npm publish"
@@ -94,6 +94,7 @@
     "storybook-addon-web-components-knobs": "^0.3.14",
     "temp-dir": "^2.0.0",
     "ts-loader": "^6.2.2",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "web-component-analyzer": "^1.1.6"
   }
 }

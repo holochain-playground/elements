@@ -1,7 +1,6 @@
 import { compareBigInts, distance } from '../../processors/hash';
-import { AgentPubKey, Dictionary, Hash } from '../../types/common';
+import { AgentPubKey, CellId, Dictionary, Hash } from '../../types/common';
 import { DHTOp } from '../../types/dht-op';
-import { CellId } from '../cell';
 import { Network, NetworkMessage } from '../network';
 
 export type P2pCellState = {

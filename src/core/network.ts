@@ -1,5 +1,5 @@
-import { Dictionary, Hash } from '../types/common';
-import { Cell, CellId } from './cell';
+import { CellId, Dictionary, Hash } from '../types/common';
+import { Cell } from './cell';
 import { Conductor } from './conductor';
 import { P2pCell, P2pCellState } from './network/p2p-cell';
 

@@ -1,8 +1,7 @@
 import { CellState } from '../../../types/cell-state';
-import { AgentPubKey, Dictionary, Hash } from '../../../types/common';
+import { AgentPubKey, CellId, Dictionary, Hash } from '../../../types/common';
 import { Dna, Header, HeaderType } from '../../../types/header';
 import { Element } from '../../../types/element';
-import { CellId } from '../../cell';
 import { DHTOp } from '../../../types/dht-op';
 
 export function getTipOfChain(cellState: CellState): string {

@@ -7,6 +7,7 @@ import {
   selectUniqueDHTOps,
   selectMedianHoldingDHTOps,
   selectRedundancyFactor,
+  selectActiveCellsForConductor,
 } from '../state/selectors';
 import { sharedStyles } from './sharedStyles';
 import { createConductors } from '../processors/create-conductors';
@@ -14,6 +15,7 @@ import { Dialog } from '@material/mwc-dialog';
 import { TextFieldBase } from '@material/mwc-textfield/mwc-textfield-base';
 import '@material/mwc-linear-progress';
 import { sampleDna } from '../dnas/sample-dna';
+import { Conductor } from '../core/conductor';
 
 export class DHTStats extends blackboardConnect<Playground>(
   'holochain-playground',
@@ -83,9 +85,16 @@ export class DHTStats extends blackboardConnect<Playground>(
       );
     } else if (newNodes < currentNodes) {
       const conductorsToRemove = currentNodes - newNodes;
+
+      const getMaxSourceChainLength = (conductor: Conductor) =>
+        Math.max(
+          ...selectActiveCellsForConductor(this.blackboard.state)(
+            conductor
+          ).map((cell) => cell.state.sourceChain.length)
+        );
+
       conductors = conductors.sort(
-        (c1, c2) => selectActiveCellsForConductor()
-          c1.cells[dna].sourceChain.length - c2.cells[dna].sourceChain.length
+        (c1, c2) => getMaxSourceChainLength(c1) - getMaxSourceChainLength(c2)
       );
 
       conductors.splice(0, conductorsToRemove);
@@ -116,7 +125,6 @@ export class DHTStats extends blackboardConnect<Playground>(
       }
     }
 
-    this.blackboard.update('redundancyFactor', rFactor);
     this.processing = false;
   }
 
@@ -167,7 +175,7 @@ export class DHTStats extends blackboardConnect<Playground>(
                 .disabled=${this.blackboard.state.conductorsUrls !== undefined}
                 style="width: 5em;"
                 @change=${() => this.updateDHTStats()}
-                .value=${this.blackboard.state.redundancyFactor.toString()}
+                .value=${selectRedundancyFactor(this.blackboard.state).toString()}
               ></mwc-textfield>
             </div>
             <div class="column fill">

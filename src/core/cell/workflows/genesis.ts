@@ -1,10 +1,10 @@
 import { CellState } from '../../../types/cell-state';
 import { AgentPubKey, Hash } from '../../../types/common';
-import { putElement } from '../source-chain/actions';
 import {
   buildAgentValidationPkg,
   buildDna,
 } from '../source-chain/builder-headers';
+import { putElement } from '../source-chain/put';
 
 export const genesis = (
   agentId: AgentPubKey,
@@ -13,8 +13,8 @@ export const genesis = (
 ) => async (state: CellState): Promise<void> => {
   const dna = buildDna(dnaHash, agentId);
 
-  await putElement({ header: dna, maybe_entry: null })(state);
+  putElement({ header: dna, maybe_entry: null })(state);
   
   const pkg = buildAgentValidationPkg(state, membrane_proof);
-  await putElement({ header: pkg, maybe_entry: null })(state);
+  putElement({ header: pkg, maybe_entry: null })(state);
 };

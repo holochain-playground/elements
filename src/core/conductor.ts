@@ -1,8 +1,9 @@
-import { Cell, CellId } from '../core/cell';
+import { Cell } from '../core/cell';
 import { hash } from '../processors/hash';
 import { Network, NetworkState } from './network';
 import { CellState } from '../types/cell-state';
 import { SimulatedDna } from '../dnas/simulated-dna';
+import { CellId } from '../types/common';
 
 export interface ConductorState {
   cellsState: Array<{ id: CellId; state: CellState; dna?: SimulatedDna }>;

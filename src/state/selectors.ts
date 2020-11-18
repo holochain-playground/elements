@@ -88,7 +88,10 @@ export const selectEntryDetails = (state: Playground) => (
 
 export const selectActiveCellsForConductor = (state: Playground) => (
   conductor: Conductor
-) => conductor.cells.filter((c) => c.cell.dnaHash === state.activeDNA);
+) =>
+  conductor.cells
+    .filter((c) => c.cell.dnaHash === state.activeDNA)
+    .map((c) => c.cell);
 
 export const selectActiveEntry = (state: Playground) => {
   if (!state.activeEntryId) return undefined;
@@ -99,7 +102,7 @@ export const selectEntry = (state: Playground) => (entryHash: string) => {
   if (!state.activeDNA) return undefined;
   for (const conductor of state.conductors) {
     const cell = selectActiveCellsForConductor(state)(conductor);
-    const entry = cell[0].cell.state.CAS[entryHash];
+    const entry = cell[0].state.CAS[entryHash];
     if (entry) {
       return entry;
     }
@@ -111,7 +114,7 @@ export const selectHeader = (state: Playground) => (headerHash: string) => {
   if (!state.activeDNA) return undefined;
   for (const conductor of state.conductors) {
     const cell = selectActiveCellsForConductor(state)(conductor);
-    const entry = cell[0].cell.state.CAS[headerHash];
+    const entry = cell[0].state.CAS[headerHash];
     if (entry) {
       return entry;
     }
@@ -125,10 +128,10 @@ export const selectHeaderEntry = (state: Playground) => (
   if (!state.activeDNA) return undefined;
   for (const conductor of state.conductors) {
     const cell = selectActiveCellsForConductor(state)(conductor);
-    const header = cell[0].cell.state.CAS[headerHash];
+    const header = cell[0].state.CAS[headerHash];
     if (header && (header as NewEntryHeader).entry_hash) {
       const entry =
-        cell[0].cell.state.CAS[(header as NewEntryHeader).entry_hash];
+        cell[0].state.CAS[(header as NewEntryHeader).entry_hash];
       return entry;
     }
   }
