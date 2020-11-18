@@ -3,6 +3,7 @@ import { hash } from '../../../processors/hash';
 import { CellState } from '../../../types/cell-state';
 import { elementToDHTOps } from '../../../types/dht-op';
 import { Cell } from '../../cell';
+import { getNewHeaders } from '../source-chain/get';
 import { getElement } from '../source-chain/utils';
 import { publish_dht_ops_task } from './publish_dht_ops';
 
@@ -21,10 +22,10 @@ export const produce_dht_ops = async (cell: Cell): Promise<void> => {
 
   for (const newHeaderHash of newHeaderHashes) {
     const element = getElement(cell.state, newHeaderHash);
-    const dhtOps = await elementToDHTOps(element);
+    const dhtOps = elementToDHTOps(element);
 
     for (const dhtOp of dhtOps) {
-      const dhtOpHash = await hash(dhtOp);
+      const dhtOpHash = hash(dhtOp);
       const dhtOpValue = {
         op: dhtOp,
         last_publish_time: undefined,
@@ -38,11 +39,3 @@ export const produce_dht_ops = async (cell: Cell): Promise<void> => {
   cell.triggerWorkflow(publish_dht_ops_task(cell));
 };
 
-/**
- * Returns the header hashes which don't have their DHTOps in the authoredDHTOps DB
- */
-export function getNewHeaders(state: CellState): Array<string> {
-  return state.sourceChain.filter((headerHash) =>
-    Object.keys(state.authoredDHTOps).includes(headerHash)
-  );
-}

@@ -43,6 +43,12 @@ export class Conductor {
     };
   }
 
+  getCells(dnaHash: string): Cell[] {
+    return this.cells
+      .filter((cell) => cell.id[1] === dnaHash)
+      .map((c) => c.cell);
+  }
+
   async installDna(dna: SimulatedDna, membrane_proof: any): Promise<Cell> {
     const rand = Math.random().toString();
     const agentId = hash(rand);
@@ -54,9 +60,27 @@ export class Conductor {
     return cell;
   }
 
-  getCells(dnaHash: string): Cell[] {
-    return this.cells
-      .filter((cell) => cell.id[1] === dnaHash)
-      .map((c) => c.cell);
+  callZomeFn(args: {
+    cellId: CellId;
+    zome: string;
+    fnName: string;
+    payload: any;
+    cap: string;
+  }): Promise<any> {
+    const cell = this.cells.find(
+      (cell) => cell.id[0] === args.cellId[0] && cell.id[1] === args.cellId[1]
+    );
+
+    if (!cell)
+      throw new Error(
+        `No cells existst with cellId ${args.cellId[0]}:${args.cellId[1]}`
+      );
+
+    return cell.cell.callZomeFn({
+      zome: args.zome,
+      cap: args.cap,
+      fnName: args.fnName,
+      payload: args.payload,
+    });
   }
 }

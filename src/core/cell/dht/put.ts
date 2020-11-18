@@ -16,6 +16,7 @@ import {
   LinkMetaVal,
   SysMetaVal,
 } from '../../../types/metadata';
+import { getHeadersForEntry } from './get';
 
 export const putValidationLimboValue = (
   dhtOpHash: Hash,
@@ -51,22 +52,20 @@ export const putDhtOpData = (dhtOp: DHTOp) => async (state: CellState) => {
 };
 
 export const putDhtOpMetadata = (dhtOp: DHTOp) => async (state: CellState) => {
-  const headerHash = await hash(dhtOp.header);
+  const headerHash = hash(dhtOp.header);
 
   if (dhtOp.type === DHTOpType.StoreElement) {
     state.metadata.misc_meta[headerHash] = 'StoreElement';
   } else if (dhtOp.type === DHTOpType.StoreEntry) {
-    const entryHash = await hash(dhtOp.entry);
+    const entryHash = dhtOp.header.entry_hash;
 
     if (dhtOp.header.type === HeaderType.Update) {
       await register_header_on_basis(headerHash, dhtOp.header)(state);
       await register_header_on_basis(entryHash, dhtOp.header)(state);
     }
 
-    await register_header_on_basis(
-      dhtOp.header.entry_hash,
-      dhtOp.header
-    )(state);
+    await register_header_on_basis(entryHash, dhtOp.header)(state);
+    update_entry_dht_status(entryHash)(state);
   } else if (dhtOp.type === DHTOpType.RegisterAgentActivity) {
     state.metadata.misc_meta[headerHash] = {
       ChainItem: dhtOp.header.timestamp,
@@ -87,6 +86,7 @@ export const putDhtOpMetadata = (dhtOp: DHTOp) => async (state: CellState) => {
       dhtOp.header.original_entry_address,
       dhtOp.header
     )(state);
+    update_entry_dht_status(dhtOp.header.original_entry_address)(state);
   } else if (
     dhtOp.type === DHTOpType.RegisterDeletedBy ||
     dhtOp.type === DHTOpType.RegisterDeletedEntryHeader
@@ -100,10 +100,7 @@ export const putDhtOpMetadata = (dhtOp: DHTOp) => async (state: CellState) => {
       dhtOp.header
     )(state);
 
-    // TODO compute entryStatus
-    state.metadata.misc_meta[dhtOp.header.deletes_entry_address] = {
-      EntryStatus: EntryDhtStatus.Dead,
-    };
+    update_entry_dht_status(dhtOp.header.deletes_entry_address)(state);
   } else if (dhtOp.type === DHTOpType.RegisterAddLink) {
     const key: LinkMetaKey = {
       base: dhtOp.header.base_address,
@@ -119,7 +116,6 @@ export const putDhtOpMetadata = (dhtOp: DHTOp) => async (state: CellState) => {
       zome_id: dhtOp.header.zome_id,
     };
     state.metadata.link_meta.push({ key, value });
-    
   } else if (dhtOp.type === DHTOpType.RegisterRemoveLink) {
     const val: SysMetaVal = {
       DeleteLink: headerHash,
@@ -127,6 +123,23 @@ export const putDhtOpMetadata = (dhtOp: DHTOp) => async (state: CellState) => {
 
     putSystemMetadata(dhtOp.header.link_add_address, val)(state);
   }
+};
+
+const update_entry_dht_status = (entryHash: string) => (state: CellState) => {
+  const headers = getHeadersForEntry(state, entryHash);
+
+  const entryIsAlive = headers.some((header) =>
+    state.metadata.system_meta[hash(header)].find(
+      (metaVal) =>
+        (metaVal as {
+          Delete: Hash;
+        }).Delete
+    )
+  );
+
+  state.metadata.misc_meta[entryHash] = {
+    EntryStatus: entryIsAlive ? EntryDhtStatus.Live : EntryDhtStatus.Dead,
+  };
 };
 
 export const register_header_on_basis = (basis: Hash, header: Header) => async (

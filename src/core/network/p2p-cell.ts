@@ -64,7 +64,7 @@ export class P2pCell {
     basisHash: Hash,
     neighborCount: number
   ): Array<AgentPubKey> {
-    const sortedPeers = [this.cellId[0], ...this.peers].sort(
+    const sortedPeers = this.peers.sort(
       (agentA: string, agentB: string) => {
         const distanceA = distance(basisHash, agentA);
         const distanceB = distance(basisHash, agentB);
@@ -81,7 +81,10 @@ export class P2pCell {
   ): Promise<T> {
     const agentId = this.peers.find((agent) => agent === toAgent);
 
-    if (!agentId) throw new Error('Agent was not found');
+    if (!agentId) {
+      debugger
+      throw new Error('Agent was not found');
+    }
 
     return this.network.sendMessage(
       this.cellId[1],

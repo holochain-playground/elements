@@ -12,6 +12,7 @@ import {
   getSysMetaValHeaderHash,
   LinkMetaVal,
 } from '../../../types/metadata';
+import { uniq } from 'lodash-es';
 
 export function getValidationLimboDhtOps(
   state: CellState,
@@ -62,9 +63,13 @@ export function getEntryDhtStatus(
   state: CellState,
   entryHash: Hash
 ): EntryDhtStatus {
-  return (state.metadata.misc_meta[entryHash] as {
-    EntryStatus: EntryDhtStatus;
-  }).EntryStatus;
+  const meta = state.metadata.misc_meta[entryHash];
+
+  return meta
+    ? (meta as {
+        EntryStatus: EntryDhtStatus;
+      }).EntryStatus
+    : undefined;
 }
 
 export function getEntryDetails(
@@ -91,7 +96,11 @@ export function getAllHeldEntries(state: CellState): string[] {
     (h) => (h as NewEntryHeader).entry_hash
   );
 
-  return newEntryHeaders.map((h) => (h as NewEntryHeader).entry_hash);
+  const allEntryHashes = newEntryHeaders.map(
+    (h) => (h as NewEntryHeader).entry_hash
+  );
+
+  return uniq(allEntryHashes);
 }
 
 export function isHoldingEntry(state: CellState, entryHash: Hash): boolean {
@@ -99,6 +108,7 @@ export function isHoldingEntry(state: CellState, entryHash: Hash): boolean {
 }
 
 export function getDhtShard(state: CellState): Dictionary<EntryDetails> {
+  debugger;
   const heldEntries = getAllHeldEntries(state);
 
   const dhtShard: Dictionary<EntryDetails> = {};

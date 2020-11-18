@@ -68,8 +68,7 @@ export class Cell {
     await cell.executor.execute({
       name: 'Genesis Workflow',
       description: 'Initialize the cell with all the needed databases',
-      task: () =>
-        genesis(agentId, simulatedDna.hash, membrane_proof)(cell),
+      task: () => genesis(agentId, simulatedDna.hash, membrane_proof)(cell),
     });
 
     return cell;
@@ -86,7 +85,10 @@ export class Cell {
   }
 
   async _runPendingWorkflows() {
-    const promises = this.#pendingWorkflows.map((w) => {
+    const workflowsToRun = this.#pendingWorkflows;
+    this.#pendingWorkflows = [];
+
+    const promises = workflowsToRun.map((w) => {
       this.sendCellSignal(`Before: ${w.name}`);
       this.executor
         .execute(w)
@@ -94,8 +96,6 @@ export class Cell {
     });
 
     await Promise.all(promises);
-
-    this.#pendingWorkflows = [];
   }
 
   /** Workflows */

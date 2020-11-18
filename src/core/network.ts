@@ -33,12 +33,14 @@ export class Network {
 
   // TODO: change this to simulate networking if necessary
   connectWith(conductor: Conductor) {
-    for (const myCells of this.p2pCells) {
-      const cellDna = myCells.id[1];
+    for (const myCell of this.p2pCells) {
+      const cellDna = myCell.id[1];
       for (const cell of conductor.cells) {
         if (cell.id[1] === cellDna) {
           if (!this.peerCells[cellDna]) this.peerCells[cellDna] = {};
           this.peerCells[cellDna][cell.id[0]] = cell.cell;
+
+          myCell.p2pCell.peers.push(cell.id[0]);
         }
       }
     }

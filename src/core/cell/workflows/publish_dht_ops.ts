@@ -21,7 +21,7 @@ export const publish_dht_ops = async (cell: Cell): Promise<void> => {
 
   for (const dhtOpHash of Object.keys(dhtOps)) {
     const dhtOp = dhtOps[dhtOpHash];
-    const basis = await getDHTOpBasis(dhtOp);
+    const basis = getDHTOpBasis(dhtOp);
 
     if (!dhtOpsByBasis[basis]) dhtOpsByBasis[basis] = {};
 

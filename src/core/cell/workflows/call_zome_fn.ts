@@ -16,7 +16,15 @@ export const callZomeFn = (
 ) => async (cell: Cell): Promise<any> => {
   const currentHeader = getTipOfChain(cell.state);
 
-  const actions: HdkAction[] = cell.simulatedDna[zome][fnName](payload);
+  if (!cell.simulatedDna.zomes[zome])
+    throw new Error(`There is no zome with the name ${zome} in this DNA`);
+
+  if (!cell.simulatedDna.zomes[zome][fnName])
+    throw new Error(
+      `There is function with the name ${fnName} in this zome with the name ${zome}`
+    );
+
+  const actions: HdkAction[] = cell.simulatedDna.zomes[zome][fnName](payload);
 
   let result = undefined;
   for (const action of actions) {

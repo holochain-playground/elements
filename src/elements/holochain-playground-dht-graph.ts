@@ -112,7 +112,9 @@ export class DHTGraph extends blackboardConnect<Playground>(
       if (!vectorsEqual(this.lastNodes, newAgentIds)) {
         if (this.layout) this.layout.stop();
         this.cy.remove('nodes');
-        this.cy.add(dnaNodes(selectActiveCells(this.blackboard.state)));
+
+        const nodes = dnaNodes(selectActiveCells(this.blackboard.state));
+        this.cy.add(nodes);
 
         this.layout = this.cy.elements().makeLayout({ name: 'circle' });
         this.layout.run();
