@@ -1,4 +1,6 @@
 import { Cell } from '../../cell';
+import { HdkAction } from '../source-chain/actions';
+import { putElement } from '../source-chain/put';
 import { getTipOfChain } from '../source-chain/utils';
 import { produce_dht_ops_task } from './produce_dht_ops';
 
@@ -14,11 +16,15 @@ export const callZomeFn = (
 ) => async (cell: Cell): Promise<any> => {
   const currentHeader = getTipOfChain(cell.state);
 
-  const actions = cell.simulatedDna[zome][fnName](payload);
+  const actions: HdkAction[] = cell.simulatedDna[zome][fnName](payload);
 
   let result = undefined;
   for (const action of actions) {
-    result = await action(cell.state);
+    const element = await action(cell.state);
+
+    putElement(element)(cell.state);
+
+    result = element;
   }
 
   if (getTipOfChain(cell.state) != currentHeader) {

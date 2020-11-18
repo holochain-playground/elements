@@ -2,7 +2,7 @@ import { blackboardConnect } from '../blackboard/blackboard-connect';
 import { Playground } from '../state/playground';
 import { LitElement, html, property, css } from 'lit-element';
 import { TextFieldBase } from '@material/mwc-textfield/mwc-textfield-base';
-import { checkConnection } from '../processors/connect-to-conductors';
+//import { checkConnection } from '../processors/connect-to-conductors';
 
 export class ConnectToNodes extends blackboardConnect<Playground>(
   'holochain-playground',
@@ -69,12 +69,12 @@ export class ConnectToNodes extends blackboardConnect<Playground>(
 
       if (!this.urlsState[field.value]) {
         try {
-          checkConnection(field.value)
+         /*  checkConnection(field.value)
             .then(() => (this.urlsState[field.value] = 'resolved'))
             .catch(() => (this.urlsState[field.value] = 'rejected'))
             .finally(() => {
               field.reportValidity();
-            });
+            }); */
         } catch (e) {
           this.urlsState[field.value] = 'rejected';
           field.reportValidity();
@@ -87,7 +87,7 @@ export class ConnectToNodes extends blackboardConnect<Playground>(
   renderDialog() {
     return html`<mwc-dialog
       id="connect-to-nodes"
-      .open=${this.open}
+      .open="${this.open}"
       @closed=${() => (this.open = false)}
     >
       <div class="column">

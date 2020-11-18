@@ -1,7 +1,7 @@
 import { hash } from '../processors/hash';
 import { CapClaim, ZomeCallCapGrant } from './capabilities';
 
-export type EntryVisibility = string;
+export type EntryVisibility = 'Public' | 'Private';
 export type AppEntryType = {
   id: string; // This is a number in holochain, but in a simulation we don't have to worry about network performance
   zome_id: number;

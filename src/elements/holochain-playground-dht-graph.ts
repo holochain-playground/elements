@@ -93,12 +93,12 @@ export class DHTGraph extends blackboardConnect<Playground>(
 
   highlightNodesWithEntry(entryId: string) {
     selectActiveCells(this.blackboard.state).forEach((cell) =>
-      this.cy.getElementById(cell.agentId).removeClass('highlighted')
+      this.cy.getElementById(cell.agentPubKey).removeClass('highlighted')
     );
     const cells = selectHoldingCells(this.blackboard.state)(entryId);
 
     for (const cell of cells) {
-      this.cy.getElementById(cell.agentId).addClass('highlighted');
+      this.cy.getElementById(cell.agentPubKey).addClass('highlighted');
     }
   }
 
@@ -107,7 +107,7 @@ export class DHTGraph extends blackboardConnect<Playground>(
 
     if (this.shadowRoot.getElementById('graph')) {
       const newAgentIds = selectActiveCells(this.blackboard.state).map(
-        (c) => c.agentId
+        (c) => c.agentPubKey
       );
       if (!vectorsEqual(this.lastNodes, newAgentIds)) {
         if (this.layout) this.layout.stop();
@@ -120,7 +120,7 @@ export class DHTGraph extends blackboardConnect<Playground>(
       }
 
       selectActiveCells(this.blackboard.state).forEach((cell) =>
-        this.cy.getElementById(cell.agentId).removeClass('selected')
+        this.cy.getElementById(cell.agentPubKey).removeClass('selected')
       );
       this.cy
         .getElementById(this.blackboard.state.activeAgentId)

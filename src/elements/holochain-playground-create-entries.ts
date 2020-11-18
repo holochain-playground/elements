@@ -8,17 +8,22 @@ import '@material/mwc-formfield';
 import { sharedStyles } from './sharedStyles';
 import { TextArea } from '@material/mwc-textarea';
 import { TextFieldBase } from '@material/mwc-textfield/mwc-textfield-base';
-import { EntryType, Entry, hashEntry } from '../types/entry';
+import { Element } from '../types/element';
 
 import '@alenaksu/json-viewer';
-import { entryToDHTOps, neighborhood } from '../types/dht-op';
 import { Playground } from '../state/playground';
 import { blackboardConnect } from '../blackboard/blackboard-connect';
 import {
   selectActiveCell,
   selectEntry,
   selectActiveCells,
+  selectHeaderEntry,
+  selectHeader,
 } from '../state/selectors';
+import { sampleZome } from '../dnas/sample-dna';
+import { cloneDeep } from 'lodash-es';
+import { DHTOp, elementToDHTOps, getDHTOpBasis } from '../types/dht-op';
+import { NewEntryHeader } from '../types/header';
 
 export class CreateEntries extends blackboardConnect<Playground>(
   'holochain-playground',
@@ -34,32 +39,33 @@ export class CreateEntries extends blackboardConnect<Playground>(
 
   @query('#update-entry-textarea')
   private updateTextarea: TextArea;
-  @query('#update-entry-address')
-  private updateAddress: TextFieldBase;
+  @query('#update-header-address')
+  private updateHeaderAddress: TextFieldBase;
 
-  @query('#remove-entry-address')
-  private removeAddress: TextFieldBase;
+  @query('#delete-header-address')
+  private deleteHeaderAddress: TextFieldBase;
 
-  @query('#add-from-address')
-  private addFromAddress: TextFieldBase;
-  @query('#add-to-address')
-  private addToAddress: TextFieldBase;
-  @query('#add-type')
-  private addType: TextFieldBase;
-  @query('#add-tag')
-  private addTag: TextFieldBase;
+  @query('#link-from-address')
+  private linkFromAddress: TextFieldBase;
+  @query('#link-to-address')
+  private linkToAddress: TextFieldBase;
+  @query('#link-tag')
+  private linkTag: TextFieldBase;
 
-  @query('#remove-from-address')
-  private removeFromAddress: TextFieldBase;
-  @query('#remove-to-address')
-  private removeToAddress: TextFieldBase;
-  @query('#remove-type')
-  private removeType: TextFieldBase;
-  @query('#remove-timestamp')
-  private removeTimestamp: TextFieldBase;
+  @query('#delete-link-address')
+  private deleteLinkAddress: TextFieldBase;
 
-  @property({ attribute: false })
-  private entryToCreate: { entry: Entry; replaces?: string } | undefined = undefined;
+  zome = sampleZome;
+
+  @property({ type: Object })
+  private zomeFnToCall:
+    | { fnName: string; payload: any }
+    | undefined = undefined;
+
+  @property({ type: Array })
+  private dhtOpsToCreate:
+    | Array<{ DHTOp: DHTOp; neighborhood: string }>
+    | undefined = undefined;
 
   setEntryValidity(element) {
     element.validityTransform = (newValue, nativeValidity) => {
@@ -69,6 +75,20 @@ export class CreateEntries extends blackboardConnect<Playground>(
         if (entry) return { valid: true };
       }
       element.setCustomValidity('Entry does not exist');
+      return {
+        valid: false,
+      };
+    };
+  }
+
+  setHeaderValidity(element) {
+    element.validityTransform = (newValue, nativeValidity) => {
+      this.requestUpdate();
+      if (newValue.length === 46) {
+        const header = selectHeader(this.blackboard.state)(newValue);
+        if (header) return { valid: true };
+      }
+      element.setCustomValidity('Header does not exist');
       return {
         valid: false,
       };
@@ -112,23 +132,20 @@ export class CreateEntries extends blackboardConnect<Playground>(
 
     this.setJsonValidity(this.createTextarea);
     this.setJsonValidity(this.updateTextarea);
-    this.setEntryValidity(this.updateAddress);
-    this.setEntryValidity(this.removeAddress);
-    this.setEntryValidity(this.addFromAddress);
-    this.setEntryValidity(this.addToAddress);
-    this.setEntryValidity(this.removeFromAddress);
-    this.setEntryValidity(this.removeToAddress);
+    this.setHeaderValidity(this.updateHeaderAddress);
+    this.setHeaderValidity(this.deleteHeaderAddress);
+    this.setEntryValidity(this.linkFromAddress);
+    this.setEntryValidity(this.linkToAddress);
+    this.setHeaderValidity(this.deleteLinkAddress);
     this.setNonEmptyValidity(this.createType);
-    this.setNonEmptyValidity(this.addType);
     [
       this.createTextarea,
       this.updateTextarea,
-      this.updateAddress,
-      this.removeAddress,
-      this.addFromAddress,
-      this.addToAddress,
-      this.removeFromAddress,
-      this.removeToAddress,
+      this.updateHeaderAddress,
+      this.deleteHeaderAddress,
+      this.linkFromAddress,
+      this.linkToAddress,
+      this.deleteLinkAddress,
     ].forEach((ele) => ele['formElement'] && ele.setCustomValidity(''));
   }
 
@@ -190,14 +207,9 @@ export class CreateEntries extends blackboardConnect<Playground>(
               this.createType.validity.valid
             )}
             @click=${() =>
-              (this.entryToCreate = {
-                entry: {
-                  type: EntryType.CreateEntry,
-                  payload: {
-                    content: JSON.parse(this.createTextarea.value),
-                    type: this.createType.value,
-                  },
-                },
+              this.openCommitDialog('create_entry', {
+                content: JSON.parse(this.createTextarea.value),
+                entry_type: this.createType.value,
               })}
           ></mwc-button>
         </div>
@@ -224,10 +236,10 @@ export class CreateEntries extends blackboardConnect<Playground>(
           ></mwc-textarea>
           <mwc-textfield
             outlined
-            id="update-entry-address"
+            id="update-header-address"
             label="Entry to update"
             style="width: 35em"
-            @input=${() => this.updateAddress.reportValidity()}
+            @input=${() => this.updateHeaderAddress.reportValidity()}
           ></mwc-textfield>
           <mwc-button
             raised
@@ -235,20 +247,16 @@ export class CreateEntries extends blackboardConnect<Playground>(
             .disabled=${!(
               this.updateTextarea &&
               this.updateTextarea.validity.valid &&
-              this.updateAddress &&
-              this.updateAddress.validity.valid
+              this.updateHeaderAddress &&
+              this.updateHeaderAddress.validity.valid
             )}
             @click=${() =>
-              (this.entryToCreate = {
-                entry: {
-                  type: EntryType.CreateEntry,
-                  payload: {
-                    content: JSON.parse(this.updateTextarea.value),
-                    type: selectEntry(this.blackboard.state)(this.updateAddress.value)
-                      .payload.type,
-                  },
-                },
-                replaces: this.updateAddress.value,
+              this.openCommitDialog('update_entry', {
+                content: JSON.parse(this.updateTextarea.value),
+                type: selectHeaderEntry(this.blackboard.state)(
+                  this.updateHeaderAddress.value
+                ),
+                original_header_hash: this.updateHeaderAddress.value,
               })}
           ></mwc-button>
         </div>
@@ -256,33 +264,31 @@ export class CreateEntries extends blackboardConnect<Playground>(
     `;
   }
 
-  renderRemoveEntry() {
+  renderDeleteEntry() {
     return html`
       <div
         class="column"
         style=${this.selectedEntryType === 2 ? '' : 'display: none;'}
       >
-        <h3>Remove Entry</h3>
+        <h3>Delete Entry</h3>
         <div class="column center-content">
           <mwc-textfield
             outlined
-            id="remove-entry-address"
+            id="delete-header-address"
             label="Entry address to remove"
             style="width: 35em"
-            @input=${() => this.removeAddress.reportValidity()}
+            @input=${() => this.deleteHeaderAddress.reportValidity()}
           ></mwc-textfield>
           <mwc-button
             raised
             label="REMOVE"
             .disabled=${!(
-              this.removeAddress && this.removeAddress.validity.valid
+              this.deleteHeaderAddress &&
+              this.deleteHeaderAddress.validity.valid
             )}
             @click=${() =>
-              (this.entryToCreate = {
-                entry: {
-                  type: EntryType.RemoveEntry,
-                  payload: { deletedEntry: this.removeAddress.value },
-                },
+              this.openCommitDialog('delete_entry', {
+                deletes_address: this.deleteHeaderAddress.value,
               })}
           ></mwc-button>
         </div>
@@ -290,38 +296,31 @@ export class CreateEntries extends blackboardConnect<Playground>(
     `;
   }
 
-  renderLinkEntries() {
+  renderCreateLink() {
     return html`
       <div
         class="column"
         style=${this.selectedEntryType === 3 ? '' : 'display: none;'}
       >
-        <h3>Link Entries</h3>
+        <h3>Create Link</h3>
         <div class="column center-content">
           <mwc-textfield
             outlined
-            id="add-from-address"
+            id="link-from-address"
             label="Base entry address"
             style="width: 35em"
-            @input=${() => this.addFromAddress.reportValidity()}
+            @input=${() => this.linkFromAddress.reportValidity()}
           ></mwc-textfield>
           <mwc-textfield
             outlined
-            id="add-to-address"
+            id="link-to-address"
             label="Target entry address"
-            @input=${() => this.addToAddress.reportValidity()}
+            @input=${() => this.linkToAddress.reportValidity()}
             style="width: 35em"
           ></mwc-textfield>
           <mwc-textfield
             outlined
-            id="add-type"
-            label="Link type"
-            style="width: 35em"
-            @input=${() => this.addType.reportValidity()}
-          ></mwc-textfield>
-          <mwc-textfield
-            outlined
-            id="add-tag"
+            id="link-tag"
             label="Tag of the link"
             style="width: 35em"
           ></mwc-textfield>
@@ -329,24 +328,16 @@ export class CreateEntries extends blackboardConnect<Playground>(
             raised
             label="LINK"
             .disabled=${!(
-              this.addFromAddress &&
-              this.addFromAddress.validity.valid &&
-              this.addToAddress &&
-              this.addToAddress.validity.valid &&
-              this.addType &&
-              this.addType.validity.valid
+              this.linkFromAddress &&
+              this.linkFromAddress.validity.valid &&
+              this.linkToAddress &&
+              this.linkToAddress.validity.valid
             )}
             @click=${() =>
-              (this.entryToCreate = {
-                entry: {
-                  type: EntryType.LinkAdd,
-                  payload: {
-                    base: this.addFromAddress.value,
-                    target: this.addToAddress.value,
-                    type: this.addType.value,
-                    tag: this.addTag.value,
-                  },
-                },
+              this.openCommitDialog('create_link', {
+                base: this.linkFromAddress.value,
+                target: this.linkToAddress.value,
+                tag: this.linkTag.value,
               })}
           ></mwc-button>
         </div>
@@ -354,66 +345,33 @@ export class CreateEntries extends blackboardConnect<Playground>(
     `;
   }
 
-  renderRemoveLink() {
+  renderDeleteLink() {
     return html`
       <div
         class="column"
         style=${this.selectedEntryType === 4 ? '' : 'display: none;'}
       >
-        <h3>Remove Link</h3>
+        <h3>Delete Link</h3>
         <div class="column center-content">
           <mwc-textfield
             outlined
-            id="remove-from-address"
-            label="Base entry address"
+            id="delete-link-address"
+            label="AddLink header hash"
             style="width: 35em"
             @input=${() => {
-              this.removeFromAddress.reportValidity();
+              this.deleteLinkAddress.reportValidity();
               this.requestUpdate();
             }}
-          ></mwc-textfield>
-          <mwc-textfield
-            outlined
-            id="remove-to-address"
-            label="Target entry address"
-            @input=${() => {
-              this.removeToAddress.reportValidity();
-              this.requestUpdate();
-            }}
-            style="width: 35em"
-          ></mwc-textfield>
-          <mwc-textfield
-            outlined
-            id="remove-type"
-            label="Link type"
-            style="width: 35em"
-          ></mwc-textfield>
-          <mwc-textfield
-            outlined
-            id="remove-timestamp"
-            label="Timestamp of the link"
-            style="width: 35em"
           ></mwc-textfield>
           <mwc-button
             raised
-            label="REMOVE LINK"
+            label="DELETE LINK"
             .disabled=${!(
-              this.removeFromAddress &&
-              this.removeFromAddress.validity.valid &&
-              this.removeToAddress &&
-              this.removeToAddress.validity.valid
+              this.deleteLinkAddress && this.deleteLinkAddress.validity.valid
             )}
             @click=${() =>
-              (this.entryToCreate = {
-                entry: {
-                  type: EntryType.LinkRemove,
-                  payload: {
-                    base: this.removeFromAddress.value,
-                    target: this.removeToAddress.value,
-                    type: this.removeType.value,
-                    timestamp: parseInt(this.removeTimestamp.value),
-                  },
-                },
+              this.openCommitDialog('delete_link', {
+                link_add_address: this.deleteLinkAddress.value,
               })}
           ></mwc-button>
         </div>
@@ -429,42 +387,58 @@ export class CreateEntries extends blackboardConnect<Playground>(
     return cell;
   }
 
-  async buildDHTOpsTransforms() {
-    const hash = await hashEntry(this.entryToCreate.entry);
-    const newHeader = this.cell().newHeader(hash, this.entryToCreate.replaces);
+  async openCommitDialog(fnName: string, payload: any) {
+    this.dhtOpsToCreate = await this.buildDHTOps(fnName, payload);
 
-    const dhtOps = await entryToDHTOps(this.entryToCreate.entry, newHeader);
+    this.zomeFnToCall = {
+      fnName,
+      payload,
+    };
+  }
+
+  async buildDHTOps(fnName: string, payload: any) {
+    const currentState = cloneDeep(this.cell().state);
+
+    const actions = sampleZome[fnName](payload);
+
+    const elementsPromises = actions.map((action) => action(currentState));
+
+    const elements = await Promise.all(elementsPromises);
+
+    const dhtOpsNested = elements.map(elementToDHTOps);
+
+    const dhtOps = [].concat(...dhtOpsNested);
 
     return dhtOps.map((dhtOp) => ({
-      operation: dhtOp,
-      neighborhood: neighborhood(dhtOp),
+      DHTOp: dhtOp,
+      neighborhood: getDHTOpBasis(dhtOp),
     }));
   }
 
   renderCommitDialog() {
     return html`
       <mwc-dialog
-        .open=${!!this.entryToCreate}
+        .open=${!!this.zomeFnToCall}
         heading="Commit new entry"
-        @closed=${() => (this.entryToCreate = undefined)}
+        @closed=${() => (this.zomeFnToCall = undefined)}
       >
         <div>
           This will create these DHT Operations on the given neighborhoods
         </div>
 
-        <json-viewer .data=${this.buildDHTOpsTransforms()}></json-viewer>
+        <json-viewer .data=${this.dhtOpsToCreate}></json-viewer>
 
         <mwc-button
           slot="secondaryAction"
           dialogAction="cancel"
-          @click=${() => (this.entryToCreate = undefined)}
+          @click=${() => (this.zomeFnToCall = undefined)}
         >
           Cancel
         </mwc-button>
         <mwc-button
           slot="primaryAction"
           dialogAction="confirm"
-          @click=${() => this.createEntry()}
+          @click=${() => this.callZomeFunction()}
         >
           Commit entry
         </mwc-button>
@@ -472,23 +446,31 @@ export class CreateEntries extends blackboardConnect<Playground>(
     `;
   }
 
-  createEntry() {
-    this.cell().createEntry(
-      this.entryToCreate.entry,
-      this.entryToCreate.replaces
-    );
-    const entryId = hashEntry(this.entryToCreate.entry);
+  async callZomeFunction() {
+    const element: Element = await this.cell().callZomeFn({
+      zome: 'sample',
+      cap: null,
+      fnName: this.zomeFnToCall.fnName,
+      payload: this.zomeFnToCall.payload,
+    });
+
     this.dispatchEvent(
-      new CustomEvent('entry-committed', {
+      new CustomEvent('element-created', {
         detail: {
-          entryId,
+          element,
         },
         bubbles: true,
         composed: true,
       })
     );
-    this.blackboard.update('activeEntryId', entryId);
-    this.entryToCreate = undefined;
+
+    if ((element.header as NewEntryHeader).entry_hash) {
+      this.blackboard.update(
+        'activeEntryId',
+        (element.header as NewEntryHeader).entry_hash
+      );
+    }
+    this.zomeFnToCall = undefined;
   }
 
   renderSelectCommitType() {
@@ -545,13 +527,13 @@ export class CreateEntries extends blackboardConnect<Playground>(
           ? this.renderConnectedPlaceholder()
           : html`
               <div class="row fill">
-                ${this.entryToCreate ? this.renderCommitDialog() : html``}
+                ${this.zomeFnToCall ? this.renderCommitDialog() : html``}
                 ${this.renderSelectCommitType()}
 
                 <div class="fill" style="padding: 0 24px;">
                   ${this.renderCreateEntry()} ${this.renderUpdateEntry()}
-                  ${this.renderRemoveEntry()} ${this.renderLinkEntries()}
-                  ${this.renderRemoveLink()}
+                  ${this.renderDeleteEntry()} ${this.renderCreateLink()}
+                  ${this.renderDeleteLink()}
                 </div>
               </div>
             `}

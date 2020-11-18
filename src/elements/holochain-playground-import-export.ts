@@ -25,11 +25,7 @@ export class ImportExport extends blackboardConnect<Playground>(
 
   export() {
     const playground = this.blackboard.state;
-    for (const conductor of playground.conductors) {
-      for (const cell of Object.values(conductor.cells)) {
-        cell.conductor = undefined;
-      }
-    }
+
     const blob = new Blob([JSON.stringify(playground)], {
       type: 'application/json',
     });

@@ -3,6 +3,7 @@ import { Cell } from '../core/cell';
 import { getEntryDetails, isHoldingEntry } from '../core/cell/dht/get';
 import { Conductor } from '../core/conductor';
 import { AgentPubKey, Hash } from '../types/common';
+import { NewEntryHeader } from '../types/header';
 
 export const selectCellCount = (state: Playground) =>
   selectActiveCells(state).length;
@@ -45,11 +46,13 @@ export const selectActiveCell = (state: Playground) => {
 
   if (!conductor) return undefined;
 
-  return Object.values(conductor.cells).find(
+  const cell = Object.values(conductor.cells).find(
     (cell) =>
       cell.cell.agentPubKey === state.activeAgentId &&
       cell.cell.dnaHash == state.activeDNA
   );
+
+  return cell ? cell.cell : undefined;
 };
 
 export const selectUniqueDHTOps = (state: Playground) => {
@@ -83,12 +86,9 @@ export const selectEntryDetails = (state: Playground) => (
   return undefined;
 };
 
-export const selectActiveCellForConductor = (state: Playground) => (
+export const selectActiveCellsForConductor = (state: Playground) => (
   conductor: Conductor
-) => {
-  const cell = conductor.cells.find((c) => c.cell.dnaHash === state.activeDNA);
-  return cell ? cell.cell : undefined;
-};
+) => conductor.cells.filter((c) => c.cell.dnaHash === state.activeDNA);
 
 export const selectActiveEntry = (state: Playground) => {
   if (!state.activeEntryId) return undefined;
@@ -98,9 +98,37 @@ export const selectActiveEntry = (state: Playground) => {
 export const selectEntry = (state: Playground) => (entryHash: string) => {
   if (!state.activeDNA) return undefined;
   for (const conductor of state.conductors) {
-    const cell = selectActiveCellForConductor(state)(conductor);
-    const entry = cell.state.CAS[entryHash];
+    const cell = selectActiveCellsForConductor(state)(conductor);
+    const entry = cell[0].cell.state.CAS[entryHash];
     if (entry) {
+      return entry;
+    }
+  }
+  return undefined;
+};
+
+export const selectHeader = (state: Playground) => (headerHash: string) => {
+  if (!state.activeDNA) return undefined;
+  for (const conductor of state.conductors) {
+    const cell = selectActiveCellsForConductor(state)(conductor);
+    const entry = cell[0].cell.state.CAS[headerHash];
+    if (entry) {
+      return entry;
+    }
+  }
+  return undefined;
+};
+
+export const selectHeaderEntry = (state: Playground) => (
+  headerHash: string
+) => {
+  if (!state.activeDNA) return undefined;
+  for (const conductor of state.conductors) {
+    const cell = selectActiveCellsForConductor(state)(conductor);
+    const header = cell[0].cell.state.CAS[headerHash];
+    if (header && (header as NewEntryHeader).entry_hash) {
+      const entry =
+        cell[0].cell.state.CAS[(header as NewEntryHeader).entry_hash];
       return entry;
     }
   }
@@ -145,4 +173,9 @@ export const selectCell = (state: Playground) => (
   }
 
   return undefined;
+};
+
+export const selectRedundancyFactor = (state: Playground) => {
+  const cells = selectActiveCells(state);
+  return cells[0].p2p.redundancyFactor;
 };

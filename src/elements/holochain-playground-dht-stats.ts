@@ -6,12 +6,14 @@ import {
   selectGlobalDHTOps,
   selectUniqueDHTOps,
   selectMedianHoldingDHTOps,
+  selectRedundancyFactor,
 } from '../state/selectors';
 import { sharedStyles } from './sharedStyles';
 import { createConductors } from '../processors/create-conductors';
 import { Dialog } from '@material/mwc-dialog';
 import { TextFieldBase } from '@material/mwc-textfield/mwc-textfield-base';
 import '@material/mwc-linear-progress';
+import { sampleDna } from '../dnas/sample-dna';
 
 export class DHTStats extends blackboardConnect<Playground>(
   'holochain-playground',
@@ -40,11 +42,11 @@ export class DHTStats extends blackboardConnect<Playground>(
           <br />
           <br />
           Having a redundancy factor of
-          ${this.blackboard.state.redundancyFactor}, it will
+          ${selectRedundancyFactor(this.blackboard.state)}, it will
           <strong>
             replicate every DHT Op in the
-            ${this.blackboard.state.redundancyFactor} nodes that are closest to
-            its neighborhood </strong
+            ${selectRedundancyFactor(this.blackboard.state)} nodes that are
+            closest to its neighborhood </strong
           >.
           <br />
           <br />
@@ -77,13 +79,12 @@ export class DHTStats extends blackboardConnect<Playground>(
       conductors = await createConductors(
         newNodesToCreate,
         conductors,
-        rFactor,
-        dna
+        sampleDna()
       );
     } else if (newNodes < currentNodes) {
       const conductorsToRemove = currentNodes - newNodes;
       conductors = conductors.sort(
-        (c1, c2) =>
+        (c1, c2) => selectActiveCellsForConductor()
           c1.cells[dna].sourceChain.length - c2.cells[dna].sourceChain.length
       );
 
@@ -101,7 +102,10 @@ export class DHTStats extends blackboardConnect<Playground>(
     }
     this.blackboard.update('conductors', conductors);
 
-    if (changedNodes || this.blackboard.state.redundancyFactor !== rFactor) {
+    if (
+      changedNodes ||
+      selectRedundancyFactor(this.blackboard.state) !== rFactor
+    ) {
       const cells = conductors.map((c) => c.cells[dna]);
       for (const cell of cells) {
         cell.DHTOpTransforms = {};

@@ -97,3 +97,15 @@ export function getAllHeldEntries(state: CellState): string[] {
 export function isHoldingEntry(state: CellState, entryHash: Hash): boolean {
   return state.metadata.system_meta[entryHash] !== undefined;
 }
+
+export function getDhtShard(state: CellState): Dictionary<EntryDetails> {
+  const heldEntries = getAllHeldEntries(state);
+
+  const dhtShard: Dictionary<EntryDetails> = {};
+
+  for (const entryHash of heldEntries) {
+    dhtShard[entryHash] = getEntryDetails(state, entryHash);
+  }
+
+  return dhtShard;
+}

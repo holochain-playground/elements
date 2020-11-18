@@ -3,7 +3,7 @@ import { LitElement, html, property, css } from 'lit-element';
 import { blackboardConnect } from '../blackboard/blackboard-connect';
 import { Playground } from '../state/playground';
 import { sharedStyles } from './sharedStyles';
-import { selectActiveEntry, selectEntryMetadata } from '../state/selectors';
+import { selectActiveEntry, selectEntryDetails } from '../state/selectors';
 
 export class EntryDetail extends blackboardConnect<Playground>(
   'holochain-playground',
@@ -52,7 +52,10 @@ export class EntryDetail extends blackboardConnect<Playground>(
                   ${this.shorten(this.blackboard.state.activeEntryId, 50)}
                 </span>
                 <json-viewer
-                  .data=${this.shorten(selectActiveEntry(this.blackboard.state), 40)}
+                  .data=${this.shorten(
+                    selectActiveEntry(this.blackboard.state),
+                    40
+                  )}
                 ></json-viewer>
                 ${this.withMetadata
                   ? html` <span style="margin: 16px 0; font-weight: bold;">
@@ -60,7 +63,7 @@ export class EntryDetail extends blackboardConnect<Playground>(
                       </span>
                       <json-viewer
                         .data=${this.shorten(
-                          selectEntryMetadata(this.blackboard.state)(
+                          selectEntryDetails(this.blackboard.state)(
                             this.blackboard.state.activeEntryId
                           ),
                           40

@@ -56,7 +56,7 @@ export type DHTOp =
   | DHTOpContent<DHTOpType.RegisterAddLink, CreateLink>
   | DHTOpContent<DHTOpType.RegisterRemoveLink, DeleteLink>;
 
-export async function elementToDHTOps(element: Element): Promise<DHTOp[]> {
+export function elementToDHTOps(element: Element): DHTOp[] {
   let allDhtOps: DHTOp[] = [];
 
   // All hdk commands have these two DHT Ops
@@ -117,7 +117,7 @@ export async function elementToDHTOps(element: Element): Promise<DHTOp[]> {
   return allDhtOps;
 }
 
-export async function getDHTOpBasis(dhtOp: DHTOp): Promise<string> {
+export function getDHTOpBasis(dhtOp: DHTOp): string {
   switch (dhtOp.type) {
     case DHTOpType.StoreElement:
       return hash(dhtOp.header);

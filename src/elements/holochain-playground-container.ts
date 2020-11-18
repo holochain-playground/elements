@@ -11,15 +11,15 @@ import {
   PropertyValues,
 } from 'lit-element';
 import { Playground } from '../state/playground';
-import { connectToConductors } from '../processors/connect-to-conductors';
+//import { connectToConductors } from '../processors/connect-to-conductors';
 import {
   serializePlayground,
   deserializePlayground,
 } from '../processors/serialize';
 import { Blackboard } from '../blackboard/blackboard';
-import { Conductor } from '../types/conductor';
 import { buildSimulatedPlayground } from '../processors/build-simulated-playground';
 import { hash } from '../processors/hash';
+import { Conductor } from '../core/conductor';
 
 export class PlaygroundContainer extends blackboardContainer<Playground>(
   'holochain-playground',
@@ -58,7 +58,6 @@ export class PlaygroundContainer extends blackboardContainer<Playground>(
       activeEntryId: undefined,
       conductors: [],
       conductorsUrls: this.conductorsUrls,
-      redundancyFactor: this.redundancyFactor,
     };
 
     return new Blackboard(initialPlayground, {
@@ -72,7 +71,6 @@ export class PlaygroundContainer extends blackboardContainer<Playground>(
     if (!this.conductorsUrls) {
       const dnaHash = await hash('dna1');
       this.initialConductors = await buildSimulatedPlayground(
-        dnaHash,
         this.numberOfSimulatedConductors
       );
 
@@ -83,7 +81,7 @@ export class PlaygroundContainer extends blackboardContainer<Playground>(
     this.blackboard.select('conductorsUrls').subscribe(async (urls) => {
       if (urls !== undefined) {
         try {
-          await connectToConductors(this.blackboard, urls);
+          // await connectToConductors(this.blackboard, urls);
         } catch (e) {
           console.error(e);
           this.showError('Error when connecting with the nodes');
@@ -97,9 +95,6 @@ export class PlaygroundContainer extends blackboardContainer<Playground>(
 
     if (changedValues.has('conductorsUrls')) {
       this.blackboard.update('conductorsUrls', this.conductorsUrls);
-    }
-    if (changedValues.has('redundancyFactor')) {
-      this.blackboard.update('redundancyFactor', this.redundancyFactor);
     }
   }
 

@@ -6,6 +6,7 @@ import { selectActiveCell, selectCell } from '../state/selectors';
 import { Cell } from '../core/cell';
 
 import '@alenaksu/json-viewer';
+import { getDhtShard } from '../core/cell/dht/get';
 
 export class DHTShard extends blackboardConnect<Playground>(
   'holochain-playground',
@@ -39,7 +40,7 @@ export class DHTShard extends blackboardConnect<Playground>(
                 </strong>
               </span>
               <json-viewer id="dht-shard" style="margin-top: 16px;">
-                ${JSON.stringify(this.getCell().getDHTShard())}
+                ${JSON.stringify(getDhtShard(this.getCell().state))}
               </json-viewer>
             `
           : html`
