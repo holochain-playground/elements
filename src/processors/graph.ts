@@ -39,15 +39,27 @@ export function sourceChainNodes(cell: Cell) {
   const nodes = [];
 
   const headersHashes = cell.state.sourceChain;
-  let headerCount = 0;
-
   for (const headerHash of headersHashes) {
     const header: Header = cell.state.CAS[headerHash];
 
     nodes.push({
-      data: { id: headerHash, data: header, label: `header${headerCount}` },
+      data: { id: headerHash, data: header, label: header.type },
       classes: ['header', header.type],
     });
+
+    if ((header as Create).prev_header) {
+      nodes.push({
+        data: {
+          id: `${headerHash}->${(header as Create).prev_header}`,
+          source: headerHash,
+          target: (header as Create).prev_header,
+        },
+      });
+    }
+  }
+
+  for (const headerHash of headersHashes) {
+    const header: Header = cell.state.CAS[headerHash];
 
     if ((header as NewEntryHeader).entry_hash) {
       const newEntryHeader = header as NewEntryHeader;
@@ -72,18 +84,6 @@ export function sourceChainNodes(cell: Cell) {
         },
       });
     }
-
-    if ((header as Create).prev_header) {
-      nodes.push({
-        data: {
-          id: `${headerHash}->${(header as Create).prev_header}`,
-          source: headerHash,
-          target: (header as Create).prev_header,
-        },
-      });
-    }
-
-    headerCount += 1;
   }
 
   return nodes;

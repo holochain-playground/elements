@@ -128,14 +128,17 @@ export const putDhtOpMetadata = (dhtOp: DHTOp) => async (state: CellState) => {
 const update_entry_dht_status = (entryHash: string) => (state: CellState) => {
   const headers = getHeadersForEntry(state, entryHash);
 
-  const entryIsAlive = headers.some((header) =>
-    state.metadata.system_meta[hash(header)].find(
-      (metaVal) =>
-        (metaVal as {
-          Delete: Hash;
-        }).Delete
-    )
-  );
+  const entryIsAlive = headers.some((header) => {
+    const dhtHeaders = state.metadata.system_meta[hash(header)];
+    return dhtHeaders
+      ? dhtHeaders.find(
+          (metaVal) =>
+            (metaVal as {
+              Delete: Hash;
+            }).Delete
+        )
+      : true;
+  });
 
   state.metadata.misc_meta[entryHash] = {
     EntryStatus: entryIsAlive ? EntryDhtStatus.Live : EntryDhtStatus.Dead,

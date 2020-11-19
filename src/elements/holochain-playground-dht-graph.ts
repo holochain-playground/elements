@@ -1,5 +1,5 @@
 import { LitElement, html, query, css } from 'lit-element';
-import cytoscape from 'cytoscape';
+import cytoscape, { Stylesheet } from 'cytoscape';
 import { Dialog } from '@material/mwc-dialog';
 import '@material/mwc-icon-button';
 import '@material/mwc-button';

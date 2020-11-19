@@ -17,11 +17,19 @@ import { SimulatedDna } from '../dnas/simulated-dna';
 import { getCellId } from './cell/source-chain/utils';
 import { P2pCell } from './network/p2p-cell';
 import { incoming_dht_ops } from './cell/workflows/incoming_dht_ops';
+import { Observable, Subject } from 'rxjs';
+
+export type CellSignal = 'after-workflow-executed' | 'before-workflow-executed';
+export type CellSignalListener = (payload: any) => void;
 
 export class Cell {
   executor: Executor = new ImmediateExecutor();
   #pendingWorkflows: Array<Task<any>> = [];
-  #signalListeners: Array<(s: string) => void> = [];
+
+  #signals = {
+    'after-workflow-executed': new Subject<Task<any>>(),
+    'before-workflow-executed': new Subject<Task<any>>(),
+  };
 
   constructor(
     public state: CellState,
@@ -39,6 +47,10 @@ export class Cell {
 
   get dnaHash(): Hash {
     return getDnaHash(this.cellId);
+  }
+
+  get signals() {
+    return this.#signals;
   }
 
   static async create(
@@ -89,10 +101,10 @@ export class Cell {
     this.#pendingWorkflows = [];
 
     const promises = workflowsToRun.map((w) => {
-      this.sendCellSignal(`Before: ${w.name}`);
+      this.#signals['before-workflow-executed'].next(w);
       this.executor
         .execute(w)
-        .then(() => this.sendCellSignal(`After: ${w.name}`));
+        .then(() => this.#signals['after-workflow-executed'].next(w));
     });
 
     await Promise.all(promises);
@@ -122,14 +134,5 @@ export class Cell {
     ops: Dictionary<DHTOp>
   ): Promise<void> {
     return incoming_dht_ops(dht_hash, ops, from_agent)(this);
-  }
-
-  /** Simulation helpers */
-  public onCellSignal(listener: (message: string) => void) {
-    this.#signalListeners.push(listener);
-  }
-
-  private sendCellSignal(message: string) {
-    this.#signalListeners.forEach((l) => l(message));
   }
 }

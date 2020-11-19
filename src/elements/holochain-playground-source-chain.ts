@@ -1,7 +1,17 @@
-import { LitElement, property, html, PropertyValues, css } from 'lit-element';
+import {
+  LitElement,
+  property,
+  html,
+  PropertyValues,
+  css,
+  unsafeCSS,
+  query,
+} from 'lit-element';
 import { sourceChainNodes } from '../processors/graph';
-import cytoscape from 'cytoscape';
+import cytoscape, { Stylesheet } from 'cytoscape';
 import dagre from 'cytoscape-dagre';
+import '@material/mwc-menu/mwc-menu-surface';
+import '@alenaksu/json-viewer';
 
 import { isEqual } from 'lodash-es';
 
@@ -9,7 +19,13 @@ import { sharedStyles } from './sharedStyles';
 import { Playground } from '../state/playground';
 import { blackboardConnect } from '../blackboard/blackboard-connect';
 import { selectActiveCell } from '../state/selectors';
+import { Cell } from '../core/cell';
+import { Subscription } from 'rxjs';
+import popper from 'cytoscape-popper';
+import { MenuSurface } from '@material/mwc-menu/mwc-menu-surface';
+
 cytoscape.use(dagre); // register extension
+cytoscape.use(popper);
 
 export class SourceChain extends blackboardConnect<Playground>(
   'holochain-playground',
@@ -29,6 +45,14 @@ export class SourceChain extends blackboardConnect<Playground>(
   private cy: cytoscape.Core;
 
   private nodes: any[] = [];
+
+  private _cell: Cell;
+  private _subscription: Subscription;
+
+  @property({ type: Object })
+  private _nodeInfo: any | undefined = undefined;
+  @query('#node-info-menu')
+  private _nodeInfoMenu: MenuSurface;
 
   firstUpdated() {
     this.cy = cytoscape({
@@ -66,25 +90,25 @@ export class SourceChain extends blackboardConnect<Playground>(
           border-style: solid;
         }
 
-        .DNA {
+        .Dna {
           background-color: green;
         }
         .AgentId {
           background-color: lime;
         }
-        .CreateEntry {
+        .Create {
           background-color: blue;
         }
-        .RemoveEntry {
+        .Delete {
           background-color: red;
         }
-        .UpdateEntry {
+        .Update {
           background-color: cyan;
         }
-        .LinkAdd {
+        .CreateLink {
           background-color: purple;
         }
-        .LinkRemove {
+        .DeleteLink {
           background-color: purple;
         }
       `,
@@ -93,13 +117,35 @@ export class SourceChain extends blackboardConnect<Playground>(
       const selectedEntryId = event.target.id();
       this.blackboard.update('activeEntryId', selectedEntryId);
     });
+    this.cy.renderer().hoverData.capture = true;
+
+    this.cy.on('mouseover', 'node', (event) => {
+      this._nodeInfo = event.target.data().data;
+      this._nodeInfoMenu.x = event.originalEvent.x;
+      this._nodeInfoMenu.y = event.originalEvent.y;
+      this._nodeInfoMenu.open = true;
+    });
+    this.cy.on('mouseout', 'node', (event) => {
+      this._nodeInfoMenu.open = false;
+    });
     this.requestUpdate();
   }
 
   updated(changedValues: PropertyValues) {
     super.updated(changedValues);
 
-    const nodes = sourceChainNodes(selectActiveCell(this.blackboard.state));
+    const cell = selectActiveCell(this.blackboard.state);
+
+    if (cell != this._cell) {
+      if (this._subscription) this._subscription.unsubscribe();
+
+      this._subscription = cell.signals[
+        'after-workflow-executed'
+      ].subscribe(() => this.requestUpdate());
+      this._cell = cell;
+    }
+
+    const nodes = sourceChainNodes(cell);
     if (!isEqual(nodes, this.nodes)) {
       this.nodes = nodes;
 
@@ -110,11 +156,16 @@ export class SourceChain extends blackboardConnect<Playground>(
 
     this.cy.filter('node').removeClass('selected');
 
-    this.cy.getElementById(this.blackboard.state.activeEntryId).addClass('selected');
+    this.cy
+      .getElementById(this.blackboard.state.activeEntryId)
+      .addClass('selected');
   }
 
   render() {
     return html`
+      <mwc-menu-surface id="node-info-menu">
+        <json-viewer .data=${this._nodeInfo}></json-viewer>
+      </mwc-menu-surface>
       <div style="width: 400px; height: 95%;" id="source-chain-graph"></div>
     `;
   }

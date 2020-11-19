@@ -33,6 +33,19 @@ export const Simple = () => {
           'activeAgentId',
           container.blackboard.state.conductors[0].cells[0].cell.agentPubKey
         );
+        const conductor = container.blackboard.state.conductors[0];
+
+        const cellId = conductor.cells[0].id;
+        conductor.callZomeFn({
+          cellId,
+          zome: 'sample',
+          fnName: 'create_entry',
+          payload: {
+            content: { myman: 'mygirl' },
+            entry_type: 'haha',
+          },
+          cap: null,
+        });
       }}
     >
       <holochain-playground-source-chain

@@ -1,4 +1,5 @@
 import { LitElement, html, property, css } from 'lit-element';
+import '@alenaksu/json-viewer';
 
 import { blackboardConnect } from '../blackboard/blackboard-connect';
 import { Playground } from '../state/playground';

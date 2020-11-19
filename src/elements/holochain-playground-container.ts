@@ -19,7 +19,6 @@ import {
 import { Blackboard } from '../blackboard/blackboard';
 import { buildSimulatedPlayground } from '../processors/build-simulated-playground';
 import { Conductor } from '../core/conductor';
-import { VirtualTimeScheduler } from 'rxjs';
 
 export class PlaygroundContainer extends blackboardContainer<Playground>(
   'holochain-playground',
