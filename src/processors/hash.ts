@@ -1,11 +1,8 @@
 import { Dictionary } from '../types/common';
 import blake from 'blakejs';
 import * as base64 from 'byte-base64';
-import * as Buffer from 'buffer';
 
 // From https://github.com/holochain/holochain/blob/dc0cb61d0603fa410ac5f024ed6ccfdfc29715b3/crates/holo_hash/src/encode.rs
-
-Buffer.Buffer.from([]);
 
 export function hash(content: any): string {
   const contentString =
