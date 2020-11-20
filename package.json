@@ -13,7 +13,7 @@
     "storybook": "npm run build && npm run analyze && start-storybook -p 8001",
     "storybook:build": "build-storybook",
     "storybook:publish": "gh-pages -d dist",
-    "publish-to-branch": "npm run build && gh-pages -d dist -b ui-build",
+    "publish-to-branch": "npm run build && gh-pages -b ui-build",
     "build:publish": "npm run build && npm publish"
   },
   "dependencies": {
