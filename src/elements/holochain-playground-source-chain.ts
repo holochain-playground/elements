@@ -8,8 +8,8 @@ import {
   query,
 } from 'lit-element';
 import { sourceChainNodes } from '../processors/graph';
-import cytoscape, { Stylesheet } from 'cytoscape';
-import dagre from 'cytoscape-dagre';
+import cytoscape from 'cytoscape';
+import * as dagre from 'cytoscape-dagre';
 import '@material/mwc-menu/mwc-menu-surface';
 import '@alenaksu/json-viewer';
 
@@ -21,11 +21,9 @@ import { blackboardConnect } from '../blackboard/blackboard-connect';
 import { selectActiveCell } from '../state/selectors';
 import { Cell } from '../core/cell';
 import { Subscription } from 'rxjs';
-import popper from 'cytoscape-popper';
 import { MenuSurface } from '@material/mwc-menu/mwc-menu-surface';
 
 cytoscape.use(dagre); // register extension
-cytoscape.use(popper);
 
 export class SourceChain extends blackboardConnect<Playground>(
   'holochain-playground',
