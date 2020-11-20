@@ -26,6 +26,5 @@ export default {
       mainFields: ['browser', 'module', 'main'],
     }),
     commonjs({}),
-    sourceMaps(),
   ],
 };

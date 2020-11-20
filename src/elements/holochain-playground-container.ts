@@ -76,7 +76,15 @@ export class PlaygroundContainer extends blackboardContainer<Playground>(
       this.blackboard.update('activeDNA', dnaHash);
       this.blackboard.update('conductors', this.initialConductors);
 
-      this.dispatchEvent(new CustomEvent('ready'));
+      this.dispatchEvent(
+        new CustomEvent('ready', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            conductors: this.blackboard.state.conductors,
+          },
+        })
+      );
     }
 
     this.blackboard.select('conductorsUrls').subscribe(async (urls) => {
