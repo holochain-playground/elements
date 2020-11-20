@@ -1,6 +1,4 @@
-import 'blakejs';
-import 'byte-base64';
-import { hash } from '../../../processors/hash.js';
+import { h as hash } from '../../../hash-9ab97112.js';
 import '../../../types/header.js';
 import { getElement } from '../source-chain/utils.js';
 import { elementToDHTOps } from '../../../types/dht-op.js';

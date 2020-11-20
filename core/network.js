@@ -1,6 +1,4 @@
-import 'blakejs';
-import 'byte-base64';
-import '../processors/hash.js';
+import '../hash-9ab97112.js';
 import { P2pCell } from './network/p2p-cell.js';
 
 class Network {

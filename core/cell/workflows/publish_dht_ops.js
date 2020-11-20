@@ -1,6 +1,4 @@
-import 'blakejs';
-import 'byte-base64';
-import '../../../processors/hash.js';
+import '../../../hash-9ab97112.js';
 import '../../../types/header.js';
 import { getNonPublishedDhtOps } from '../source-chain/utils.js';
 import { getDHTOpBasis } from '../../../types/dht-op.js';

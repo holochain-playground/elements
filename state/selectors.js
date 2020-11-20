@@ -1,6 +1,6 @@
-import 'lodash-es';
-import '../types/metadata.js';
+import '../_setToArray-0c1e9efa.js';
 import { isHoldingEntry, getEntryDetails } from '../core/cell/dht/get.js';
+import '../types/metadata.js';
 
 const selectCellCount = (state) => selectActiveCells(state).length;
 const selectActiveCells = (state) => {

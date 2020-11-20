@@ -1,6 +1,4 @@
-import 'blakejs';
-import 'byte-base64';
-import { hash } from '../../../processors/hash.js';
+import { h as hash } from '../../../hash-9ab97112.js';
 
 const putElement = (element) => (state) => {
     // Put header in CAS
