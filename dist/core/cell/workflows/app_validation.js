@@ -1,5 +1,5 @@
 import 'lodash-es';
-import '../../../hash-bca98662.js';
+import '../../../processors/hash.js';
 import 'byte-base64';
 import '../../../types/entry.js';
 import '../../../types/header.js';

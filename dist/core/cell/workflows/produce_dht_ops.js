@@ -1,4 +1,4 @@
-import { h as hash } from '../../../hash-bca98662.js';
+import { hash } from '../../../processors/hash.js';
 import 'byte-base64';
 import '../../../types/header.js';
 import { getElement } from '../source-chain/utils.js';

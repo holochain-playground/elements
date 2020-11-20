@@ -1,4 +1,4 @@
-import '../../../hash-bca98662.js';
+import '../../../processors/hash.js';
 import 'byte-base64';
 import '../../../types/header.js';
 import { getTipOfChain } from '../source-chain/utils.js';

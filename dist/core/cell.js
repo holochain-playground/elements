@@ -1,7 +1,7 @@
 import 'lodash-es';
 import { Subject } from 'rxjs';
 import { getAgentPubKey, getDnaHash } from '../types/common.js';
-import '../hash-bca98662.js';
+import '../processors/hash.js';
 import 'byte-base64';
 import '../types/entry.js';
 import '../types/header.js';
