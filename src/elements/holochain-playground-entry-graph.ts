@@ -1,8 +1,8 @@
 import { blackboardConnect } from '../blackboard/blackboard-connect';
 import { Playground } from '../state/playground';
 import { LitElement, query, html, property, css } from 'lit-element';
-import cytoscape from 'cytoscape';
-import cola from 'cytoscape-cola';
+import * as cytoscape from 'cytoscape';
+import * as cola from 'cytoscape-cola';
 import '@material/mwc-checkbox';
 import { allEntries } from '../processors/graph';
 import { selectActiveCells } from '../state/selectors';
@@ -196,7 +196,9 @@ export class EntryGraph extends blackboardConnect<Playground>(
     this.lastEntriesIds = entries.map((e) => e.data.id);
 
     this.cy.filter('node').removeClass('selected');
-    this.cy.getElementById(this.blackboard.state.activeEntryId).addClass('selected');
+    this.cy
+      .getElementById(this.blackboard.state.activeEntryId)
+      .addClass('selected');
   }
 
   static get styles() {

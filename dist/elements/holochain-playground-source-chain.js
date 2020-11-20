@@ -11,12 +11,13 @@ import { LitElement, css, html, property, query } from 'lit-element';
 import '@alenaksu/json-viewer';
 import { sharedStyles } from './sharedStyles.js';
 import { sourceChainNodes } from '../processors/graph.js';
-import cytoscape from 'cytoscape';
+import * as cytoscape from 'cytoscape';
+import { use } from 'cytoscape';
 import * as dagre from 'cytoscape-dagre';
 import { MenuSurface } from '@material/mwc-menu/mwc-menu-surface';
 import { selectActiveCell } from '../state/selectors.js';
 
-cytoscape.use(dagre); // register extension
+use(dagre); // register extension
 class SourceChain extends blackboardConnect('holochain-playground', LitElement) {
     constructor() {
         super(...arguments);

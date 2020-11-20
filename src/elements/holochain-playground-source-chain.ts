@@ -8,7 +8,7 @@ import {
   query,
 } from 'lit-element';
 import { sourceChainNodes } from '../processors/graph';
-import cytoscape from 'cytoscape';
+import * as cytoscape from 'cytoscape';
 import * as dagre from 'cytoscape-dagre';
 import '@material/mwc-menu/mwc-menu-surface';
 import '@alenaksu/json-viewer';

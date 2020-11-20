@@ -11,13 +11,14 @@ import { LitElement, html, css, property, query } from 'lit-element';
 import { Dialog } from '@material/mwc-dialog';
 import { sharedStyles } from './sharedStyles.js';
 import { allEntries } from '../processors/graph.js';
-import cytoscape from 'cytoscape';
+import * as cytoscape from 'cytoscape';
+import { use } from 'cytoscape';
 import { selectActiveCells } from '../state/selectors.js';
 import { vectorsEqual } from '../processors/utils.js';
-import cola from 'cytoscape-cola';
+import * as cola from 'cytoscape-cola';
 import '@material/mwc-checkbox';
 
-cytoscape.use(cola);
+use(cola);
 const layoutConfig = {
     name: 'cola',
     handleDisconnected: true,
@@ -173,7 +174,9 @@ class EntryGraph extends blackboardConnect('holochain-playground', LitElement) {
         }
         this.lastEntriesIds = entries.map((e) => e.data.id);
         this.cy.filter('node').removeClass('selected');
-        this.cy.getElementById(this.blackboard.state.activeEntryId).addClass('selected');
+        this.cy
+            .getElementById(this.blackboard.state.activeEntryId)
+            .addClass('selected');
     }
     static get styles() {
         return [

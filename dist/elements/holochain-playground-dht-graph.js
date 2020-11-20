@@ -11,7 +11,7 @@ import { LitElement, css, html, query } from 'lit-element';
 import { Dialog } from '@material/mwc-dialog';
 import { sharedStyles } from './sharedStyles.js';
 import { dnaNodes } from '../processors/graph.js';
-import cytoscape from 'cytoscape';
+import * as cytoscape from 'cytoscape';
 import { selectActiveCells, selectHoldingCells } from '../state/selectors.js';
 import '@material/mwc-button';
 import '@material/mwc-icon-button';
