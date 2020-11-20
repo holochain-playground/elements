@@ -1,43 +1,49 @@
 import { Snackbar } from '@material/mwc-snackbar';
 import '@material/mwc-circular-progress';
 
-import { blackboardContainer } from '../blackboard/blackboard-container';
-import {
-  LitElement,
-  html,
-  css,
-  query,
-  property,
-  PropertyValues,
-} from 'lit-element';
-import { Playground } from '../state/playground';
+import { LitElement, html, css, query, property } from 'lit-element';
 //import { connectToConductors } from '../processors/connect-to-conductors';
 import {
   serializePlayground,
   deserializePlayground,
 } from '../processors/serialize';
-import { Blackboard } from '../blackboard/blackboard';
 import { buildSimulatedPlayground } from '../processors/build-simulated-playground';
 import { Conductor } from '../core/conductor';
+import './utils/context';
+import { ContextProvider } from 'lit-context';
 
-export class PlaygroundContainer extends blackboardContainer<Playground>(
-  'holochain-playground',
-  LitElement
-) {
-  @property({ type: Array })
-  private initialConductors: Conductor[] | undefined;
-
+export class Playgroundprovider extends ContextProvider {
   @property({ type: Number })
   numberOfSimulatedConductors: number = 10;
-
-  @property({ type: Array })
-  conductorsUrls: string[] | undefined;
 
   @query('#snackbar')
   private snackbar: Snackbar;
 
   @property({ type: String })
   private message: string | undefined;
+
+  /** Context variables */
+  @property({ type: String })
+  private activeDna: string | undefined;
+  @property({ type: String })
+  private activeAgentPubKey: string | undefined;
+  @property({ type: String })
+  private activeEntryHash: string | undefined;
+  @property({ type: Array })
+  private conductors: Conductor[] = [];
+
+  @property({ type: Array })
+  conductorsUrls: string[] | undefined;
+
+  get contextValue() {
+    return {
+      activeDna: this.activeDna,
+      activeAgentPubKey: this.activeAgentPubKey,
+      activeEntryHash: this.activeEntryHash,
+      conductors: this.conductors,
+      conductorsUrls: this.conductorsUrls,
+    };
+  }
 
   static get styles() {
     return css`
@@ -47,46 +53,30 @@ export class PlaygroundContainer extends blackboardContainer<Playground>(
     `;
   }
 
-  buildBlackboard() {
-    const initialPlayground: Playground = {
-      activeAgentId: undefined,
-      activeDNA: undefined,
-      activeEntryId: undefined,
-      conductors: [],
-      conductorsUrls: this.conductorsUrls,
-    };
-
-    return new Blackboard(
-      initialPlayground /* {
-      persistId: 'holochain-playground',
-      serializer: serializePlayground,
-      deserializer: deserializePlayground,
-    } */
-    );
-  }
-
   async firstUpdated() {
     if (!this.conductorsUrls) {
-      this.initialConductors = await buildSimulatedPlayground(
+      this.conductors = await buildSimulatedPlayground(
         this.numberOfSimulatedConductors
       );
 
-      const dnaHash = this.initialConductors[0].cells[0].cell.dnaHash;
-
-      this.blackboard.update('activeDNA', dnaHash);
-      this.blackboard.update('conductors', this.initialConductors);
+      this.activeDna = this.conductors[0].cells[0].cell.dnaHash;
 
       this.dispatchEvent(
         new CustomEvent('ready', {
           bubbles: true,
           composed: true,
-          detail: {
-            conductors: this.blackboard.state.conductors,
-          },
+          detail: this.contextValue,
         })
       );
     }
 
+    this.addEventListener('update-context', (e: CustomEvent) => {
+      const keys = Object.keys(e.detail);
+      for (const key of keys) {
+        this[key] = e.detail[key];
+      }
+    });
+    /* 
     this.blackboard.select('conductorsUrls').subscribe(async (urls) => {
       if (urls !== undefined) {
         try {
@@ -96,15 +86,13 @@ export class PlaygroundContainer extends blackboardContainer<Playground>(
           this.showError('Error when connecting with the nodes');
         }
       }
-    });
+    }); */
   }
 
-  updated(changedValues: PropertyValues) {
-    super.updated(changedValues);
+  updated(values) {
+    super.updated(values);
 
-    if (changedValues.has('conductorsUrls')) {
-      this.blackboard.update('conductorsUrls', this.conductorsUrls);
-    }
+    this.context.setValue(this.contextValue);
   }
 
   showError(error: string) {
@@ -123,11 +111,11 @@ export class PlaygroundContainer extends blackboardContainer<Playground>(
   render() {
     return html`
       ${this.renderSnackbar()}
-      ${this.blackboard.state
+      ${this.conductors
         ? html` <slot></slot> `
         : html` <mwc-circular-progress></mwc-circular-progress>`}
     `;
   }
 }
 
-customElements.define('holochain-playground-container', PlaygroundContainer);
+customElements.define('holochain-playground-provider', Playgroundprovider);

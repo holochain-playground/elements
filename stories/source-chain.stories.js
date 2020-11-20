@@ -1,4 +1,4 @@
-import '../dist/elements/holochain-playground-container.js';
+import '../dist/elements/holochain-playground-provider.js';
 import '../dist/elements/holochain-playground-source-chain.js';
 
 import {
@@ -25,15 +25,9 @@ export default {
 
 export const Simple = () => {
   return html`
-    <holochain-playground-container
-      id="container"
-      @ready=${() => {
-        const container = document.getElementById('container');
-        container.blackboard.update(
-          'activeAgentId',
-          container.blackboard.state.conductors[0].cells[0].cell.agentPubKey
-        );
-        const conductor = container.blackboard.state.conductors[0];
+    <holochain-playground-provider
+      @ready=${(e) => {
+        const conductor = e.detail.conductors[0];
 
         const cellId = conductor.cells[0].id;
         conductor.callZomeFn({
@@ -51,6 +45,6 @@ export const Simple = () => {
       <holochain-playground-source-chain
         style="height: 100vh"
       ></holochain-playground-source-chain>
-    </holochain-playground-container>
+    </holochain-playground-provider>
   `;
 };

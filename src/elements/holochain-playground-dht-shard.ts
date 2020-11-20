@@ -1,17 +1,21 @@
 import { LitElement, property, PropertyValues, html, query } from 'lit-element';
-import { sharedStyles } from './sharedStyles';
-import { Playground } from '../state/playground';
-import { blackboardConnect } from '../blackboard/blackboard-connect';
-import { selectActiveCell, selectCell } from '../state/selectors';
-import { Cell } from '../core/cell';
+import { sharedStyles } from './utils/sharedStyles';
+import { selectAllCells, selectCell } from './utils/selectors';
 
 import '@alenaksu/json-viewer';
 import { getDhtShard } from '../core/cell/dht/get';
+import { Conductor } from '../core/conductor';
+import { consumePlayground } from './utils/context';
 
-export class DHTShard extends blackboardConnect<Playground>(
-  'holochain-playground',
-  LitElement
-) {
+@consumePlayground()
+export class DHTShard extends LitElement {
+  @property({ type: String })
+  private activeDna: string | undefined;
+  @property({ type: Array })
+  private conductors: Conductor[] | undefined;
+  @property({ type: String })
+  private activeAgentPubKey: string | undefined;
+
   @property({ type: Object })
   cell: { dna: string; agentId: string } = undefined;
 
@@ -19,19 +23,16 @@ export class DHTShard extends blackboardConnect<Playground>(
     return sharedStyles;
   }
 
-  getCell() {
-    if (this.cell) {
-      return selectCell(this.blackboard.state)(
-        this.cell.dna,
-        this.cell.agentId
-      );
-    } else return selectActiveCell(this.blackboard.state);
+  get activeCell() {
+    return (
+      selectCell(this.activeDna, this.activeAgentPubKey, this.conductors) ||
+      selectAllCells(this.activeDna, this.conductors)[0]
+    );
   }
-
   render() {
     return html`
       <div class="column">
-        ${this.getCell()
+        ${this.activeCell
           ? html`
               <span>
                 <strong>
@@ -40,7 +41,7 @@ export class DHTShard extends blackboardConnect<Playground>(
                 </strong>
               </span>
               <json-viewer id="dht-shard" style="margin-top: 16px;">
-                ${JSON.stringify(getDhtShard(this.getCell().state))}
+                ${JSON.stringify(getDhtShard(this.activeCell.state))}
               </json-viewer>
             `
           : html`

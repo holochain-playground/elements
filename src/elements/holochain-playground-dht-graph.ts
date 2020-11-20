@@ -1,20 +1,31 @@
-import { LitElement, html, query, css } from 'lit-element';
+import { LitElement, html, query, css, property } from 'lit-element';
 import * as cytoscape from 'cytoscape';
 import { Dialog } from '@material/mwc-dialog';
 import '@material/mwc-icon-button';
 import '@material/mwc-button';
 
 import { dnaNodes } from '../processors/graph';
-import { blackboardConnect } from '../blackboard/blackboard-connect';
-import { Playground } from '../state/playground';
-import { selectActiveCells, selectHoldingCells } from '../state/selectors';
-import { sharedStyles } from './sharedStyles';
+import {
+  selectAllCells,
+  selectHoldingCells,
+} from './utils/selectors';
+import { sharedStyles } from './utils/sharedStyles';
 import { vectorsEqual } from '../processors/utils';
+import { consumePlayground, UpdateContextEvent } from './utils/context';
+import { Conductor } from '../core/conductor';
 
-export class DHTGraph extends blackboardConnect<Playground>(
-  'holochain-playground',
-  LitElement
-) {
+@consumePlayground()
+export class DHTGraph extends LitElement {
+  @property({ type: String })
+  private activeDna: string | undefined;
+  @property({ type: Array })
+  private conductors: Conductor[] | undefined;
+
+  @property({ type: String })
+  private activeEntryHash: string | undefined;
+  @property({ type: String })
+  private activeAgentPubKey: string | undefined;
+
   @query('#dht-help')
   private dhtHelp: Dialog;
 
@@ -35,10 +46,10 @@ export class DHTGraph extends blackboardConnect<Playground>(
   }
 
   async firstUpdated() {
-    const nodes = dnaNodes(selectActiveCells(this.blackboard.state));
+    const nodes = dnaNodes(selectAllCells(this.activeDna, this.conductors));
 
     this.cy = cytoscape({
-      container: this.shadowRoot.getElementById('graph'),
+      provider: this.shadowRoot.getElementById('graph'),
       boxSelectionEnabled: false,
       elements: nodes,
       autoungrabify: true,
@@ -86,34 +97,40 @@ export class DHTGraph extends blackboardConnect<Playground>(
     });
 
     this.cy.on('tap', 'node', (evt) => {
-      this.blackboard.update('activeAgentId', evt.target.id());
-      this.blackboard.update('activeEntryId', null);
+      this.dispatchEvent(
+        new UpdateContextEvent({
+          activeAgentPubKey: evt.target.id(),
+          activeEntryHash: null,
+        })
+      );
     });
   }
 
-  highlightNodesWithEntry(entryId: string) {
-    selectActiveCells(this.blackboard.state).forEach((cell) =>
+  highlightNodesWithEntry(entryHash: string) {
+    const allCells = selectAllCells(this.activeDna, this.conductors);
+
+    allCells.forEach((cell) =>
       this.cy.getElementById(cell.agentPubKey).removeClass('highlighted')
     );
-    const cells = selectHoldingCells(this.blackboard.state)(entryId);
+    const holdingCells = selectHoldingCells(entryHash, allCells);
 
-    for (const cell of cells) {
+    for (const cell of holdingCells) {
       this.cy.getElementById(cell.agentPubKey).addClass('highlighted');
     }
   }
 
   updated(changedValues) {
     super.updated(changedValues);
-
+debugger
     if (this.shadowRoot.getElementById('graph')) {
-      const newAgentIds = selectActiveCells(this.blackboard.state).map(
-        (c) => c.agentPubKey
-      );
+      const cells = selectAllCells(this.activeDna, this.conductors);
+
+      const newAgentIds = cells.map((c) => c.agentPubKey);
       if (!vectorsEqual(this.lastNodes, newAgentIds)) {
         if (this.layout) this.layout.stop();
         this.cy.remove('nodes');
 
-        const nodes = dnaNodes(selectActiveCells(this.blackboard.state));
+        const nodes = dnaNodes(selectAllCells(this.activeDna, this.conductors));
         this.cy.add(nodes);
 
         this.layout = this.cy.elements().makeLayout({ name: 'circle' });
@@ -121,14 +138,12 @@ export class DHTGraph extends blackboardConnect<Playground>(
         this.lastNodes = newAgentIds;
       }
 
-      selectActiveCells(this.blackboard.state).forEach((cell) =>
+      cells.forEach((cell) =>
         this.cy.getElementById(cell.agentPubKey).removeClass('selected')
       );
-      this.cy
-        .getElementById(this.blackboard.state.activeAgentId)
-        .addClass('selected');
+      this.cy.getElementById(this.activeAgentPubKey).addClass('selected');
 
-      this.highlightNodesWithEntry(this.blackboard.state.activeEntryId);
+      this.highlightNodesWithEntry(this.activeEntryHash);
     }
   }
 
@@ -141,7 +156,7 @@ export class DHTGraph extends blackboardConnect<Playground>(
             href="https://developer.holochain.org/docs/concepts/4_public_data_on_the_dht/"
             target="_blank"
             >DHT</a
-          >, with ${this.blackboard.state.conductors.length} nodes.
+          >, with ${this.conductors.length} nodes.
           <br />
           <br />
           In the DHT, all nodes have a <strong>public and private key</strong>.

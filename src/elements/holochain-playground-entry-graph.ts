@@ -1,14 +1,14 @@
-import { blackboardConnect } from '../blackboard/blackboard-connect';
-import { Playground } from '../state/playground';
 import { LitElement, query, html, property, css } from 'lit-element';
 import * as cytoscape from 'cytoscape';
 import * as cola from 'cytoscape-cola';
 import '@material/mwc-checkbox';
 import { allEntries } from '../processors/graph';
-import { selectActiveCells } from '../state/selectors';
-import { sharedStyles } from './sharedStyles';
+import { selectAllCells } from './utils/selectors';
+import { sharedStyles } from './utils/sharedStyles';
 import { Dialog } from '@material/mwc-dialog';
 import { vectorsEqual } from '../processors/utils';
+import { consumePlayground, UpdateContextEvent } from './utils/context';
+import { Conductor } from '../core/conductor';
 
 cytoscape.use(cola);
 
@@ -27,12 +27,17 @@ const layoutConfig = {
   },
 };
 
-export class EntryGraph extends blackboardConnect<Playground>(
-  'holochain-playground',
-  LitElement
-) {
+@consumePlayground()
+export class EntryGraph extends LitElement {
   @property({ attribute: false })
   showAgentsIds: boolean = true;
+
+  @property({ type: String })
+  private activeDna: string | undefined;
+  @property({ type: Array })
+  private conductors: Conductor[] | undefined;
+  @property({ type: String })
+  private activeEntryHash: string | undefined;
 
   @query('#entry-graph-help')
   private entryGraphHelp: Dialog;
@@ -47,7 +52,7 @@ export class EntryGraph extends blackboardConnect<Playground>(
 
   firstUpdated() {
     this.cy = cytoscape({
-      container: this.entryGraph,
+      provider: this.entryGraph,
       boxSelectionEnabled: false,
       autoungrabify: false,
       userZoomingEnabled: true,
@@ -126,7 +131,11 @@ export class EntryGraph extends blackboardConnect<Playground>(
 
     this.cy.on('tap', 'node', (event) => {
       const selectedEntryId = event.target.id();
-      this.blackboard.update('activeEntryId', selectedEntryId);
+      this.dispatchEvent(
+        new UpdateContextEvent({
+          activeEntryHash: selectedEntryId,
+        })
+      );
     });
 
     this.cy.ready((e) => {
@@ -175,7 +184,7 @@ export class EntryGraph extends blackboardConnect<Playground>(
       return null;
 
     const entries = allEntries(
-      selectActiveCells(this.blackboard.state),
+      selectAllCells(this.activeDna, this.conductors),
       this.showAgentsIds
     );
 
@@ -196,9 +205,7 @@ export class EntryGraph extends blackboardConnect<Playground>(
     this.lastEntriesIds = entries.map((e) => e.data.id);
 
     this.cy.filter('node').removeClass('selected');
-    this.cy
-      .getElementById(this.blackboard.state.activeEntryId)
-      .addClass('selected');
+    this.cy.getElementById(this.activeEntryHash).addClass('selected');
   }
 
   static get styles() {

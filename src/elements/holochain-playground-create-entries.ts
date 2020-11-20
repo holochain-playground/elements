@@ -5,30 +5,38 @@ import '@material/mwc-textfield';
 import '@material/mwc-dialog';
 import '@material/mwc-radio';
 import '@material/mwc-formfield';
-import { sharedStyles } from './sharedStyles';
+import { sharedStyles } from './utils/sharedStyles';
 import { TextArea } from '@material/mwc-textarea';
 import { TextFieldBase } from '@material/mwc-textfield/mwc-textfield-base';
 import { Element } from '../types/element';
 
 import '@alenaksu/json-viewer';
-import { Playground } from '../state/playground';
-import { blackboardConnect } from '../blackboard/blackboard-connect';
 import {
-  selectActiveCell,
-  selectEntry,
-  selectActiveCells,
+  selectAllCells,
+  selectCell,
+  selectFromCAS,
   selectHeaderEntry,
-  selectHeader,
-} from '../state/selectors';
+} from './utils/selectors';
 import { sampleZome } from '../dnas/sample-dna';
 import { cloneDeep } from 'lodash-es';
 import { DHTOp, elementToDHTOps, getDHTOpBasis } from '../types/dht-op';
 import { NewEntryHeader } from '../types/header';
+import { Conductor } from '../core/conductor';
+import { Cell } from '../core/cell';
+import { consumePlayground, UpdateContextEvent } from './utils/context';
 
-export class CreateEntries extends blackboardConnect<Playground>(
-  'holochain-playground',
-  LitElement
-) {
+@consumePlayground()
+export class CreateEntries extends LitElement {
+  @property({ type: String })
+  private activeDna: string | undefined;
+  @property({ type: Array })
+  private conductors: Conductor[] | undefined;
+
+  @property({ type: String })
+  private activeAgentPubKey: string | undefined;
+  @property({ type: Array })
+  private conductorsUrls: string[] | undefined;
+
   @property({ attribute: false })
   private selectedEntryType: number = 0;
 
@@ -67,11 +75,22 @@ export class CreateEntries extends blackboardConnect<Playground>(
     | Array<{ DHTOp: DHTOp; neighborhood: string }>
     | undefined = undefined;
 
+  get allCells(): Cell[] {
+    return selectAllCells(this.activeDna, this.conductors);
+  }
+
+  get activeCell() {
+    return (
+      selectCell(this.activeDna, this.activeAgentPubKey, this.conductors) ||
+      this.allCells[0]
+    );
+  }
+
   setEntryValidity(element) {
     element.validityTransform = (newValue, nativeValidity) => {
       this.requestUpdate();
       if (newValue.length === 46) {
-        const entry = selectEntry(this.blackboard.state)(newValue);
+        const entry = selectFromCAS(newValue, this.allCells)(newValue);
         if (entry) return { valid: true };
       }
       element.setCustomValidity('Entry does not exist');
@@ -85,7 +104,7 @@ export class CreateEntries extends blackboardConnect<Playground>(
     element.validityTransform = (newValue, nativeValidity) => {
       this.requestUpdate();
       if (newValue.length === 46) {
-        const header = selectHeader(this.blackboard.state)(newValue);
+        const header = selectFromCAS(newValue, this.allCells);
         if (header) return { valid: true };
       }
       element.setCustomValidity('Header does not exist');
@@ -128,7 +147,7 @@ export class CreateEntries extends blackboardConnect<Playground>(
   }
 
   firstUpdated() {
-    if (this.blackboard.state.conductorsUrls !== undefined) return;
+    if (this.conductorsUrls) return;
 
     this.setJsonValidity(this.createTextarea);
     this.setJsonValidity(this.updateTextarea);
@@ -253,8 +272,9 @@ export class CreateEntries extends blackboardConnect<Playground>(
             @click=${() =>
               this.openCommitDialog('update_entry', {
                 content: JSON.parse(this.updateTextarea.value),
-                type: selectHeaderEntry(this.blackboard.state)(
-                  this.updateHeaderAddress.value
+                type: selectHeaderEntry(
+                  this.updateHeaderAddress.value,
+                  this.allCells
                 ),
                 original_header_hash: this.updateHeaderAddress.value,
               })}
@@ -379,14 +399,6 @@ export class CreateEntries extends blackboardConnect<Playground>(
     `;
   }
 
-  cell() {
-    let cell = selectActiveCell(this.blackboard.state);
-    if (!cell) {
-      cell = selectActiveCells(this.blackboard.state)[0];
-    }
-    return cell;
-  }
-
   async openCommitDialog(fnName: string, payload: any) {
     this.dhtOpsToCreate = await this.buildDHTOps(fnName, payload);
 
@@ -397,7 +409,7 @@ export class CreateEntries extends blackboardConnect<Playground>(
   }
 
   async buildDHTOps(fnName: string, payload: any) {
-    const currentState = cloneDeep(this.cell().state);
+    const currentState = cloneDeep(this.activeCell.state);
 
     const actions = sampleZome[fnName](payload);
 
@@ -447,7 +459,7 @@ export class CreateEntries extends blackboardConnect<Playground>(
   }
 
   async callZomeFunction() {
-    const element: Element = await this.cell().callZomeFn({
+    const element: Element = await this.activeCell.callZomeFn({
       zome: 'sample',
       cap: null,
       fnName: this.zomeFnToCall.fnName,
@@ -465,9 +477,10 @@ export class CreateEntries extends blackboardConnect<Playground>(
     );
 
     if ((element.header as NewEntryHeader).entry_hash) {
-      this.blackboard.update(
-        'activeEntryId',
-        (element.header as NewEntryHeader).entry_hash
+      this.dispatchEvent(
+        new UpdateContextEvent({
+          activeEntryHash: (element.header as NewEntryHeader).entry_hash,
+        })
       );
     }
     this.zomeFnToCall = undefined;
@@ -523,7 +536,7 @@ export class CreateEntries extends blackboardConnect<Playground>(
   render() {
     return html`
       <div class="column fill">
-        ${this.blackboard.state.conductorsUrls !== undefined
+        ${this.conductorsUrls !== undefined
           ? this.renderConnectedPlaceholder()
           : html`
               <div class="row fill">

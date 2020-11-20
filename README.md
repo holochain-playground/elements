@@ -9,23 +9,23 @@ This package is distributed as an [NPM package component library](https://npmjs.
 ## Library Usage
 
 1. Install the package with `npm i holochain-playground` .
-2. Import the `holochain-playground-container` in your application like this:
+2. Import the `holochain-playground-provider` in your application like this:
 
 ``` js
-import "holochain-playground/elements/holochain-playground-container";
+import "holochain-playground/elements/holochain-playground-provider";
 ```
 
-3. Declare the `<holochain-playground-container></holochain-playground-container>` element:
+3. Declare the `<holochain-playground-provider></holochain-playground-provider>` element:
 
 ``` html
 <body>
-    <holochain-playground-container id="playground"></holochain-playground-container>
+    <holochain-playground-provider id="playground"></holochain-playground-provider>
 </body>
 ```
 
 This is the fundamental element for the playground to work, as it provides the state for all other elements you declare inside it.
 
-4. Import any elements you want from the library, and declare them inside the `holochain-playground-container` :
+4. Import any elements you want from the library, and declare them inside the `holochain-playground-provider` :
 
 ``` js
 import 'holochain-playground/elements/holochain-playground-dht-graph'
@@ -33,9 +33,9 @@ import 'holochain-playground/elements/holochain-playground-dht-graph'
 
 ``` html
 <body>
-    <holochain-playground-container id="playground">
+    <holochain-playground-provider id="playground">
         <holochain-playground-dht-graph></holochain-playground-dht-graph>
-    </holochain-playground-container>
+    </holochain-playground-provider>
 </body>
 ```
 
@@ -43,7 +43,7 @@ import 'holochain-playground/elements/holochain-playground-dht-graph'
 
 ``` html
 <body>
-    <holochain-playground-container id="playground"></holochain-playground-container>
+    <holochain-playground-provider id="playground"></holochain-playground-provider>
 
     <script>
         const playground = document.getElementById("playground");

@@ -36,7 +36,7 @@ export const sharedStyles = css`
     flex: 1;
   }
 
-  .flex-scrollable-container {
+  .flex-scrollable-provider {
     position: absolute;
     top: 0;
     left: 0;

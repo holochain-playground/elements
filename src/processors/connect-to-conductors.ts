@@ -1,5 +1,4 @@
 /* import { Blackboard } from '../blackboard/blackboard';
-import { Playground } from '../state/playground';
 import { Conductor } from '../types/conductor';
 import { hookUpConductors } from './message';
 import { Header } from '../types/header';
@@ -31,9 +30,9 @@ export async function connectToConductors(
   conductorsUrls: string[]
 ): Promise<void> {
   const initialPlayground: Playground = {
-    activeAgentId: null,
-    activeDNA: null,
-    activeEntryId: null,
+    activeAgentPubKey: null,
+    activeDna: null,
+    activeEntryHash: null,
     conductors: [],
     conductorsUrls,
   };
@@ -101,7 +100,7 @@ export async function connectToConductors(
 
   initialPlayground.conductors = await Promise.all(promises);
 
-  initialPlayground.activeDNA = Object.keys(
+  initialPlayground.activeDna = Object.keys(
     initialPlayground.conductors[0].cells
   )[0];
 

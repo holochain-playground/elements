@@ -1,15 +1,21 @@
 import { LitElement, html, property, css } from 'lit-element';
 import '@alenaksu/json-viewer';
 
-import { blackboardConnect } from '../blackboard/blackboard-connect';
-import { Playground } from '../state/playground';
-import { sharedStyles } from './sharedStyles';
-import { selectActiveEntry, selectEntryDetails } from '../state/selectors';
+import { sharedStyles } from './utils/sharedStyles';
+import { consumePlayground } from './utils/context';
+import { Conductor } from '../core/conductor';
+import { selectAllCells, selectFromCAS } from './utils/selectors';
+import { getEntryDetails } from '../core/cell/dht/get';
 
-export class EntryDetail extends blackboardConnect<Playground>(
-  'holochain-playground',
-  LitElement
-) {
+@consumePlayground()
+export class EntryDetail extends LitElement {
+  @property({ type: Array })
+  private conductors: Conductor[] | undefined;
+  @property({ type: String })
+  private activeDna: string | undefined;
+  @property({ type: String })
+  private activeEntryHash: string | undefined;
+
   @property({ type: Boolean })
   withMetadata = false;
 
@@ -22,6 +28,20 @@ export class EntryDetail extends blackboardConnect<Playground>(
         }
       `,
     ];
+  }
+
+  get activeEntry() {
+    const allCells = selectAllCells(this.activeDna, this.conductors);
+    return selectFromCAS(this.activeEntryHash, allCells);
+  }
+
+  get activeEntryDetails() {
+    const allCells = selectAllCells(this.activeDna, this.conductors);
+    for (const cell of allCells) {
+      const details = getEntryDetails(cell.state, this.activeEntryHash);
+      if (details) return details;
+    }
+    return undefined;
   }
 
   shorten(object: any, length: number) {
@@ -40,35 +60,24 @@ export class EntryDetail extends blackboardConnect<Playground>(
     return html`
       <div class="column fill">
         <h3 class="title">Entry Detail</h3>
-        ${selectActiveEntry(this.blackboard.state)
+        ${this.activeEntry
           ? html`
               <div class="column">
                 <strong style="margin-bottom: 8px;">
-                  ${selectActiveEntry(this.blackboard.state).entry_address
-                    ? 'Header'
-                    : 'Entry'}
-                  Id
+                  ${this.activeEntry.prev_header ? 'Header' : 'Entry'} Hash
                 </strong>
                 <span style="margin-bottom: 16px;">
-                  ${this.shorten(this.blackboard.state.activeEntryId, 50)}
+                  ${this.shorten(this.activeEntryHash, 50)}
                 </span>
                 <json-viewer
-                  .data=${this.shorten(
-                    selectActiveEntry(this.blackboard.state),
-                    40
-                  )}
+                  .data=${this.shorten(this.activeEntry, 40)}
                 ></json-viewer>
                 ${this.withMetadata
                   ? html` <span style="margin: 16px 0; font-weight: bold;">
                         Metadata
                       </span>
                       <json-viewer
-                        .data=${this.shorten(
-                          selectEntryDetails(this.blackboard.state)(
-                            this.blackboard.state.activeEntryId
-                          ),
-                          40
-                        )}
+                        .data=${this.shorten(this.activeEntryDetails, 40)}
                       ></json-viewer>`
                   : html``}
               </div>

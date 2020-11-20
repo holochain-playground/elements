@@ -1,20 +1,27 @@
-import { blackboardConnect } from '../blackboard/blackboard-connect';
-import { Playground } from '../state/playground';
-import { LitElement, html } from 'lit-element';
-import { selectAllDNAs } from '../state/selectors';
+import { LitElement, html, property } from 'lit-element';
+import { Conductor } from '../core/conductor';
+import { selectAllDNAs } from './utils/selectors';
+import { consumePlayground, UpdateContextEvent } from './utils/context';
 
-export class SelectDNA extends blackboardConnect<Playground>(
-  'holochain-playground',
-  LitElement
-) {
+@consumePlayground()
+export class SelectDNA extends LitElement {
+  @property({ type: Array })
+  private conductors: Conductor[] | undefined;
+  @property({ type: String })
+  private activeDna: string | undefined;
+
   selectDNA(dna: string) {
-    this.blackboard.update('activeAgentId', null);
-    this.blackboard.update('activeEntryId', null);
-    this.blackboard.update('activeDNA', dna);
+    this.dispatchEvent(
+      new UpdateContextEvent({
+        activeAgentPubKey: null,
+        activeEntryHash: null,
+        activeDna: dna,
+      })
+    );
   }
 
   render() {
-    const dnas = selectAllDNAs(this.blackboard.state);
+    const dnas = selectAllDNAs(this.conductors);
     if (dnas.length === 1) return html`<span>DNA: ${dnas[0]}</span>`;
     else {
       return html`
@@ -29,7 +36,7 @@ export class SelectDNA extends blackboardConnect<Playground>(
             (dna) =>
               html`
                 <mwc-list-item
-                  ?selected=${this.blackboard.state.activeDNA === dna}
+                  ?selected=${this.activeDna === dna}
                   .value=${dna}
                   >${dna}</mwc-list-item
                 >

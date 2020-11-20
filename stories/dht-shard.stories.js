@@ -1,4 +1,4 @@
-import '../dist/elements/holochain-playground-container.js';
+import '../dist/elements/holochain-playground-provider.js';
 import '../dist/elements/holochain-playground-dht-shard.js';
 import '../dist/elements/holochain-playground-dht-graph.js';
 
@@ -26,11 +26,11 @@ export default {
 
 export const Simple = () => {
   return html`
-    <holochain-playground-container
-      id="container"
+    <holochain-playground-provider
+      id="provider"
       @ready=${() => {
-        const container = document.getElementById('container');
-        const conductor = container.blackboard.state.conductors[0];
+        const provider = document.getElementById('provider');
+        const conductor = provider.blackboard.state.conductors[0];
 
         const cellId = conductor.cells[0].id;
         conductor
@@ -45,7 +45,7 @@ export const Simple = () => {
             cap: null,
           })
           .then(() =>
-            container.blackboard.updateState(container.blackboard.state)
+            provider.blackboard.updateState(provider.blackboard.state)
           );
       }}
     >
@@ -57,6 +57,6 @@ export const Simple = () => {
           style="flex: 1;"
         ></holochain-playground-dht-shard>
       </div>
-    </holochain-playground-container>
+    </holochain-playground-provider>
   `;
 };
