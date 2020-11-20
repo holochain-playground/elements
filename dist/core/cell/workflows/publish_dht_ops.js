@@ -1,4 +1,4 @@
-import '../../../hash-9f18ad5a.js';
+import '../../../hash-7578db5d.js';
 import '../../../types/header.js';
 import { getNonPublishedDhtOps } from '../source-chain/utils.js';
 import { getDHTOpBasis } from '../../../types/dht-op.js';

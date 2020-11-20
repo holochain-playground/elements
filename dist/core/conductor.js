@@ -3,7 +3,7 @@ import './cell/dht/get.js';
 import '../tslib.es6-d17b0a4d.js';
 import '../Subject-4f1cabc8.js';
 import '../types/common.js';
-import { h as hash } from '../hash-9f18ad5a.js';
+import { h as hash } from '../hash-7578db5d.js';
 import '../types/entry.js';
 import '../types/header.js';
 import '../types/timestamp.js';

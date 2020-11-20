@@ -1,4 +1,4 @@
-import { h as hash } from '../hash-9f18ad5a.js';
+import { h as hash } from '../hash-7578db5d.js';
 import { HeaderType } from './header.js';
 
 // https://github.com/holochain/holochain/blob/develop/crates/types/src/dht_op.rs

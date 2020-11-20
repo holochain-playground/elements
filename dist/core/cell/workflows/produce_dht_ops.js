@@ -1,4 +1,4 @@
-import { h as hash } from '../../../hash-9f18ad5a.js';
+import { h as hash } from '../../../hash-7578db5d.js';
 import '../../../types/header.js';
 import { getElement } from '../source-chain/utils.js';
 import { elementToDHTOps } from '../../../types/dht-op.js';
