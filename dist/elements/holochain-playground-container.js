@@ -4,7 +4,7 @@ import 'rxjs';
 import 'rxjs/operators';
 import { Blackboard } from '../blackboard/blackboard.js';
 import '../types/common.js';
-import '../processors/hash.js';
+import '../hash-bca98662.js';
 import 'byte-base64';
 import '../types/entry.js';
 import '../types/header.js';

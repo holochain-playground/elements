@@ -1,6 +1,6 @@
 import { blackboardConnect } from '../blackboard/blackboard-connect.js';
 import 'lodash-es';
-import '../processors/hash.js';
+import '../hash-bca98662.js';
 import 'byte-base64';
 import '../types/entry.js';
 import '../types/timestamp.js';
@@ -11,7 +11,7 @@ import { LitElement, css, html, query } from 'lit-element';
 import { Dialog } from '@material/mwc-dialog';
 import { sharedStyles } from './sharedStyles.js';
 import { dnaNodes } from '../processors/graph.js';
-import cytoscape from 'cytoscape';
+import { c as cytoscape_cjs } from '../cytoscape.cjs-445d1744.js';
 import { selectActiveCells, selectHoldingCells } from '../state/selectors.js';
 import '@material/mwc-button';
 import '@material/mwc-icon-button';
@@ -34,7 +34,7 @@ class DHTGraph extends blackboardConnect('holochain-playground', LitElement) {
     }
     async firstUpdated() {
         const nodes = dnaNodes(selectActiveCells(this.blackboard.state));
-        this.cy = cytoscape({
+        this.cy = cytoscape_cjs({
             container: this.shadowRoot.getElementById('graph'),
             boxSelectionEnabled: false,
             elements: nodes,

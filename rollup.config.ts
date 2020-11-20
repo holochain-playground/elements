@@ -9,7 +9,7 @@ const pkg = require('./package.json');
 export default {
   input: `src/**/*.ts`,
   output: { dir: 'dist', format: 'es', sourcemap: true },
-  external: [...Object.keys(pkg.dependencies), /@material/, /rxjs/],
+  external: [...Object.keys(pkg.dependencies).filter(key => !key.startsWith('cytoscape')), /@material/, /rxjs/],
   plugins: [
     multiInput(),
     json(),

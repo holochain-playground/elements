@@ -1,4 +1,4 @@
-import '../../../processors/hash.js';
+import '../../../hash-bca98662.js';
 import 'byte-base64';
 import '../../../types/header.js';
 import { getNonPublishedDhtOps } from '../source-chain/utils.js';
