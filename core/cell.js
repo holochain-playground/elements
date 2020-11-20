@@ -3,7 +3,7 @@ import './cell/dht/get.js';
 import '../tslib.es6-d17b0a4d.js';
 import { b as Subject } from '../Subject-4f1cabc8.js';
 import { getAgentPubKey, getDnaHash } from '../types/common.js';
-import '../hash-9ab97112.js';
+import '../hash-35c9e46d.js';
 import '../types/entry.js';
 import '../types/header.js';
 import '../types/timestamp.js';

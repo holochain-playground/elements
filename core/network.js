@@ -1,4 +1,4 @@
-import '../hash-9ab97112.js';
+import '../hash-35c9e46d.js';
 import { P2pCell } from './network/p2p-cell.js';
 
 class Network {

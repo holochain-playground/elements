@@ -1,4 +1,4 @@
-import '../../../hash-9ab97112.js';
+import '../../../hash-35c9e46d.js';
 import { hashEntry } from '../../../types/entry.js';
 import { HeaderType } from '../../../types/header.js';
 import { now } from '../../../types/timestamp.js';
