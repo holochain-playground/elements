@@ -1,7 +1,6 @@
 import { blackboardConnect } from '../blackboard/blackboard-connect.js';
-import { b as __decorate, d as __metadata } from '../tslib.es6-d17b0a4d.js';
-import { L as LitElement, c as css, h as html } from '../lit-element-f1ebfbe2.js';
-import { p as property } from '../decorators-7fa2337b.js';
+import { _ as __decorate, a as __metadata } from '../tslib.es6-654e2c24.js';
+import { LitElement, css, html, property } from 'lit-element';
 
 //import { checkConnection } from '../processors/connect-to-conductors';
 class ConnectToNodes extends blackboardConnect('holochain-playground', LitElement) {

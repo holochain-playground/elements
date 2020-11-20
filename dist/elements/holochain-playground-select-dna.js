@@ -1,8 +1,8 @@
 import { blackboardConnect } from '../blackboard/blackboard-connect.js';
-import '../_setToArray-0c1e9efa.js';
-import '../core/cell/dht/get.js';
+import 'lodash-es';
 import '../types/metadata.js';
-import { L as LitElement, h as html } from '../lit-element-f1ebfbe2.js';
+import '../core/cell/dht/get.js';
+import { LitElement, html } from 'lit-element';
 import { selectAllDNAs } from '../state/selectors.js';
 
 class SelectDNA extends blackboardConnect('holochain-playground', LitElement) {

@@ -1,4 +1,4 @@
-import { c as css } from '../lit-element-f1ebfbe2.js';
+import { css } from 'lit-element';
 
 const sharedStyles = css `
   .row {

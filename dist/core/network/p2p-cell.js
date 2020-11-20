@@ -1,4 +1,5 @@
-import { d as distance, c as compareBigInts } from '../../hash-7578db5d.js';
+import { distance, compareBigInts } from '../../processors/hash.js';
+import 'byte-base64';
 
 // From: https://github.com/holochain/holochain/blob/develop/crates/holochain_p2p/src/types/actor.rs
 class P2pCell {

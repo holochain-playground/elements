@@ -1,4 +1,5 @@
-import { h as hash } from '../hash-7578db5d.js';
+import { hash } from '../processors/hash.js';
+import 'byte-base64';
 
 function getAppEntryType(entryType) {
     if (entryType.App)
