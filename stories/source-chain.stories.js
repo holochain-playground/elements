@@ -26,6 +26,7 @@ export default {
 export const Simple = () => {
   return html`
     <holochain-playground-provider
+      .numberOfSimulatedConductors=${1}
       @ready=${(e) => {
         const conductor = e.detail.conductors[0];
 

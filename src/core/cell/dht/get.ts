@@ -108,7 +108,6 @@ export function isHoldingEntry(state: CellState, entryHash: Hash): boolean {
 }
 
 export function getDhtShard(state: CellState): Dictionary<EntryDetails> {
-  debugger;
   const heldEntries = getAllHeldEntries(state);
 
   const dhtShard: Dictionary<EntryDetails> = {};

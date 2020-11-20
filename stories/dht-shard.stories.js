@@ -27,26 +27,20 @@ export default {
 export const Simple = () => {
   return html`
     <holochain-playground-provider
-      id="provider"
-      @ready=${() => {
-        const provider = document.getElementById('provider');
-        const conductor = provider.blackboard.state.conductors[0];
+      @ready=${(e) => {
+        const conductor = e.detail.conductors[0];
 
         const cellId = conductor.cells[0].id;
-        conductor
-          .callZomeFn({
-            cellId,
-            zome: 'sample',
-            fnName: 'create_entry',
-            payload: {
-              content: { myman: 'mygirl' },
-              entry_type: 'haha',
-            },
-            cap: null,
-          })
-          .then(() =>
-            provider.blackboard.updateState(provider.blackboard.state)
-          );
+        conductor.callZomeFn({
+          cellId,
+          zome: 'sample',
+          fnName: 'create_entry',
+          payload: {
+            content: { myman: 'mygirl' },
+            entry_type: 'haha',
+          },
+          cap: null,
+        });
       }}
     >
       <div style="display: flex; flex-direction: row; height: 100vh;">
@@ -54,7 +48,7 @@ export const Simple = () => {
           style="flex: 1;"
         ></holochain-playground-dht-graph>
         <holochain-playground-dht-shard
-          style="flex: 1;"
+          style="flex: 1; margin: 20px;"
         ></holochain-playground-dht-shard>
       </div>
     </holochain-playground-provider>

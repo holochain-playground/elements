@@ -42,7 +42,7 @@
     "@material/mwc-textfield": "^0.19.1",
     "@material/mwc-top-app-bar-fixed": "^0.19.1",
     "byte-base64": "^1.1.0",
-    "cytoscape": "^3.14.1",
+    "cytoscape": "^3.17.0",
     "cytoscape-cola": "^2.3.0",
     "cytoscape-dagre": "^2.2.2",
     "cytoscape-euler": "^1.2.2",

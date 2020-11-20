@@ -3,7 +3,7 @@
   "tags": [
     {
       "name": "holochain-playground-provider",
-      "path": "./dist/context-84ce4bf2.js",
+      "path": "./dist/context-97eb5dfe.js",
       "properties": [
         {
           "name": "contextValue",
@@ -199,6 +199,10 @@
       "path": "./dist/elements/holochain-playground-source-chain.js",
       "properties": [
         {
+          "name": "activeCell",
+          "type": "Cell"
+        },
+        {
           "name": "nodes",
           "type": "never[]",
           "default": "[]"
@@ -385,7 +389,13 @@
     },
     {
       "name": "holochain-playground-source-chain",
-      "path": "./src/elements/holochain-playground-source-chain.ts"
+      "path": "./src/elements/holochain-playground-source-chain.ts",
+      "properties": [
+        {
+          "name": "activeCell",
+          "type": "Cell"
+        }
+      ]
     }
   ]
 }

@@ -21,7 +21,7 @@ import { Subscription } from 'rxjs';
 import { MenuSurface } from '@material/mwc-menu/mwc-menu-surface';
 import { consumePlayground, UpdateContextEvent } from './utils/context';
 import { Conductor } from '../core/conductor';
-import { selectCell } from './utils/selectors';
+import { selectAllCells, selectCell } from './utils/selectors';
 
 cytoscape.use(dagre); // register extension
 
@@ -53,6 +53,13 @@ export class SourceChain extends LitElement {
 
   private _cell: Cell;
   private _subscription: Subscription;
+
+  get activeCell() {
+    return (
+      selectCell(this.activeDna, this.activeAgentPubKey, this.conductors) ||
+      selectAllCells(this.activeDna, this.conductors)[0]
+    );
+  }
 
   @property({ type: Object })
   private _nodeInfo: any | undefined = undefined;
@@ -126,7 +133,8 @@ export class SourceChain extends LitElement {
         })
       );
     });
-    this.cy.renderer().hoverData.capture = true;
+    console.log(this.cy.renderer().hoverData);
+    //    this.cy.renderer().hoverData.capture = true;
 
     this.cy.on('mouseover', 'node', (event) => {
       this._nodeInfo = event.target.data().data;
@@ -143,22 +151,17 @@ export class SourceChain extends LitElement {
   updated(changedValues: PropertyValues) {
     super.updated(changedValues);
 
-    const cell = selectCell(
-      this.activeDna,
-      this.activeAgentPubKey,
-      this.conductors
-    );
-
-    if (cell != this._cell) {
+    if (this.activeCell != this._cell) {
       if (this._subscription) this._subscription.unsubscribe();
 
-      this._subscription = cell.signals[
+      this._subscription = this.activeCell.signals[
         'after-workflow-executed'
       ].subscribe(() => this.requestUpdate());
-      this._cell = cell;
+      this._cell = this.activeCell;
     }
 
-    const nodes = sourceChainNodes(cell);
+    const nodes = sourceChainNodes(this.activeCell);
+    console.log('ondes', nodes);
     if (!isEqual(nodes, this.nodes)) {
       this.nodes = nodes;
 

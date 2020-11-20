@@ -121,7 +121,7 @@ export class DHTGraph extends LitElement {
 
   updated(changedValues) {
     super.updated(changedValues);
-debugger
+
     if (this.shadowRoot.getElementById('graph')) {
       const cells = selectAllCells(this.activeDna, this.conductors);
 
