@@ -4,6 +4,7 @@
   "description": "Holochain playground that simulates real life holochain behaviour",
   "author": "holochain-playground",
   "license": "MIT",
+  "files": ["dist"],
   "scripts": {
     "build": "rimraf dist && rollup -c rollup.config.ts",
     "dev": "rimraf dist && rollup -c rollup.config.ts -w",
@@ -13,8 +14,8 @@
     "storybook": "npm run build && npm run analyze && start-storybook -p 8001",
     "storybook:build": "build-storybook",
     "storybook:publish": "gh-pages -d dist",
-    "publish-to-branch": "npm run build && cp -t dist package.json package-lock.json README.md && gh-pages -d dist -b ui-build",
-    "build:publish": "npm run build && cp -t dist package.json package-lock.json README.md && cd dist && npm publish"
+    "publish-to-branch": "npm run build && gh-pages -d . -b ui-build",
+    "build:publish": "npm run build && npm publish"
   },
   "dependencies": {
     "@alenaksu/json-viewer": "^0.1.0",
