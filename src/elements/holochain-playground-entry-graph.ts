@@ -52,7 +52,7 @@ export class EntryGraph extends LitElement {
 
   firstUpdated() {
     this.cy = cytoscape({
-      provider: this.entryGraph,
+      container: this.entryGraph,
       boxSelectionEnabled: false,
       autoungrabify: false,
       userZoomingEnabled: true,

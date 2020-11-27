@@ -68,7 +68,7 @@ export class SourceChain extends LitElement {
 
   firstUpdated() {
     this.cy = cytoscape({
-      provider: this.shadowRoot.getElementById('source-chain-graph'),
+      container: this.shadowRoot.getElementById('source-chain-graph'),
       layout: { name: 'dagre' },
       autoungrabify: true,
       userZoomingEnabled: true,
@@ -133,8 +133,7 @@ export class SourceChain extends LitElement {
         })
       );
     });
-    console.log(this.cy.renderer().hoverData);
-    //    this.cy.renderer().hoverData.capture = true;
+    this.cy.renderer().hoverData.capture = true;
 
     this.cy.on('mouseover', 'node', (event) => {
       this._nodeInfo = event.target.data().data;

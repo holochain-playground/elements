@@ -5,10 +5,7 @@ import '@material/mwc-icon-button';
 import '@material/mwc-button';
 
 import { dnaNodes } from '../processors/graph';
-import {
-  selectAllCells,
-  selectHoldingCells,
-} from './utils/selectors';
+import { selectAllCells, selectHoldingCells } from './utils/selectors';
 import { sharedStyles } from './utils/sharedStyles';
 import { vectorsEqual } from '../processors/utils';
 import { consumePlayground, UpdateContextEvent } from './utils/context';
@@ -28,6 +25,9 @@ export class DHTGraph extends LitElement {
 
   @query('#dht-help')
   private dhtHelp: Dialog;
+
+  @query('#graph')
+  private graph: any;
 
   private lastNodes: string[] = [];
 
@@ -49,9 +49,8 @@ export class DHTGraph extends LitElement {
     const nodes = dnaNodes(selectAllCells(this.activeDna, this.conductors));
 
     this.cy = cytoscape({
-      provider: this.shadowRoot.getElementById('graph'),
+      container: this.graph,
       boxSelectionEnabled: false,
-      elements: nodes,
       autoungrabify: true,
       userPanningEnabled: false,
       userZoomingEnabled: false,
@@ -122,29 +121,27 @@ export class DHTGraph extends LitElement {
   updated(changedValues) {
     super.updated(changedValues);
 
-    if (this.shadowRoot.getElementById('graph')) {
-      const cells = selectAllCells(this.activeDna, this.conductors);
+    const cells = selectAllCells(this.activeDna, this.conductors);
 
-      const newAgentIds = cells.map((c) => c.agentPubKey);
-      if (!vectorsEqual(this.lastNodes, newAgentIds)) {
-        if (this.layout) this.layout.stop();
-        this.cy.remove('nodes');
+    const newAgentIds = cells.map((c) => c.agentPubKey);
+    if (!vectorsEqual(this.lastNodes, newAgentIds)) {
+      if (this.layout) this.layout.stop();
+      this.cy.remove('nodes');
 
-        const nodes = dnaNodes(selectAllCells(this.activeDna, this.conductors));
-        this.cy.add(nodes);
+      const nodes = dnaNodes(cells);
+      this.cy.add(nodes);
 
-        this.layout = this.cy.elements().makeLayout({ name: 'circle' });
-        this.layout.run();
-        this.lastNodes = newAgentIds;
-      }
-
-      cells.forEach((cell) =>
-        this.cy.getElementById(cell.agentPubKey).removeClass('selected')
-      );
-      this.cy.getElementById(this.activeAgentPubKey).addClass('selected');
-
-      this.highlightNodesWithEntry(this.activeEntryHash);
+      this.layout = this.cy.elements().makeLayout({ name: 'circle' });
+      this.layout.run();
+      this.lastNodes = newAgentIds;
     }
+
+    cells.forEach((cell) =>
+      this.cy.getElementById(cell.agentPubKey).removeClass('selected')
+    );
+    this.cy.getElementById(this.activeAgentPubKey).addClass('selected');
+
+    this.highlightNodesWithEntry(this.activeEntryHash);
   }
 
   renderDHTHelp() {
