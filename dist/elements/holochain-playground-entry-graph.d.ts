@@ -1,12 +1,10 @@
-import { Playground } from '../state/playground';
 import { LitElement } from 'lit-element';
 import '@material/mwc-checkbox';
-declare const EntryGraph_base: {
-    new (...args: any[]): import("../blackboard/blackboard-connect").PinnedElement<Playground> & LitElement & import("lit-element").Constructor<LitElement>;
-    prototype: any;
-};
-export declare class EntryGraph extends EntryGraph_base {
+export declare class EntryGraph extends LitElement {
     showAgentsIds: boolean;
+    private activeDna;
+    private conductors;
+    private activeEntryHash;
     private entryGraphHelp;
     private entryGraph;
     private lastEntriesIds;
@@ -20,4 +18,3 @@ export declare class EntryGraph extends EntryGraph_base {
     static get styles(): import("lit-element").CSSResult[];
     render(): import("lit-element").TemplateResult;
 }
-export {};

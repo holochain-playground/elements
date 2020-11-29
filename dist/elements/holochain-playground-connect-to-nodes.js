@@ -1,12 +1,49 @@
-import { blackboardConnect } from '../blackboard/blackboard-connect.js';
-import { _ as __decorate, a as __metadata } from '../tslib.es6-654e2c24.js';
+import '../types/common.js';
+import '../processors/hash.js';
+import 'byte-base64';
+import '../types/entry.js';
+import '../types/header.js';
+import '../types/timestamp.js';
+import '../core/cell/source-chain/utils.js';
+import '../core/cell/source-chain/builder-headers.js';
+import '../core/cell/source-chain/put.js';
+import '../types/dht-op.js';
+import '../core/cell/source-chain/get.js';
+import '../core/cell/workflows/publish_dht_ops.js';
+import '../core/cell/workflows/produce_dht_ops.js';
+import '../core/cell/workflows/genesis.js';
+import '../executor/immediate-executor.js';
+import '../core/cell/workflows/call_zome_fn.js';
+import '../types/cell-state.js';
+import '../types/metadata.js';
+import 'lodash-es';
+import '../core/cell/dht/get.js';
+import '../core/cell/dht/put.js';
+import '../core/cell/workflows/integrate_dht_ops.js';
+import '../core/cell/workflows/app_validation.js';
+import '../core/cell/workflows/sys_validation.js';
+import '../core/cell/workflows/incoming_dht_ops.js';
+import 'rxjs';
+import '../core/cell.js';
+import '../core/network/p2p-cell.js';
+import '../core/network.js';
+import '../core/conductor.js';
+import '../core/cell/source-chain/actions.js';
+import '../dnas/sample-dna.js';
+import { U as UpdateContextEvent, _ as __decorate, a as __metadata, c as consumePlayground } from '../context-97eb5dfe.js';
 import { LitElement, css, html, property } from 'lit-element';
+import 'lit-context';
+import '@material/mwc-snackbar';
+import '@material/mwc-circular-progress';
+import '../processors/message.js';
+import '../processors/create-conductors.js';
+import '../processors/build-simulated-playground.js';
 
 //import { checkConnection } from '../processors/connect-to-conductors';
-class ConnectToNodes extends blackboardConnect('holochain-playground', LitElement) {
+let ConnectToNodes = class ConnectToNodes extends LitElement {
     constructor() {
         super(...arguments);
-        this.conductorUrls = ['ws://localhost:8888'];
+        this.conductorsUrls = ['ws://localhost:8888'];
         this.open = false;
         this.urlsState = {};
     }
@@ -16,14 +53,6 @@ class ConnectToNodes extends blackboardConnect('holochain-playground', LitElemen
         --mdc-theme-primary: black;
       }
     `;
-    }
-    firstUpdated() {
-        if (this.blackboard.state.conductorsUrls !== undefined) {
-            this.conductorUrls = this.blackboard.state.conductorsUrls;
-        }
-        this.blackboard.select('conductorsUrls').subscribe((urls) => {
-            this.conductorUrls = urls;
-        });
     }
     getUrlFields() {
         return Array.apply(null, this.shadowRoot.querySelectorAll('.url-field'));
@@ -49,7 +78,7 @@ class ConnectToNodes extends blackboardConnect('holochain-playground', LitElemen
     }
     updateFields() {
         const fields = this.getUrlFields();
-        this.conductorUrls = fields.map((f) => f.value);
+        this.conductorsUrls = fields.map((f) => f.value);
         for (const field of fields) {
             this.setConnectionValidity(field);
             if (!this.urlsState[field.value]) ;
@@ -59,16 +88,14 @@ class ConnectToNodes extends blackboardConnect('holochain-playground', LitElemen
     renderDialog() {
         return html `<mwc-dialog
       id="connect-to-nodes"
-      .open="${this.open}"
+      .open="${!!this.open}"
       @closed=${() => (this.open = false)}
     >
       <div class="column">
         <h3 class="title">
-          ${this.blackboard.state.conductorsUrls
-            ? 'Connected Nodes'
-            : 'Connect to nodes'}
+          ${this.conductorsUrls ? 'Connected Nodes' : 'Connect to nodes'}
         </h3>
-        ${this.conductorUrls.map((url, index) => html `
+        ${this.conductorsUrls.map((url, index) => html `
             <div class="row" style="margin-bottom: 16px;">
               <mwc-textfield
                 style="width: 20em;"
@@ -80,11 +107,11 @@ class ConnectToNodes extends blackboardConnect('holochain-playground', LitElemen
               ></mwc-textfield>
               <mwc-icon-button
                 icon="clear"
-                .disabled=${this.conductorUrls.length === 1}
+                .disabled=${this.conductorsUrls.length === 1}
                 style="padding-top: 4px;"
                 @click=${() => {
-            this.conductorUrls.splice(index, 1);
-            this.conductorUrls = [...this.conductorUrls];
+            this.conductorsUrls.splice(index, 1);
+            this.conductorsUrls = [...this.conductorsUrls];
             setTimeout(() => this.updateFields());
         }}
               ></mwc-icon-button>
@@ -94,7 +121,7 @@ class ConnectToNodes extends blackboardConnect('holochain-playground', LitElemen
           label="Add node"
           icon="add"
           @click=${() => {
-            this.conductorUrls = [...this.conductorUrls, ''];
+            this.conductorsUrls = [...this.conductorsUrls, ''];
             setTimeout(() => this.updateFields());
         }}
         >
@@ -104,14 +131,16 @@ class ConnectToNodes extends blackboardConnect('holochain-playground', LitElemen
       <mwc-button
         slot="primaryAction"
         dialogAction="confirm"
-        label=${this.conductorUrls
+        label=${this.conductorsUrls
             ? 'Ok'
-            : this.blackboard.state.conductorsUrls
+            : this.conductorsUrls
                 ? 'Update connections'
                 : 'Connect to nodes'}
         .disabled=${this.getUrlFields().length === 0 ||
             !this.getUrlFields().every((field) => field.validity.valid)}
-        @click=${() => this.blackboard.update('conductorsUrls', this.conductorUrls)}
+        @click=${() => this.dispatchEvent(new UpdateContextEvent({
+            conductorsUrls: this.conductorsUrls,
+        }))}
       >
       </mwc-button>
     </mwc-dialog> `;
@@ -121,25 +150,26 @@ class ConnectToNodes extends blackboardConnect('holochain-playground', LitElemen
       ${this.renderDialog()}
       <mwc-button
         style="margin-right: 18px;"
-        label=${this.blackboard.state.conductorsUrls
-            ? 'CONNECTED NODES'
-            : 'CONNECT TO NODES'}
-        icon=${this.blackboard.state.conductorsUrls ? 'sync' : 'sync_disabled'}
+        label=${this.conductorsUrls ? 'CONNECTED NODES' : 'CONNECT TO NODES'}
+        icon=${this.conductorsUrls ? 'sync' : 'sync_disabled'}
         @click=${() => {
             this.shadowRoot.getElementById('connect-to-nodes').open = true;
         }}
       ></mwc-button>
     `;
     }
-}
+};
 __decorate([
     property({ type: Array }),
     __metadata("design:type", Array)
-], ConnectToNodes.prototype, "conductorUrls", void 0);
+], ConnectToNodes.prototype, "conductorsUrls", void 0);
 __decorate([
     property({ type: Boolean }),
     __metadata("design:type", Boolean)
 ], ConnectToNodes.prototype, "open", void 0);
+ConnectToNodes = __decorate([
+    consumePlayground()
+], ConnectToNodes);
 customElements.define('holochain-playground-connect-to-nodes', ConnectToNodes);
 
 export { ConnectToNodes };

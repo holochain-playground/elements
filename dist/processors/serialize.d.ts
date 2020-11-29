@@ -1,3 +1,3 @@
-import { Playground } from '../state/playground';
-export declare function serializePlayground(state: Playground): string;
-export declare function deserializePlayground(stateString: string): Playground;
+import { PlaygroundContext } from '../elements/utils/context';
+export declare function serializePlayground(state: PlaygroundContext): string;
+export declare function deserializePlayground(stateString: string): PlaygroundContext;

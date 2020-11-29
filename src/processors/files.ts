@@ -1,5 +1,5 @@
 import { Conductor } from '../core/conductor';
-import { Playground } from '../state/playground';
+import { PlaygroundContext } from '../elements/utils/context';
 import { hookUpConductors } from './message';
 
 export function downloadFile(name: string, blob: Blob) {
@@ -14,7 +14,7 @@ export function downloadFile(name: string, blob: Blob) {
   window.URL.revokeObjectURL(url);
 }
 
-export function fileToPlayground(json): Playground {
+export function fileToPlayground(json): PlaygroundContext {
   const conductors = json.conductors.map((c) => new Conductor(c));
   hookUpConductors(conductors);
   return {

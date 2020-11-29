@@ -1,5 +1,3 @@
-import 'lodash-es';
-import { Subject } from 'rxjs';
 import { getAgentPubKey, getDnaHash } from '../types/common.js';
 import '../processors/hash.js';
 import 'byte-base64';
@@ -18,12 +16,14 @@ import { ImmediateExecutor } from '../executor/immediate-executor.js';
 import { callZomeFn } from './cell/workflows/call_zome_fn.js';
 import '../types/cell-state.js';
 import '../types/metadata.js';
+import 'lodash-es';
 import './cell/dht/get.js';
 import './cell/dht/put.js';
 import './cell/workflows/integrate_dht_ops.js';
 import './cell/workflows/app_validation.js';
 import './cell/workflows/sys_validation.js';
 import { incoming_dht_ops } from './cell/workflows/incoming_dht_ops.js';
+import { Subject } from 'rxjs';
 
 class Cell {
     constructor(state, p2p, simulatedDna) {

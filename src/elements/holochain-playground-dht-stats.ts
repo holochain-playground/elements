@@ -1,26 +1,33 @@
-import { blackboardConnect } from '../blackboard/blackboard-connect';
-import { Playground } from '../state/playground';
 import { LitElement, html, query, property } from 'lit-element';
 import {
-  selectCellCount,
-  selectGlobalDHTOps,
-  selectUniqueDHTOps,
+  selectGlobalDHTOpsCount,
+  selectUniqueDHTOpsCount,
   selectMedianHoldingDHTOps,
   selectRedundancyFactor,
-  selectActiveCellsForConductor,
-} from '../state/selectors';
-import { sharedStyles } from './sharedStyles';
+  selectAllCells,
+  selectCell,
+  selectCells,
+} from './utils/selectors';
+import { sharedStyles } from './utils/sharedStyles';
 import { createConductors } from '../processors/create-conductors';
 import { Dialog } from '@material/mwc-dialog';
 import { TextFieldBase } from '@material/mwc-textfield/mwc-textfield-base';
 import '@material/mwc-linear-progress';
 import { sampleDna } from '../dnas/sample-dna';
 import { Conductor } from '../core/conductor';
+import { consumePlayground, UpdateContextEvent } from './utils/context';
 
-export class DHTStats extends blackboardConnect<Playground>(
-  'holochain-playground',
-  LitElement
-) {
+@consumePlayground()
+export class DHTStats extends LitElement {
+  @property({ type: String })
+  private activeDna: string | undefined;
+  @property({ type: Array })
+  private conductors: Conductor[] | undefined;
+  @property({ type: String })
+  private activeAgentPubKey: string | undefined;
+  @property({ type: Array })
+  private conductorsUrls: string[] | undefined;
+
   @query('#stats-help')
   private statsHelp: Dialog;
   @query('#number-of-nodes')
@@ -36,6 +43,17 @@ export class DHTStats extends blackboardConnect<Playground>(
     return sharedStyles;
   }
 
+  get activeCell() {
+    return (
+      selectCell(this.activeDna, this.activeAgentPubKey, this.conductors) ||
+      this.allCells[0]
+    );
+  }
+
+  get allCells() {
+    return selectAllCells(this.activeDna, this.conductors);
+  }
+
   renderStatsHelp() {
     return html`
       <mwc-dialog id="stats-help" heading="DHT Statistics Help">
@@ -44,11 +62,11 @@ export class DHTStats extends blackboardConnect<Playground>(
           <br />
           <br />
           Having a redundancy factor of
-          ${selectRedundancyFactor(this.blackboard.state)}, it will
+          ${selectRedundancyFactor(this.activeCell)}, it will
           <strong>
             replicate every DHT Op in the
-            ${selectRedundancyFactor(this.blackboard.state)} nodes that are
-            closest to its neighborhood </strong
+            ${selectRedundancyFactor(this.activeCell)} nodes that are closest to
+            its neighborhood </strong
           >.
           <br />
           <br />
@@ -69,12 +87,12 @@ export class DHTStats extends blackboardConnect<Playground>(
 
   async republish() {
     const newNodes = parseInt(this.nNodes.value);
-    const currentNodes = selectCellCount(this.blackboard.state);
+    const currentNodes = this.allCells.length;
     const changedNodes = currentNodes !== newNodes;
 
     const rFactor = parseInt(this.rFactor.value);
-    const dna = this.blackboard.state.activeDNA;
-    let conductors = this.blackboard.state.conductors;
+    const dna = this.activeDna;
+    let conductors = this.conductors;
 
     if (newNodes > currentNodes) {
       const newNodesToCreate = newNodes - currentNodes;
@@ -88,9 +106,9 @@ export class DHTStats extends blackboardConnect<Playground>(
 
       const getMaxSourceChainLength = (conductor: Conductor) =>
         Math.max(
-          ...selectActiveCellsForConductor(this.blackboard.state)(
-            conductor
-          ).map((cell) => cell.state.sourceChain.length)
+          ...selectCells(this.activeDna, conductor).map(
+            (cell) => cell.state.sourceChain.length
+          )
         );
 
       conductors = conductors.sort(
@@ -109,12 +127,14 @@ export class DHTStats extends blackboardConnect<Playground>(
         );
       }
     }
-    this.blackboard.update('conductors', conductors);
 
-    if (
-      changedNodes ||
-      selectRedundancyFactor(this.blackboard.state) !== rFactor
-    ) {
+    this.dispatchEvent(
+      new UpdateContextEvent({
+        conductors: conductors,
+      })
+    );
+
+    if (changedNodes || selectRedundancyFactor(this.activeCell) !== rFactor) {
       const cells = conductors.map((c) => c.cells[dna]);
       for (const cell of cells) {
         cell.DHTOpTransforms = {};
@@ -159,9 +179,9 @@ export class DHTStats extends blackboardConnect<Playground>(
                 outlined
                 type="number"
                 style="width: 5em;"
-                .disabled=${this.blackboard.state.conductorsUrls !== undefined}
+                .disabled=${this.conductorsUrls !== undefined}
                 @change=${() => this.updateDHTStats()}
-                .value=${selectCellCount(this.blackboard.state).toString()}
+                .value=${this.allCells.length.toString()}
               ></mwc-textfield>
             </div>
             <div class="row center-content" style="padding-right: 24px;">
@@ -172,30 +192,26 @@ export class DHTStats extends blackboardConnect<Playground>(
                 max="50"
                 outlined
                 type="number"
-                .disabled=${this.blackboard.state.conductorsUrls !== undefined}
+                .disabled=${this.conductorsUrls !== undefined}
                 style="width: 5em;"
                 @change=${() => this.updateDHTStats()}
-                .value=${selectRedundancyFactor(this.blackboard.state).toString()}
+                .value=${selectRedundancyFactor(this.activeCell).toString()}
               ></mwc-textfield>
             </div>
             <div class="column fill">
               <span style="margin-bottom: 2px;"
                 >Unique DHT Ops:
-                <strong
-                  >${selectUniqueDHTOps(this.blackboard.state)}</strong
-                ></span
+                <strong>${selectUniqueDHTOpsCount(this.allCells)}</strong></span
               >
               <span style="margin-bottom: 2px;"
                 >Median DHT Ops per node:
                 <strong
-                  >${selectMedianHoldingDHTOps(this.blackboard.state)}</strong
+                  >${selectMedianHoldingDHTOps(this.allCells)}</strong
                 ></span
               >
               <span
                 >Global DHT Ops:
-                <strong
-                  >${selectGlobalDHTOps(this.blackboard.state)}</strong
-                ></span
+                <strong>${selectGlobalDHTOpsCount(this.allCells)}</strong></span
               >
             </div>
           </div>

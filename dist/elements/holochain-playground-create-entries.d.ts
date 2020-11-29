@@ -6,12 +6,12 @@ import '@material/mwc-dialog';
 import '@material/mwc-radio';
 import '@material/mwc-formfield';
 import '@alenaksu/json-viewer';
-import { Playground } from '../state/playground';
-declare const CreateEntries_base: {
-    new (...args: any[]): import("../blackboard/blackboard-connect").PinnedElement<Playground> & LitElement & import("lit-element").Constructor<LitElement>;
-    prototype: any;
-};
-export declare class CreateEntries extends CreateEntries_base {
+import { Cell } from '../core/cell';
+export declare class CreateEntries extends LitElement {
+    private activeDna;
+    private conductors;
+    private activeAgentPubKey;
+    private conductorsUrls;
     private selectedEntryType;
     private createTextarea;
     private createType;
@@ -25,6 +25,8 @@ export declare class CreateEntries extends CreateEntries_base {
     zome: import("../dnas/simulated-dna").SimulatedZome;
     private zomeFnToCall;
     private dhtOpsToCreate;
+    get allCells(): Cell[];
+    get activeCell(): Cell;
     setEntryValidity(element: any): void;
     setHeaderValidity(element: any): void;
     setNonEmptyValidity(element: any): void;
@@ -36,7 +38,6 @@ export declare class CreateEntries extends CreateEntries_base {
     renderDeleteEntry(): import("lit-element").TemplateResult;
     renderCreateLink(): import("lit-element").TemplateResult;
     renderDeleteLink(): import("lit-element").TemplateResult;
-    cell(): import("../core/cell").Cell;
     openCommitDialog(fnName: string, payload: any): Promise<void>;
     buildDHTOps(fnName: string, payload: any): Promise<{
         DHTOp: any;
@@ -48,4 +49,3 @@ export declare class CreateEntries extends CreateEntries_base {
     renderConnectedPlaceholder(): import("lit-element").TemplateResult;
     render(): import("lit-element").TemplateResult;
 }
-export {};

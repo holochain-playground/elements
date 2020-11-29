@@ -1,8 +1,8 @@
 import { Conductor } from '../core/conductor';
-import { Playground } from '../state/playground';
+import { PlaygroundContext } from '../elements/utils/context';
 import { hookUpConductors } from './message';
 
-export function serializePlayground(state: Playground): string {
+export function serializePlayground(state: PlaygroundContext): string {
   if (!state) return '';
 
   const conductorStates = state.conductors.map((c) => c.getState());
@@ -14,7 +14,7 @@ export function serializePlayground(state: Playground): string {
   return JSON.stringify(preState);
 }
 
-export function deserializePlayground(stateString: string): Playground {
+export function deserializePlayground(stateString: string): PlaygroundContext {
   if (stateString === '') return null;
 
   const preState = JSON.parse(stateString);

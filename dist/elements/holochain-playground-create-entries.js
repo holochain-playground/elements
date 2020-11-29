@@ -1,5 +1,4 @@
-import { blackboardConnect } from '../blackboard/blackboard-connect.js';
-import { cloneDeep } from 'lodash-es';
+import '../types/common.js';
 import '../processors/hash.js';
 import 'byte-base64';
 import '../types/entry.js';
@@ -7,17 +6,42 @@ import '../types/header.js';
 import '../types/timestamp.js';
 import '../core/cell/source-chain/utils.js';
 import '../core/cell/source-chain/builder-headers.js';
+import '../core/cell/source-chain/put.js';
 import { elementToDHTOps, getDHTOpBasis } from '../types/dht-op.js';
+import '../core/cell/source-chain/get.js';
+import '../core/cell/workflows/publish_dht_ops.js';
+import '../core/cell/workflows/produce_dht_ops.js';
+import '../core/cell/workflows/genesis.js';
+import '../executor/immediate-executor.js';
+import '../core/cell/workflows/call_zome_fn.js';
+import '../types/cell-state.js';
 import '../types/metadata.js';
+import { cloneDeep } from 'lodash-es';
 import '../core/cell/dht/get.js';
+import '../core/cell/dht/put.js';
+import '../core/cell/workflows/integrate_dht_ops.js';
+import '../core/cell/workflows/app_validation.js';
+import '../core/cell/workflows/sys_validation.js';
+import '../core/cell/workflows/incoming_dht_ops.js';
+import 'rxjs';
+import '../core/cell.js';
+import '../core/network/p2p-cell.js';
+import '../core/network.js';
+import '../core/conductor.js';
 import '../core/cell/source-chain/actions.js';
 import { sampleZome } from '../dnas/sample-dna.js';
-import { _ as __decorate, a as __metadata } from '../tslib.es6-654e2c24.js';
+import { U as UpdateContextEvent, _ as __decorate, a as __metadata, c as consumePlayground } from '../context-97eb5dfe.js';
 import { LitElement, css, html, property, query } from 'lit-element';
 import '@alenaksu/json-viewer';
 import '@material/mwc-dialog';
-import { sharedStyles } from './sharedStyles.js';
-import { selectEntry, selectHeader, selectHeaderEntry, selectActiveCell, selectActiveCells } from '../state/selectors.js';
+import { sharedStyles } from './utils/sharedStyles.js';
+import 'lit-context';
+import '@material/mwc-snackbar';
+import '@material/mwc-circular-progress';
+import '../processors/message.js';
+import '../processors/create-conductors.js';
+import '../processors/build-simulated-playground.js';
+import { selectAllCells, selectCell, selectFromCAS, selectHeaderEntry } from './utils/selectors.js';
 import { TextArea } from '@material/mwc-textarea';
 import '@material/mwc-button';
 import '@material/mwc-textfield';
@@ -25,7 +49,7 @@ import '@material/mwc-radio';
 import '@material/mwc-formfield';
 import { TextFieldBase } from '@material/mwc-textfield/mwc-textfield-base';
 
-class CreateEntries extends blackboardConnect('holochain-playground', LitElement) {
+let CreateEntries = class CreateEntries extends LitElement {
     constructor() {
         super(...arguments);
         this.selectedEntryType = 0;
@@ -33,11 +57,18 @@ class CreateEntries extends blackboardConnect('holochain-playground', LitElement
         this.zomeFnToCall = undefined;
         this.dhtOpsToCreate = undefined;
     }
+    get allCells() {
+        return selectAllCells(this.activeDna, this.conductors);
+    }
+    get activeCell() {
+        return (selectCell(this.activeDna, this.activeAgentPubKey, this.conductors) ||
+            this.allCells[0]);
+    }
     setEntryValidity(element) {
         element.validityTransform = (newValue, nativeValidity) => {
             this.requestUpdate();
             if (newValue.length === 46) {
-                const entry = selectEntry(this.blackboard.state)(newValue);
+                const entry = selectFromCAS(newValue, this.allCells)(newValue);
                 if (entry)
                     return { valid: true };
             }
@@ -51,7 +82,7 @@ class CreateEntries extends blackboardConnect('holochain-playground', LitElement
         element.validityTransform = (newValue, nativeValidity) => {
             this.requestUpdate();
             if (newValue.length === 46) {
-                const header = selectHeader(this.blackboard.state)(newValue);
+                const header = selectFromCAS(newValue, this.allCells);
                 if (header)
                     return { valid: true };
             }
@@ -93,7 +124,7 @@ class CreateEntries extends blackboardConnect('holochain-playground', LitElement
         };
     }
     firstUpdated() {
-        if (this.blackboard.state.conductorsUrls !== undefined)
+        if (this.conductorsUrls)
             return;
         this.setJsonValidity(this.createTextarea);
         this.setJsonValidity(this.updateTextarea);
@@ -209,7 +240,7 @@ class CreateEntries extends blackboardConnect('holochain-playground', LitElement
             this.updateHeaderAddress.validity.valid)}
             @click=${() => this.openCommitDialog('update_entry', {
             content: JSON.parse(this.updateTextarea.value),
-            type: selectHeaderEntry(this.blackboard.state)(this.updateHeaderAddress.value),
+            type: selectHeaderEntry(this.updateHeaderAddress.value, this.allCells),
             original_header_hash: this.updateHeaderAddress.value,
         })}
           ></mwc-button>
@@ -320,13 +351,6 @@ class CreateEntries extends blackboardConnect('holochain-playground', LitElement
       </div>
     `;
     }
-    cell() {
-        let cell = selectActiveCell(this.blackboard.state);
-        if (!cell) {
-            cell = selectActiveCells(this.blackboard.state)[0];
-        }
-        return cell;
-    }
     async openCommitDialog(fnName, payload) {
         this.dhtOpsToCreate = await this.buildDHTOps(fnName, payload);
         this.zomeFnToCall = {
@@ -335,7 +359,7 @@ class CreateEntries extends blackboardConnect('holochain-playground', LitElement
         };
     }
     async buildDHTOps(fnName, payload) {
-        const currentState = cloneDeep(this.cell().state);
+        const currentState = cloneDeep(this.activeCell.state);
         const actions = sampleZome[fnName](payload);
         const elementsPromises = actions.map((action) => action(currentState));
         const elements = await Promise.all(elementsPromises);
@@ -377,7 +401,7 @@ class CreateEntries extends blackboardConnect('holochain-playground', LitElement
     `;
     }
     async callZomeFunction() {
-        const element = await this.cell().callZomeFn({
+        const element = await this.activeCell.callZomeFn({
             zome: 'sample',
             cap: null,
             fnName: this.zomeFnToCall.fnName,
@@ -391,7 +415,9 @@ class CreateEntries extends blackboardConnect('holochain-playground', LitElement
             composed: true,
         }));
         if (element.header.entry_hash) {
-            this.blackboard.update('activeEntryId', element.header.entry_hash);
+            this.dispatchEvent(new UpdateContextEvent({
+                activeEntryHash: element.header.entry_hash,
+            }));
         }
         this.zomeFnToCall = undefined;
     }
@@ -443,7 +469,7 @@ class CreateEntries extends blackboardConnect('holochain-playground', LitElement
     render() {
         return html `
       <div class="column fill">
-        ${this.blackboard.state.conductorsUrls !== undefined
+        ${this.conductorsUrls !== undefined
             ? this.renderConnectedPlaceholder()
             : html `
               <div class="row fill">
@@ -460,7 +486,23 @@ class CreateEntries extends blackboardConnect('holochain-playground', LitElement
       </div>
     `;
     }
-}
+};
+__decorate([
+    property({ type: String }),
+    __metadata("design:type", String)
+], CreateEntries.prototype, "activeDna", void 0);
+__decorate([
+    property({ type: Array }),
+    __metadata("design:type", Array)
+], CreateEntries.prototype, "conductors", void 0);
+__decorate([
+    property({ type: String }),
+    __metadata("design:type", String)
+], CreateEntries.prototype, "activeAgentPubKey", void 0);
+__decorate([
+    property({ type: Array }),
+    __metadata("design:type", Array)
+], CreateEntries.prototype, "conductorsUrls", void 0);
 __decorate([
     property({ attribute: false }),
     __metadata("design:type", Number)
@@ -509,6 +551,9 @@ __decorate([
     property({ type: Array }),
     __metadata("design:type", Array)
 ], CreateEntries.prototype, "dhtOpsToCreate", void 0);
+CreateEntries = __decorate([
+    consumePlayground()
+], CreateEntries);
 customElements.define('holochain-playground-create-entries', CreateEntries);
 
 export { CreateEntries };

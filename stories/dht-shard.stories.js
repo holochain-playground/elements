@@ -1,4 +1,4 @@
-import '../dist/elements/holochain-playground-container.js';
+import '../dist/elements/holochain-playground-provider.js';
 import '../dist/elements/holochain-playground-dht-shard.js';
 import '../dist/elements/holochain-playground-dht-graph.js';
 
@@ -26,27 +26,21 @@ export default {
 
 export const Simple = () => {
   return html`
-    <holochain-playground-container
-      id="container"
-      @ready=${() => {
-        const container = document.getElementById('container');
-        const conductor = container.blackboard.state.conductors[0];
+    <holochain-playground-provider
+      @ready=${(e) => {
+        const conductor = e.detail.conductors[0];
 
         const cellId = conductor.cells[0].id;
-        conductor
-          .callZomeFn({
-            cellId,
-            zome: 'sample',
-            fnName: 'create_entry',
-            payload: {
-              content: { myman: 'mygirl' },
-              entry_type: 'haha',
-            },
-            cap: null,
-          })
-          .then(() =>
-            container.blackboard.updateState(container.blackboard.state)
-          );
+        conductor.callZomeFn({
+          cellId,
+          zome: 'sample',
+          fnName: 'create_entry',
+          payload: {
+            content: { myman: 'mygirl' },
+            entry_type: 'haha',
+          },
+          cap: null,
+        });
       }}
     >
       <div style="display: flex; flex-direction: row; height: 100vh;">
@@ -54,9 +48,9 @@ export const Simple = () => {
           style="flex: 1;"
         ></holochain-playground-dht-graph>
         <holochain-playground-dht-shard
-          style="flex: 1;"
+          style="flex: 1; margin: 20px;"
         ></holochain-playground-dht-shard>
       </div>
-    </holochain-playground-container>
+    </holochain-playground-provider>
   `;
 };

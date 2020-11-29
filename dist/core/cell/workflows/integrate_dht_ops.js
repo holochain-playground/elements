@@ -1,10 +1,10 @@
-import 'lodash-es';
 import '../../../processors/hash.js';
 import 'byte-base64';
 import '../../../types/entry.js';
 import '../../../types/header.js';
 import '../../../types/dht-op.js';
 import '../../../types/metadata.js';
+import 'lodash-es';
 import { pullAllIntegrationLimboDhtOps } from '../dht/get.js';
 import { putDhtOpData, putDhtOpMetadata, putDhtOpToIntegrated } from '../dht/put.js';
 

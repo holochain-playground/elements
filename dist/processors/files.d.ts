@@ -1,3 +1,3 @@
-import { Playground } from '../state/playground';
+import { PlaygroundContext } from '../elements/utils/context';
 export declare function downloadFile(name: string, blob: Blob): void;
-export declare function fileToPlayground(json: any): Playground;
+export declare function fileToPlayground(json: any): PlaygroundContext;

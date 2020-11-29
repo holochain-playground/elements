@@ -1,15 +1,12 @@
-import { blackboardConnect } from '../blackboard/blackboard-connect';
-import { Playground } from '../state/playground';
 import { LitElement, html, property, css } from 'lit-element';
 import { TextFieldBase } from '@material/mwc-textfield/mwc-textfield-base';
+import { consumePlayground, UpdateContextEvent } from './utils/context';
 //import { checkConnection } from '../processors/connect-to-conductors';
 
-export class ConnectToNodes extends blackboardConnect<Playground>(
-  'holochain-playground',
-  LitElement
-) {
+@consumePlayground()
+export class ConnectToNodes extends LitElement {
   @property({ type: Array })
-  private conductorUrls: string[] | undefined = ['ws://localhost:8888'];
+  private conductorsUrls: string[] | undefined = ['ws://localhost:8888'];
 
   @property({ type: Boolean })
   private open: Boolean = false;
@@ -22,15 +19,6 @@ export class ConnectToNodes extends blackboardConnect<Playground>(
         --mdc-theme-primary: black;
       }
     `;
-  }
-
-  firstUpdated() {
-    if (this.blackboard.state.conductorsUrls !== undefined) {
-      this.conductorUrls = this.blackboard.state.conductorsUrls;
-    }
-    this.blackboard.select('conductorsUrls').subscribe((urls) => {
-      this.conductorUrls = urls;
-    });
   }
 
   getUrlFields(): TextFieldBase[] {
@@ -63,13 +51,13 @@ export class ConnectToNodes extends blackboardConnect<Playground>(
 
   updateFields() {
     const fields = this.getUrlFields();
-    this.conductorUrls = fields.map((f) => f.value);
+    this.conductorsUrls = fields.map((f) => f.value);
     for (const field of fields) {
       this.setConnectionValidity(field);
 
       if (!this.urlsState[field.value]) {
         try {
-         /*  checkConnection(field.value)
+          /*  checkConnection(field.value)
             .then(() => (this.urlsState[field.value] = 'resolved'))
             .catch(() => (this.urlsState[field.value] = 'rejected'))
             .finally(() => {
@@ -87,16 +75,14 @@ export class ConnectToNodes extends blackboardConnect<Playground>(
   renderDialog() {
     return html`<mwc-dialog
       id="connect-to-nodes"
-      .open="${this.open}"
+      .open="${!!this.open}"
       @closed=${() => (this.open = false)}
     >
       <div class="column">
         <h3 class="title">
-          ${this.blackboard.state.conductorsUrls
-            ? 'Connected Nodes'
-            : 'Connect to nodes'}
+          ${this.conductorsUrls ? 'Connected Nodes' : 'Connect to nodes'}
         </h3>
-        ${this.conductorUrls.map(
+        ${this.conductorsUrls.map(
           (url, index) => html`
             <div class="row" style="margin-bottom: 16px;">
               <mwc-textfield
@@ -109,11 +95,11 @@ export class ConnectToNodes extends blackboardConnect<Playground>(
               ></mwc-textfield>
               <mwc-icon-button
                 icon="clear"
-                .disabled=${this.conductorUrls.length === 1}
+                .disabled=${this.conductorsUrls.length === 1}
                 style="padding-top: 4px;"
                 @click=${() => {
-                  this.conductorUrls.splice(index, 1);
-                  this.conductorUrls = [...this.conductorUrls];
+                  this.conductorsUrls.splice(index, 1);
+                  this.conductorsUrls = [...this.conductorsUrls];
                   setTimeout(() => this.updateFields());
                 }}
               ></mwc-icon-button>
@@ -124,7 +110,7 @@ export class ConnectToNodes extends blackboardConnect<Playground>(
           label="Add node"
           icon="add"
           @click=${() => {
-            this.conductorUrls = [...this.conductorUrls, ''];
+            this.conductorsUrls = [...this.conductorsUrls, ''];
             setTimeout(() => this.updateFields());
           }}
         >
@@ -134,15 +120,19 @@ export class ConnectToNodes extends blackboardConnect<Playground>(
       <mwc-button
         slot="primaryAction"
         dialogAction="confirm"
-        label=${this.conductorUrls
+        label=${this.conductorsUrls
           ? 'Ok'
-          : this.blackboard.state.conductorsUrls
+          : this.conductorsUrls
           ? 'Update connections'
           : 'Connect to nodes'}
         .disabled=${this.getUrlFields().length === 0 ||
         !this.getUrlFields().every((field) => field.validity.valid)}
         @click=${() =>
-          this.blackboard.update('conductorsUrls', this.conductorUrls)}
+          this.dispatchEvent(
+            new UpdateContextEvent({
+              conductorsUrls: this.conductorsUrls,
+            })
+          )}
       >
       </mwc-button>
     </mwc-dialog> `;
@@ -153,10 +143,8 @@ export class ConnectToNodes extends blackboardConnect<Playground>(
       ${this.renderDialog()}
       <mwc-button
         style="margin-right: 18px;"
-        label=${this.blackboard.state.conductorsUrls
-          ? 'CONNECTED NODES'
-          : 'CONNECT TO NODES'}
-        icon=${this.blackboard.state.conductorsUrls ? 'sync' : 'sync_disabled'}
+        label=${this.conductorsUrls ? 'CONNECTED NODES' : 'CONNECT TO NODES'}
+        icon=${this.conductorsUrls ? 'sync' : 'sync_disabled'}
         @click=${() => {
           (this.shadowRoot.getElementById(
             'connect-to-nodes'

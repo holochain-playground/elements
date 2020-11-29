@@ -1,20 +1,19 @@
-import 'lodash-es';
 import { compareBigInts, location } from './hash.js';
 import 'byte-base64';
 import { getEntryTypeString, getAppEntryType } from '../types/entry.js';
 import { timestampToMillis } from '../types/timestamp.js';
 import { EntryDhtStatus } from '../types/metadata.js';
+import 'lodash-es';
 import { getAllHeldEntries, getEntryDetails } from '../core/cell/dht/get.js';
 
 function dnaNodes(cells) {
-    const images = ['smartphone', 'desktop', 'laptop'];
+    // const images = ['smartphone', 'desktop', 'laptop'];
     const sortedCells = cells.sort((a, b) => compareBigInts(location(a.agentPubKey), location(b.agentPubKey)));
     const cellNodes = sortedCells.map((cell) => ({
         data: {
             id: cell.agentPubKey,
             label: `${cell.agentPubKey.substr(0, 6)}...`,
         },
-        classes: [images[Math.floor(Math.random() * 3)]],
     }));
     const edges = sortedCells.map((cell) => cell.p2p.getNeighbors().map((neighbor) => ({
         data: {

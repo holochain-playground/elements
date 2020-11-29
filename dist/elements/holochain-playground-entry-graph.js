@@ -1,19 +1,49 @@
-import { blackboardConnect } from '../blackboard/blackboard-connect.js';
-import 'lodash-es';
+import '../types/common.js';
 import '../processors/hash.js';
 import 'byte-base64';
 import '../types/entry.js';
+import '../types/header.js';
 import '../types/timestamp.js';
+import '../core/cell/source-chain/utils.js';
+import '../core/cell/source-chain/builder-headers.js';
+import '../core/cell/source-chain/put.js';
+import '../types/dht-op.js';
+import '../core/cell/source-chain/get.js';
+import '../core/cell/workflows/publish_dht_ops.js';
+import '../core/cell/workflows/produce_dht_ops.js';
+import '../core/cell/workflows/genesis.js';
+import '../executor/immediate-executor.js';
+import '../core/cell/workflows/call_zome_fn.js';
+import '../types/cell-state.js';
 import '../types/metadata.js';
+import 'lodash-es';
 import '../core/cell/dht/get.js';
-import { _ as __decorate, a as __metadata } from '../tslib.es6-654e2c24.js';
+import '../core/cell/dht/put.js';
+import '../core/cell/workflows/integrate_dht_ops.js';
+import '../core/cell/workflows/app_validation.js';
+import '../core/cell/workflows/sys_validation.js';
+import '../core/cell/workflows/incoming_dht_ops.js';
+import 'rxjs';
+import '../core/cell.js';
+import '../core/network/p2p-cell.js';
+import '../core/network.js';
+import '../core/conductor.js';
+import '../core/cell/source-chain/actions.js';
+import '../dnas/sample-dna.js';
+import { U as UpdateContextEvent, _ as __decorate, a as __metadata, c as consumePlayground } from '../context-97eb5dfe.js';
 import { LitElement, html, css, property, query } from 'lit-element';
 import { Dialog } from '@material/mwc-dialog';
-import { sharedStyles } from './sharedStyles.js';
+import { sharedStyles } from './utils/sharedStyles.js';
 import { allEntries } from '../processors/graph.js';
 import * as cytoscape from 'cytoscape';
 import { use } from 'cytoscape';
-import { selectActiveCells } from '../state/selectors.js';
+import 'lit-context';
+import '@material/mwc-snackbar';
+import '@material/mwc-circular-progress';
+import '../processors/message.js';
+import '../processors/create-conductors.js';
+import '../processors/build-simulated-playground.js';
+import { selectAllCells } from './utils/selectors.js';
 import { vectorsEqual } from '../processors/utils.js';
 import * as cola from 'cytoscape-cola';
 import '@material/mwc-checkbox';
@@ -33,7 +63,7 @@ const layoutConfig = {
         e.cy.center();
     },
 };
-class EntryGraph extends blackboardConnect('holochain-playground', LitElement) {
+let EntryGraph = class EntryGraph extends LitElement {
     constructor() {
         super(...arguments);
         this.showAgentsIds = true;
@@ -120,7 +150,9 @@ class EntryGraph extends blackboardConnect('holochain-playground', LitElement) {
         });
         this.cy.on('tap', 'node', (event) => {
             const selectedEntryId = event.target.id();
-            this.blackboard.update('activeEntryId', selectedEntryId);
+            this.dispatchEvent(new UpdateContextEvent({
+                activeEntryHash: selectedEntryId,
+            }));
         });
         this.cy.ready((e) => {
             setTimeout(() => {
@@ -163,7 +195,7 @@ class EntryGraph extends blackboardConnect('holochain-playground', LitElement) {
     updatedGraph() {
         if (this.entryGraph.getBoundingClientRect().width === 0 || !this.ready)
             return null;
-        const entries = allEntries(selectActiveCells(this.blackboard.state), this.showAgentsIds);
+        const entries = allEntries(selectAllCells(this.activeDna, this.conductors), this.showAgentsIds);
         if (!vectorsEqual(this.lastEntriesIds, entries.map((e) => e.data.id))) {
             if (this.layout)
                 this.layout.stop();
@@ -174,9 +206,7 @@ class EntryGraph extends blackboardConnect('holochain-playground', LitElement) {
         }
         this.lastEntriesIds = entries.map((e) => e.data.id);
         this.cy.filter('node').removeClass('selected');
-        this.cy
-            .getElementById(this.blackboard.state.activeEntryId)
-            .addClass('selected');
+        this.cy.getElementById(this.activeEntryHash).addClass('selected');
     }
     static get styles() {
         return [
@@ -217,11 +247,23 @@ class EntryGraph extends blackboardConnect('holochain-playground', LitElement) {
       </mwc-card>
     `;
     }
-}
+};
 __decorate([
     property({ attribute: false }),
     __metadata("design:type", Boolean)
 ], EntryGraph.prototype, "showAgentsIds", void 0);
+__decorate([
+    property({ type: String }),
+    __metadata("design:type", String)
+], EntryGraph.prototype, "activeDna", void 0);
+__decorate([
+    property({ type: Array }),
+    __metadata("design:type", Array)
+], EntryGraph.prototype, "conductors", void 0);
+__decorate([
+    property({ type: String }),
+    __metadata("design:type", String)
+], EntryGraph.prototype, "activeEntryHash", void 0);
 __decorate([
     query('#entry-graph-help'),
     __metadata("design:type", Dialog)
@@ -230,6 +272,9 @@ __decorate([
     query('#entry-graph'),
     __metadata("design:type", HTMLElement)
 ], EntryGraph.prototype, "entryGraph", void 0);
+EntryGraph = __decorate([
+    consumePlayground()
+], EntryGraph);
 customElements.define('holochain-playground-entry-graph', EntryGraph);
 
 export { EntryGraph };

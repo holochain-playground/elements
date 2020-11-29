@@ -8,27 +8,34 @@ import {
   query,
 } from 'lit-element';
 import { sourceChainNodes } from '../processors/graph';
-import * as cytoscape from 'cytoscape';
-import * as dagre from 'cytoscape-dagre';
+import cytoscape from 'cytoscape';
+import dagre from 'cytoscape-dagre';
 import '@material/mwc-menu/mwc-menu-surface';
 import '@alenaksu/json-viewer';
 
 import { isEqual } from 'lodash-es';
 
-import { sharedStyles } from './sharedStyles';
-import { Playground } from '../state/playground';
-import { blackboardConnect } from '../blackboard/blackboard-connect';
-import { selectActiveCell } from '../state/selectors';
+import { sharedStyles } from './utils/sharedStyles';
 import { Cell } from '../core/cell';
 import { Subscription } from 'rxjs';
 import { MenuSurface } from '@material/mwc-menu/mwc-menu-surface';
+import { consumePlayground, UpdateContextEvent } from './utils/context';
+import { Conductor } from '../core/conductor';
+import { selectAllCells, selectCell } from './utils/selectors';
 
 cytoscape.use(dagre); // register extension
 
-export class SourceChain extends blackboardConnect<Playground>(
-  'holochain-playground',
-  LitElement
-) {
+@consumePlayground()
+export class SourceChain extends LitElement {
+  @property({ type: String })
+  private activeDna: string | undefined;
+  @property({ type: Array })
+  private conductors: Conductor[] | undefined;
+  @property({ type: String })
+  private activeAgentPubKey: string | undefined;
+  @property({ type: String })
+  private activeEntryHash: string | undefined;
+
   static get styles() {
     return [
       sharedStyles,
@@ -46,6 +53,13 @@ export class SourceChain extends blackboardConnect<Playground>(
 
   private _cell: Cell;
   private _subscription: Subscription;
+
+  get activeCell() {
+    return (
+      selectCell(this.activeDna, this.activeAgentPubKey, this.conductors) ||
+      selectAllCells(this.activeDna, this.conductors)[0]
+    );
+  }
 
   @property({ type: Object })
   private _nodeInfo: any | undefined = undefined;
@@ -113,7 +127,11 @@ export class SourceChain extends blackboardConnect<Playground>(
     });
     this.cy.on('tap', 'node', (event) => {
       const selectedEntryId = event.target.id();
-      this.blackboard.update('activeEntryId', selectedEntryId);
+      this.dispatchEvent(
+        new UpdateContextEvent({
+          activeEntryHash: selectedEntryId,
+        })
+      );
     });
     this.cy.renderer().hoverData.capture = true;
 
@@ -132,18 +150,17 @@ export class SourceChain extends blackboardConnect<Playground>(
   updated(changedValues: PropertyValues) {
     super.updated(changedValues);
 
-    const cell = selectActiveCell(this.blackboard.state);
-
-    if (cell != this._cell) {
+    if (this.activeCell != this._cell) {
       if (this._subscription) this._subscription.unsubscribe();
 
-      this._subscription = cell.signals[
+      this._subscription = this.activeCell.signals[
         'after-workflow-executed'
       ].subscribe(() => this.requestUpdate());
-      this._cell = cell;
+      this._cell = this.activeCell;
     }
 
-    const nodes = sourceChainNodes(cell);
+    const nodes = sourceChainNodes(this.activeCell);
+    console.log('ondes', nodes);
     if (!isEqual(nodes, this.nodes)) {
       this.nodes = nodes;
 
@@ -154,9 +171,7 @@ export class SourceChain extends blackboardConnect<Playground>(
 
     this.cy.filter('node').removeClass('selected');
 
-    this.cy
-      .getElementById(this.blackboard.state.activeEntryId)
-      .addClass('selected');
+    this.cy.getElementById(this.activeEntryHash).addClass('selected');
   }
 
   render() {

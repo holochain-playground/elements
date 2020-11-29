@@ -1,5 +1,5 @@
-import { uniq } from 'lodash-es';
 import { getSysMetaValHeaderHash } from '../../../types/metadata.js';
+import { uniq } from 'lodash-es';
 
 function getValidationLimboDhtOps(state, status) {
     const pendingDhtOps = {};
@@ -50,7 +50,6 @@ function isHoldingEntry(state, entryHash) {
     return state.metadata.system_meta[entryHash] !== undefined;
 }
 function getDhtShard(state) {
-    debugger;
     const heldEntries = getAllHeldEntries(state);
     const dhtShard = {};
     for (const entryHash of heldEntries) {

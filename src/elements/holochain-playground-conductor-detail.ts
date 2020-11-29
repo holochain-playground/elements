@@ -8,21 +8,21 @@ import '@material/mwc-tab-bar';
 import '@material/mwc-tab';
 import { Dialog } from '@material/mwc-dialog';
 
-import { sharedStyles } from './sharedStyles';
-import { Playground } from '../state/playground';
-import { blackboardConnect } from '../blackboard/blackboard-connect';
+import { sharedStyles } from './utils/sharedStyles';
 
 import './holochain-playground-source-chain';
 import './holochain-playground-create-entries';
 import './holochain-playground-dht-shard';
 import './holochain-playground-entry-detail';
+import { consumePlayground } from './utils/context';
 
-export class ConductorDetail extends blackboardConnect<Playground>(
-  'holochain-playground',
-  LitElement
-) {
+@consumePlayground()
+export class ConductorDetail extends LitElement {
   @property({ type: Number })
   selectedTabIndex: number = 0;
+
+  @property({ type: String })
+  private activeAgentPubKey: string | undefined;
 
   @query('#conductor-help')
   private conductorHelp: Dialog;
@@ -57,7 +57,8 @@ export class ConductorDetail extends blackboardConnect<Playground>(
       >
         <span>
           You've selected the node or conductor with Agent ID
-          ${this.blackboard.state.activeAgentId}. Here you can see its internal state:
+          ${this.activeAgentPubKey}. Here you can see its
+          internal state:
           <ul>
             <li>
               <strong>Source Chain</strong>: entries that this node has
@@ -102,7 +103,7 @@ export class ConductorDetail extends blackboardConnect<Playground>(
           <div class="row" style="padding: 16px">
             <div class="column" style="flex: 1;">
               <h3 class="title">Conductor Detail</h3>
-              <span>Agent Id: ${this.blackboard.state.activeAgentId}</span>
+              <span>Agent Pub Key: ${this.activeAgentPubKey}</span>
             </div>
             <mwc-icon-button
               icon="help_outline"
@@ -127,7 +128,7 @@ export class ConductorDetail extends blackboardConnect<Playground>(
                         class="fill"
                       ></holochain-playground-source-chain>
                       <div class="flex-scrollable-parent">
-                        <div class="flex-scrollable-container">
+                        <div class="flex-scrollable-provider">
                           <div class="flex-scrollable-y">
                             <holochain-playground-entry-detail
                               class="fill"
@@ -140,7 +141,7 @@ export class ConductorDetail extends blackboardConnect<Playground>(
                 : this.selectedTabIndex === 1
                 ? html`
                     <div class="flex-scrollable-parent">
-                      <div class="flex-scrollable-container">
+                      <div class="flex-scrollable-provider">
                         <div class="flex-scrollable-y">
                           <holochain-playground-dht-shard></holochain-playground-dht-shard>
                         </div>

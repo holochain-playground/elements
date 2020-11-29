@@ -1,5 +1,4 @@
-import { blackboardConnect } from '../blackboard/blackboard-connect.js';
-import 'lodash-es';
+import '../types/common.js';
 import '../processors/hash.js';
 import 'byte-base64';
 import '../types/entry.js';
@@ -7,12 +6,31 @@ import '../types/header.js';
 import '../types/timestamp.js';
 import '../core/cell/source-chain/utils.js';
 import '../core/cell/source-chain/builder-headers.js';
+import '../core/cell/source-chain/put.js';
 import '../types/dht-op.js';
+import '../core/cell/source-chain/get.js';
+import '../core/cell/workflows/publish_dht_ops.js';
+import '../core/cell/workflows/produce_dht_ops.js';
+import '../core/cell/workflows/genesis.js';
+import '../executor/immediate-executor.js';
+import '../core/cell/workflows/call_zome_fn.js';
+import '../types/cell-state.js';
 import '../types/metadata.js';
+import 'lodash-es';
 import '../core/cell/dht/get.js';
+import '../core/cell/dht/put.js';
+import '../core/cell/workflows/integrate_dht_ops.js';
+import '../core/cell/workflows/app_validation.js';
+import '../core/cell/workflows/sys_validation.js';
+import '../core/cell/workflows/incoming_dht_ops.js';
+import 'rxjs';
+import '../core/cell.js';
+import '../core/network/p2p-cell.js';
+import '../core/network.js';
+import '../core/conductor.js';
 import '../core/cell/source-chain/actions.js';
 import '../dnas/sample-dna.js';
-import { _ as __decorate, a as __metadata } from '../tslib.es6-654e2c24.js';
+import { _ as __decorate, a as __metadata, c as consumePlayground } from '../context-97eb5dfe.js';
 import { LitElement, css, html, property, query } from 'lit-element';
 import '@authentic/mwc-card';
 import '@material/mwc-select';
@@ -22,12 +40,18 @@ import '@alenaksu/json-viewer';
 import '@material/mwc-tab-bar';
 import '@material/mwc-tab';
 import { Dialog } from '@material/mwc-dialog';
-import { sharedStyles } from './sharedStyles.js';
+import { sharedStyles } from './utils/sharedStyles.js';
 import '../processors/graph.js';
 import 'cytoscape';
 import 'cytoscape-dagre';
 import '@material/mwc-menu/mwc-menu-surface';
-import '../state/selectors.js';
+import 'lit-context';
+import '@material/mwc-snackbar';
+import '@material/mwc-circular-progress';
+import '../processors/message.js';
+import '../processors/create-conductors.js';
+import '../processors/build-simulated-playground.js';
+import './utils/selectors.js';
 import './holochain-playground-source-chain.js';
 import '@material/mwc-textarea';
 import '@material/mwc-button';
@@ -39,7 +63,7 @@ import './holochain-playground-create-entries.js';
 import './holochain-playground-dht-shard.js';
 import './holochain-playground-entry-detail.js';
 
-class ConductorDetail extends blackboardConnect('holochain-playground', LitElement) {
+let ConductorDetail = class ConductorDetail extends LitElement {
     constructor() {
         super(...arguments);
         this.selectedTabIndex = 0;
@@ -72,7 +96,8 @@ class ConductorDetail extends blackboardConnect('holochain-playground', LitEleme
       >
         <span>
           You've selected the node or conductor with Agent ID
-          ${this.blackboard.state.activeAgentId}. Here you can see its internal state:
+          ${this.activeAgentPubKey}. Here you can see its
+          internal state:
           <ul>
             <li>
               <strong>Source Chain</strong>: entries that this node has
@@ -116,7 +141,7 @@ class ConductorDetail extends blackboardConnect('holochain-playground', LitEleme
           <div class="row" style="padding: 16px">
             <div class="column" style="flex: 1;">
               <h3 class="title">Conductor Detail</h3>
-              <span>Agent Id: ${this.blackboard.state.activeAgentId}</span>
+              <span>Agent Pub Key: ${this.activeAgentPubKey}</span>
             </div>
             <mwc-icon-button
               icon="help_outline"
@@ -140,7 +165,7 @@ class ConductorDetail extends blackboardConnect('holochain-playground', LitEleme
                         class="fill"
                       ></holochain-playground-source-chain>
                       <div class="flex-scrollable-parent">
-                        <div class="flex-scrollable-container">
+                        <div class="flex-scrollable-provider">
                           <div class="flex-scrollable-y">
                             <holochain-playground-entry-detail
                               class="fill"
@@ -153,7 +178,7 @@ class ConductorDetail extends blackboardConnect('holochain-playground', LitEleme
             : this.selectedTabIndex === 1
                 ? html `
                     <div class="flex-scrollable-parent">
-                      <div class="flex-scrollable-container">
+                      <div class="flex-scrollable-provider">
                         <div class="flex-scrollable-y">
                           <holochain-playground-dht-shard></holochain-playground-dht-shard>
                         </div>
@@ -169,15 +194,22 @@ class ConductorDetail extends blackboardConnect('holochain-playground', LitEleme
       </mwc-card>
     `;
     }
-}
+};
 __decorate([
     property({ type: Number }),
     __metadata("design:type", Number)
 ], ConductorDetail.prototype, "selectedTabIndex", void 0);
 __decorate([
+    property({ type: String }),
+    __metadata("design:type", String)
+], ConductorDetail.prototype, "activeAgentPubKey", void 0);
+__decorate([
     query('#conductor-help'),
     __metadata("design:type", Dialog)
 ], ConductorDetail.prototype, "conductorHelp", void 0);
+ConductorDetail = __decorate([
+    consumePlayground()
+], ConductorDetail);
 customElements.define('holochain-playground-conductor-detail', ConductorDetail);
 
 export { ConductorDetail };

@@ -1,4 +1,3 @@
-import 'lodash-es';
 import '../../../processors/hash.js';
 import 'byte-base64';
 import '../../../types/entry.js';
@@ -6,6 +5,7 @@ import '../../../types/header.js';
 import '../../../types/dht-op.js';
 import { ValidationLimboStatus, ValidationStatus } from '../../../types/cell-state.js';
 import '../../../types/metadata.js';
+import 'lodash-es';
 import { getValidationLimboDhtOps } from '../dht/get.js';
 import { deleteValidationLimboValue, putIntegrationLimboValue } from '../dht/put.js';
 import { integrate_dht_ops_task } from './integrate_dht_ops.js';

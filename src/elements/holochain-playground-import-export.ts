@@ -1,14 +1,24 @@
-import { blackboardConnect } from '../blackboard/blackboard-connect';
-import { Playground } from '../state/playground';
-import { LitElement, query, html } from 'lit-element';
+import { LitElement, query, html, property } from 'lit-element';
 
 import '@material/mwc-button';
 import { downloadFile, fileToPlayground } from '../processors/files';
+import { Conductor } from '../core/conductor';
+import { consumePlayground, PlaygroundContext, UpdateContextEvent } from './utils/context';
 
-export class ImportExport extends blackboardConnect<Playground>(
-  'holochain-playground',
-  LitElement
-) {
+@consumePlayground()
+export class ImportExport extends LitElement {
+  @property({ type: String })
+  private activeDna: string | undefined;
+  @property({ type: String })
+  private activeAgentPubKey: string | undefined;
+  @property({ type: String })
+  private activeEntryHash: string | undefined;
+  @property({ type: Array })
+  private conductors: Conductor[] | undefined;
+
+  @property({ type: Array })
+  private conductorsUrls: string[] | undefined;
+
   @query('#file-upload')
   private fileUpload: HTMLInputElement;
 
@@ -18,13 +28,20 @@ export class ImportExport extends blackboardConnect<Playground>(
     var reader = new FileReader();
     reader.onload = (event) => {
       const playground = JSON.parse(event.target.result as string);
-      this.blackboard.updateState(fileToPlayground(playground));
+
+      this.dispatchEvent(new UpdateContextEvent(fileToPlayground(playground)));
     };
     reader.readAsText(file);
   }
 
   export() {
-    const playground = this.blackboard.state;
+    const playground: PlaygroundContext = {
+      activeAgentPubKey: this.activeAgentPubKey,
+      activeDna: this.activeDna,
+      activeEntryHash: this.activeEntryHash,
+      conductors: this.conductors,
+      conductorsUrls: this.conductorsUrls,
+    };
 
     const blob = new Blob([JSON.stringify(playground)], {
       type: 'application/json',

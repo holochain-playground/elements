@@ -8,7 +8,7 @@ import { EntryDetails, EntryDhtStatus } from '../types/metadata';
 import { timestampToMillis } from '../types/timestamp';
 
 export function dnaNodes(cells: Cell[]) {
-  const images = ['smartphone', 'desktop', 'laptop'];
+  // const images = ['smartphone', 'desktop', 'laptop'];
 
   const sortedCells = cells.sort((a: Cell, b: Cell) =>
     compareBigInts(location(a.agentPubKey), location(b.agentPubKey))
@@ -18,7 +18,7 @@ export function dnaNodes(cells: Cell[]) {
       id: cell.agentPubKey,
       label: `${cell.agentPubKey.substr(0, 6)}...`,
     },
-    classes: [images[Math.floor(Math.random() * 3)]],
+    //    classes: [images[Math.floor(Math.random() * 3)]],
   }));
   const edges = sortedCells.map((cell) =>
     cell.p2p.getNeighbors().map((neighbor) => ({

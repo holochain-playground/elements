@@ -1,6 +1,3 @@
-import { blackboardConnect } from '../blackboard/blackboard-connect.js';
-import 'lodash-es';
-import 'rxjs';
 import '../types/common.js';
 import '../processors/hash.js';
 import 'byte-base64';
@@ -19,35 +16,48 @@ import '../executor/immediate-executor.js';
 import '../core/cell/workflows/call_zome_fn.js';
 import '../types/cell-state.js';
 import '../types/metadata.js';
+import 'lodash-es';
 import '../core/cell/dht/get.js';
 import '../core/cell/dht/put.js';
 import '../core/cell/workflows/integrate_dht_ops.js';
 import '../core/cell/workflows/app_validation.js';
 import '../core/cell/workflows/sys_validation.js';
 import '../core/cell/workflows/incoming_dht_ops.js';
+import 'rxjs';
 import '../core/cell.js';
 import '../core/network/p2p-cell.js';
 import '../core/network.js';
 import '../core/conductor.js';
 import '../core/cell/source-chain/actions.js';
 import { sampleDna } from '../dnas/sample-dna.js';
-import { _ as __decorate, a as __metadata } from '../tslib.es6-654e2c24.js';
-import { LitElement, html, query, property } from 'lit-element';
+import { U as UpdateContextEvent, _ as __decorate, a as __metadata, c as consumePlayground } from '../context-97eb5dfe.js';
+import { LitElement, html, property, query } from 'lit-element';
 import { Dialog } from '@material/mwc-dialog';
-import { sharedStyles } from './sharedStyles.js';
-import { selectRedundancyFactor, selectCellCount, selectActiveCellsForConductor, selectUniqueDHTOps, selectMedianHoldingDHTOps, selectGlobalDHTOps } from '../state/selectors.js';
-import { TextFieldBase } from '@material/mwc-textfield/mwc-textfield-base';
+import { sharedStyles } from './utils/sharedStyles.js';
+import 'lit-context';
+import '@material/mwc-snackbar';
+import '@material/mwc-circular-progress';
 import '../processors/message.js';
 import { createConductors } from '../processors/create-conductors.js';
+import '../processors/build-simulated-playground.js';
+import { selectCell, selectAllCells, selectRedundancyFactor, selectCells, selectUniqueDHTOpsCount, selectMedianHoldingDHTOps, selectGlobalDHTOpsCount } from './utils/selectors.js';
+import { TextFieldBase } from '@material/mwc-textfield/mwc-textfield-base';
 import '@material/mwc-linear-progress';
 
-class DHTStats extends blackboardConnect('holochain-playground', LitElement) {
+let DHTStats = class DHTStats extends LitElement {
     constructor() {
         super(...arguments);
         this.processing = false;
     }
     static get styles() {
         return sharedStyles;
+    }
+    get activeCell() {
+        return (selectCell(this.activeDna, this.activeAgentPubKey, this.conductors) ||
+            this.allCells[0]);
+    }
+    get allCells() {
+        return selectAllCells(this.activeDna, this.conductors);
     }
     renderStatsHelp() {
         return html `
@@ -57,11 +67,11 @@ class DHTStats extends blackboardConnect('holochain-playground', LitElement) {
           <br />
           <br />
           Having a redundancy factor of
-          ${selectRedundancyFactor(this.blackboard.state)}, it will
+          ${selectRedundancyFactor(this.activeCell)}, it will
           <strong>
             replicate every DHT Op in the
-            ${selectRedundancyFactor(this.blackboard.state)} nodes that are
-            closest to its neighborhood </strong
+            ${selectRedundancyFactor(this.activeCell)} nodes that are closest to
+            its neighborhood </strong
           >.
           <br />
           <br />
@@ -81,18 +91,18 @@ class DHTStats extends blackboardConnect('holochain-playground', LitElement) {
     }
     async republish() {
         const newNodes = parseInt(this.nNodes.value);
-        const currentNodes = selectCellCount(this.blackboard.state);
+        const currentNodes = this.allCells.length;
         const changedNodes = currentNodes !== newNodes;
         const rFactor = parseInt(this.rFactor.value);
-        const dna = this.blackboard.state.activeDNA;
-        let conductors = this.blackboard.state.conductors;
+        const dna = this.activeDna;
+        let conductors = this.conductors;
         if (newNodes > currentNodes) {
             const newNodesToCreate = newNodes - currentNodes;
             conductors = await createConductors(newNodesToCreate, conductors, sampleDna());
         }
         else if (newNodes < currentNodes) {
             const conductorsToRemove = currentNodes - newNodes;
-            const getMaxSourceChainLength = (conductor) => Math.max(...selectActiveCellsForConductor(this.blackboard.state)(conductor).map((cell) => cell.state.sourceChain.length));
+            const getMaxSourceChainLength = (conductor) => Math.max(...selectCells(this.activeDna, conductor).map((cell) => cell.state.sourceChain.length));
             conductors = conductors.sort((c1, c2) => getMaxSourceChainLength(c1) - getMaxSourceChainLength(c2));
             conductors.splice(0, conductorsToRemove);
         }
@@ -102,9 +112,10 @@ class DHTStats extends blackboardConnect('holochain-playground', LitElement) {
                 conductor.cells[dna].peers = peers.filter((p) => p !== conductor.cells[dna].agentId);
             }
         }
-        this.blackboard.update('conductors', conductors);
-        if (changedNodes ||
-            selectRedundancyFactor(this.blackboard.state) !== rFactor) {
+        this.dispatchEvent(new UpdateContextEvent({
+            conductors: conductors,
+        }));
+        if (changedNodes || selectRedundancyFactor(this.activeCell) !== rFactor) {
             const cells = conductors.map((c) => c.cells[dna]);
             for (const cell of cells) {
                 cell.DHTOpTransforms = {};
@@ -147,9 +158,9 @@ class DHTStats extends blackboardConnect('holochain-playground', LitElement) {
                 outlined
                 type="number"
                 style="width: 5em;"
-                .disabled=${this.blackboard.state.conductorsUrls !== undefined}
+                .disabled=${this.conductorsUrls !== undefined}
                 @change=${() => this.updateDHTStats()}
-                .value=${selectCellCount(this.blackboard.state).toString()}
+                .value=${this.allCells.length.toString()}
               ></mwc-textfield>
             </div>
             <div class="row center-content" style="padding-right: 24px;">
@@ -160,30 +171,26 @@ class DHTStats extends blackboardConnect('holochain-playground', LitElement) {
                 max="50"
                 outlined
                 type="number"
-                .disabled=${this.blackboard.state.conductorsUrls !== undefined}
+                .disabled=${this.conductorsUrls !== undefined}
                 style="width: 5em;"
                 @change=${() => this.updateDHTStats()}
-                .value=${selectRedundancyFactor(this.blackboard.state).toString()}
+                .value=${selectRedundancyFactor(this.activeCell).toString()}
               ></mwc-textfield>
             </div>
             <div class="column fill">
               <span style="margin-bottom: 2px;"
                 >Unique DHT Ops:
-                <strong
-                  >${selectUniqueDHTOps(this.blackboard.state)}</strong
-                ></span
+                <strong>${selectUniqueDHTOpsCount(this.allCells)}</strong></span
               >
               <span style="margin-bottom: 2px;"
                 >Median DHT Ops per node:
                 <strong
-                  >${selectMedianHoldingDHTOps(this.blackboard.state)}</strong
+                  >${selectMedianHoldingDHTOps(this.allCells)}</strong
                 ></span
               >
               <span
                 >Global DHT Ops:
-                <strong
-                  >${selectGlobalDHTOps(this.blackboard.state)}</strong
-                ></span
+                <strong>${selectGlobalDHTOpsCount(this.allCells)}</strong></span
               >
             </div>
           </div>
@@ -194,7 +201,23 @@ class DHTStats extends blackboardConnect('holochain-playground', LitElement) {
       </div>
     `;
     }
-}
+};
+__decorate([
+    property({ type: String }),
+    __metadata("design:type", String)
+], DHTStats.prototype, "activeDna", void 0);
+__decorate([
+    property({ type: Array }),
+    __metadata("design:type", Array)
+], DHTStats.prototype, "conductors", void 0);
+__decorate([
+    property({ type: String }),
+    __metadata("design:type", String)
+], DHTStats.prototype, "activeAgentPubKey", void 0);
+__decorate([
+    property({ type: Array }),
+    __metadata("design:type", Array)
+], DHTStats.prototype, "conductorsUrls", void 0);
 __decorate([
     query('#stats-help'),
     __metadata("design:type", Dialog)
@@ -211,6 +234,9 @@ __decorate([
     property({ type: Boolean }),
     __metadata("design:type", Boolean)
 ], DHTStats.prototype, "processing", void 0);
+DHTStats = __decorate([
+    consumePlayground()
+], DHTStats);
 customElements.define('holochain-playground-dht-stats', DHTStats);
 
 export { DHTStats };
