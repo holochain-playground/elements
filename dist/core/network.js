@@ -1,5 +1,4 @@
-import '../processors/hash.js';
-import 'byte-base64';
+import '../hash-7578db5d.js';
 import { P2pCell } from './network/p2p-cell.js';
 
 class Network {

@@ -1,5 +1,4 @@
-import { hash } from '../../../processors/hash.js';
-import 'byte-base64';
+import { h as hash } from '../../../hash-7578db5d.js';
 import '../../../types/header.js';
 import { getElement } from '../source-chain/utils.js';
 import { elementToDHTOps } from '../../../types/dht-op.js';

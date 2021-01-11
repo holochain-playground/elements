@@ -9,7 +9,7 @@ const pkg = require('./package.json');
 export default {
   input: `src/**/*.ts`,
   output: { dir: 'dist', format: 'es', sourcemap: true },
-  external: [...Object.keys(pkg.dependencies), /@material/, /rxjs/],
+  external: ['lit-html', 'lit-element'],
   plugins: [
     multiInput(),
     json(),

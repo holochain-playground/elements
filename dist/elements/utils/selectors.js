@@ -1,6 +1,5 @@
 import '../../types/metadata.js';
-import 'lodash-es';
-import { isHoldingEntry } from '../../core/cell/dht/get.js';
+import { j as isHoldingEntry } from '../../get-ecef9c10.js';
 
 function selectCells(dna, conductor) {
     return conductor.cells

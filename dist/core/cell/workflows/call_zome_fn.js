@@ -1,5 +1,4 @@
-import '../../../processors/hash.js';
-import 'byte-base64';
+import '../../../hash-7578db5d.js';
 import '../../../types/header.js';
 import { getTipOfChain } from '../source-chain/utils.js';
 import { putElement } from '../source-chain/put.js';

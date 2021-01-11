@@ -1,5 +1,4 @@
-import '../../../processors/hash.js';
-import 'byte-base64';
+import '../../../hash-7578db5d.js';
 import '../../../types/entry.js';
 import '../../../types/header.js';
 import '../../../types/timestamp.js';
