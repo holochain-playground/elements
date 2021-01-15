@@ -14,6 +14,7 @@ export default {
 };
 
 export const Simple = () => {
+  
   return html`
     <holochain-playground-provider>
       <holochain-playground-dht-graph

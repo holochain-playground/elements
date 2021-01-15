@@ -14,20 +14,6 @@ export type EntryType =
   | 'CapClaim'
   | 'CapGrant';
 
-export function getAppEntryType(
-  entryType: EntryType
-): AppEntryType | undefined {
-  if ((entryType as { App: AppEntryType }).App)
-    return (entryType as { App: AppEntryType }).App;
-  return undefined;
-}
-
-export function getEntryTypeString(entryType: EntryType): string {
-  const appEntryType = getAppEntryType(entryType);
-  if (appEntryType) return appEntryType.id;
-
-  return entryType as string;
-}
 
 export interface EntryContent<E extends string, C> {
   entry_type: E;
@@ -43,4 +29,19 @@ export type Entry =
 export function hashEntry(entry: Entry): string {
   if (entry.entry_type === 'Agent') return entry.content;
   return hash(entry);
+}
+
+export function getAppEntryType(
+  entryType: EntryType
+): AppEntryType | undefined {
+  if ((entryType as { App: AppEntryType }).App)
+    return (entryType as { App: AppEntryType }).App;
+  return undefined;
+}
+
+export function getEntryTypeString(entryType: EntryType): string {
+  const appEntryType = getAppEntryType(entryType);
+  if (appEntryType) return appEntryType.id;
+
+  return entryType as string;
 }
