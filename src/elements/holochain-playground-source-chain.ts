@@ -1,4 +1,5 @@
 import { property, html, PropertyValues, css, query } from 'lit-element';
+import { styleMap } from 'lit-html/directives/style-map';
 import { sourceChainNodes } from '../processors/graph';
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
@@ -24,6 +25,10 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
         :host {
           display: flex;
         }
+        #source-chain-graph {
+          width: 100%;
+          height: 100%;
+        }
       `,
     ];
   }
@@ -35,21 +40,16 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
   private _cell: Cell;
   private _subscription: Subscription;
 
-  get activeCell() {
-    return (
-      selectCell(this.activeDna, this.activeAgentPubKey, this.conductors) ||
-      selectAllCells(this.activeDna, this.conductors)[0]
-    );
-  }
-
   @property({ type: Object })
   private _nodeInfo: any | undefined = undefined;
   @query('#node-info-menu')
   private _nodeInfoMenu: MenuSurface;
+  @query('#source-chain-graph')
+  private graph: HTMLElement;
 
   firstUpdated() {
     this.cy = cytoscape({
-      container: this.shadowRoot.getElementById('source-chain-graph'),
+      container: this.graph,
       layout: { name: 'dagre' },
       autoungrabify: true,
       userZoomingEnabled: true,
@@ -129,16 +129,22 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
   updated(changedValues: PropertyValues) {
     super.updated(changedValues);
 
-    if (this.activeCell != this._cell) {
+    const activeCell = selectCell(
+      this.activeDna,
+      this.activeAgentPubKey,
+      this.conductors
+    );
+
+    if (activeCell != this._cell) {
       if (this._subscription) this._subscription.unsubscribe();
 
-      this._subscription = this.activeCell.signals[
+      this._subscription = activeCell.signals[
         'after-workflow-executed'
       ].subscribe(() => this.requestUpdate());
-      this._cell = this.activeCell;
+      this._cell = activeCell;
     }
 
-    const nodes = sourceChainNodes(this.activeCell);
+    const nodes = sourceChainNodes(activeCell);
     if (!isEqual(nodes, this.nodes)) {
       this.nodes = nodes;
 
@@ -154,10 +160,23 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
 
   render() {
     return html`
+      ${this._cell
+        ? html``
+        : html`
+            <div style="flex: 1;" class="center-content">
+              <span>Select a cell to display its source chain</span>
+            </div>
+          `}
       <mwc-menu-surface id="node-info-menu">
         <json-viewer .data=${this._nodeInfo}></json-viewer>
       </mwc-menu-surface>
-      <div style="width: 400px; height: 95%;" id="source-chain-graph"></div>
+
+      <div
+        style=${styleMap({
+          display: this._cell ? '' : 'none',
+        })}
+        id="source-chain-graph"
+      ></div>
     `;
   }
 

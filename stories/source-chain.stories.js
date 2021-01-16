@@ -1,5 +1,5 @@
 import { HolochainPlaygroundContainer } from '@holochain-playground/container';
-import { HolochainPlaygroundSourceChain } from '../dist/elements/holochain-playground-source-chain.js';
+import { HolochainPlaygroundSourceChain } from '../src/elements/holochain-playground-source-chain';
 
 import { html } from 'lit-element';
 

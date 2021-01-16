@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        background: #fafafa;
+      }
+    </style>
+  </head>
+  <body>
+    <holochain-playground-container>
+      <holochain-playground-source-chain></holochain-playground-source-chain>
+    </holochain-playground-container>
+
+    <script type="module">
+      import { html, render } from 'lit-html';
+      import { HolochainPlaygroundSourceChain } from '../dist/elements/holochain-playground-source-chain.js';
+      import { HolochainPlaygroundContainer } from '@holochain-playground/container';
+
+      customElements.define(
+        'holochain-playground-source-chain',
+        HolochainPlaygroundSourceChain
+      );
+      customElements.define(
+        'holochain-playground-container',
+        HolochainPlaygroundContainer
+      );
+    </script>
+  </body>
+</html>

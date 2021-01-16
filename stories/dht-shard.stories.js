@@ -1,6 +1,6 @@
 import { HolochainPlaygroundContainer } from '@holochain-playground/container';
-import { HolochainPlaygroundDhtGraph } from '../dist/elements/holochain-playground-dht-graph.js';
-import { HolochainPlaygroundDhtShard } from '../dist/elements/holochain-playground-dht-shard.js';
+import { HolochainPlaygroundDhtGraph } from '../src/elements/holochain-playground-dht-graph';
+import { HolochainPlaygroundDhtShard } from '../src/elements/holochain-playground-dht-shard';
 
 import { html } from 'lit-element';
 

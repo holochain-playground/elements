@@ -9,7 +9,13 @@ const pkg = require('./package.json');
 export default {
   input: `src/**/*.ts`,
   output: { dir: 'dist', format: 'es', sourcemap: true },
-  external: ['lit-html', 'lit-element'],
+  external: [
+    ...Object.keys(pkg.dependencies).filter(
+      (key) => !key.includes('cytoscape')
+    ),
+    /scoped-material-components/,
+    /lit-html/
+  ],
   plugins: [
     multiInput(),
     json(),
@@ -20,7 +26,7 @@ export default {
       mainFields: ['browser', 'module', 'main'],
     }),
     commonjs({
-      include: ['node_modules/cytoscape/**/*'],
+      include: /node_modules/,
     }),
   ],
 };
