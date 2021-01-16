@@ -12,7 +12,7 @@ import { sharedStyles } from './utils/shared-styles';
 import { BaseElement } from './utils/base-element';
 import { isEqual } from 'lodash-es';
 
-export class DHTGraph extends BaseElement {
+export class HolochainPlaygroundDhtGraph extends BaseElement {
   @query('#dht-help')
   private dhtHelp: Dialog;
 

@@ -31,7 +31,7 @@ const layoutConfig = {
   },
 };
 
-export class EntryGraph extends BaseElement {
+export class HolochainPlaygroundEntryGraph extends BaseElement {
   @property({ attribute: false })
   showAgentsIds: boolean = true;
 

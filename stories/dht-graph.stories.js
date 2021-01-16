@@ -1,16 +1,11 @@
-import '../dist/elements/holochain-playground-provider.js';
-import '../dist/elements/holochain-playground-dht-graph.js';
+import { HolochainPlaygroundContainer } from '@holochain-playground/container';
+import { HolochainPlaygroundDhtGraph } from '../dist/elements/holochain-playground-dht-graph.js';
 
-import { withKnobs } from '@storybook/addon-knobs';
 import { html } from 'lit-element';
-import { withWebComponentsKnobs } from 'storybook-addon-web-components-knobs';
 
 export default {
   title: 'DHT Graph',
   component: 'holochain-playground-dht-graph',
-
-  decorators: [withKnobs, withWebComponentsKnobs],
-  parameters: { options: { selectedPanel: 'storybookjs/knobs/panel' } },
 };
 
 export const Simple = () => {

@@ -6,7 +6,7 @@ import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { BaseElement } from './utils/base-element';
 //import { checkConnection } from '../processors/connect-to-conductors';
 
-export class ConnectToNodes extends BaseElement {
+export class HolochainPlaygroundConnectToNodes extends BaseElement {
   @property({ type: Boolean })
   private open: Boolean = false;
 

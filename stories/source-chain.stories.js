@@ -1,31 +1,16 @@
-import '../dist/elements/holochain-playground-provider.js';
-import '../dist/elements/holochain-playground-source-chain.js';
+import { HolochainPlaygroundContainer } from '@holochain-playground/container';
+import { HolochainPlaygroundSourceChain } from '../dist/elements/holochain-playground-source-chain.js';
 
-import {
-  array,
-  boolean,
-  button,
-  color,
-  date,
-  select,
-  withKnobs,
-  text,
-  number,
-} from '@storybook/addon-knobs';
 import { html } from 'lit-element';
-import { withWebComponentsKnobs } from 'storybook-addon-web-components-knobs';
 
 export default {
   title: 'Source Chain',
   component: 'holochain-playground-source-chain',
-
-  decorators: [withKnobs, withWebComponentsKnobs],
-  parameters: { options: { selectedPanel: 'storybookjs/knobs/panel' } },
 };
 
 export const Simple = () => {
   return html`
-    <holochain-playground-provider
+    <holochain-playground-container
       .numberOfSimulatedConductors=${1}
       @ready=${(e) => {
         const conductor = e.detail.conductors[0];
@@ -46,6 +31,6 @@ export const Simple = () => {
       <holochain-playground-source-chain
         style="height: 100vh"
       ></holochain-playground-source-chain>
-    </holochain-playground-provider>
+    </holochain-playground-container>
   `;
 };

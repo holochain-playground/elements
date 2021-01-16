@@ -1,27 +1,12 @@
-import '../dist/elements/holochain-playground-provider.js';
-import '../dist/elements/holochain-playground-dht-shard.js';
-import '../dist/elements/holochain-playground-dht-graph.js';
+import { HolochainPlaygroundContainer } from '@holochain-playground/container';
+import { HolochainPlaygroundDhtGraph } from '../dist/elements/holochain-playground-dht-graph.js';
+import { HolochainPlaygroundDhtShard } from '../dist/elements/holochain-playground-dht-shard.js';
 
-import {
-  array,
-  boolean,
-  button,
-  color,
-  date,
-  select,
-  withKnobs,
-  text,
-  number,
-} from '@storybook/addon-knobs';
 import { html } from 'lit-element';
-import { withWebComponentsKnobs } from 'storybook-addon-web-components-knobs';
 
 export default {
   title: 'DHT Shard',
   component: 'holochain-playground-dht-shard',
-
-  decorators: [withKnobs, withWebComponentsKnobs],
-  parameters: { options: { selectedPanel: 'storybookjs/knobs/panel' } },
 };
 
 export const Simple = () => {

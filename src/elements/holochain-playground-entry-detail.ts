@@ -6,7 +6,7 @@ import { sharedStyles } from './utils/shared-styles';
 import { selectAllCells, selectFromCAS } from './utils/selectors';
 import { BaseElement } from './utils/base-element';
 
-export class EntryDetail extends BaseElement {
+export class HolochainPlaygroundEntryDetail extends BaseElement {
   @property({ type: Boolean })
   withMetadata = false;
 

@@ -6,7 +6,7 @@ import { getDhtShard } from '@holochain-playground/core';
 import '@alenaksu/json-viewer';
 import { BaseElement } from './utils/base-element';
 
-export class DHTShard extends BaseElement {
+export class HolochainPlaygroundDhtShard extends BaseElement {
   @property({ type: Object })
   cell: { dna: string; agentId: string } = undefined;
 

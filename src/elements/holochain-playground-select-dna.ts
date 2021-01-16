@@ -5,7 +5,7 @@ import { serializeHash, deserializeHash } from '@holochain-open-dev/common';
 import { Select } from 'scoped-material-components/mwc-select';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 
-export class SelectDNA extends BaseElement {
+export class HolochainPlaygroundSelectDNA extends BaseElement {
   selectDNA(dna: string) {
     this.updatePlayground({
       activeAgentPubKey: null,

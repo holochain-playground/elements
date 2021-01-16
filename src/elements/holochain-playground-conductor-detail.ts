@@ -4,15 +4,15 @@ import '@alenaksu/json-viewer';
 import { sharedStyles } from './utils/shared-styles';
 
 import { BaseElement } from './utils/base-element';
-import { DHTShard } from './holochain-playground-dht-shard';
-import { EntryDetail } from './holochain-playground-entry-detail';
+import { HolochainPlaygroundDhtShard } from './holochain-playground-dht-shard';
+import { HolochainPlaygroundEntryDetail } from './holochain-playground-entry-detail';
 import { Card } from 'scoped-material-components/mwc-card';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { Tab } from 'scoped-material-components/mwc-tab';
 import { TabBar } from 'scoped-material-components/mwc-tab-bar';
 
-export class ConductorDetail extends BaseElement {
+export class HolochainPlaygroundConductorDetail extends BaseElement {
   @property({ type: Number })
   selectedTabIndex: number = 0;
 
@@ -139,8 +139,8 @@ export class ConductorDetail extends BaseElement {
                       </div>
                     </div>
                   `
-                    // TODO change for call-zome
-                : html`
+                : // TODO change for call-zome
+                  html`
                     <holochain-playground-create-entries></holochain-playground-create-entries>
                   `}
             </div>
@@ -152,8 +152,8 @@ export class ConductorDetail extends BaseElement {
 
   static get scopedElements() {
     return {
-      'holochain-playground-dht-shard': DHTShard,
-      'holochain-playground-entry-detail': EntryDetail,
+      'holochain-playground-dht-shard': HolochainPlaygroundDhtShard,
+      'holochain-playground-entry-detail': HolochainPlaygroundEntryDetail,
       'mwc-tab': Tab,
       'mwc-tab-bar': TabBar,
       'mwc-card': Card,

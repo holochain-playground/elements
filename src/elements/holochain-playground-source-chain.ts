@@ -16,7 +16,7 @@ import { BaseElement } from './utils/base-element';
 
 cytoscape.use(dagre); // register extension
 
-export class SourceChain extends BaseElement {
+export class HolochainPlaygroundSourceChain extends BaseElement {
   static get styles() {
     return [
       sharedStyles,
@@ -139,7 +139,6 @@ export class SourceChain extends BaseElement {
     }
 
     const nodes = sourceChainNodes(this.activeCell);
-    console.log('ondes', nodes);
     if (!isEqual(nodes, this.nodes)) {
       this.nodes = nodes;
 

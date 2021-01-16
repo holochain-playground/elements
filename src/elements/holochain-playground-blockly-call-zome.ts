@@ -17,7 +17,7 @@ export interface ZomeFunctionResult {
   result: any;
 }
 
-export class HolochainPlaygroundBlocklyCallZome extends BaseElement {
+export class HolochainPlaygroundCallZome extends BaseElement {
   @property({ type: Object })
   zome!: SimulatedZome;
 
