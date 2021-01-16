@@ -1,28 +1,20 @@
 import { LitElement, property, html, css, query } from 'lit-element';
-import '@authentic/mwc-card';
-import '@material/mwc-select';
-import '@material/mwc-list';
-import '@material/mwc-list/mwc-list-item';
 import '@alenaksu/json-viewer';
-import '@material/mwc-tab-bar';
-import '@material/mwc-tab';
-import { Dialog } from '@material/mwc-dialog';
 
-import { sharedStyles } from './utils/sharedStyles';
+import { sharedStyles } from './utils/shared-styles';
 
-import './holochain-playground-source-chain';
-import './holochain-playground-create-entries';
-import './holochain-playground-dht-shard';
-import './holochain-playground-entry-detail';
-import { consumePlayground } from './utils/context';
+import { BaseElement } from './utils/base-element';
+import { DHTShard } from './holochain-playground-dht-shard';
+import { EntryDetail } from './holochain-playground-entry-detail';
+import { Card } from 'scoped-material-components/mwc-card';
+import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import { Dialog } from 'scoped-material-components/mwc-dialog';
+import { Tab } from 'scoped-material-components/mwc-tab';
+import { TabBar } from 'scoped-material-components/mwc-tab-bar';
 
-@consumePlayground()
-export class ConductorDetail extends LitElement {
+export class ConductorDetail extends BaseElement {
   @property({ type: Number })
   selectedTabIndex: number = 0;
-
-  @property({ type: String })
-  private activeAgentPubKey: string | undefined;
 
   @query('#conductor-help')
   private conductorHelp: Dialog;
@@ -57,8 +49,7 @@ export class ConductorDetail extends LitElement {
       >
         <span>
           You've selected the node or conductor with Agent ID
-          ${this.activeAgentPubKey}. Here you can see its
-          internal state:
+          ${this.activeAgentPubKey}. Here you can see its internal state:
           <ul>
             <li>
               <strong>Source Chain</strong>: entries that this node has
@@ -148,6 +139,7 @@ export class ConductorDetail extends LitElement {
                       </div>
                     </div>
                   `
+                    // TODO change for call-zome
                 : html`
                     <holochain-playground-create-entries></holochain-playground-create-entries>
                   `}
@@ -157,6 +149,16 @@ export class ConductorDetail extends LitElement {
       </mwc-card>
     `;
   }
-}
 
-customElements.define('holochain-playground-conductor-detail', ConductorDetail);
+  static get scopedElements() {
+    return {
+      'holochain-playground-dht-shard': DHTShard,
+      'holochain-playground-entry-detail': EntryDetail,
+      'mwc-tab': Tab,
+      'mwc-tab-bar': TabBar,
+      'mwc-card': Card,
+      'mwc-icon-button': IconButton,
+      'mwc-dialog': Dialog,
+    };
+  }
+}

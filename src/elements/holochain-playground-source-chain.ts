@@ -1,41 +1,22 @@
-import {
-  LitElement,
-  property,
-  html,
-  PropertyValues,
-  css,
-  unsafeCSS,
-  query,
-} from 'lit-element';
+import { property, html, PropertyValues, css, query } from 'lit-element';
 import { sourceChainNodes } from '../processors/graph';
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
-import '@material/mwc-menu/mwc-menu-surface';
 import '@alenaksu/json-viewer';
 
 import { isEqual } from 'lodash-es';
 
-import { sharedStyles } from './utils/sharedStyles';
-import { Cell } from '../core/cell';
+import { sharedStyles } from './utils/shared-styles';
+
 import { Subscription } from 'rxjs';
-import { MenuSurface } from '@material/mwc-menu/mwc-menu-surface';
-import { consumePlayground, UpdateContextEvent } from './utils/context';
-import { Conductor } from '../core/conductor';
+import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
+import { Cell, Conductor } from '@holochain-playground/core';
 import { selectAllCells, selectCell } from './utils/selectors';
+import { BaseElement } from './utils/base-element';
 
 cytoscape.use(dagre); // register extension
 
-@consumePlayground()
-export class SourceChain extends LitElement {
-  @property({ type: String })
-  private activeDna: string | undefined;
-  @property({ type: Array })
-  private conductors: Conductor[] | undefined;
-  @property({ type: String })
-  private activeAgentPubKey: string | undefined;
-  @property({ type: String })
-  private activeEntryHash: string | undefined;
-
+export class SourceChain extends BaseElement {
   static get styles() {
     return [
       sharedStyles,
@@ -127,11 +108,9 @@ export class SourceChain extends LitElement {
     });
     this.cy.on('tap', 'node', (event) => {
       const selectedEntryId = event.target.id();
-      this.dispatchEvent(
-        new UpdateContextEvent({
-          activeEntryHash: selectedEntryId,
-        })
-      );
+      this.updatePlayground({
+        activeEntryHash: selectedEntryId,
+      });
     });
     this.cy.renderer().hoverData.capture = true;
 
@@ -182,6 +161,10 @@ export class SourceChain extends LitElement {
       <div style="width: 400px; height: 95%;" id="source-chain-graph"></div>
     `;
   }
-}
 
-customElements.define('holochain-playground-source-chain', SourceChain);
+  static get scopedElements() {
+    return {
+      'mwc-menu-surface': MenuSurface,
+    };
+  }
+}

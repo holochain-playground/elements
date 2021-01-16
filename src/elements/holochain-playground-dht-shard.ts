@@ -1,21 +1,12 @@
 import { LitElement, property, PropertyValues, html, query } from 'lit-element';
-import { sharedStyles } from './utils/sharedStyles';
+import { sharedStyles } from './utils/shared-styles';
 import { selectAllCells, selectCell } from './utils/selectors';
+import { getDhtShard } from '@holochain-playground/core';
 
 import '@alenaksu/json-viewer';
-import { getDhtShard } from '../core/cell/dht/get';
-import { Conductor } from '../core/conductor';
-import { consumePlayground } from './utils/context';
+import { BaseElement } from './utils/base-element';
 
-@consumePlayground()
-export class DHTShard extends LitElement {
-  @property({ type: String })
-  private activeDna: string | undefined;
-  @property({ type: Array })
-  private conductors: Conductor[] | undefined;
-  @property({ type: String })
-  private activeAgentPubKey: string | undefined;
-
+export class DHTShard extends BaseElement {
   @property({ type: Object })
   cell: { dna: string; agentId: string } = undefined;
 
@@ -53,5 +44,3 @@ export class DHTShard extends LitElement {
     `;
   }
 }
-
-customElements.define('holochain-playground-dht-shard', DHTShard);

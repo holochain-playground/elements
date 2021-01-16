@@ -1,14 +1,18 @@
 import { LitElement, query, html, property, css } from 'lit-element';
 import * as cytoscape from 'cytoscape';
 import * as cola from 'cytoscape-cola';
-import '@material/mwc-checkbox';
+
+import { Checkbox } from 'scoped-material-components/mwc-checkbox';
+import { Dialog } from 'scoped-material-components/mwc-dialog';
+import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import { Formfield } from 'scoped-material-components/mwc-formfield';
+import { Card } from 'scoped-material-components/mwc-card';
+
 import { allEntries } from '../processors/graph';
 import { selectAllCells } from './utils/selectors';
-import { sharedStyles } from './utils/sharedStyles';
-import { Dialog } from '@material/mwc-dialog';
-import { vectorsEqual } from '../processors/utils';
-import { consumePlayground, UpdateContextEvent } from './utils/context';
-import { Conductor } from '../core/conductor';
+import { sharedStyles } from './utils/shared-styles';
+import { BaseElement } from './utils/base-element';
+import { isEqual } from 'lodash-es';
 
 cytoscape.use(cola);
 
@@ -27,17 +31,9 @@ const layoutConfig = {
   },
 };
 
-@consumePlayground()
-export class EntryGraph extends LitElement {
+export class EntryGraph extends BaseElement {
   @property({ attribute: false })
   showAgentsIds: boolean = true;
-
-  @property({ type: String })
-  private activeDna: string | undefined;
-  @property({ type: Array })
-  private conductors: Conductor[] | undefined;
-  @property({ type: String })
-  private activeEntryHash: string | undefined;
 
   @query('#entry-graph-help')
   private entryGraphHelp: Dialog;
@@ -131,11 +127,9 @@ export class EntryGraph extends LitElement {
 
     this.cy.on('tap', 'node', (event) => {
       const selectedEntryId = event.target.id();
-      this.dispatchEvent(
-        new UpdateContextEvent({
-          activeEntryHash: selectedEntryId,
-        })
-      );
+      this.updatePlayground({
+        activeEntryHash: selectedEntryId,
+      });
     });
 
     this.cy.ready((e) => {
@@ -189,7 +183,7 @@ export class EntryGraph extends LitElement {
     );
 
     if (
-      !vectorsEqual(
+      !isEqual(
         this.lastEntriesIds,
         entries.map((e) => e.data.id)
       )
@@ -248,6 +242,14 @@ export class EntryGraph extends LitElement {
       </mwc-card>
     `;
   }
-}
 
-customElements.define('holochain-playground-entry-graph', EntryGraph);
+  static get scopedElements() {
+    return {
+      'mwc-checkbox': Checkbox,
+      'mwc-formfield': Formfield,
+      'mwc-icon-button': IconButton,
+      'mwc-card': Card,
+      'mwc-dialog': Dialog,
+    };
+  }
+}

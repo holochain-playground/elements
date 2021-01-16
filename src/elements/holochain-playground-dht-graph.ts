@@ -1,35 +1,25 @@
 import { LitElement, html, query, css, property } from 'lit-element';
 import * as cytoscape from 'cytoscape';
-import { Dialog } from '@material/mwc-dialog';
-import '@material/mwc-icon-button';
-import '@material/mwc-button';
+import { Dialog } from 'scoped-material-components/mwc-dialog';
+import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import { Button } from 'scoped-material-components/mwc-button';
+import { Hash } from '@holochain-open-dev/core-types';
+import { AgentPubKey } from '@holochain-open-dev/core-types';
 
 import { dnaNodes } from '../processors/graph';
 import { selectAllCells, selectHoldingCells } from './utils/selectors';
-import { sharedStyles } from './utils/sharedStyles';
-import { vectorsEqual } from '../processors/utils';
-import { consumePlayground, UpdateContextEvent } from './utils/context';
-import { Conductor } from '../core/conductor';
+import { sharedStyles } from './utils/shared-styles';
+import { BaseElement } from './utils/base-element';
+import { isEqual } from 'lodash-es';
 
-@consumePlayground()
-export class DHTGraph extends LitElement {
-  @property({ type: String })
-  private activeDna: string | undefined;
-  @property({ type: Array })
-  private conductors: Conductor[] | undefined;
-
-  @property({ type: String })
-  private activeEntryHash: string | undefined;
-  @property({ type: String })
-  private activeAgentPubKey: string | undefined;
-
+export class DHTGraph extends BaseElement {
   @query('#dht-help')
   private dhtHelp: Dialog;
 
   @query('#graph')
   private graph: any;
 
-  private lastNodes: string[] = [];
+  private lastNodes: AgentPubKey[] = [];
 
   private cy;
   private layout;
@@ -46,8 +36,6 @@ export class DHTGraph extends LitElement {
   }
 
   async firstUpdated() {
-    const nodes = dnaNodes(selectAllCells(this.activeDna, this.conductors));
-
     this.cy = cytoscape({
       container: this.graph,
       boxSelectionEnabled: false,
@@ -96,16 +84,14 @@ export class DHTGraph extends LitElement {
     });
 
     this.cy.on('tap', 'node', (evt) => {
-      this.dispatchEvent(
-        new UpdateContextEvent({
-          activeAgentPubKey: evt.target.id(),
-          activeEntryHash: null,
-        })
-      );
+      this.updatePlayground({
+        activeAgentPubKey: evt.target.id(),
+        activeEntryHash: null,
+      });
     });
   }
 
-  highlightNodesWithEntry(entryHash: string) {
+  highlightNodesWithEntry(entryHash: Hash) {
     const allCells = selectAllCells(this.activeDna, this.conductors);
 
     allCells.forEach((cell) =>
@@ -124,7 +110,7 @@ export class DHTGraph extends LitElement {
     const cells = selectAllCells(this.activeDna, this.conductors);
 
     const newAgentIds = cells.map((c) => c.agentPubKey);
-    if (!vectorsEqual(this.lastNodes, newAgentIds)) {
+    if (!isEqual(this.lastNodes, newAgentIds)) {
       if (this.layout) this.layout.stop();
       this.cy.remove('nodes');
 
@@ -191,6 +177,12 @@ export class DHTGraph extends LitElement {
         ></mwc-icon-button>
       </div>`;
   }
-}
 
-customElements.define('holochain-playground-dht-graph', DHTGraph);
+  static get scopedElements() {
+    return {
+      'mwc-icon-button': IconButton,
+      'mwc-button': Button,
+      'mwc-dialog': Dialog,
+    };
+  }
+}

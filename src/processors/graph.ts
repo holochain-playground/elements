@@ -1,22 +1,39 @@
-import { Cell } from '../core/cell';
-import { location, compareBigInts } from './hash';
-import { Create, Header, NewEntryHeader, Update } from '../types/header';
-import { Entry, getAppEntryType, getEntryTypeString } from '../types/entry';
-import { Dictionary } from '../types/common';
-import { getAllHeldEntries, getEntryDetails } from '../core/cell/dht/get';
-import { EntryDetails, EntryDhtStatus } from '../types/metadata';
-import { timestampToMillis } from '../types/timestamp';
+import {
+  Cell,
+  getEntryDetails,
+  compareBigInts,
+  location,
+  getAllHeldEntries,
+  getAppEntryType,
+  getEntryTypeString,
+  getLinksForEntry,
+} from '@holochain-playground/core';
+import {
+  SignedHeaderHashed,
+  Create,
+  NewEntryHeader,
+  Dictionary,
+  EntryDhtStatus,
+  EntryDetails,
+  Update,
+  Entry,
+  LinkMetaVal,
+} from '@holochain-open-dev/core-types';
+import { timestampToMillis, serializeHash } from '@holochain-open-dev/common';
 
 export function dnaNodes(cells: Cell[]) {
   // const images = ['smartphone', 'desktop', 'laptop'];
 
   const sortedCells = cells.sort((a: Cell, b: Cell) =>
-    compareBigInts(location(a.agentPubKey), location(b.agentPubKey))
+    compareBigInts(
+      location(serializeHash(a.agentPubKey)),
+      location(serializeHash(b.agentPubKey))
+    )
   );
   const cellNodes = sortedCells.map((cell) => ({
     data: {
       id: cell.agentPubKey,
-      label: `${cell.agentPubKey.substr(0, 6)}...`,
+      label: `${serializeHash(cell.agentPubKey).substr(0, 6)}...`,
     },
     //    classes: [images[Math.floor(Math.random() * 3)]],
   }));
@@ -40,33 +57,36 @@ export function sourceChainNodes(cell: Cell) {
 
   const headersHashes = cell.state.sourceChain;
   for (const headerHash of headersHashes) {
-    const header: Header = cell.state.CAS[headerHash];
+    const header: SignedHeaderHashed =
+      cell.state.CAS[serializeHash(headerHash)];
 
     nodes.push({
-      data: { id: headerHash, data: header, label: header.type },
-      classes: ['header', header.type],
+      data: { id: headerHash, data: header, label: header.header.content.type },
+      classes: ['header', header.header.content.type],
     });
 
-    if ((header as Create).prev_header) {
+    if ((header.header.content as Create).prev_header) {
       nodes.push({
         data: {
-          id: `${headerHash}->${(header as Create).prev_header}`,
+          id: `${headerHash}->${(header.header.content as Create).prev_header}`,
           source: headerHash,
-          target: (header as Create).prev_header,
+          target: (header.header.content as Create).prev_header,
         },
       });
     }
   }
 
   for (const headerHash of headersHashes) {
-    const header: Header = cell.state.CAS[headerHash];
+    const header: SignedHeaderHashed =
+      cell.state.CAS[serializeHash(headerHash)];
 
-    if ((header as NewEntryHeader).entry_hash) {
-      const newEntryHeader = header as NewEntryHeader;
+    if ((header.header.content as NewEntryHeader).entry_hash) {
+      const newEntryHeader = header.header.content as NewEntryHeader;
 
-      const entry: Entry = cell.state.CAS[newEntryHeader.entry_hash];
+      const entry: Entry =
+        cell.state.CAS[serializeHash(newEntryHeader.entry_hash)];
 
-      const entryType: string = getEntryTypeString(newEntryHeader.entry_type);
+      const entryType: string = ''; // TODO getEntryTypeString(newEntryHeader.entry_type);
 
       nodes.push({
         data: {
@@ -92,11 +112,14 @@ export function sourceChainNodes(cell: Cell) {
 export function allEntries(cells: Cell[], showAgentIds: boolean) {
   const entries: Dictionary<Entry> = {};
   const details: Dictionary<EntryDetails> = {};
+  const links: Dictionary<LinkMetaVal[]> = {};
 
   for (const cell of cells) {
     for (const entryHash of getAllHeldEntries(cell.state)) {
-      entries[entryHash] = cell.state.CAS[entryHash];
-      details[entryHash] = getEntryDetails(cell.state, entryHash);
+      const strEntryHash = serializeHash(entryHash);
+      entries[strEntryHash] = cell.state.CAS[strEntryHash];
+      details[strEntryHash] = getEntryDetails(cell.state, entryHash);
+      links[strEntryHash] = getLinksForEntry(cell.state, entryHash);
     }
   }
 
@@ -108,19 +131,22 @@ export function allEntries(cells: Cell[], showAgentIds: boolean) {
   const entryNodes = [];
   const entryTypeCount = {};
 
-  for (const entryHash of sortedEntries) {
-    const entry = entries[entryHash];
-    const detail = details[entryHash];
+  for (const strEntryHash of sortedEntries) {
+    const entry = entries[strEntryHash];
+    const detail = details[strEntryHash];
 
     // Get base nodes and edges
-    const newEntryHeader = detail.headers[0];
-    const entryType = getEntryTypeString(newEntryHeader.entry_type);
+    const newEntryHeader: SignedHeaderHashed<NewEntryHeader> = detail
+      .headers[0] as SignedHeaderHashed<NewEntryHeader>;
+    const entryType = getEntryTypeString(
+      newEntryHeader.header.content.entry_type
+    );
 
     if (!entryTypeCount[entryType]) entryTypeCount[entryType] = 0;
 
     entryNodes.push({
       data: {
-        id: entryHash,
+        id: strEntryHash,
         data: entry,
         label: `${entryType}${entryTypeCount[entryType]}`,
       },
@@ -131,7 +157,7 @@ export function allEntries(cells: Cell[], showAgentIds: boolean) {
 
     // Get implicit links from the entry
 
-    if (getAppEntryType(newEntryHeader.entry_type)) {
+    if (getAppEntryType(newEntryHeader.header.content.entry_type)) {
       const implicitLinks = getImplicitLinks(
         Object.keys(entries),
         entry.content
@@ -140,8 +166,8 @@ export function allEntries(cells: Cell[], showAgentIds: boolean) {
       for (const implicitLink of implicitLinks) {
         linksEdges.push({
           data: {
-            id: `${entryHash}->${implicitLink.target}`,
-            source: entryHash,
+            id: `${strEntryHash}->${implicitLink.target}`,
+            source: strEntryHash,
             target: implicitLink.target,
             label: implicitLink.label,
           },
@@ -151,13 +177,13 @@ export function allEntries(cells: Cell[], showAgentIds: boolean) {
     }
 
     // Get the explicit links from the entry
-    const linksDetails = detail.links;
+    const linksDetails = links[strEntryHash];
 
     for (const linkVal of linksDetails) {
       linksEdges.push({
         data: {
-          id: `${entryHash}->${linkVal.target}`,
-          source: entryHash,
+          id: `${strEntryHash}->${linkVal.target}`,
+          source: strEntryHash,
           target: linkVal.target,
           label: `Tag: ${linkVal.tag}`,
         },
@@ -168,15 +194,17 @@ export function allEntries(cells: Cell[], showAgentIds: boolean) {
     // Get the updates edges for the entry
     const updateHeaders = detail.headers.filter(
       (h) =>
-        (h as Update).original_header_address &&
-        (h as Update).original_entry_address === entryHash
-    ) as Update[];
+        (h.header.content as Update).original_header_address &&
+        serializeHash((h.header.content as Update).original_entry_address) ===
+          strEntryHash
+    ) as SignedHeaderHashed<Update>[];
     for (const update of updateHeaders) {
+      const strUpdateEntryHash = update.header.content.entry_hash;
       linksEdges.push({
         data: {
-          id: `${entryHash}-replaced-by-${update.entry_hash}`,
-          source: entryHash,
-          target: update.entry_hash,
+          id: `${strEntryHash}-replaced-by-${strUpdateEntryHash}`,
+          source: strEntryHash,
+          target: strUpdateEntryHash,
           label: 'replaced by',
         },
         classes: ['update-link'],
@@ -184,9 +212,9 @@ export function allEntries(cells: Cell[], showAgentIds: boolean) {
     }
 
     // Add deleted class if is deleted
-    if (detail.dhtStatus === EntryDhtStatus.Dead)
+    if (detail.entry_dht_status === EntryDhtStatus.Dead)
       entryNodes
-        .find((node) => node.data.id === entryHash)
+        .find((node) => node.data.id === strEntryHash)
         .classes.push('deleted');
   }
   /* 
@@ -250,9 +278,13 @@ function sortEntries(
   return entryHashes.sort((keyA, keyB) => compareEntries(details, keyA, keyB));
 }
 
-function compareHeader(headerA: Header, headerB: Header) {
+function compareHeader(
+  headerA: SignedHeaderHashed,
+  headerB: SignedHeaderHashed
+) {
   return (
-    timestampToMillis(headerA.timestamp) - timestampToMillis(headerB.timestamp)
+    timestampToMillis(headerA.header.content.timestamp) -
+    timestampToMillis(headerB.header.content.timestamp)
   );
 }
 
@@ -261,15 +293,15 @@ function compareEntries(
   hashA: string,
   hashB: string
 ) {
-  const headersA: Header[] = Object.values(details[hashA].headers).sort(
-    compareHeader
-  ) as Header[];
-  const headersB: Header[] = Object.values(details[hashB].headers).sort(
-    compareHeader
-  ) as Header[];
+  const headersA: SignedHeaderHashed[] = Object.values(
+    details[hashA].headers
+  ).sort(compareHeader) as SignedHeaderHashed[];
+  const headersB: SignedHeaderHashed[] = Object.values(
+    details[hashB].headers
+  ).sort(compareHeader) as SignedHeaderHashed[];
   return headersA.length > 0
-    ? timestampToMillis(headersA[0].timestamp)
+    ? timestampToMillis(headersA[0].header.content.timestamp)
     : 0 - headersB.length > 0
-    ? timestampToMillis(headersB[0].timestamp)
+    ? timestampToMillis(headersB[0].header.content.timestamp)
     : 0;
 }

@@ -1,21 +1,12 @@
 import { LitElement, html, property, css } from 'lit-element';
 import '@alenaksu/json-viewer';
 
-import { sharedStyles } from './utils/sharedStyles';
-import { consumePlayground } from './utils/context';
-import { Conductor } from '../core/conductor';
+import { getEntryDetails } from '@holochain-playground/core';
+import { sharedStyles } from './utils/shared-styles';
 import { selectAllCells, selectFromCAS } from './utils/selectors';
-import { getEntryDetails } from '../core/cell/dht/get';
+import { BaseElement } from './utils/base-element';
 
-@consumePlayground()
-export class EntryDetail extends LitElement {
-  @property({ type: Array })
-  private conductors: Conductor[] | undefined;
-  @property({ type: String })
-  private activeDna: string | undefined;
-  @property({ type: String })
-  private activeEntryHash: string | undefined;
-
+export class EntryDetail extends BaseElement {
   @property({ type: Boolean })
   withMetadata = false;
 
@@ -90,6 +81,8 @@ export class EntryDetail extends LitElement {
       </div>
     `;
   }
-}
 
-customElements.define('holochain-playground-entry-detail', EntryDetail);
+  static get scopedElements() {
+    return {};
+  }
+}

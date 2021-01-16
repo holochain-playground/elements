@@ -8,32 +8,25 @@ import {
   selectCell,
   selectCells,
 } from './utils/selectors';
-import { sharedStyles } from './utils/sharedStyles';
-import { createConductors } from '../processors/create-conductors';
-import { Dialog } from '@material/mwc-dialog';
-import { TextFieldBase } from '@material/mwc-textfield/mwc-textfield-base';
-import '@material/mwc-linear-progress';
-import { sampleDna } from '../dnas/sample-dna';
-import { Conductor } from '../core/conductor';
-import { consumePlayground, UpdateContextEvent } from './utils/context';
+import { sharedStyles } from './utils/shared-styles';
+import { Dialog } from 'scoped-material-components/mwc-dialog';
+import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import { TextField } from 'scoped-material-components/mwc-textfield';
+import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
+import { BaseElement } from './utils/base-element';
+import {
+  createConductors,
+  sampleDnaTemplate,
+  Conductor,
+} from '@holochain-playground/core';
 
-@consumePlayground()
-export class DHTStats extends LitElement {
-  @property({ type: String })
-  private activeDna: string | undefined;
-  @property({ type: Array })
-  private conductors: Conductor[] | undefined;
-  @property({ type: String })
-  private activeAgentPubKey: string | undefined;
-  @property({ type: Array })
-  private conductorsUrls: string[] | undefined;
-
+export class DHTStats extends BaseElement {
   @query('#stats-help')
   private statsHelp: Dialog;
   @query('#number-of-nodes')
-  private nNodes: TextFieldBase;
+  private nNodes: TextField;
   @query('#r-factor')
-  private rFactor: TextFieldBase;
+  private rFactor: TextField;
 
   private timeout;
   @property({ type: Boolean })
@@ -99,7 +92,7 @@ export class DHTStats extends LitElement {
       conductors = await createConductors(
         newNodesToCreate,
         conductors,
-        sampleDna()
+        sampleDnaTemplate()
       );
     } else if (newNodes < currentNodes) {
       const conductorsToRemove = currentNodes - newNodes;
@@ -117,7 +110,8 @@ export class DHTStats extends LitElement {
 
       conductors.splice(0, conductorsToRemove);
     }
-
+/* 
+TODO: handle gossip at the core layer
     if (changedNodes) {
       const peers = conductors.map((c) => c.cells[dna].agentId);
 
@@ -126,14 +120,12 @@ export class DHTStats extends LitElement {
           (p) => p !== conductor.cells[dna].agentId
         );
       }
-    }
-
-    this.dispatchEvent(
-      new UpdateContextEvent({
-        conductors: conductors,
-      })
-    );
-
+    } 
+    
+    this.updatePlayground({
+      conductors: conductors,
+    });
+    
     if (changedNodes || selectRedundancyFactor(this.activeCell) !== rFactor) {
       const cells = conductors.map((c) => c.cells[dna]);
       for (const cell of cells) {
@@ -144,6 +136,7 @@ export class DHTStats extends LitElement {
         cell.republish();
       }
     }
+    */
 
     this.processing = false;
   }
@@ -222,6 +215,13 @@ export class DHTStats extends LitElement {
       </div>
     `;
   }
-}
 
-customElements.define('holochain-playground-dht-stats', DHTStats);
+  static get scopedElements() {
+    return {
+      'mwc-linear-progress': LinearProgress,
+      'mwc-textfield': TextField,
+      'mwc-icon-button': IconButton,
+      'mwc-dialog': Dialog,
+    };
+  }
+}

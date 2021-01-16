@@ -1,12 +1,16 @@
-import { Cell } from '../../core/cell';
-import { getEntryDetails, isHoldingEntry } from '../../core/cell/dht/get';
-import { Conductor } from '../../core/conductor';
-import { AgentPubKey, Hash } from '../../types/common';
-import { Header, NewEntryHeader } from '../../types/header';
+import {
+  Hash,
+  AgentPubKey,
+  SignedHeaderHashed,
+  NewEntryHeader,
+} from '@holochain-open-dev/core-types';
+import { serializeHash, deserializeHash } from '@holochain-open-dev/common';
+import { Conductor, Cell, CellState } from '@holochain-playground/core';
+import { isEqual } from 'lodash-es';
 
 export function selectCells(dna: Hash, conductor: Conductor): Cell[] {
   return conductor.cells
-    .filter((cell) => cell.cell.dnaHash === dna)
+    .filter((cell) => isEqual(cell.cell.dnaHash, dna))
     .map((c) => c.cell);
 }
 
@@ -29,12 +33,32 @@ export function selectHoldingCells(entryHash: Hash, cells: Cell[]): Cell[] {
   return cells.filter((cell) => isHoldingEntry(cell.state, entryHash));
 }
 
+export function isHoldingEntry(state: CellState, entryHash: Hash) {
+  for (const integratedDhtOpValue of Object.values(state.integratedDHTOps)) {
+    const holdedEntryHash = (integratedDhtOpValue.op.header.header
+      .content as NewEntryHeader).entry_hash;
+    if (holdedEntryHash && isEqual(holdedEntryHash, entryHash)) {
+      return true;
+    }
+  }
+
+  for (const authoredDhtOpsValue of Object.values(state.authoredDHTOps)) {
+    const holdedEntryHash = (authoredDhtOpsValue.op.header.header
+      .content as NewEntryHeader).entry_hash;
+    if (holdedEntryHash && isEqual(holdedEntryHash, entryHash)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function selectConductorByAgent(
   agentPubKey: AgentPubKey,
   conductors: Conductor[]
 ): Conductor | undefined {
   return conductors.find((conductor) =>
-    conductor.cells.find((cell) => cell.cell.agentPubKey === agentPubKey)
+    conductor.cells.find((cell) => isEqual(cell.cell.agentPubKey, agentPubKey))
   );
 }
 
@@ -49,7 +73,8 @@ export function selectCell(
 
   const cell = conductor.cells.find(
     (cell) =>
-      cell.cell.agentPubKey === agentPubKey && cell.cell.dnaHash == dnaHash
+      isEqual(cell.cell.agentPubKey, agentPubKey) &&
+      isEqual(cell.cell.dnaHash, dnaHash)
   );
 
   return cell ? cell.cell : undefined;
@@ -69,7 +94,7 @@ export function selectUniqueDHTOpsCount(cells: Cell[]): number {
 
 export function selectFromCAS(hash: Hash, cells: Cell[]): any {
   for (const cell of cells) {
-    const entry = cell.state.CAS[hash];
+    const entry = cell.state.CAS[serializeHash(hash)];
     if (entry) {
       return entry;
     }
@@ -78,8 +103,11 @@ export function selectFromCAS(hash: Hash, cells: Cell[]): any {
 }
 
 export function selectHeaderEntry(headerHash: Hash, cells: Cell[]): any {
-  const header: NewEntryHeader = selectFromCAS(headerHash, cells);
-  return selectFromCAS(header.entry_hash, cells);
+  const header: SignedHeaderHashed<NewEntryHeader> = selectFromCAS(
+    headerHash,
+    cells
+  );
+  return selectFromCAS(header.header.content.entry_hash, cells);
 }
 
 export function selectMedianHoldingDHTOps(cells: Cell[]): number {
@@ -101,10 +129,10 @@ export function selectAllDNAs(conductors: Conductor[]): Hash[] {
 
   for (const conductor of conductors) {
     for (const cell of Object.values(conductor.cells)) {
-      dnas[cell.cell.dnaHash] = true;
+      dnas[serializeHash(cell.cell.dnaHash)] = true;
     }
   }
-  return Object.keys(dnas);
+  return Object.keys(dnas).map(deserializeHash);
 }
 
 export function selectRedundancyFactor(cell: Cell): number {

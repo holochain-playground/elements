@@ -1,13 +1,12 @@
 import { LitElement, html, property, css } from 'lit-element';
-import { TextFieldBase } from '@material/mwc-textfield/mwc-textfield-base';
-import { consumePlayground, UpdateContextEvent } from './utils/context';
+import { TextField } from 'scoped-material-components/mwc-textfield';
+import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import { Button } from 'scoped-material-components/mwc-button';
+import { Dialog } from 'scoped-material-components/mwc-dialog';
+import { BaseElement } from './utils/base-element';
 //import { checkConnection } from '../processors/connect-to-conductors';
 
-@consumePlayground()
-export class ConnectToNodes extends LitElement {
-  @property({ type: Array })
-  private conductorsUrls: string[] | undefined = ['ws://localhost:8888'];
-
+export class ConnectToNodes extends BaseElement {
   @property({ type: Boolean })
   private open: Boolean = false;
 
@@ -21,7 +20,7 @@ export class ConnectToNodes extends LitElement {
     `;
   }
 
-  getUrlFields(): TextFieldBase[] {
+  getUrlFields(): TextField[] {
     return Array.apply(null, this.shadowRoot.querySelectorAll('.url-field'));
   }
 
@@ -128,11 +127,9 @@ export class ConnectToNodes extends LitElement {
         .disabled=${this.getUrlFields().length === 0 ||
         !this.getUrlFields().every((field) => field.validity.valid)}
         @click=${() =>
-          this.dispatchEvent(
-            new UpdateContextEvent({
-              conductorsUrls: this.conductorsUrls,
-            })
-          )}
+          this.updatePlayground({
+            conductorsUrls: this.conductorsUrls,
+          })}
       >
       </mwc-button>
     </mwc-dialog> `;
@@ -153,6 +150,13 @@ export class ConnectToNodes extends LitElement {
       ></mwc-button>
     `;
   }
-}
 
-customElements.define('holochain-playground-connect-to-nodes', ConnectToNodes);
+  static get scopedElements() {
+    return {
+      'mwc-button': Button,
+      'mwc-dialog': Dialog,
+      'mwc-textfield': TextField,
+      'mwc-icon-button': IconButton,
+    };
+  }
+}

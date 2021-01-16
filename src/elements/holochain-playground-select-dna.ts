@@ -1,27 +1,21 @@
 import { LitElement, html, property } from 'lit-element';
-import { Conductor } from '../core/conductor';
+import { BaseElement } from './utils/base-element';
 import { selectAllDNAs } from './utils/selectors';
-import { consumePlayground, UpdateContextEvent } from './utils/context';
+import { serializeHash, deserializeHash } from '@holochain-open-dev/common';
+import { Select } from 'scoped-material-components/mwc-select';
+import { ListItem } from 'scoped-material-components/mwc-list-item';
 
-@consumePlayground()
-export class SelectDNA extends LitElement {
-  @property({ type: Array })
-  private conductors: Conductor[] | undefined;
-  @property({ type: String })
-  private activeDna: string | undefined;
-
+export class SelectDNA extends BaseElement {
   selectDNA(dna: string) {
-    this.dispatchEvent(
-      new UpdateContextEvent({
-        activeAgentPubKey: null,
-        activeEntryHash: null,
-        activeDna: dna,
-      })
-    );
+    this.updatePlayground({
+      activeAgentPubKey: null,
+      activeEntryHash: null,
+      activeDna: deserializeHash(dna),
+    });
   }
 
   render() {
-    const dnas = selectAllDNAs(this.conductors);
+    const dnas = selectAllDNAs(this.conductors).map(serializeHash);
     if (dnas.length === 1) return html`<span>DNA: ${dnas[0]}</span>`;
     else {
       return html`
@@ -36,7 +30,7 @@ export class SelectDNA extends LitElement {
             (dna) =>
               html`
                 <mwc-list-item
-                  ?selected=${this.activeDna === dna}
+                  ?selected=${serializeHash(this.activeDna) === dna}
                   .value=${dna}
                   >${dna}</mwc-list-item
                 >
@@ -46,6 +40,11 @@ export class SelectDNA extends LitElement {
       `;
     }
   }
-}
 
-customElements.define('holochain-playground-select-dna', SelectDNA);
+  static get scopedElements() {
+    return {
+      'mwc-list-item': ListItem,
+      'mwc-select': Select,
+    };
+  }
+}
