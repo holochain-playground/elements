@@ -8,8 +8,8 @@ import {
 } from '@holochain-playground/core';
 import { sharedStyles } from './utils/shared-styles';
 import { TextField } from 'scoped-material-components/mwc-textfield';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { BaseElement } from './utils/base-element';
+import { Button } from 'scoped-material-components/mwc-button';
 
 export interface ZomeFunctionResult {
   zome: SimulatedZome;
@@ -43,33 +43,37 @@ export class HolochainPlaygroundCallZome extends BaseElement {
   _arguments = {};
 
   async callZomeFunction(fnName: string) {
-    const result = await this.conductor.callZomeFn({
-      cellId: this.cellId,
-      zome: this.zome.name,
-      payload: this._arguments,
-      fnName,
-      cap: null,
-    });
-
-    this._results.push({ result, fnName, zome: this.zome });
+    try {
+      const result = await this.conductor.callZomeFn({
+        cellId: this.cellId,
+        zome: this.zome.name,
+        payload: this._arguments,
+        fnName,
+        cap: null,
+      });
+      this._results.push({ result, fnName, zome: this.zome });
+    } catch (e) {
+      this._results.push({ result: e, fnName, zome: this.zome });
+    } finally {
+      this.requestUpdate();
+    }
   }
 
   renderCallableFunction(name: string, zomeFunction: SimulatedZomeFunction) {
     return html`<div class="row center-content">
-      <span>${name}</span>
-      <div class="column" style="flex:1;">
-        >${zomeFunction.arguments.map(
+      <mwc-button raised @click=${() => this.callZomeFunction(name)}
+        >${name}</mwc-button
+      >
+      <div class="column" style="flex: 1; margin-left: 16px;">
+        ${zomeFunction.arguments.map(
           (arg) =>
             html`<mwc-textfield
-              label=${arg.name}
+              outlined
+              label=${arg.name + ': ' + arg.type}
               @input=${(e) => (this._arguments[arg.name] = e.target.value)}
             ></mwc-textfield>`
         )}
       </div>
-      <mwc-icon-button
-        icon="play"
-        @click=${() => this.callZomeFunction(name)}
-      ></mwc-icon-button>
     </div>`;
   }
 
@@ -79,7 +83,7 @@ export class HolochainPlaygroundCallZome extends BaseElement {
         ${this._results.map(
           (result) =>
             html`<span
-              >Zome: ${result.zome}, Function: ${result.fnName}:
+              >${result.zome.name} > ${result.fnName}:
               ${result.result}</span
             >`
         )}
@@ -100,7 +104,7 @@ export class HolochainPlaygroundCallZome extends BaseElement {
 
   static get scopedElements() {
     return {
-      'mwc-icon-button': IconButton,
+      'mwc-button': Button,
       'mwc-textfield': TextField,
     };
   }

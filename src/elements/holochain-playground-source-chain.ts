@@ -128,12 +128,12 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
 
   updated(changedValues: PropertyValues) {
     super.updated(changedValues);
-
     const activeCell = selectCell(
       this.activeDna,
       this.activeAgentPubKey,
       this.conductors
-    );
+      );
+      console.log(activeCell);
 
     if (activeCell != this._cell) {
       if (this._subscription) this._subscription.unsubscribe();

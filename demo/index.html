@@ -9,23 +9,48 @@
     </style>
   </head>
   <body>
-    <holochain-playground-container>
-      <holochain-playground-source-chain></holochain-playground-source-chain>
+    <holochain-playground-container id="container">
+      <holochain-playground-source-chain
+      ></holochain-playground-source-chain>
+      <holochain-playground-call-zome
+        id="call-zome"
+      ></holochain-playground-call-zome>
     </holochain-playground-container>
 
     <script type="module">
       import { html, render } from 'lit-html';
+      import { HolochainPlaygroundCallZome } from '../dist/elements/holochain-playground-call-zome.js';
       import { HolochainPlaygroundSourceChain } from '../dist/elements/holochain-playground-source-chain.js';
       import { HolochainPlaygroundContainer } from '@holochain-playground/container';
 
       customElements.define(
-        'holochain-playground-source-chain',
-        HolochainPlaygroundSourceChain
-      );
-      customElements.define(
         'holochain-playground-container',
         HolochainPlaygroundContainer
       );
+      customElements.define(
+        'holochain-playground-source-chain',
+        HolochainPlaygroundSourceChain
+      );
+
+      const container = document.getElementById('container');
+      container.numberOfSimulatedConductors = 1;
+
+      container.addEventListener('ready', (e) => {
+        customElements.define(
+          'holochain-playground-call-zome',
+          HolochainPlaygroundCallZome
+        );
+        const callZome = document.getElementById('call-zome');
+        const conductor = e.detail.conductors[0];
+
+        const cellId = conductor.cells[0].id;
+
+        callZome.conductor = conductor;
+        callZome.cellId = cellId;
+        callZome.zome = Object.values(conductor.registeredDnas)[0].zomes[0];
+        container.activeDna = cellId[0];
+        container.activeAgentPubKey= cellId[1];
+      });
     </script>
   </body>
 </html>

@@ -67,17 +67,20 @@ export function selectCell(
   agentPubKey: AgentPubKey,
   conductors: Conductor[]
 ): Cell | undefined {
-  const conductor = selectConductorByAgent(agentPubKey, conductors);
+  for (const conductor of conductors) {
+    for (const cell of conductor.cells) {
+      console.log(cell.cell.agentPubKey, agentPubKey)
+      console.log(cell.cell.dnaHash, dnaHash)
+      if (
+        isEqual(cell.cell.agentPubKey, agentPubKey) &&
+        isEqual(cell.cell.dnaHash, dnaHash)
+      ) {
+        return cell.cell;
+      }
+    }
+  }
 
-  if (!conductor) return undefined;
-
-  const cell = conductor.cells.find(
-    (cell) =>
-      isEqual(cell.cell.agentPubKey, agentPubKey) &&
-      isEqual(cell.cell.dnaHash, dnaHash)
-  );
-
-  return cell ? cell.cell : undefined;
+  return undefined;
 }
 
 export function selectUniqueDHTOpsCount(cells: Cell[]): number {
