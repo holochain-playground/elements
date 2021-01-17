@@ -11,6 +11,7 @@
   <body>
     <holochain-playground-container id="container">
       <holochain-playground-source-chain
+        style="height: 300px; width: 100%"
       ></holochain-playground-source-chain>
       <holochain-playground-call-zome
         id="call-zome"
@@ -49,7 +50,7 @@
         callZome.cellId = cellId;
         callZome.zome = Object.values(conductor.registeredDnas)[0].zomes[0];
         container.activeDna = cellId[0];
-        container.activeAgentPubKey= cellId[1];
+        container.activeAgentPubKey = cellId[1];
       });
     </script>
   </body>

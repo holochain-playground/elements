@@ -57,40 +57,47 @@ export function sourceChainNodes(cell: Cell) {
 
   const headersHashes = cell.state.sourceChain;
   for (const headerHash of headersHashes) {
-    const header: SignedHeaderHashed =
-      cell.state.CAS[serializeHash(headerHash)];
+    const strHeaderHash = serializeHash(headerHash);
+    const header: SignedHeaderHashed = cell.state.CAS[strHeaderHash];
 
     nodes.push({
-      data: { id: headerHash, data: header, label: header.header.content.type },
+      data: {
+        id: strHeaderHash,
+        data: header,
+        label: header.header.content.type,
+      },
       classes: ['header', header.header.content.type],
     });
 
     if ((header.header.content as Create).prev_header) {
       nodes.push({
         data: {
-          id: `${headerHash}->${(header.header.content as Create).prev_header}`,
-          source: headerHash,
-          target: (header.header.content as Create).prev_header,
+          id: `${strHeaderHash}->${
+            (header.header.content as Create).prev_header
+          }`,
+          source: strHeaderHash,
+          target: serializeHash((header.header.content as Create).prev_header),
         },
       });
     }
   }
 
   for (const headerHash of headersHashes) {
-    const header: SignedHeaderHashed =
-      cell.state.CAS[serializeHash(headerHash)];
+    const strHeaderHash = serializeHash(headerHash);
+    const header: SignedHeaderHashed = cell.state.CAS[strHeaderHash];
 
     if ((header.header.content as NewEntryHeader).entry_hash) {
       const newEntryHeader = header.header.content as NewEntryHeader;
+      const entryNodeId = `${strHeaderHash}:entry`;
 
       const entry: Entry =
         cell.state.CAS[serializeHash(newEntryHeader.entry_hash)];
 
-      const entryType: string = ''; // TODO getEntryTypeString(newEntryHeader.entry_type);
+      const entryType: string = getEntryTypeString(newEntryHeader.entry_type);
 
       nodes.push({
         data: {
-          id: newEntryHeader.entry_hash,
+          id: entryNodeId,
           data: entry,
           label: `${entryType}`,
         },
@@ -98,9 +105,9 @@ export function sourceChainNodes(cell: Cell) {
       });
       nodes.push({
         data: {
-          id: `${headerHash}->${newEntryHeader.entry_hash}`,
-          source: headerHash,
-          target: newEntryHeader.entry_hash,
+          id: `${strHeaderHash}->${entryNodeId}`,
+          source: strHeaderHash,
+          target: entryNodeId,
         },
       });
     }
