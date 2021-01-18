@@ -69,8 +69,6 @@ export function selectCell(
 ): Cell | undefined {
   for (const conductor of conductors) {
     for (const cell of conductor.cells) {
-      console.log(cell.cell.agentPubKey, agentPubKey)
-      console.log(cell.cell.dnaHash, dnaHash)
       if (
         isEqual(cell.cell.agentPubKey, agentPubKey) &&
         isEqual(cell.cell.dnaHash, dnaHash)

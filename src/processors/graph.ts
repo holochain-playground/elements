@@ -88,10 +88,10 @@ export function sourceChainNodes(cell: Cell) {
 
     if ((header.header.content as NewEntryHeader).entry_hash) {
       const newEntryHeader = header.header.content as NewEntryHeader;
-      const entryNodeId = `${strHeaderHash}:entry`;
+      const strEntryHash = serializeHash(newEntryHeader.entry_hash);
+      const entryNodeId = `${strHeaderHash}:${strEntryHash}`;
 
-      const entry: Entry =
-        cell.state.CAS[serializeHash(newEntryHeader.entry_hash)];
+      const entry: Entry = cell.state.CAS[strEntryHash];
 
       const entryType: string = getEntryTypeString(newEntryHeader.entry_type);
 
@@ -214,7 +214,7 @@ export function allEntries(cells: Cell[], showAgentIds: boolean) {
           target: strUpdateEntryHash,
           label: 'replaced by',
         },
-        classes: ['update-link'],
+        classes: ['update-edge'],
       });
     }
 

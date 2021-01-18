@@ -107,7 +107,8 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
       `,
     });
     this.cy.on('tap', 'node', (event) => {
-      const selectedEntryId = event.target.id();
+      // Node id is <HEADER_HASH>:<ENTRY_HASH>
+      const selectedEntryId = event.target.id().split(':')[1];
       this.updatePlayground({
         activeEntryHash: selectedEntryId,
       });

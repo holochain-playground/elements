@@ -1,6 +1,6 @@
 import { LitElement, query, html, property, css } from 'lit-element';
-import * as cytoscape from 'cytoscape';
-import * as cola from 'cytoscape-cola';
+import cytoscape from 'cytoscape';
+import cola from 'cytoscape-cola';
 
 import { Checkbox } from 'scoped-material-components/mwc-checkbox';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
@@ -13,6 +13,8 @@ import { selectAllCells } from './utils/selectors';
 import { sharedStyles } from './utils/shared-styles';
 import { BaseElement } from './utils/base-element';
 import { isEqual } from 'lodash-es';
+import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button';
+import { Subscription } from 'rxjs';
 
 cytoscape.use(cola);
 
@@ -34,9 +36,6 @@ const layoutConfig = {
 export class HolochainPlaygroundEntryGraph extends BaseElement {
   @property({ attribute: false })
   showAgentsIds: boolean = true;
-
-  @query('#entry-graph-help')
-  private entryGraphHelp: Dialog;
 
   @query('#entry-graph')
   private entryGraph: HTMLElement;
@@ -112,7 +111,7 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
                 line-style: dotted;
               }
 
-              .update-link {
+              .update-edge {
                 width: 1;
                 line-style: dashed;
               }
@@ -145,42 +144,20 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
     this.updatedGraph();
   }
 
-  renderEntryGraphHelp() {
-    return html`
-      <mwc-dialog id="entry-graph-help" heading="Entry Graph Help">
-        <span>
-          This graph contains a
-          <strong>high-level view of all the entries</strong> that are present
-          in the DHT. Every circle you see represents an entry, and you can
-          click on it if you want to see its details.
-          <br />
-          <br />
-          You can create new entries in the right panel with sample content, and
-          link between them. All relationships between entries will show up in
-          the graph.
-          <br />
-          <br />
-          Green entries are "AgentId" entries. These entries are automatically
-          created when a node boots up and joins the network, and are the
-          entries from/to which we link when we specify "%agent_id". If you want
-          to hide the AgentId entries that have no links, uncheck the button
-          below.
-        </span>
-        <mwc-button slot="primaryAction" dialogAction="cancel">
-          Got it!
-        </mwc-button>
-      </mwc-dialog>
-    `;
-  }
-
   updatedGraph() {
-    if (this.entryGraph.getBoundingClientRect().width === 0 || !this.ready)
+    if (this.entryGraph.getBoundingClientRect().width === 0 || !this.ready) {
       return null;
+    }
 
-    const entries = allEntries(
-      selectAllCells(this.activeDna, this.conductors),
-      this.showAgentsIds
-    );
+    const cells = selectAllCells(this.activeDna, this.conductors);
+
+    for (const cell of cells) {
+      cell.signals['after-workflow-executed'].subscribe(() =>
+        this.requestUpdate()
+      );
+    }
+
+    const entries = allEntries(cells, this.showAgentsIds);
 
     if (
       !isEqual(
@@ -213,9 +190,33 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
     ];
   }
 
+  renderHelp() {
+    return html` <holochain-playground-help-button
+      heading="Entry Graph"
+      style="position: absolute; right: 8px; top: 8px;"
+    >
+      <span>
+        This graph contains a
+        <strong>high-level view of all the entries</strong> that are present in
+        the DHT. Every circle you see represents an entry, and you can click on
+        it if you want to see its details.
+        <br />
+        <br />
+        You can create new entries in the right panel with sample content, and
+        link between them. All relationships between entries will show up in the
+        graph.
+        <br />
+        <br />
+        Green entries are "AgentId" entries. These entries are automatically
+        created when a node boots up and joins the network, and are the entries
+        from/to which we link when we specify "%agent_id". If you want to hide
+        the AgentId entries that have no links, uncheck the button below.
+      </span>
+    </holochain-playground-help-button>`;
+  }
+
   render() {
     return html`
-      ${this.renderEntryGraphHelp()}
       <mwc-card style="width: auto; position: relative;" class="fill">
         <div class="column fill">
           <h3 class="title" style="margin-left: 16px; margin-top: 16px;">
@@ -224,11 +225,7 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
 
           <div id="entry-graph" class="fill"></div>
 
-          <mwc-icon-button
-            style="position: absolute; right: 8px; top: 8px;"
-            icon="help_outline"
-            @click=${() => (this.entryGraphHelp.open = true)}
-          ></mwc-icon-button>
+          ${this.renderHelp()}
 
           <div class="row" style="align-items: end;">
             <mwc-formfield label="Show all AgentId entries">
@@ -249,7 +246,7 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
       'mwc-formfield': Formfield,
       'mwc-icon-button': IconButton,
       'mwc-card': Card,
-      'mwc-dialog': Dialog,
+      'holochain-playground-help-button': HolochainPlaygroundHelpButton,
     };
   }
 }
