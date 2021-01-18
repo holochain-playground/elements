@@ -93,7 +93,10 @@ export function sourceChainNodes(cell: Cell) {
 
       const entry: Entry = cell.state.CAS[strEntryHash];
 
-      const entryType: string = getEntryTypeString(newEntryHeader.entry_type);
+      const entryType: string = getEntryTypeString(
+        cell,
+        newEntryHeader.entry_type
+      );
 
       nodes.push({
         data: {
@@ -120,6 +123,7 @@ export function allEntries(cells: Cell[], showAgentIds: boolean) {
   const entries: Dictionary<Entry> = {};
   const details: Dictionary<EntryDetails> = {};
   const links: Dictionary<LinkMetaVal[]> = {};
+  const entryTypes: Dictionary<string> = {};
 
   for (const cell of cells) {
     for (const entryHash of getAllHeldEntries(cell.state)) {
@@ -127,6 +131,17 @@ export function allEntries(cells: Cell[], showAgentIds: boolean) {
       entries[strEntryHash] = cell.state.CAS[strEntryHash];
       details[strEntryHash] = getEntryDetails(cell.state, entryHash);
       links[strEntryHash] = getLinksForEntry(cell.state, entryHash);
+
+      const firstEntryHeader = details[strEntryHash].headers[0];
+      if (
+        firstEntryHeader &&
+        (firstEntryHeader.header.content as NewEntryHeader).entry_type
+      ) {
+        entryTypes[strEntryHash] = getEntryTypeString(
+          cell,
+          (firstEntryHeader.header.content as NewEntryHeader).entry_type
+        );
+      }
     }
   }
 
@@ -145,9 +160,7 @@ export function allEntries(cells: Cell[], showAgentIds: boolean) {
     // Get base nodes and edges
     const newEntryHeader: SignedHeaderHashed<NewEntryHeader> = detail
       .headers[0] as SignedHeaderHashed<NewEntryHeader>;
-    const entryType = getEntryTypeString(
-      newEntryHeader.header.content.entry_type
-    );
+    const entryType = entryTypes[strEntryHash];
 
     if (!entryTypeCount[entryType]) entryTypeCount[entryType] = 0;
 

@@ -84,25 +84,22 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
                 border-style: solid;
               }
       
-              .DNA {
-                background-color: green;
-              }
               .AgentId {
                 background-color: lime;
               }
-              .CreateEntry {
+              .Create {
                 background-color: blue;
               }
-              .RemoveEntry {
+              .Delete {
                 background-color: red;
               }
-              .UpdateEntry {
+              .Update {
                 background-color: cyan;
               }
-              .LinkAdd {
+              .CreateLink {
                 background-color: purple;
               }
-              .LinkRemove {
+              .DeleteLink {
                 background-color: purple;
               }
       
