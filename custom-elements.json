@@ -1,0 +1,401 @@
+{
+  "version": "experimental",
+  "tags": [
+    {
+      "name": "holochain-playground-provider",
+      "path": "./dist/context-97eb5dfe.js",
+      "properties": [
+        {
+          "name": "contextValue",
+          "type": "{ activeDna: any; activeAgentPubKey: any; activeEntryHash: any; conductors: any[]; conductorsUrls: any; }"
+        },
+        {
+          "name": "numberOfSimulatedConductors",
+          "type": "number",
+          "default": "10"
+        },
+        {
+          "name": "conductors",
+          "type": "never[]",
+          "default": "[]"
+        },
+        {
+          "name": "context",
+          "type": "Context"
+        },
+        {
+          "name": "value",
+          "type": "object"
+        }
+      ],
+      "events": [
+        {
+          "name": "ready"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-conductor-detail",
+      "path": "./dist/elements/holochain-playground-conductor-detail.js",
+      "properties": [
+        {
+          "name": "selectedTabIndex",
+          "type": "number",
+          "default": "0"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-connect-to-nodes",
+      "path": "./dist/elements/holochain-playground-connect-to-nodes.js",
+      "properties": [
+        {
+          "name": "conductorsUrls",
+          "type": "string[]",
+          "default": "[\"ws://localhost:8888\"]"
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "urlsState",
+          "type": "object",
+          "default": "{}"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-create-entries",
+      "path": "./dist/elements/holochain-playground-create-entries.js",
+      "properties": [
+        {
+          "name": "allCells",
+          "type": "Cell[]"
+        },
+        {
+          "name": "activeCell",
+          "type": "Cell"
+        },
+        {
+          "name": "selectedEntryType",
+          "type": "number",
+          "default": "0"
+        },
+        {
+          "name": "zome",
+          "type": "object",
+          "default": "\"sampleZome\""
+        },
+        {
+          "name": "zomeFnToCall",
+          "default": "\"undefined\""
+        },
+        {
+          "name": "dhtOpsToCreate",
+          "default": "\"undefined\""
+        }
+      ],
+      "events": [
+        {
+          "name": "element-created"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-dht-graph",
+      "path": "./dist/elements/holochain-playground-dht-graph.js",
+      "properties": [
+        {
+          "name": "lastNodes",
+          "type": "never[]",
+          "default": "[]"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-dht-shard",
+      "path": "./dist/elements/holochain-playground-dht-shard.js",
+      "properties": [
+        {
+          "name": "activeCell",
+          "type": "Cell"
+        },
+        {
+          "name": "cell",
+          "default": "\"undefined\""
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-dht-stats",
+      "path": "./dist/elements/holochain-playground-dht-stats.js",
+      "properties": [
+        {
+          "name": "activeCell",
+          "type": "Cell"
+        },
+        {
+          "name": "allCells",
+          "type": "Cell[]"
+        },
+        {
+          "name": "processing",
+          "type": "boolean",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-entry-detail",
+      "path": "./dist/elements/holochain-playground-entry-detail.js",
+      "properties": [
+        {
+          "name": "activeEntry"
+        },
+        {
+          "name": "activeEntryDetails",
+          "type": "EntryDetails | undefined"
+        },
+        {
+          "name": "withMetadata",
+          "type": "boolean",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-entry-graph",
+      "path": "./dist/elements/holochain-playground-entry-graph.js",
+      "properties": [
+        {
+          "name": "showAgentsIds",
+          "type": "boolean",
+          "default": "true"
+        },
+        {
+          "name": "lastEntriesIds",
+          "type": "never[]",
+          "default": "[]"
+        },
+        {
+          "name": "ready",
+          "type": "boolean",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-import-export",
+      "path": "./dist/elements/holochain-playground-import-export.js"
+    },
+    {
+      "name": "holochain-playground-select-dna",
+      "path": "./dist/elements/holochain-playground-select-dna.js"
+    },
+    {
+      "name": "holochain-playground-source-chain",
+      "path": "./dist/elements/holochain-playground-source-chain.js",
+      "properties": [
+        {
+          "name": "activeCell",
+          "type": "Cell"
+        },
+        {
+          "name": "nodes",
+          "type": "never[]",
+          "default": "[]"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-conductor-detail",
+      "path": "./src/elements/holochain-playground-conductor-detail.ts",
+      "attributes": [
+        {
+          "name": "selectedTabIndex",
+          "type": "number",
+          "default": "0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "selectedTabIndex",
+          "attribute": "selectedTabIndex",
+          "type": "number",
+          "default": "0"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-connect-to-nodes",
+      "path": "./src/elements/holochain-playground-connect-to-nodes.ts"
+    },
+    {
+      "name": "holochain-playground-create-entries",
+      "path": "./src/elements/holochain-playground-create-entries.ts",
+      "properties": [
+        {
+          "name": "zome",
+          "type": "SimulatedZome",
+          "default": "{}"
+        },
+        {
+          "name": "allCells",
+          "type": "Cell[]"
+        },
+        {
+          "name": "activeCell",
+          "type": "Cell"
+        }
+      ],
+      "events": [
+        {
+          "name": "element-created"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-dht-graph",
+      "path": "./src/elements/holochain-playground-dht-graph.ts"
+    },
+    {
+      "name": "holochain-playground-dht-shard",
+      "path": "./src/elements/holochain-playground-dht-shard.ts",
+      "attributes": [
+        {
+          "name": "cell",
+          "type": "{ dna: string; agentId: string; }",
+          "default": "\"undefined\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cell",
+          "attribute": "cell",
+          "type": "{ dna: string; agentId: string; }",
+          "default": "\"undefined\""
+        },
+        {
+          "name": "activeCell",
+          "type": "Cell"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-dht-stats",
+      "path": "./src/elements/holochain-playground-dht-stats.ts",
+      "properties": [
+        {
+          "name": "activeCell",
+          "type": "Cell"
+        },
+        {
+          "name": "allCells",
+          "type": "Cell[]"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-entry-detail",
+      "path": "./src/elements/holochain-playground-entry-detail.ts",
+      "attributes": [
+        {
+          "name": "withMetadata",
+          "type": "boolean",
+          "default": "false"
+        }
+      ],
+      "properties": [
+        {
+          "name": "withMetadata",
+          "attribute": "withMetadata",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "activeEntry"
+        },
+        {
+          "name": "activeEntryDetails",
+          "type": "EntryDetails | undefined"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-entry-graph",
+      "path": "./src/elements/holochain-playground-entry-graph.ts",
+      "properties": [
+        {
+          "name": "showAgentsIds",
+          "type": "boolean",
+          "default": "true"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-import-export",
+      "path": "./src/elements/holochain-playground-import-export.ts"
+    },
+    {
+      "name": "holochain-playground-provider",
+      "path": "./src/elements/holochain-playground-provider.ts",
+      "attributes": [
+        {
+          "name": "numberOfSimulatedConductors",
+          "type": "number",
+          "default": "10"
+        },
+        {
+          "name": "conductorsUrls",
+          "type": "string[] | undefined"
+        }
+      ],
+      "properties": [
+        {
+          "name": "numberOfSimulatedConductors",
+          "attribute": "numberOfSimulatedConductors",
+          "type": "number",
+          "default": "10"
+        },
+        {
+          "name": "conductorsUrls",
+          "attribute": "conductorsUrls",
+          "type": "string[] | undefined"
+        },
+        {
+          "name": "contextValue",
+          "type": "{ activeDna: string | undefined; activeAgentPubKey: string | undefined; activeEntryHash: string | undefined; conductors: Conductor[]; conductorsUrls: string[] | undefined; }"
+        },
+        {
+          "name": "context",
+          "type": "Context"
+        },
+        {
+          "name": "value",
+          "type": "object"
+        }
+      ],
+      "events": [
+        {
+          "name": "ready"
+        }
+      ]
+    },
+    {
+      "name": "holochain-playground-select-dna",
+      "path": "./src/elements/holochain-playground-select-dna.ts"
+    },
+    {
+      "name": "holochain-playground-source-chain",
+      "path": "./src/elements/holochain-playground-source-chain.ts",
+      "properties": [
+        {
+          "name": "activeCell",
+          "type": "Cell"
+        }
+      ]
+    }
+  ]
+}

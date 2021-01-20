@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        background: #fafafa;
+      }
+    </style>
+  </head>
+  <body>
+    <holochain-playground-container id="container">
+      <holochain-playground-entry-graph
+        style="height: 600px; width: 100%"
+      ></holochain-playground-entry-graph>
+      <holochain-playground-call-zome
+        id="call-zome"
+      ></holochain-playground-call-zome>
+    </holochain-playground-container>
+
+    <script type="module">
+      import { html, render } from 'lit-html';
+      import { HolochainPlaygroundCallZome } from '../dist/elements/holochain-playground-call-zome.js';
+      import { HolochainPlaygroundSourceChain } from '../dist/elements/holochain-playground-source-chain.js';
+      import { HolochainPlaygroundEntryGraph } from '../dist/elements/holochain-playground-entry-graph.js';
+      import { HolochainPlaygroundContainer } from '@holochain-playground/container';
+
+      customElements.define(
+        'holochain-playground-container',
+        HolochainPlaygroundContainer
+      );
+      customElements.define(
+        'holochain-playground-source-chain',
+        HolochainPlaygroundSourceChain
+      );
+      customElements.define(
+        'holochain-playground-entry-graph',
+        HolochainPlaygroundEntryGraph
+      );
+
+      const container = document.getElementById('container');
+      container.numberOfSimulatedConductors = 1;
+
+      container.addEventListener('ready', (e) => {
+        customElements.define(
+          'holochain-playground-call-zome',
+          HolochainPlaygroundCallZome
+        );
+        const callZome = document.getElementById('call-zome');
+        const conductor = e.detail.conductors[0];
+
+        const cellId = conductor.cells[0].id;
+
+        callZome.conductor = conductor;
+        callZome.cellId = cellId;
+        callZome.zome = Object.values(conductor.registeredDnas)[0].zomes[0];
+        container.activeDna = cellId[0];
+        container.activeAgentPubKey = cellId[1];
+      });
+    </script>
+  </body>
+</html>
