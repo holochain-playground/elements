@@ -292,7 +292,7 @@ function prettifyHashes(object) {
         return object;
     }
     else if (typeof object === 'string') {
-        return object.substring(0, 10);
+        return object.substring(0, 20);
     }
     return object;
 }
