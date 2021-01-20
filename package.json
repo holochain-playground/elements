@@ -18,7 +18,7 @@
     "storybook": "concurrently -k \"wds -c .storybook/server.mjs\" \"npm:build-watch\"",
     "storybook:build": "build-storybook",
     "storybook:publish": "gh-pages -d static-storybook",
-    "publish-to-branch": "npm run build && gh-pages -d . -b ui-build",
+    "publish-to-branch": "npm run build && gh-pages -d . -b build",
     "build:publish": "npm run build && npm publish"
   },
   "dependencies": {
