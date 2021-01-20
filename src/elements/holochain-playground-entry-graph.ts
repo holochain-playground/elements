@@ -220,19 +220,10 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
       <span>
         This graph contains a
         <strong>high-level view of all the entries</strong> that are present in
-        the DHT. Every circle you see represents an entry, and you can click on
-        it if you want to see its details.
+        the DHT. Every object you see represents an entry, and the relationships between them are links.
         <br />
         <br />
-        You can create new entries in the right panel with sample content, and
-        link between them. All relationships between entries will show up in the
-        graph.
-        <br />
-        <br />
-        Green entries are "AgentId" entries. These entries are automatically
-        created when a node boots up and joins the network, and are the entries
-        from/to which we link when we specify "%agent_id". If you want to hide
-        the AgentId entries that have no links, uncheck the button below.
+        Dashed relationships are embedded references, and solid relationships are normal holochain links.
       </span>
     </holochain-playground-help-button>`;
   }
