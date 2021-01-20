@@ -11,9 +11,10 @@ import { sharedStyles } from './utils/shared-styles.js';
 import { BaseElement } from './utils/base-element.js';
 import { isEqual } from 'lodash-es';
 import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button.js';
+import { deserializeHash } from '@holochain-open-dev/common';
 import '@holochain-playground/core';
 import '@holochain-open-dev/core-types';
-import '@holochain-open-dev/common';
+import './utils/hash.js';
 import '@open-wc/scoped-elements';
 import '@holochain-playground/container';
 import 'lit-html';
@@ -2820,7 +2821,7 @@ class HolochainPlaygroundEntryGraph extends BaseElement {
         this.cy.on('tap', 'node', (event) => {
             const selectedEntryId = event.target.id();
             this.updatePlayground({
-                activeEntryHash: selectedEntryId,
+                activeEntryHash: deserializeHash(selectedEntryId),
             });
         });
         this.cy.ready((e) => {

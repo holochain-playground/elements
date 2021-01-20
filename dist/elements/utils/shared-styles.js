@@ -36,7 +36,7 @@ const sharedStyles = css `
     flex: 1;
   }
 
-  .flex-scrollable-provider {
+  .flex-scrollable-container {
     position: absolute;
     top: 0;
     left: 0;
@@ -44,11 +44,15 @@ const sharedStyles = css `
     bottom: 0;
   }
 
+  .flex-scrollable-x {
+    max-width: 100%;
+    overflow-x: auto;
+  }
   .flex-scrollable-y {
     max-height: 100%;
     overflow-y: auto;
   }
-  
+
   .json-info {
     padding: 4px;
     max-width: 400px;

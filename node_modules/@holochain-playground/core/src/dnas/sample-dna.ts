@@ -26,14 +26,8 @@ export const sampleZome: SimulatedZome = {
       arguments: [
         { name: 'base', type: 'EntryHash' },
         { name: 'target', type: 'EntryHash' },
-        { name: 'any', type: 'EntryHash' },
+        { name: 'tag', type: 'any' },
       ],
-    },
-    create_path: {
-      call: hdk => ({ pathContent }) => {
-        return hdk.path.ensure(pathContent, hdk);
-      },
-      arguments: [{ name: 'pathContent', type: 'String' }],
     },
     /*     update_entry: ({ content, type, original_header_hash }) => [],
     delete_entry: ({ deletes_address }) => [],

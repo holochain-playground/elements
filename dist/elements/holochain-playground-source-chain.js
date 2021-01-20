@@ -9,9 +9,10 @@ import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
 import { selectCell } from './utils/selectors.js';
 import { BaseElement } from './utils/base-element.js';
 import { J as JsonViewer } from '../json-viewer-d616c533.js';
+import { deserializeHash } from '@holochain-open-dev/common';
 import '@holochain-playground/core';
 import '@holochain-open-dev/core-types';
-import '@holochain-open-dev/common';
+import './utils/hash.js';
 import '@open-wc/scoped-elements';
 import '@holochain-playground/container';
 
@@ -10934,7 +10935,7 @@ class HolochainPlaygroundSourceChain extends BaseElement {
             // Node id is <HEADER_HASH>:<ENTRY_HASH>
             const selectedEntryId = event.target.id().split(':')[1];
             this.updatePlayground({
-                activeEntryHash: selectedEntryId,
+                activeEntryHash: deserializeHash(selectedEntryId),
             });
         });
         this.cy.renderer().hoverData.capture = true;

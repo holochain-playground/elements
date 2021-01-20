@@ -5,6 +5,9 @@ import { getEntryDetails } from '@holochain-playground/core';
 import { sharedStyles } from './utils/shared-styles';
 import { selectAllCells, selectFromCAS } from './utils/selectors';
 import { BaseElement } from './utils/base-element';
+import { serializeHash } from '@holochain-open-dev/common';
+import { serializeHashesRec } from './utils/hash';
+import { Card } from 'scoped-material-components/mwc-card';
 
 export class HolochainPlaygroundEntryDetail extends BaseElement {
   @property({ type: Boolean })
@@ -35,56 +38,52 @@ export class HolochainPlaygroundEntryDetail extends BaseElement {
     return undefined;
   }
 
-  shorten(object: any, length: number) {
-    if (object && typeof object === 'object') {
-      object = { ...object };
-      for (const key of Object.keys(object)) {
-        object[key] = this.shorten(object[key], length);
-      }
-    } else if (typeof object === 'string' && object.length > length + 3) {
-      return (object as string).substring(0, length) + '...';
-    }
-    return object;
-  }
-
   render() {
     return html`
-      <div class="column fill">
-        <h3 class="title">Entry Detail</h3>
-        ${this.activeEntry
-          ? html`
-              <div class="column">
-                <strong style="margin-bottom: 8px;">
-                  ${this.activeEntry.prev_header ? 'Header' : 'Entry'} Hash
-                </strong>
-                <span style="margin-bottom: 16px;">
-                  ${this.shorten(this.activeEntryHash, 50)}
-                </span>
-                <json-viewer
-                  .object=${this.shorten(this.activeEntry, 40)}
-                ></json-viewer>
-                ${this.withMetadata
-                  ? html` <span style="margin: 16px 0; font-weight: bold;">
-                        Metadata
-                      </span>
-                      <json-viewer
-                        .object=${this.shorten(this.activeEntryDetails, 40)}
-                      ></json-viewer>`
-                  : html``}
-              </div>
-            `
-          : html`
-              <div class="column fill center-content">
-                <span class="placeholder">Select entry to inspect</span>
-              </div>
-            `}
-      </div>
+      <mwc-card style="width: auto;" class="fill">
+        <div class="column fill" style="padding: 16px;">
+          <h3 class="title">Entry Detail</h3>
+          ${this.activeEntry
+            ? html`
+                <div class="column fill">
+                  <span style="margin-bottom: 16px;">
+                    ${this.activeEntry.prev_header ? 'Header' : 'Entry'} Hash:
+                    ${serializeHash(this.activeEntryHash)}
+                  </span>
+                  <div class="fill flex-scrollable-parent">
+                    <div class="flex-scrollable-container">
+                      <div class="flex-scrollable-y" style="height: 100%;">
+                        <json-viewer
+                          .object=${serializeHashesRec(this.activeEntry)}
+                          class="fill"
+                        ></json-viewer>
+                      </div>
+                    </div>
+                  </div>
+                  ${this.withMetadata
+                    ? html` <span style="margin: 16px 0; font-weight: bold;">
+                          Metadata
+                        </span>
+                        <json-viewer
+                          .object=${serializeHashesRec(this.activeEntryDetails)}
+                        ></json-viewer>`
+                    : html``}
+                </div>
+              `
+            : html`
+                <div class="column fill center-content">
+                  <span class="placeholder">Select entry to inspect</span>
+                </div>
+              `}
+        </div>
+      </mwc-card>
     `;
   }
 
   static get scopedElements() {
     return {
       'json-viewer': JsonViewer,
+      'mwc-card': Card,
     };
   }
 }

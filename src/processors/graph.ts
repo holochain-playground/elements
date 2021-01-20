@@ -21,6 +21,7 @@ import {
 } from '@holochain-open-dev/core-types';
 import { timestampToMillis, serializeHash } from '@holochain-open-dev/common';
 import { BehaviorSubject } from 'rxjs';
+import { serializeAndShortenHashesRec } from '../elements/utils/hash';
 
 export function dnaNodes(cells: Cell[]) {
   // const images = ['smartphone', 'desktop', 'laptop'];
@@ -178,7 +179,7 @@ export function allEntries(
       });
 
       if (showEntryContents) {
-        const content = prettifyHashes(entry.content);
+        const content = serializeAndShortenHashesRec(entry.content);
         if (typeof content === 'object') {
           const properties = Object.keys(entry.content);
           for (const property of properties) {
@@ -210,7 +211,7 @@ export function allEntries(
               id: `${strEntryHash}:content`,
               label: content,
               parent: strEntryHash,
-            }
+            },
           });
         }
       }
@@ -378,21 +379,4 @@ function compareEntries(
     : 0 - headersB.length > 0
     ? timestampToMillis(headersB[0].header.content.timestamp)
     : 0;
-}
-
-function prettifyHashes(object: any) {
-  if (object instanceof Uint8Array) {
-    const strHash = serializeHash(object);
-    return `Hash(...${strHash.substring(strHash.length - 5)})`;
-  } else if (Array.isArray(object)) {
-    return object.map(prettifyHashes);
-  } else if (typeof object === 'object') {
-    for (const key of Object.keys(object)) {
-      object[key] = prettifyHashes(object[key]);
-    }
-    return object;
-  } else if (typeof object === 'string') {
-    return object.substring(0, 20);
-  }
-  return object;
 }

@@ -13,6 +13,7 @@ import { sharedStyles } from './utils/shared-styles';
 import { BaseElement } from './utils/base-element';
 import { isEqual } from 'lodash-es';
 import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button';
+import { deserializeHash } from '@holochain-open-dev/common';
 
 cytoscape.use(klay);
 
@@ -136,7 +137,7 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
     this.cy.on('tap', 'node', (event) => {
       const selectedEntryId = event.target.id();
       this.updatePlayground({
-        activeEntryHash: selectedEntryId,
+        activeEntryHash: deserializeHash(selectedEntryId),
       });
     });
 

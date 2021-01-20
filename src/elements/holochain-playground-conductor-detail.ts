@@ -117,7 +117,7 @@ export class HolochainPlaygroundConductorDetail extends BaseElement {
                         class="fill"
                       ></holochain-playground-source-chain>
                       <div class="flex-scrollable-parent">
-                        <div class="flex-scrollable-provider">
+                        <div class="flex-scrollable-container">
                           <div class="flex-scrollable-y">
                             <holochain-playground-entry-detail
                               class="fill"
@@ -130,7 +130,7 @@ export class HolochainPlaygroundConductorDetail extends BaseElement {
                 : this.selectedTabIndex === 1
                 ? html`
                     <div class="flex-scrollable-parent">
-                      <div class="flex-scrollable-provider">
+                      <div class="flex-scrollable-container">
                         <div class="flex-scrollable-y">
                           <holochain-playground-dht-shard></holochain-playground-dht-shard>
                         </div>

@@ -12,6 +12,7 @@ import { isEqual } from 'lodash-es';
 import '@holochain-playground/core';
 import '@holochain-open-dev/core-types';
 import '@holochain-open-dev/common';
+import './utils/hash.js';
 import '@open-wc/scoped-elements';
 import '@holochain-playground/container';
 

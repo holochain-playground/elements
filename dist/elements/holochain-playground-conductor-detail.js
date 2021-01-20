@@ -16,6 +16,7 @@ import '@holochain-open-dev/common';
 import 'lodash-es';
 import '@holochain-playground/core';
 import '../json-viewer-d616c533.js';
+import './utils/hash.js';
 
 class HolochainPlaygroundConductorDetail extends BaseElement {
     constructor() {
@@ -118,7 +119,7 @@ class HolochainPlaygroundConductorDetail extends BaseElement {
                         class="fill"
                       ></holochain-playground-source-chain>
                       <div class="flex-scrollable-parent">
-                        <div class="flex-scrollable-provider">
+                        <div class="flex-scrollable-container">
                           <div class="flex-scrollable-y">
                             <holochain-playground-entry-detail
                               class="fill"
@@ -131,7 +132,7 @@ class HolochainPlaygroundConductorDetail extends BaseElement {
             : this.selectedTabIndex === 1
                 ? html `
                     <div class="flex-scrollable-parent">
-                      <div class="flex-scrollable-provider">
+                      <div class="flex-scrollable-container">
                         <div class="flex-scrollable-y">
                           <holochain-playground-dht-shard></holochain-playground-dht-shard>
                         </div>

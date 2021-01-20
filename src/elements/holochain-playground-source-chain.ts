@@ -14,6 +14,7 @@ import { Cell, Conductor } from '@holochain-playground/core';
 import { selectAllCells, selectCell } from './utils/selectors';
 import { BaseElement } from './utils/base-element';
 import { JsonViewer } from '@power-elements/json-viewer';
+import { deserializeHash } from '@holochain-open-dev/common';
 
 cytoscape.use(dagre); // register extension
 
@@ -116,7 +117,7 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
       // Node id is <HEADER_HASH>:<ENTRY_HASH>
       const selectedEntryId = event.target.id().split(':')[1];
       this.updatePlayground({
-        activeEntryHash: selectedEntryId,
+        activeEntryHash: deserializeHash(selectedEntryId),
       });
     });
     this.cy.renderer().hoverData.capture = true;

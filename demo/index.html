@@ -5,13 +5,17 @@
     <style>
       body {
         background: #fafafa;
+        font-family: Arial, Helvetica, sans-serif;
       }
     </style>
   </head>
   <body>
     <holochain-playground-container id="container">
+      <holochain-playground-entry-detail
+        style="height: 300px; width: 100%"
+      ></holochain-playground-entry-detail>
       <holochain-playground-entry-graph
-        style="height: 600px; width: 100%"
+        style="height: 300px; width: 100%"
       ></holochain-playground-entry-graph>
       <holochain-playground-call-zome
         id="call-zome"
@@ -21,7 +25,7 @@
     <script type="module">
       import { html, render } from 'lit-html';
       import { HolochainPlaygroundCallZome } from '../dist/elements/holochain-playground-call-zome.js';
-      import { HolochainPlaygroundSourceChain } from '../dist/elements/holochain-playground-source-chain.js';
+      import { HolochainPlaygroundEntryDetail } from '../dist/elements/holochain-playground-entry-detail.js';
       import { HolochainPlaygroundEntryGraph } from '../dist/elements/holochain-playground-entry-graph.js';
       import { HolochainPlaygroundContainer } from '@holochain-playground/container';
 
@@ -30,8 +34,8 @@
         HolochainPlaygroundContainer
       );
       customElements.define(
-        'holochain-playground-source-chain',
-        HolochainPlaygroundSourceChain
+        'holochain-playground-entry-detail',
+        HolochainPlaygroundEntryDetail
       );
       customElements.define(
         'holochain-playground-entry-graph',

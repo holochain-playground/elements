@@ -61,6 +61,8 @@ function selectUniqueDHTOpsCount(cells) {
     return Object.keys(globalDHTOps).length;
 }
 function selectFromCAS(hash, cells) {
+    if (!hash)
+        return undefined;
     for (const cell of cells) {
         const entry = cell.state.CAS[serializeHash(hash)];
         if (entry) {

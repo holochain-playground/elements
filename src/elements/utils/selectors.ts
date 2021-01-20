@@ -94,6 +94,8 @@ export function selectUniqueDHTOpsCount(cells: Cell[]): number {
 }
 
 export function selectFromCAS(hash: Hash, cells: Cell[]): any {
+  if (!hash) return undefined;
+
   for (const cell of cells) {
     const entry = cell.state.CAS[serializeHash(hash)];
     if (entry) {
