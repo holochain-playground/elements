@@ -2885,6 +2885,7 @@ class HolochainPlaygroundEntryGraph extends BaseElement {
         <br />
         <br />
         Dashed relationships are embedded references, and solid relationships are normal holochain links.
+        The tag of the holochain links appears as the label.
       </span>
     </holochain-playground-help-button>`;
     }
