@@ -65,7 +65,7 @@ class HolochainPlaygroundCallZome extends BaseElement {
       <div class="column" style="flex: 1;">
         ${zomeFns.map(([name, fn], index) => html `${this.renderCallableFunction(name, fn)}${index <
             zomeFns.length - 1
-            ? html `<hr />`
+            ? html `<span class="horizontal-divider"></span>`
             : html ``}`)}
       </div>
     `;
@@ -83,7 +83,8 @@ HolochainPlaygroundCallZome.styles = [
         display: flex;
         flex: 1;
       }
-      hr {
+      .horizontal-divider {
+        background-color: grey;
         height: 1px;
         width: 100%;
         opacity: 0.6;
