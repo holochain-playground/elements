@@ -2740,6 +2740,9 @@ class HolochainPlaygroundEntryGraph extends BaseElement {
         this.excludedEntryTypes = [];
     }
     firstUpdated() {
+        window.addEventListener('scroll', () => {
+            this.cy.resize();
+        });
         this.cy = cytoscape_cjs({
             container: this.entryGraph,
             boxSelectionEnabled: false,
@@ -2882,11 +2885,13 @@ class HolochainPlaygroundEntryGraph extends BaseElement {
       <span>
         This graph contains a
         <strong>high-level view of all the entries</strong> that are present in
-        the DHT. Every object you see represents an entry, and the relationships between them are links.
+        the DHT. Every object you see represents an entry, and the relationships
+        between them are links.
         <br />
         <br />
-        Dashed relationships are embedded references, and solid relationships are normal holochain links.
-        The tag of the holochain links appears as the label.
+        Dashed relationships are embedded references, and solid relationships
+        are normal holochain links. The tag of the holochain links appears as
+        the label.
       </span>
     </holochain-playground-help-button>`;
     }

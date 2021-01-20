@@ -10867,6 +10867,9 @@ class HolochainPlaygroundSourceChain extends BaseElement {
         ];
     }
     firstUpdated() {
+        window.addEventListener('scroll', () => {
+            this.cy.resize();
+        });
         this.cy = cytoscape_cjs({
             container: this.graph,
             layout: {

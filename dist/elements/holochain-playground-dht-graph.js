@@ -32,6 +32,9 @@ class HolochainPlaygroundDhtGraph extends BaseElement {
         ];
     }
     async firstUpdated() {
+        window.addEventListener('scroll', () => {
+            this.cy.resize();
+        });
         this.cy = cytoscape({
             container: this.graph,
             boxSelectionEnabled: false,
