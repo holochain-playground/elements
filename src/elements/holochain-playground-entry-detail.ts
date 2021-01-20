@@ -1,5 +1,5 @@
 import { LitElement, html, property, css } from 'lit-element';
-import '@alenaksu/json-viewer';
+import { JsonViewer } from '@power-elements/json-viewer';
 
 import { getEntryDetails } from '@holochain-playground/core';
 import { sharedStyles } from './utils/shared-styles';
@@ -61,14 +61,14 @@ export class HolochainPlaygroundEntryDetail extends BaseElement {
                   ${this.shorten(this.activeEntryHash, 50)}
                 </span>
                 <json-viewer
-                  .data=${this.shorten(this.activeEntry, 40)}
+                  .object=${this.shorten(this.activeEntry, 40)}
                 ></json-viewer>
                 ${this.withMetadata
                   ? html` <span style="margin: 16px 0; font-weight: bold;">
                         Metadata
                       </span>
                       <json-viewer
-                        .data=${this.shorten(this.activeEntryDetails, 40)}
+                        .object=${this.shorten(this.activeEntryDetails, 40)}
                       ></json-viewer>`
                   : html``}
               </div>
@@ -83,6 +83,8 @@ export class HolochainPlaygroundEntryDetail extends BaseElement {
   }
 
   static get scopedElements() {
-    return {};
+    return {
+      'json-viewer': JsonViewer,
+    };
   }
 }

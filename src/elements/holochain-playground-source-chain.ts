@@ -3,7 +3,6 @@ import { styleMap } from 'lit-html/directives/style-map';
 import { sourceChainNodes } from '../processors/graph';
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
-import '@alenaksu/json-viewer';
 
 import { isEqual } from 'lodash-es';
 
@@ -14,6 +13,7 @@ import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
 import { Cell, Conductor } from '@holochain-playground/core';
 import { selectAllCells, selectCell } from './utils/selectors';
 import { BaseElement } from './utils/base-element';
+import { JsonViewer } from '@power-elements/json-viewer';
 
 cytoscape.use(dagre); // register extension
 
@@ -50,7 +50,13 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
   firstUpdated() {
     this.cy = cytoscape({
       container: this.graph,
-      layout: { name: 'dagre' },
+      layout: {
+        name: 'dagre',
+        ready: (e) => {
+          e.cy.fit();
+          e.cy.center();
+        },
+      },
       autoungrabify: true,
       userZoomingEnabled: true,
       userPanningEnabled: true,
@@ -154,8 +160,9 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
     }
 
     this.cy.filter('node').removeClass('selected');
-
     this.cy.getElementById(this.activeEntryHash).addClass('selected');
+
+    this.cy.renderer().hoverData.capture = true;
   }
 
   render() {
@@ -168,7 +175,7 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
             </div>
           `}
       <mwc-menu-surface id="node-info-menu">
-        <json-viewer .data=${this._nodeInfo}></json-viewer>
+        <json-viewer .object=${this._nodeInfo} class="json-info"></json-viewer>
       </mwc-menu-surface>
 
       <div
@@ -183,6 +190,7 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
   static get scopedElements() {
     return {
       'mwc-menu-surface': MenuSurface,
+      'json-viewer': JsonViewer,
     };
   }
 }

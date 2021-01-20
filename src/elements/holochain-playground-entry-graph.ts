@@ -1,9 +1,8 @@
 import { LitElement, query, html, property, css } from 'lit-element';
 import cytoscape from 'cytoscape';
-import cola from 'cytoscape-cola';
+import klay from 'cytoscape-klay';
 
 import { Checkbox } from 'scoped-material-components/mwc-checkbox';
-import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Formfield } from 'scoped-material-components/mwc-formfield';
 import { Card } from 'scoped-material-components/mwc-card';
@@ -14,12 +13,11 @@ import { sharedStyles } from './utils/shared-styles';
 import { BaseElement } from './utils/base-element';
 import { isEqual } from 'lodash-es';
 import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button';
-import { Subscription } from 'rxjs';
 
-cytoscape.use(cola);
+cytoscape.use(klay);
 
 const layoutConfig = {
-  name: 'cola',
+  name: 'klay',
   handleDisconnected: true,
   animate: true,
   avoidOverlap: true,
@@ -28,14 +26,18 @@ const layoutConfig = {
   userConstIter: 0,
   allConstIter: 1,
   ready: (e) => {
+    console.log()
     e.cy.fit();
     e.cy.center();
   },
 };
 
 export class HolochainPlaygroundEntryGraph extends BaseElement {
-  @property({ attribute: false })
-  showAgentsIds: boolean = true;
+  @property({ type: Boolean })
+  showFilter: boolean = true;
+
+  @property({ type: Boolean })
+  showEntryContents: boolean = true;
 
   @query('#entry-graph')
   private entryGraph: HTMLElement;
@@ -44,6 +46,12 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
   private cy;
   private layout;
   private ready = false;
+
+  @property({ type: Array })
+  private _entryTypes = [];
+
+  @property({ type: Array })
+  excludedEntryTypes: string[] = [];
 
   firstUpdated() {
     this.cy = cytoscape({
@@ -61,15 +69,19 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
                 label: data(label);
                 height: 16px;
               }
+
+              node > node {
+                height: 1px;
+              }
       
               edge {
-                label: data(label);
                 width: 2;
                 target-arrow-shape: triangle;
                 curve-style: bezier;
               }
               
               edge[label] {
+                label: data(label);
                 font-size: 7px;
                 text-rotation: autorotate;
                 text-margin-x: 0px;
@@ -132,7 +144,7 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
       setTimeout(() => {
         this.ready = true;
         this.updatedGraph();
-      }, 250);
+      }, 500);
     });
   }
 
@@ -154,7 +166,11 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
       );
     }
 
-    const entries = allEntries(cells, this.showAgentsIds);
+    const { entries, entryTypes } = allEntries(
+      cells,
+      this.showEntryContents,
+      this.excludedEntryTypes
+    );
 
     if (
       !isEqual(
@@ -168,6 +184,8 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
 
       this.layout = this.cy.elements().makeLayout(layoutConfig);
       this.layout.run();
+
+      this._entryTypes = entryTypes;
     }
 
     this.lastEntriesIds = entries.map((e) => e.data.id);
@@ -182,6 +200,13 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
       css`
         :host {
           display: flex;
+        }
+        .vertical-divider {
+          height: 60%;
+          width: 1px;
+          margin: 0 8px;
+          opacity: 0.5;
+          background-color: grey;
         }
       `,
     ];
@@ -212,6 +237,47 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
     </holochain-playground-help-button>`;
   }
 
+  renderFilter() {
+    return html` <div
+      class="row"
+      style="align-items: center; justify-content: start;"
+    >
+      <mwc-formfield label="Show Entry Contents" style="margin-right: 16px">
+        <mwc-checkbox
+          checked
+          @change=${(e) => (this.showEntryContents = e.target.checked)}
+        ></mwc-checkbox
+      ></mwc-formfield>
+
+      <span class="vertical-divider"></span>
+
+      ${this._entryTypes.map(
+        (entryType) => html`
+          <mwc-formfield label="Show ${entryType}s">
+            <mwc-checkbox
+              checked
+              @change=${(e) => {
+                const excluded = this.excludedEntryTypes.includes(entryType);
+                const toExclude = !e.target.checked;
+
+                if (excluded && !toExclude) {
+                  this.excludedEntryTypes = [
+                    ...this.excludedEntryTypes.filter((t) => t !== entryType),
+                  ];
+                } else if (!excluded && toExclude) {
+                  this.excludedEntryTypes = [
+                    ...this.excludedEntryTypes,
+                    entryType,
+                  ];
+                }
+              }}
+            ></mwc-checkbox
+          ></mwc-formfield>
+        `
+      )}
+    </div>`;
+  }
+
   render() {
     return html`
       <mwc-card style="width: auto; position: relative;" class="fill">
@@ -222,16 +288,7 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
 
           <div id="entry-graph" class="fill"></div>
 
-          ${this.renderHelp()}
-
-          <div class="row" style="align-items: end;">
-            <mwc-formfield label="Show all AgentId entries">
-              <mwc-checkbox
-                checked
-                @change=${() => (this.showAgentsIds = !this.showAgentsIds)}
-              ></mwc-checkbox
-            ></mwc-formfield>
-          </div>
+          ${this.renderHelp()} ${this.showFilter ? this.renderFilter() : html``}
         </div>
       </mwc-card>
     `;

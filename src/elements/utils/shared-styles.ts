@@ -48,4 +48,9 @@ export const sharedStyles = css`
     max-height: 100%;
     overflow-y: auto;
   }
+  
+  .json-info {
+    padding: 4px;
+    max-width: 400px;
+  }
 `;

@@ -3,7 +3,7 @@ import { sharedStyles } from './utils/shared-styles';
 import { selectAllCells, selectCell } from './utils/selectors';
 import { getDhtShard } from '@holochain-playground/core';
 
-import '@alenaksu/json-viewer';
+import { JsonViewer } from '@power-elements/json-viewer';
 import { BaseElement } from './utils/base-element';
 
 export class HolochainPlaygroundDhtShard extends BaseElement {
@@ -31,8 +31,11 @@ export class HolochainPlaygroundDhtShard extends BaseElement {
                   headers
                 </strong>
               </span>
-              <json-viewer id="dht-shard" style="margin-top: 16px;">
-                ${JSON.stringify(getDhtShard(this.activeCell.state))}
+              <json-viewer
+                id="dht-shard"
+                style="margin-top: 16px;"
+                .object=${JSON.stringify(getDhtShard(this.activeCell.state))}
+              >
               </json-viewer>
             `
           : html`
@@ -42,5 +45,11 @@ export class HolochainPlaygroundDhtShard extends BaseElement {
             `}
       </div>
     `;
+  }
+
+  static get scopedElements() {
+    return {
+      'json-viewer': JsonViewer,
+    };
   }
 }

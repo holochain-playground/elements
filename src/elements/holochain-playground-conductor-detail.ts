@@ -1,6 +1,4 @@
 import { LitElement, property, html, css, query } from 'lit-element';
-import '@alenaksu/json-viewer';
-
 import { sharedStyles } from './utils/shared-styles';
 
 import { BaseElement } from './utils/base-element';
