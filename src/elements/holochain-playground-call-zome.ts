@@ -40,7 +40,7 @@ export class HolochainPlaygroundCallZome extends BaseElement {
         background-color: grey;
         height: 1px;
         width: 100%;
-        opacity: 0.6;
+        opacity: 0.3;
         margin-bottom: 0;
       }
     `,
