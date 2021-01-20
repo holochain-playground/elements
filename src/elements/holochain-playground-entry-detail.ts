@@ -40,7 +40,7 @@ export class HolochainPlaygroundEntryDetail extends BaseElement {
 
   render() {
     return html`
-      <mwc-card style="width: auto;" class="fill">
+      <mwc-card style="width: auto; min-height: 200px;" class="fill">
         <div class="column fill" style="padding: 16px;">
           <h3 class="title">Entry Detail</h3>
           ${this.activeEntry

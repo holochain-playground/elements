@@ -49,6 +49,10 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
   private graph: HTMLElement;
 
   firstUpdated() {
+    window.addEventListener('scroll', () => {
+      this.cy.resize();
+    });
+
     this.cy = cytoscape({
       container: this.graph,
       layout: {
