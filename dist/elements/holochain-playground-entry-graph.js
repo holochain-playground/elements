@@ -2718,7 +2718,6 @@ const layoutConfig = {
     name: 'klay',
     animate: true,
     ready: (e) => {
-        console.log();
         e.cy.fit();
         e.cy.center();
     },
@@ -2906,7 +2905,7 @@ class HolochainPlaygroundEntryGraph extends BaseElement {
       ${this._entryTypes.map((entryType) => html `
           <mwc-formfield label="Show ${entryType}s">
             <mwc-checkbox
-              checked
+              .checked=${!this.excludedEntryTypes.includes(entryType)}
               @change=${(e) => {
             const excluded = this.excludedEntryTypes.includes(entryType);
             const toExclude = !e.target.checked;
