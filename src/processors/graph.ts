@@ -158,7 +158,6 @@ export function allEntries(
   const linksEdges = [];
   const entryNodes = [];
   const entryTypeCount = {};
-  const excludedEntries = {};
 
   for (const strEntryHash of sortedEntries) {
     const detail = details[strEntryHash];
@@ -226,7 +225,7 @@ export function allEntries(
         );
 
         for (const implicitLink of implicitLinks) {
-          if (!excludedEntries[implicitLink.target]) {
+          if (!excludedEntryTypes.includes(entryTypes[implicitLink.target])) {
             linksEdges.push({
               data: {
                 id: `${strEntryHash}->${implicitLink.target}`,
@@ -249,7 +248,7 @@ export function allEntries(
             : JSON.stringify(linkVal.tag);
         const target = serializeHash(linkVal.target);
 
-        if (!excludedEntries[target]) {
+        if (!excludedEntryTypes.includes(entryTypes[target])) {
           const edgeData = {
             data: {
               id: `${strEntryHash}->${target}`,
@@ -290,8 +289,6 @@ export function allEntries(
         entryNodes
           .find((node) => node.data.id === strEntryHash)
           .classes.push('deleted');
-    } else {
-      excludedEntries[strEntryHash] = true;
     }
     entryTypeCount[entryType] += 1;
   }
