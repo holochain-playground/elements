@@ -32384,10 +32384,5 @@ cytoscape.stylesheet = cytoscape.Stylesheet = Stylesheet;
 
 var cytoscape_cjs = cytoscape;
 
-var cytoscape$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), cytoscape_cjs, {
-	'default': cytoscape_cjs,
-	__moduleExports: cytoscape_cjs
-}));
-
-export { createCommonjsModule as a, commonjsGlobal as b, cytoscape$1 as c, cytoscape_cjs as d, commonjsRequire as e };
-//# sourceMappingURL=cytoscape.cjs-2a518a06.js.map
+export { createCommonjsModule as a, commonjsGlobal as b, cytoscape_cjs as c, commonjsRequire as d };
+//# sourceMappingURL=cytoscape.cjs-2bb12747.js.map

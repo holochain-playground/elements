@@ -19,13 +19,10 @@ cytoscape.use(klay);
 
 const layoutConfig = {
   name: 'klay',
-  handleDisconnected: true,
   animate: true,
-  avoidOverlap: true,
-  infinite: false,
-  unconstrIter: 1,
-  userConstIter: 0,
-  allConstIter: 1,
+  klay: {
+    spacing: 40
+  },
   ready: (e) => {
     console.log();
     e.cy.fit();

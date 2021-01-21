@@ -15,7 +15,7 @@ function serializeAndShortenHashesRec(object) {
         return object;
     }
     else if (typeof object === 'string') {
-        return object.substring(0, 20);
+        return `${object.substring(0, 20)}...`;
     }
     return object;
 }

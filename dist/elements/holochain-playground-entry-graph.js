@@ -1,6 +1,6 @@
 import { _ as __decorate, a as __metadata } from '../tslib.es6-654e2c24.js';
 import { css, html, property, query } from 'lit-element';
-import { a as createCommonjsModule, b as commonjsGlobal, d as cytoscape_cjs } from '../cytoscape.cjs-2a518a06.js';
+import { a as createCommonjsModule, b as commonjsGlobal, c as cytoscape_cjs } from '../cytoscape.cjs-2bb12747.js';
 import { Checkbox } from 'scoped-material-components/mwc-checkbox';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Formfield } from 'scoped-material-components/mwc-formfield';
@@ -2716,13 +2716,10 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_4__;
 cytoscape_cjs.use(cytoscapeKlay);
 const layoutConfig = {
     name: 'klay',
-    handleDisconnected: true,
     animate: true,
-    avoidOverlap: true,
-    infinite: false,
-    unconstrIter: 1,
-    userConstIter: 0,
-    allConstIter: 1,
+    klay: {
+        spacing: 40
+    },
     ready: (e) => {
         console.log();
         e.cy.fit();

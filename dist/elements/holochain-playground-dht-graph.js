@@ -1,6 +1,6 @@
 import { _ as __decorate, a as __metadata } from '../tslib.es6-654e2c24.js';
 import { css, html, query } from 'lit-element';
-import { c as cytoscape } from '../cytoscape.cjs-2a518a06.js';
+import { c as cytoscape_cjs } from '../cytoscape.cjs-2bb12747.js';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Button } from 'scoped-material-components/mwc-button';
@@ -35,7 +35,7 @@ class HolochainPlaygroundDhtGraph extends BaseElement {
         window.addEventListener('scroll', () => {
             this.cy.resize();
         });
-        this.cy = cytoscape({
+        this.cy = cytoscape_cjs({
             container: this.graph,
             boxSelectionEnabled: false,
             autoungrabify: true,
