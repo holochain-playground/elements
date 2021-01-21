@@ -20,10 +20,6 @@ cytoscape.use(klay);
 const layoutConfig = {
   name: 'klay',
   animate: true,
-  klay: {
-    spacing: 30,
-    edgeSpacingFactor: 2,
-  },
   ready: (e) => {
     console.log();
     e.cy.fit();
