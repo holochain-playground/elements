@@ -158,6 +158,7 @@ export function allEntries(
   const linksEdges = [];
   const entryNodes = [];
   const entryTypeCount = {};
+  const excludedEntries = {};
 
   for (const strEntryHash of sortedEntries) {
     const detail = details[strEntryHash];
@@ -225,15 +226,17 @@ export function allEntries(
         );
 
         for (const implicitLink of implicitLinks) {
-          linksEdges.push({
-            data: {
-              id: `${strEntryHash}->${implicitLink.target}`,
-              source: strEntryHash,
-              target: implicitLink.target,
-              label: implicitLink.label,
-            },
-            classes: ['implicit'],
-          });
+          if (!excludedEntries[implicitLink.target]) {
+            linksEdges.push({
+              data: {
+                id: `${strEntryHash}->${implicitLink.target}`,
+                source: strEntryHash,
+                target: implicitLink.target,
+                label: implicitLink.label,
+              },
+              classes: ['implicit'],
+            });
+          }
         }
       }
 
@@ -246,18 +249,20 @@ export function allEntries(
             : JSON.stringify(linkVal.tag);
         const target = serializeHash(linkVal.target);
 
-        const edgeData = {
-          data: {
-            id: `${strEntryHash}->${target}`,
-            source: strEntryHash,
-            target,
-          },
-          classes: ['explicit'],
-        };
-        if (tag) {
-          edgeData.data['label'] = tag;
+        if (!excludedEntries[target]) {
+          const edgeData = {
+            data: {
+              id: `${strEntryHash}->${target}`,
+              source: strEntryHash,
+              target,
+            },
+            classes: ['explicit'],
+          };
+          if (tag) {
+            edgeData.data['label'] = tag;
+          }
+          linksEdges.push(edgeData);
         }
-        linksEdges.push(edgeData);
       }
 
       // Get the updates edges for the entry
@@ -285,6 +290,8 @@ export function allEntries(
         entryNodes
           .find((node) => node.data.id === strEntryHash)
           .classes.push('deleted');
+    } else {
+      excludedEntries[strEntryHash] = true;
     }
     entryTypeCount[entryType] += 1;
   }

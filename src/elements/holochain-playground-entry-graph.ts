@@ -19,15 +19,8 @@ cytoscape.use(klay);
 
 const layoutConfig = {
   name: 'klay',
-  handleDisconnected: true,
   animate: true,
-  avoidOverlap: true,
-  infinite: false,
-  unconstrIter: 1,
-  userConstIter: 0,
-  allConstIter: 1,
   ready: (e) => {
-    console.log();
     e.cy.fit();
     e.cy.center();
   },
@@ -253,7 +246,7 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
         (entryType) => html`
           <mwc-formfield label="Show ${entryType}s">
             <mwc-checkbox
-              checked
+              .checked=${!this.excludedEntryTypes.includes(entryType)}
               @change=${(e) => {
                 const excluded = this.excludedEntryTypes.includes(entryType);
                 const toExclude = !e.target.checked;
