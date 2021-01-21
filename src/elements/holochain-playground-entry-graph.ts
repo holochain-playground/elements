@@ -22,7 +22,7 @@ const layoutConfig = {
   animate: true,
   klay: {
     spacing: 30,
-    edgeSpacingFactor: 1.2,
+    edgeSpacingFactor: 2,
   },
   ready: (e) => {
     console.log();

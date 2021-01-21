@@ -11,7 +11,7 @@ export function serializeAndShortenHashesRec(object: any) {
       object[key] = serializeAndShortenHashesRec(object[key]);
     }
     return object;
-  } else if (typeof object === 'string') {
+  } else if (typeof object === 'string' && object.length > 23) {
     return `${object.substring(0, 20)}...`;
   }
   return object;
