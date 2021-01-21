@@ -2718,7 +2718,8 @@ const layoutConfig = {
     name: 'klay',
     animate: true,
     klay: {
-        spacing: 40
+        spacing: 30,
+        edgeSpacingFactor: 1.2,
     },
     ready: (e) => {
         console.log();
