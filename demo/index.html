@@ -47,7 +47,7 @@
         const callZome = document.getElementById('call-zome');
         const conductor = e.detail.conductors[0];
 
-        const cellId = conductor.getAllCells()[0].id;
+        const cellId = conductor.getAllCells()[0].cellId;
 
         callZome.conductor = conductor;
         callZome.cellId = cellId;
