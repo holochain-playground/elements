@@ -13,7 +13,6 @@ import { sharedStyles } from './utils/shared-styles';
 import { BaseElement } from './utils/base-element';
 import { isEqual } from 'lodash-es';
 import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button';
-import { deserializeHash } from '@holochain-open-dev/common';
 
 cytoscape.use(klay);
 
@@ -65,6 +64,7 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
                 width: 16px;
                 label: data(label);
                 height: 16px;
+                shape: round-rectangle;
               }
 
               node > node {
@@ -133,7 +133,7 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
     this.cy.on('tap', 'node', (event) => {
       const selectedEntryId = event.target.id();
       this.updatePlayground({
-        activeEntryHash: deserializeHash(selectedEntryId),
+        activeEntryHash: selectedEntryId,
       });
     });
 
@@ -157,11 +157,7 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
 
     const cells = selectAllCells(this.activeDna, this.conductors);
 
-    for (const cell of cells) {
-      cell.signals['after-workflow-executed'].subscribe(() =>
-        this.requestUpdate()
-      );
-    }
+    cells.forEach((cell) => this.subscribeToCell(cell));
 
     const { entries, entryTypes } = allEntries(
       cells,
@@ -212,7 +208,7 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
   renderHelp() {
     return html` <holochain-playground-help-button
       heading="Entry Graph"
-      style="position: absolute; right: 8px; top: 8px;"
+      class="block-help"
     >
       <span>
         This graph contains a
@@ -271,11 +267,9 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
 
   render() {
     return html`
-      <mwc-card style="width: auto; position: relative;" class="fill">
+      <mwc-card class="block-card">
         <div class="column fill">
-          <h3 class="title" style="margin-left: 16px; margin-top: 16px;">
-            Entry Graph
-          </h3>
+          <h3 class="block-title">Entry Graph</h3>
 
           <div id="entry-graph" class="fill"></div>
 

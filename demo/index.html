@@ -11,12 +11,9 @@
   </head>
   <body>
     <holochain-playground-container id="container">
-      <holochain-playground-entry-detail
-        style="height: 300px; width: 100%"
-      ></holochain-playground-entry-detail>
-      <holochain-playground-entry-graph
-        style="height: 300px; width: 100%"
-      ></holochain-playground-entry-graph>
+      <holochain-playground-dht-graph
+        style="height: 1300px; width: 100%"
+      ></holochain-playground-dht-graph>
       <holochain-playground-call-zome
         id="call-zome"
       ></holochain-playground-call-zome>
@@ -25,25 +22,22 @@
     <script type="module">
       import { html, render } from 'lit-html';
       import { HolochainPlaygroundCallZome } from '../dist/elements/holochain-playground-call-zome.js';
-      import { HolochainPlaygroundEntryDetail } from '../dist/elements/holochain-playground-entry-detail.js';
-      import { HolochainPlaygroundEntryGraph } from '../dist/elements/holochain-playground-entry-graph.js';
+      import { HolochainPlaygroundDhtGraph } from '../dist/elements/holochain-playground-dht-graph.js';
       import { HolochainPlaygroundContainer } from '@holochain-playground/container';
+      import { DelayExecutor } from '@holochain-playground/core';
 
       customElements.define(
         'holochain-playground-container',
         HolochainPlaygroundContainer
       );
       customElements.define(
-        'holochain-playground-entry-detail',
-        HolochainPlaygroundEntryDetail
-      );
-      customElements.define(
-        'holochain-playground-entry-graph',
-        HolochainPlaygroundEntryGraph
+        'holochain-playground-dht-graph',
+        HolochainPlaygroundDhtGraph
       );
 
       const container = document.getElementById('container');
-      container.numberOfSimulatedConductors = 1;
+      container.numberOfSimulatedConductors = 30;
+      container.executor = new DelayExecutor(1000);
 
       container.addEventListener('ready', (e) => {
         customElements.define(
@@ -53,7 +47,7 @@
         const callZome = document.getElementById('call-zome');
         const conductor = e.detail.conductors[0];
 
-        const cellId = conductor.cells[0].id;
+        const cellId = conductor.getAllCells()[0].id;
 
         callZome.conductor = conductor;
         callZome.cellId = cellId;

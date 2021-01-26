@@ -18,6 +18,7 @@ import {
   createConductors,
   sampleDnaTemplate,
   Conductor,
+  ImmediateExecutor,
 } from '@holochain-playground/core';
 
 export class HolochainPlaygroundDhtStats extends BaseElement {
@@ -91,6 +92,7 @@ export class HolochainPlaygroundDhtStats extends BaseElement {
       const newNodesToCreate = newNodes - currentNodes;
       conductors = await createConductors(
         newNodesToCreate,
+        new ImmediateExecutor(), //TODO fix this
         conductors,
         sampleDnaTemplate()
       );
@@ -110,7 +112,7 @@ export class HolochainPlaygroundDhtStats extends BaseElement {
 
       conductors.splice(0, conductorsToRemove);
     }
-/* 
+    /* 
 TODO: handle gossip at the core layer
     if (changedNodes) {
       const peers = conductors.map((c) => c.cells[dna].agentId);

@@ -5,9 +5,8 @@ import { getEntryDetails } from '@holochain-playground/core';
 import { sharedStyles } from './utils/shared-styles';
 import { selectAllCells, selectFromCAS } from './utils/selectors';
 import { BaseElement } from './utils/base-element';
-import { serializeHash } from '@holochain-open-dev/common';
-import { serializeHashesRec } from './utils/hash';
 import { Card } from 'scoped-material-components/mwc-card';
+import { shortenStrRec } from './utils/hash';
 
 export class HolochainPlaygroundEntryDetail extends BaseElement {
   @property({ type: Boolean })
@@ -48,13 +47,13 @@ export class HolochainPlaygroundEntryDetail extends BaseElement {
                 <div class="column fill">
                   <span style="margin-bottom: 16px;">
                     ${this.activeEntry.prev_header ? 'Header' : 'Entry'} Hash:
-                    ${serializeHash(this.activeEntryHash)}
+                    ${this.activeEntryHash}
                   </span>
                   <div class="fill flex-scrollable-parent">
                     <div class="flex-scrollable-container">
                       <div class="flex-scrollable-y" style="height: 100%;">
                         <json-viewer
-                          .object=${serializeHashesRec(this.activeEntry)}
+                          .object=${shortenStrRec(this.activeEntry)}
                           class="fill"
                         ></json-viewer>
                       </div>
@@ -65,7 +64,7 @@ export class HolochainPlaygroundEntryDetail extends BaseElement {
                           Metadata
                         </span>
                         <json-viewer
-                          .object=${serializeHashesRec(this.activeEntryDetails)}
+                          .object=${shortenStrRec(this.activeEntryDetails)}
                         ></json-viewer>`
                     : html``}
                 </div>

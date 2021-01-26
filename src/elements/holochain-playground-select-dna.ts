@@ -1,7 +1,6 @@
 import { LitElement, html, property } from 'lit-element';
 import { BaseElement } from './utils/base-element';
 import { selectAllDNAs } from './utils/selectors';
-import { serializeHash, deserializeHash } from '@holochain-open-dev/common';
 import { Select } from 'scoped-material-components/mwc-select';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 
@@ -10,12 +9,12 @@ export class HolochainPlaygroundSelectDNA extends BaseElement {
     this.updatePlayground({
       activeAgentPubKey: null,
       activeEntryHash: null,
-      activeDna: deserializeHash(dna),
+      activeDna: dna,
     });
   }
 
   render() {
-    const dnas = selectAllDNAs(this.conductors).map(serializeHash);
+    const dnas = selectAllDNAs(this.conductors);
     if (dnas.length === 1) return html`<span>DNA: ${dnas[0]}</span>`;
     else {
       return html`
@@ -29,9 +28,7 @@ export class HolochainPlaygroundSelectDNA extends BaseElement {
           ${dnas.map(
             (dna) =>
               html`
-                <mwc-list-item
-                  ?selected=${serializeHash(this.activeDna) === dna}
-                  .value=${dna}
+                <mwc-list-item ?selected=${this.activeDna === dna} .value=${dna}
                   >${dna}</mwc-list-item
                 >
               `

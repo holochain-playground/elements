@@ -57,4 +57,22 @@ export const sharedStyles = css`
     padding: 4px;
     max-width: 400px;
   }
+
+  .block-card {
+    width: auto;
+    position: relative;
+    flex: 1;
+  }
+
+  .block-title {
+    margin-left: 16px;
+    margin-top: 16px;
+    font-size: 20px;
+  }
+
+  .block-help {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+  }
 `;

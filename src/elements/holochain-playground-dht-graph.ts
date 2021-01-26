@@ -1,7 +1,6 @@
 import { LitElement, html, query, css, property } from 'lit-element';
-import  cytoscape from 'cytoscape';
-import { Dialog } from 'scoped-material-components/mwc-dialog';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import cytoscape from 'cytoscape';
+import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Hash } from '@holochain-open-dev/core-types';
 import { AgentPubKey } from '@holochain-open-dev/core-types';
@@ -11,11 +10,27 @@ import { selectAllCells, selectHoldingCells } from './utils/selectors';
 import { sharedStyles } from './utils/shared-styles';
 import { BaseElement } from './utils/base-element';
 import { isEqual } from 'lodash-es';
+import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button';
+import { Card } from 'scoped-material-components/mwc-card';
+import { Cell, Task } from '@holochain-playground/core';
+import { HolochainPlaygroundCellTasks } from './helpers/holochain-playground-cell-tasks';
+
+const layoutConfig = {
+  name: 'circle',
+  padding: 60,
+  ready: (e) => {
+    e.cy.resize();
+    e.cy.fit();
+    e.cy.center();
+  },
+};
+
+export interface TaskInfo {
+  task: Task<any>;
+  cell: Cell;
+}
 
 export class HolochainPlaygroundDhtGraph extends BaseElement {
-  @query('#dht-help')
-  private dhtHelp: Dialog;
-
   @query('#graph')
   private graph: any;
 
@@ -23,6 +38,9 @@ export class HolochainPlaygroundDhtGraph extends BaseElement {
 
   private cy;
   private layout;
+
+  @property({ type: Array })
+  private _cells: Array<Cell> = [];
 
   static get styles() {
     return [
@@ -46,10 +64,12 @@ export class HolochainPlaygroundDhtGraph extends BaseElement {
       autoungrabify: true,
       userPanningEnabled: false,
       userZoomingEnabled: false,
-      layout: { name: 'circle' },
+      layout: layoutConfig,
       style: `
             node {
-              background-color: gray;
+              background-color: lightblue;
+              border-color: black;
+              border-width: 2px;
               label: data(label);
               font-size: 20px;
               width: 50px;
@@ -115,18 +135,21 @@ export class HolochainPlaygroundDhtGraph extends BaseElement {
 
     const newAgentIds = cells.map((c) => c.agentPubKey);
     if (!isEqual(this.lastNodes, newAgentIds)) {
+      this._cells = cells;
+      this._cells.forEach((cell) => this.subscribeToCell(cell));
+
       if (this.layout) this.layout.stop();
       this.cy.remove('nodes');
 
-      const nodes = dnaNodes(cells);
+      const nodes = dnaNodes(this._cells);
       this.cy.add(nodes);
 
-      this.layout = this.cy.elements().makeLayout({ name: 'circle' });
+      this.layout = this.cy.elements().makeLayout(layoutConfig);
       this.layout.run();
       this.lastNodes = newAgentIds;
     }
 
-    cells.forEach((cell) =>
+    this._cells.forEach((cell) =>
       this.cy.getElementById(cell.agentPubKey).removeClass('selected')
     );
     this.cy.getElementById(this.activeAgentPubKey).addClass('selected');
@@ -134,9 +157,9 @@ export class HolochainPlaygroundDhtGraph extends BaseElement {
     this.highlightNodesWithEntry(this.activeEntryHash);
   }
 
-  renderDHTHelp() {
+  renderHelp() {
     return html`
-      <mwc-dialog id="dht-help" heading="DHT Help">
+      <holochain-playground-help-button heading="DHT Graph" class="block-help">
         <span>
           This is a visual interactive representation of a holochain
           <a
@@ -159,34 +182,50 @@ export class HolochainPlaygroundDhtGraph extends BaseElement {
           more connected with the nodes that are closest to their ID, and less
           connected with the nodes that are far.
         </span>
-        <mwc-button slot="primaryAction" dialogAction="cancel">
-          Got it!
-        </mwc-button>
-      </mwc-dialog>
+      </holochain-playground-help-button>
     `;
   }
 
-  render() {
-    return html`${this.renderDHTHelp()}
-      <div class="column fill" style="position: relative">
-        <h3 style="position: absolute; left: 28px; top: 28px;" class="title">
-          DHT Nodes
-        </h3>
-        <div id="graph" style="height: 98%"></div>
+  renderTasksTooltips() {
+    if (!this.cy || !this._cells) return html``;
 
-        <mwc-icon-button
-          style="position: absolute; right: 20px; top: 20px;"
-          icon="help_outline"
-          @click=${() => (this.dhtHelp.open = true)}
-        ></mwc-icon-button>
-      </div>`;
+    const nodes = this.cy.nodes();
+    const cellsWithPosition = nodes.map((node) => {
+      const agentPubKey = node.id();
+      const cell = this._cells.find((cell) => cell.agentPubKey === agentPubKey);
+
+      return { cell, position: node.renderedPosition() };
+    });
+
+    return html`${cellsWithPosition.map(({ cell, position }) => {
+      return html`<holochain-playground-cell-tasks
+        .cell=${cell}
+        .x=${position.x}
+        .y=${position.y}
+      >
+      </holochain-playground-cell-tasks>`;
+    })}`;
+  }
+
+  render() {
+    return html`
+      <mwc-card class="block-card">
+        ${this.renderHelp()} ${this.renderTasksTooltips()}
+        <div class="column fill">
+          <h3 class="block-title">DHT Nodes</h3>
+          <div id="graph" class="fill"></div>
+        </div>
+      </mwc-card>
+    `;
   }
 
   static get scopedElements() {
     return {
-      'mwc-icon-button': IconButton,
+      'mwc-card': Card,
+      'mwc-menu-surface': MenuSurface,
       'mwc-button': Button,
-      'mwc-dialog': Dialog,
+      'holochain-playground-help-button': HolochainPlaygroundHelpButton,
+      'holochain-playground-cell-tasks': HolochainPlaygroundCellTasks,
     };
   }
 }
