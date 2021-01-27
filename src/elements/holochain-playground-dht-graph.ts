@@ -75,7 +75,6 @@ export class HolochainPlaygroundDhtGraph extends BaseElement {
               width: 50px;
               height: 50px;
             }
-
             
              .desktop{
                 background-image: url("assets/desktop_windows-outline-white-36dp.svg");
@@ -103,6 +102,13 @@ export class HolochainPlaygroundDhtGraph extends BaseElement {
             edge {
               width: 1;
               line-style: dotted;
+            }
+
+            .network-request {
+              width: 10px;
+              height: 10px;
+              background-color: grey;
+              border-width: 0px;
             }
           `,
     });
@@ -136,7 +142,34 @@ export class HolochainPlaygroundDhtGraph extends BaseElement {
     const newAgentIds = cells.map((c) => c.agentPubKey);
     if (!isEqual(this.lastNodes, newAgentIds)) {
       this._cells = cells;
-      this._cells.forEach((cell) => this.subscribeToCell(cell));
+      this._cells.forEach((cell) => {
+        this.subscribeToCell(cell);
+        cell.p2p.signals['before-network-request'].subscribe(
+          (networkRequest) => {
+            const fromNode = this.cy.getElementById(networkRequest.fromAgent);
+            const toNode = this.cy.getElementById(networkRequest.toAgent);
+
+            const fromPosition = fromNode.position();
+            const el = this.cy.add([
+              {
+                group: 'nodes',
+                data: {
+                  networkRequest,
+                  label: networkRequest.name,
+                },
+                position: { x: fromPosition.x + 1, y: fromPosition.y + 1 },
+                classes: ['network-request'],
+              },
+            ]);
+
+            el.animate({
+              position: toNode.position(),
+              duration: networkRequest.duration,
+            });
+            setTimeout(() => this.cy.remove(el), networkRequest.duration);
+          }
+        );
+      });
 
       if (this.layout) this.layout.stop();
       this.cy.remove('nodes');
@@ -200,7 +233,7 @@ export class HolochainPlaygroundDhtGraph extends BaseElement {
     return html`${cellsWithPosition.map(({ cell, position }) => {
       return html`<holochain-playground-cell-tasks
         .cell=${cell}
-        .x=${position.x}
+        .x=${position.x + 50}
         .y=${position.y}
       >
       </holochain-playground-cell-tasks>`;

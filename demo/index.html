@@ -12,7 +12,7 @@
   <body>
     <holochain-playground-container id="container">
       <holochain-playground-dht-graph
-        style="height: 1300px; width: 100%"
+        style="height: 500px; width: 100%"
       ></holochain-playground-dht-graph>
       <holochain-playground-call-zome
         id="call-zome"
@@ -36,8 +36,8 @@
       );
 
       const container = document.getElementById('container');
-      container.numberOfSimulatedConductors = 30;
-      container.executor = new DelayExecutor(1000);
+      container.numberOfSimulatedConductors = 3;
+      container.executor = new DelayExecutor(3000);
 
       container.addEventListener('ready', (e) => {
         customElements.define(

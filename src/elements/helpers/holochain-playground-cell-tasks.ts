@@ -1,14 +1,20 @@
+import { Dictionary } from '@holochain-open-dev/core-types';
 import {
   Cell,
   CellSignal,
   Task,
   DelayExecutor,
+  Workflow,
 } from '@holochain-playground/core';
 import { css, property, PropertyValues } from 'lit-element';
 import { html } from 'lit-html';
 import { styleMap } from 'lit-html/directives/style-map';
 import { Card } from 'scoped-material-components/mwc-card';
+import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
+import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
+import { List } from 'scoped-material-components/mwc-list';
+import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { BaseElement } from '../utils/base-element';
 import { sharedStyles } from '../utils/shared-styles';
 
@@ -25,69 +31,55 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
   signals: CellSignal[] = ['after-workflow-executed'];
 
   @property({ type: Object })
-  _tasks: Array<{ progress: number; task: Task<any> }> = [];
+  _tasks: Dictionary<number> = {};
+
+  @property({ type: Boolean })
+  _expanded: Boolean = false;
 
   updated(changedValues: PropertyValues) {
     super.updated(changedValues);
 
     if (changedValues.has('cell')) {
       const executor = this.cell.conductor.executor;
-      const delay = (executor as DelayExecutor).delayMillis;
+      const delay = (executor as DelayExecutor).delayMillis - 100 || 0;
       this.subscribeToCell(this.cell, ['before-workflow-executed'], (task) => {
-        this._tasks.push({
-          task,
-          progress: 0,
-        });
-        if (delay) {
-          const startedAt = Date.now() + 20;
-          const interval = setInterval(() => {
-            const elapsed = Date.now() - startedAt;
-            const progress = elapsed / delay;
+        if (!this._tasks[task.name]) this._tasks[task.name] = 0;
 
-            const taskIndex = this._tasks.findIndex((t) => t.task === task);
-            this._tasks[taskIndex].progress = progress;
+        this._tasks[task.name] += 1;
+        this.requestUpdate();
 
-            this.requestUpdate();
+        setTimeout(() => {
+          this._tasks[task.name] -= 1;
+          if (this._tasks[task.name] === 0) delete this._tasks[task.name];
 
-            if (progress >= 1) {
-              clearInterval(interval);
-              this._tasks = [...this._tasks.filter((t) => t.task !== task)];
-            }
-          }, 200);
-        }
+          this.requestUpdate();
+        }, delay);
       });
     }
   }
 
   render() {
-    if (this._tasks.length === 0) return html``;
+    if (Object.keys(this._tasks).length === 0) return html``;
     return html`
-      <mwc-card class="tasks-card" "
-      style=${styleMap({
-        top: `${this.y}px`,
-        left: `${this.x}px`,
-      })}
->
-      <div
-        class="column"
-        style="padding: 16px; max-height: 300px; overflow-y: auto;"
+      <mwc-card
+        class="tasks-card"
+        style=${styleMap({
+          top: `${this.y}px`,
+          left: `${this.x}px`,
+        })}
       >
-        ${this._tasks.map(
-          (task) => html`
-            <div style="margin-bottom: 16px;">
-              <span style="margin-bottom: 4px;"> ${task.task.name} </span>
-              ${task.progress
-                ? html`
-                    <mwc-linear-progress
-                      .progress=${task.progress}
-                    ></mwc-linear-progress>
-                  `
-                : html``}
-            </div>
-          `
-        )}
-      </div>
-    </mwc-card>
+        <mwc-list style="max-height: 300px; overflow-y: auto; width: 300px;">
+          ${Object.entries(this._tasks).map(
+            ([taskName, taskNumber]) => html`
+              <mwc-list-item twoline>
+                <span> ${taskNumber}x ${taskName} </span>
+                <span slot="secondary">Cell Workflow</span>
+              </mwc-list-item>
+            `
+          )}
+        </mwc-list>
+        <mwc-linear-progress indeterminate></mwc-linear-progress>
+      </mwc-card>
     `;
   }
 
@@ -107,6 +99,8 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
   static get scopedElements() {
     return {
       'mwc-card': Card,
+      'mwc-list': List,
+      'mwc-list-item': ListItem,
       'mwc-linear-progress': LinearProgress,
     };
   }

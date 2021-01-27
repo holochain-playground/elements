@@ -3,7 +3,7 @@ import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { PlaygroundMixin } from '@holochain-playground/container';
 import { Dictionary } from '@holochain-open-dev/core-types';
 import { Subscription } from 'rxjs';
-import { Cell, CellSignal, Task } from '@holochain-playground/core';
+import { Cell, CellSignal, Workflow } from '@holochain-playground/core';
 
 export class BaseElement extends PlaygroundMixin(
   ScopedElementsMixin(LitElement)
@@ -13,7 +13,7 @@ export class BaseElement extends PlaygroundMixin(
   subscribeToCell(
     cell: Cell,
     signals: CellSignal[] = ['after-workflow-executed'],
-    callback?: (task: Task<any>) => void
+    callback?: (task: Workflow) => void
   ) {
     const cellId = `${cell.dnaHash}/${cell.agentPubKey}`;
 
