@@ -11,9 +11,9 @@
   </head>
   <body>
     <holochain-playground-container id="container">
-      <holochain-playground-dht-graph
-        style="height: 500px; width: 100%"
-      ></holochain-playground-dht-graph>
+      <holochain-playground-dht-cells
+        style="height: 1000px; width: 100%"
+      ></holochain-playground-dht-cells>
       <holochain-playground-call-zome
         id="call-zome"
       ></holochain-playground-call-zome>
@@ -22,22 +22,20 @@
     <script type="module">
       import { html, render } from 'lit-html';
       import { HolochainPlaygroundCallZome } from '../dist/elements/holochain-playground-call-zome.js';
-      import { HolochainPlaygroundDhtGraph } from '../dist/elements/holochain-playground-dht-graph.js';
+      import { HolochainPlaygroundDhtCells } from '../dist/elements/holochain-playground-dht-cells';
       import { HolochainPlaygroundContainer } from '@holochain-playground/container';
-      import { DelayExecutor } from '@holochain-playground/core';
 
       customElements.define(
         'holochain-playground-container',
         HolochainPlaygroundContainer
       );
       customElements.define(
-        'holochain-playground-dht-graph',
-        HolochainPlaygroundDhtGraph
+        'holochain-playground-dht-cells',
+        HolochainPlaygroundDhtCells
       );
 
       const container = document.getElementById('container');
-      container.numberOfSimulatedConductors = 3;
-      container.executor = new DelayExecutor(3000);
+      container.numberOfSimulatedConductors = 10;
 
       container.addEventListener('ready', (e) => {
         customElements.define(

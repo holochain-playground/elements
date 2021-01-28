@@ -150,14 +150,16 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
     this.updatedGraph();
   }
 
+  observedCells() {
+    return selectAllCells(this.activeDna, this.conductors);
+  }
+
   updatedGraph() {
     if (this.entryGraph.getBoundingClientRect().width === 0 || !this.ready) {
       return null;
     }
 
     const cells = selectAllCells(this.activeDna, this.conductors);
-
-    cells.forEach((cell) => this.subscribeToCell(cell));
 
     const { entries, entryTypes } = allEntries(
       cells,

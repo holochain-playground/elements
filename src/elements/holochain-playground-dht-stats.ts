@@ -18,7 +18,6 @@ import {
   createConductors,
   sampleDnaTemplate,
   Conductor,
-  ImmediateExecutor,
 } from '@holochain-playground/core';
 
 export class HolochainPlaygroundDhtStats extends BaseElement {
@@ -92,7 +91,6 @@ export class HolochainPlaygroundDhtStats extends BaseElement {
       const newNodesToCreate = newNodes - currentNodes;
       conductors = await createConductors(
         newNodesToCreate,
-        new ImmediateExecutor(), //TODO fix this
         conductors,
         sampleDnaTemplate()
       );

@@ -125,6 +125,12 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
     this.requestUpdate();
   }
 
+  observedCells() {
+    return [
+      selectCell(this.activeDna, this.activeAgentPubKey, this.conductors),
+    ];
+  }
+
   updated(changedValues: PropertyValues) {
     super.updated(changedValues);
     const activeCell = selectCell(
@@ -132,9 +138,6 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
       this.activeAgentPubKey,
       this.conductors
     );
-
-    this._cell = activeCell;
-    this.subscribeToCell(activeCell);
 
     const nodes = sourceChainNodes(activeCell);
     if (!isEqual(nodes, this.nodes)) {

@@ -22,31 +22,6 @@ import {
 import { timestampToMillis } from '@holochain-open-dev/common';
 import { shortenStrRec } from '../elements/utils/hash';
 
-export function dnaNodes(cells: Cell[]) {
-  // const images = ['smartphone', 'desktop', 'laptop'];
-
-  const sortedCells = cells.sort((a: Cell, b: Cell) =>
-    compareBigInts(location(a.agentPubKey), location(b.agentPubKey))
-  );
-  const cellNodes = sortedCells.map((cell) => ({
-    data: {
-      id: cell.agentPubKey,
-      label: `${cell.agentPubKey.substr(0, 6)}...`,
-    },
-    //    classes: [images[Math.floor(Math.random() * 3)]],
-  }));
-  const edges = sortedCells.map((cell) =>
-    cell.p2p.getNeighbors().map((neighbor) => ({
-      data: {
-        id: `${cell.agentPubKey}->${neighbor}`,
-        source: cell.agentPubKey,
-        target: neighbor,
-      },
-    }))
-  );
-
-  return [...cellNodes, ...[].concat(...edges)];
-}
 
 export function sourceChainNodes(cell: Cell) {
   if (!cell) return [];

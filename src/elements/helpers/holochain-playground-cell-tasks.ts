@@ -1,17 +1,9 @@
 import { Dictionary } from '@holochain-open-dev/core-types';
-import {
-  Cell,
-  CellSignal,
-  Task,
-  DelayExecutor,
-  Workflow,
-} from '@holochain-playground/core';
+import { Cell, CellSignal, sleep } from '@holochain-playground/core';
 import { css, property, PropertyValues } from 'lit-element';
 import { html } from 'lit-html';
 import { styleMap } from 'lit-html/directives/style-map';
 import { Card } from 'scoped-material-components/mwc-card';
-import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
 import { List } from 'scoped-material-components/mwc-list';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
@@ -36,26 +28,26 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
   @property({ type: Boolean })
   _expanded: Boolean = false;
 
-  updated(changedValues: PropertyValues) {
-    super.updated(changedValues);
+  observedCells() {
+    return [this.cell];
+  }
 
-    if (changedValues.has('cell')) {
-      const executor = this.cell.conductor.executor;
-      const delay = (executor as DelayExecutor).delayMillis - 100 || 0;
-      this.subscribeToCell(this.cell, ['before-workflow-executed'], (task) => {
+  onNewObservedCell(cell: Cell) {
+    return [
+      cell.workflowExecutor.before(async (task) => {
+        const delay = 1000;
         if (!this._tasks[task.name]) this._tasks[task.name] = 0;
 
         this._tasks[task.name] += 1;
         this.requestUpdate();
 
-        setTimeout(() => {
-          this._tasks[task.name] -= 1;
-          if (this._tasks[task.name] === 0) delete this._tasks[task.name];
+        await sleep(delay);
+        this._tasks[task.name] -= 1;
+        if (this._tasks[task.name] === 0) delete this._tasks[task.name];
 
-          this.requestUpdate();
-        }, delay);
-      });
-    }
+        this.requestUpdate();
+      }),
+    ];
   }
 
   render() {
@@ -68,11 +60,13 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
           left: `${this.x}px`,
         })}
       >
-        <mwc-list style="max-height: 300px; overflow-y: auto; width: 300px;">
+        <mwc-list style="max-height: 300px; overflow-y: auto; width: 200px;">
           ${Object.entries(this._tasks).map(
             ([taskName, taskNumber]) => html`
               <mwc-list-item twoline>
-                <span> ${taskNumber}x ${taskName} </span>
+                <span>
+                  ${taskNumber > 1 ? taskNumber + 'x' : ''} ${taskName}
+                </span>
                 <span slot="secondary">Cell Workflow</span>
               </mwc-list-item>
             `

@@ -3,44 +3,22 @@ import cytoscape from 'cytoscape';
 import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Hash } from '@holochain-open-dev/core-types';
-import { AgentPubKey } from '@holochain-open-dev/core-types';
-
-import { dnaNodes } from '../processors/graph';
-import { selectAllCells, selectHoldingCells } from './utils/selectors';
-import { sharedStyles } from './utils/shared-styles';
-import { BaseElement } from './utils/base-element';
-import { isEqual } from 'lodash-es';
-import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button';
+import { Cell, sleep } from '@holochain-playground/core';
 import { Card } from 'scoped-material-components/mwc-card';
-import { Cell, Task } from '@holochain-playground/core';
-import { HolochainPlaygroundCellTasks } from './helpers/holochain-playground-cell-tasks';
+import { HolochainPlaygroundCellTasks } from '../helpers/holochain-playground-cell-tasks';
+import { HolochainPlaygroundHelpButton } from '../helpers/holochain-playground-help-button';
+import { BaseElement } from '../utils/base-element';
+import { selectAllCells, selectHoldingCells } from '../utils/selectors';
+import { sharedStyles } from '../utils/shared-styles';
+import { dhtCellsNodes, neighborsEdges } from './processors';
+import { graphStyles, layoutConfig } from './graph';
 
-const layoutConfig = {
-  name: 'circle',
-  padding: 60,
-  ready: (e) => {
-    e.cy.resize();
-    e.cy.fit();
-    e.cy.center();
-  },
-};
-
-export interface TaskInfo {
-  task: Task<any>;
-  cell: Cell;
-}
-
-export class HolochainPlaygroundDhtGraph extends BaseElement {
+export class HolochainPlaygroundDhtCells extends BaseElement {
   @query('#graph')
   private graph: any;
 
-  private lastNodes: AgentPubKey[] = [];
-
   private cy;
   private layout;
-
-  @property({ type: Array })
-  private _cells: Array<Cell> = [];
 
   static get styles() {
     return [
@@ -56,6 +34,7 @@ export class HolochainPlaygroundDhtGraph extends BaseElement {
   async firstUpdated() {
     window.addEventListener('scroll', () => {
       this.cy.resize();
+      this.requestUpdate();
     });
 
     this.cy = cytoscape({
@@ -65,52 +44,7 @@ export class HolochainPlaygroundDhtGraph extends BaseElement {
       userPanningEnabled: false,
       userZoomingEnabled: false,
       layout: layoutConfig,
-      style: `
-            node {
-              background-color: lightblue;
-              border-color: black;
-              border-width: 2px;
-              label: data(label);
-              font-size: 20px;
-              width: 50px;
-              height: 50px;
-            }
-            
-             .desktop{
-                background-image: url("assets/desktop_windows-outline-white-36dp.svg");
-              }
-            
-             .laptop{
-                background-image: url("assets/laptop-outline-white-36dp.svg");
-             }
-            
-
-            .selected {
-              border-width: 4px;
-              border-color: black;
-              border-style: solid;
-            }
-
-            .smartphone{
-              background-image: url("assets/smartphone-outline-white-36dp.svg");
-            }
-    
-            .highlighted {
-              background-color: yellow;
-            }
-    
-            edge {
-              width: 1;
-              line-style: dotted;
-            }
-
-            .network-request {
-              width: 10px;
-              height: 10px;
-              background-color: grey;
-              border-width: 0px;
-            }
-          `,
+      style: graphStyles,
     });
 
     this.cy.on('tap', 'node', (evt) => {
@@ -134,55 +68,73 @@ export class HolochainPlaygroundDhtGraph extends BaseElement {
     }
   }
 
+  observedCells() {
+    return selectAllCells(this.activeDna, this.conductors);
+  }
+
+  onNewObservedCell(cell: Cell) {
+    return [
+      cell.p2p.networkRequestsExecutor.before(async (networkRequest) => {
+        this.requestUpdate();
+        if (networkRequest.toAgent === networkRequest.fromAgent) return;
+
+        const duration = 3000;
+
+        const fromNode = this.cy.getElementById(networkRequest.fromAgent);
+        if (!fromNode.position()) return;
+        const toNode = this.cy.getElementById(networkRequest.toAgent);
+
+        const fromPosition = fromNode.position();
+        const toPosition = toNode.position();
+        const el = this.cy.add([
+          {
+            group: 'nodes',
+            data: {
+              networkRequest,
+              label: networkRequest.name,
+            },
+            position: { x: fromPosition.x + 1, y: fromPosition.y + 1 },
+            classes: ['network-request'],
+          },
+        ]);
+
+        el.animate({
+          position: toNode.position(),
+          duration: duration,
+        });
+
+        await sleep(duration);
+        this.cy.remove(el);
+      }),
+    ];
+  }
+
+  onCellsChanged() {
+    if (this.layout) this.layout.stop();
+    this.cy.remove('node');
+    this.cy.remove('edge');
+
+    const nodes = dhtCellsNodes(this.cells);
+    this.cy.add(nodes);
+    const neighbors = neighborsEdges(this.cells);
+    this.cy.add(neighbors);
+
+    this.layout = this.cy.elements().makeLayout(layoutConfig);
+    this.layout.run();
+  }
+
+  _neighborEdges = [];
+
   updated(changedValues) {
     super.updated(changedValues);
 
-    const cells = selectAllCells(this.activeDna, this.conductors);
-
-    const newAgentIds = cells.map((c) => c.agentPubKey);
-    if (!isEqual(this.lastNodes, newAgentIds)) {
-      this._cells = cells;
-      this._cells.forEach((cell) => {
-        this.subscribeToCell(cell);
-        cell.p2p.signals['before-network-request'].subscribe(
-          (networkRequest) => {
-            const fromNode = this.cy.getElementById(networkRequest.fromAgent);
-            const toNode = this.cy.getElementById(networkRequest.toAgent);
-
-            const fromPosition = fromNode.position();
-            const el = this.cy.add([
-              {
-                group: 'nodes',
-                data: {
-                  networkRequest,
-                  label: networkRequest.name,
-                },
-                position: { x: fromPosition.x + 1, y: fromPosition.y + 1 },
-                classes: ['network-request'],
-              },
-            ]);
-
-            el.animate({
-              position: toNode.position(),
-              duration: networkRequest.duration,
-            });
-            setTimeout(() => this.cy.remove(el), networkRequest.duration);
-          }
-        );
-      });
-
-      if (this.layout) this.layout.stop();
-      this.cy.remove('nodes');
-
-      const nodes = dnaNodes(this._cells);
-      this.cy.add(nodes);
-
-      this.layout = this.cy.elements().makeLayout(layoutConfig);
-      this.layout.run();
-      this.lastNodes = newAgentIds;
+    const neighbors = neighborsEdges(this.cells);
+    if (this._neighborEdges.length != neighbors.length) {
+      this._neighborEdges = neighbors;
+      this.cy.add(neighbors);
     }
 
-    this._cells.forEach((cell) =>
+    this.observedCells().forEach((cell) =>
       this.cy.getElementById(cell.agentPubKey).removeClass('selected')
     );
     this.cy.getElementById(this.activeAgentPubKey).addClass('selected');
@@ -220,21 +172,27 @@ export class HolochainPlaygroundDhtGraph extends BaseElement {
   }
 
   renderTasksTooltips() {
-    if (!this.cy || !this._cells) return html``;
+    if (!this.cy || !this.cells) return html``;
 
     const nodes = this.cy.nodes();
     const cellsWithPosition = nodes.map((node) => {
       const agentPubKey = node.id();
-      const cell = this._cells.find((cell) => cell.agentPubKey === agentPubKey);
+      const cell = this.cells.find((cell) => cell.agentPubKey === agentPubKey);
 
       return { cell, position: node.renderedPosition() };
     });
 
     return html`${cellsWithPosition.map(({ cell, position }) => {
+      const leftSide = this.cy.width() / 2 > position.x;
+      const upSide = this.cy.height() / 2 > position.y;
+
+      const finalX = position.x + (leftSide ? -250 : 50);
+      const finalY = position.y + (upSide ? -50 : 50);
+
       return html`<holochain-playground-cell-tasks
         .cell=${cell}
-        .x=${position.x + 50}
-        .y=${position.y}
+        .x=${finalX}
+        .y=${finalY}
       >
       </holochain-playground-cell-tasks>`;
     })}`;
