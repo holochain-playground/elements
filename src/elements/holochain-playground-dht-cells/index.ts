@@ -3,7 +3,12 @@ import cytoscape from 'cytoscape';
 import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Hash } from '@holochain-open-dev/core-types';
-import { Cell, sleep } from '@holochain-playground/core';
+import {
+  Cell,
+  sleep,
+  NetworkRequestType,
+  WorkflowType,
+} from '@holochain-playground/core';
 import { Card } from 'scoped-material-components/mwc-card';
 import { HolochainPlaygroundCellTasks } from '../helpers/holochain-playground-cell-tasks';
 import { HolochainPlaygroundHelpButton } from '../helpers/holochain-playground-help-button';
@@ -14,6 +19,29 @@ import { dhtCellsNodes, neighborsEdges } from './processors';
 import { graphStyles, layoutConfig } from './graph';
 
 export class HolochainPlaygroundDhtCells extends BaseElement {
+  @property({ type: Number })
+  animationDelay: number = 1000;
+
+  @property({ type: Array })
+  workflowsToDisplay: WorkflowType[] = [
+    WorkflowType.GENESIS,
+    WorkflowType.CALL_ZOME,
+    WorkflowType.INCOMING_DHT_OPS,
+    WorkflowType.INTEGRATE_DHT_OPS,
+    WorkflowType.PRODUCE_DHT_OPS,
+    WorkflowType.PUBLISH_DHT_OPS,
+    WorkflowType.APP_VALIDATION,
+    WorkflowType.APP_VALIDATION,
+  ];
+
+  @property({ type: Array })
+  networkRequestsToDisplay: NetworkRequestType[] = [
+    NetworkRequestType.ADD_NEIGHBOR,
+    NetworkRequestType.PUBLISH_REQUEST,
+    NetworkRequestType.CALL_REMOTE,
+    NetworkRequestType.GET_REQUEST,
+  ];
+
   @query('#graph')
   private graph: any;
 
@@ -91,7 +119,7 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
             group: 'nodes',
             data: {
               networkRequest,
-              label: networkRequest.name,
+              label: networkRequest.type,
             },
             position: { x: fromPosition.x + 1, y: fromPosition.y + 1 },
             classes: ['network-request'],
@@ -190,6 +218,8 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
       const finalY = position.y + (upSide ? -50 : 50);
 
       return html`<holochain-playground-cell-tasks
+        .workflowsToDisplay=${this.workflowsToDisplay}
+        .workflowDelay=${this.animationDelay}
         .cell=${cell}
         .x=${finalX}
         .y=${finalY}

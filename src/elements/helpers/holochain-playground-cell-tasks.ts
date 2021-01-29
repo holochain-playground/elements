@@ -1,5 +1,5 @@
 import { Dictionary } from '@holochain-open-dev/core-types';
-import { Cell, CellSignal, sleep } from '@holochain-playground/core';
+import { Cell, sleep, WorkflowType } from '@holochain-playground/core';
 import { css, property, PropertyValues } from 'lit-element';
 import { html } from 'lit-html';
 import { styleMap } from 'lit-html/directives/style-map';
@@ -20,7 +20,18 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
   y!: number;
 
   @property({ type: Array })
-  signals: CellSignal[] = ['after-workflow-executed'];
+  workflowsToDisplay: WorkflowType[] = [
+    WorkflowType.GENESIS,
+    WorkflowType.CALL_ZOME,
+    WorkflowType.INCOMING_DHT_OPS,
+    WorkflowType.INTEGRATE_DHT_OPS,
+    WorkflowType.PRODUCE_DHT_OPS,
+    WorkflowType.PUBLISH_DHT_OPS,
+    WorkflowType.APP_VALIDATION,
+    WorkflowType.SYS_VALIDATION,
+  ];
+  @property({ type: Number })
+  workflowDelay: number = 1000;
 
   @property({ type: Object })
   _tasks: Dictionary<number> = {};
@@ -35,15 +46,16 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
   onNewObservedCell(cell: Cell) {
     return [
       cell.workflowExecutor.before(async (task) => {
-        const delay = 1000;
-        if (!this._tasks[task.name]) this._tasks[task.name] = 0;
+        if (!this.workflowsToDisplay.find((w) => w === task.type)) return;
 
-        this._tasks[task.name] += 1;
+        if (!this._tasks[task.type]) this._tasks[task.type] = 0;
+
+        this._tasks[task.type] += 1;
         this.requestUpdate();
 
-        await sleep(delay);
-        this._tasks[task.name] -= 1;
-        if (this._tasks[task.name] === 0) delete this._tasks[task.name];
+        await sleep(this.workflowDelay);
+        this._tasks[task.type] -= 1;
+        if (this._tasks[task.type] === 0) delete this._tasks[task.type];
 
         this.requestUpdate();
       }),

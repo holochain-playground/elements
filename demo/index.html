@@ -12,7 +12,7 @@
   <body>
     <holochain-playground-container id="container">
       <holochain-playground-dht-cells
-        style="height: 1000px; width: 100%"
+        style="height: 400px; width: 100%"
       ></holochain-playground-dht-cells>
       <holochain-playground-call-zome
         id="call-zome"
@@ -25,6 +25,60 @@
       import { HolochainPlaygroundDhtCells } from '../dist/elements/holochain-playground-dht-cells';
       import { HolochainPlaygroundContainer } from '@holochain-playground/container';
 
+      const dna = {
+        zomes: [
+          {
+            name: 'sample',
+            entry_defs: [],
+            zome_functions: {
+              create_cap: {
+                call: ({ create_cap_grant }) => (agentPubKeyToGrant) => {
+                  return create_cap_grant({
+                    tag: '',
+                    access: {
+                      Assigned: {
+                        secret: '',
+                        assignees: [agentPubKeyToGrant],
+                      },
+                    },
+                    functions: [{ zome: 'sample', fn_name: 'sample_fn' }],
+                  });
+                },
+                arguments: [
+                  { type: 'AgentPubKey', name: 'agentToGrantCapabilities' },
+                ],
+              },
+              sample_fn: {
+                call: () => () => {
+                  return 'Hello';
+                },
+                arguments: [],
+              },
+              revoke_cap: {
+                call: ({ delete_cap_grant }) => (cap_grant_to_revoke) => {
+                  return delete_cap_grant({ header_hash: cap_grant_to_revoke });
+                },
+                arguments: [{ type: 'HeaderHash', name: 'CapGrantToRevoke' }],
+              },
+              call_remote: {
+                call: ({ call_remote }) => (agentToCall) => {
+                  return call_remote({
+                    agent: agentToCall,
+                    zome: 'sample',
+                    fn_name: 'sample_fn',
+                    cap: null,
+                    payload: null,
+                  });
+                },
+                arguments: [
+                  { type: 'AgentPubKey', name: 'agentToCallRemoteSampleFn' },
+                ],
+              },
+            },
+          },
+        ],
+      };
+
       customElements.define(
         'holochain-playground-container',
         HolochainPlaygroundContainer
@@ -35,7 +89,8 @@
       );
 
       const container = document.getElementById('container');
-      container.numberOfSimulatedConductors = 10;
+      container.numberOfSimulatedConductors = 2;
+      container.simulatedDnaTemplate = dna;
 
       container.addEventListener('ready', (e) => {
         customElements.define(
