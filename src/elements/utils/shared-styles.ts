@@ -16,6 +16,7 @@ export const sharedStyles = css`
   .center-content {
     align-items: center;
     justify-content: center;
+    display: flex;
   }
 
   h3 {
@@ -74,5 +75,20 @@ export const sharedStyles = css`
     position: absolute;
     right: 8px;
     top: 8px;
+  }
+
+  .horizontal-divider {
+    background-color: grey;
+    height: 1px;
+    opacity: 0.3;
+    margin-bottom: 0;
+    width: 100%;
+  }
+  .vertical-divider {
+    background-color: grey;
+    width: 1px;
+    height: 100%;
+    opacity: 0.3;
+    margin-bottom: 0;
   }
 `;

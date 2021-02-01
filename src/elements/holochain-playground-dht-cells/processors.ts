@@ -12,7 +12,7 @@ export function dhtCellsNodes(cells: Cell[]) {
   const cellNodes = sortedCells.map((cell) => ({
     data: {
       id: cell.agentPubKey,
-      label: `${cell.agentPubKey.substr(0, 6)}...`,
+      label: `${cell.agentPubKey.substr(0, 10)}...`,
     },
   }));
 

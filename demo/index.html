@@ -12,9 +12,10 @@
   <body>
     <holochain-playground-container id="container">
       <holochain-playground-dht-cells
-        style="height: 400px; width: 100%"
-      ></holochain-playground-dht-cells>
-      <holochain-playground-call-zome
+        style="height: 600px; width: 100%"
+        ></holochain-playground-dht-cells>
+        <holochain-playground-call-zome
+        style="height: 350px; width: 100%"
         id="call-zome"
       ></holochain-playground-call-zome>
     </holochain-playground-container>
@@ -33,6 +34,7 @@
             zome_functions: {
               create_cap: {
                 call: ({ create_cap_grant }) => (agentPubKeyToGrant) => {
+                  console.log(agentPubKeyToGrant)
                   return create_cap_grant({
                     tag: '',
                     access: {
@@ -76,6 +78,11 @@
               },
             },
           },
+          {
+            name: 'haf',
+            entry_defs: [],
+            zome_functions: {},
+          },
         ],
       };
 
@@ -89,7 +96,7 @@
       );
 
       const container = document.getElementById('container');
-      container.numberOfSimulatedConductors = 2;
+      container.numberOfSimulatedConductors = 6;
       container.simulatedDnaTemplate = dna;
 
       container.addEventListener('ready', (e) => {
@@ -97,16 +104,11 @@
           'holochain-playground-call-zome',
           HolochainPlaygroundCallZome
         );
-        const callZome = document.getElementById('call-zome');
         const conductor = e.detail.conductors[0];
 
         const cellId = conductor.getAllCells()[0].cellId;
 
-        callZome.conductor = conductor;
-        callZome.cellId = cellId;
-        callZome.zome = Object.values(conductor.registeredDnas)[0].zomes[0];
         container.activeDna = cellId[0];
-        container.activeAgentPubKey = cellId[1];
       });
     </script>
   </body>

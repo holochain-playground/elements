@@ -172,7 +172,7 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
 
   renderHelp() {
     return html`
-      <holochain-playground-help-button heading="DHT Graph" class="block-help">
+      <holochain-playground-help-button heading="DHT Cells" class="block-help">
         <span>
           This is a visual interactive representation of a holochain
           <a
@@ -233,7 +233,7 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
       <mwc-card class="block-card">
         ${this.renderHelp()} ${this.renderTasksTooltips()}
         <div class="column fill">
-          <h3 class="block-title">DHT Nodes</h3>
+          <h3 class="block-title">DHT Cells</h3>
           <div id="graph" class="fill"></div>
         </div>
       </mwc-card>
