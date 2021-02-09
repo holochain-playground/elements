@@ -17,6 +17,8 @@ import { selectAllCells, selectHoldingCells } from '../utils/selectors';
 import { sharedStyles } from '../utils/shared-styles';
 import { dhtCellsNodes, neighborsEdges } from './processors';
 import { graphStyles, layoutConfig } from './graph';
+import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import { styleMap } from 'lit-html/directives/style-map';
 
 export class HolochainPlaygroundDhtCells extends BaseElement {
   @property({ type: Number })
@@ -45,8 +47,8 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
   @query('#graph')
   private graph: any;
 
-  private cy;
-  private layout;
+  private _cy;
+  private _layout;
 
   static get styles() {
     return [
@@ -61,11 +63,11 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
 
   async firstUpdated() {
     window.addEventListener('scroll', () => {
-      this.cy.resize();
+      this._cy.resize();
       this.requestUpdate();
     });
 
-    this.cy = cytoscape({
+    this._cy = cytoscape({
       container: this.graph,
       boxSelectionEnabled: false,
       autoungrabify: true,
@@ -75,7 +77,7 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
       style: graphStyles,
     });
 
-    this.cy.on('tap', 'node', (evt) => {
+    this._cy.on('tap', 'node', (evt) => {
       this.updatePlayground({
         activeAgentPubKey: evt.target.id(),
         activeEntryHash: null,
@@ -87,12 +89,12 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
     const allCells = selectAllCells(this.activeDna, this.conductors);
 
     allCells.forEach((cell) =>
-      this.cy.getElementById(cell.agentPubKey).removeClass('highlighted')
+      this._cy.getElementById(cell.agentPubKey).removeClass('highlighted')
     );
     const holdingCells = selectHoldingCells(entryHash, allCells);
 
     for (const cell of holdingCells) {
-      this.cy.getElementById(cell.agentPubKey).addClass('highlighted');
+      this._cy.getElementById(cell.agentPubKey).addClass('highlighted');
     }
   }
 
@@ -108,13 +110,13 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
 
         const duration = 3000;
 
-        const fromNode = this.cy.getElementById(networkRequest.fromAgent);
+        const fromNode = this._cy.getElementById(networkRequest.fromAgent);
         if (!fromNode.position()) return;
-        const toNode = this.cy.getElementById(networkRequest.toAgent);
+        const toNode = this._cy.getElementById(networkRequest.toAgent);
 
         const fromPosition = fromNode.position();
         const toPosition = toNode.position();
-        const el = this.cy.add([
+        const el = this._cy.add([
           {
             group: 'nodes',
             data: {
@@ -132,23 +134,23 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
         });
 
         await sleep(duration);
-        this.cy.remove(el);
+        this._cy.remove(el);
       }),
     ];
   }
 
   onCellsChanged() {
-    if (this.layout) this.layout.stop();
-    this.cy.remove('node');
-    this.cy.remove('edge');
+    if (this._layout) this._layout.stop();
+    this._cy.remove('node');
+    this._cy.remove('edge');
 
     const nodes = dhtCellsNodes(this.cells);
-    this.cy.add(nodes);
+    this._cy.add(nodes);
     const neighbors = neighborsEdges(this.cells);
-    this.cy.add(neighbors);
+    this._cy.add(neighbors);
 
-    this.layout = this.cy.elements().makeLayout(layoutConfig);
-    this.layout.run();
+    this._layout = this._cy.elements().makeLayout(layoutConfig);
+    this._layout.run();
   }
 
   _neighborEdges = [];
@@ -159,13 +161,13 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
     const neighbors = neighborsEdges(this.cells);
     if (this._neighborEdges.length != neighbors.length) {
       this._neighborEdges = neighbors;
-      this.cy.add(neighbors);
+      this._cy.add(neighbors);
     }
 
     this.observedCells().forEach((cell) =>
-      this.cy.getElementById(cell.agentPubKey).removeClass('selected')
+      this._cy.getElementById(cell.agentPubKey).removeClass('selected')
     );
-    this.cy.getElementById(this.activeAgentPubKey).addClass('selected');
+    this._cy.getElementById(this.activeAgentPubKey).addClass('selected');
 
     this.highlightNodesWithEntry(this.activeEntryHash);
   }
@@ -200,9 +202,9 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
   }
 
   renderTasksTooltips() {
-    if (!this.cy || !this.cells) return html``;
+    if (!this._cy || !this.cells) return html``;
 
-    const nodes = this.cy.nodes();
+    const nodes = this._cy.nodes();
     const cellsWithPosition = nodes.map((node) => {
       const agentPubKey = node.id();
       const cell = this.cells.find((cell) => cell.agentPubKey === agentPubKey);
@@ -211,8 +213,8 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
     });
 
     return html`${cellsWithPosition.map(({ cell, position }) => {
-      const leftSide = this.cy.width() / 2 > position.x;
-      const upSide = this.cy.height() / 2 > position.y;
+      const leftSide = this._cy.width() / 2 > position.x;
+      const upSide = this._cy.height() / 2 > position.y;
 
       const finalX = position.x + (leftSide ? -250 : 50);
       const finalY = position.y + (upSide ? -50 : 50);
@@ -228,10 +230,37 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
     })}`;
   }
 
+  renderCopyButton() {
+    if (!this.activeAgentPubKey) return html``;
+
+    const el = this._cy.getElementById(this.activeAgentPubKey);
+    const pos = el.renderedPosition();
+    return html`<mwc-icon-button
+      style=${styleMap({
+        position: 'absolute',
+        top: `${pos.y - 2}px`,
+        left: `${pos.x + 63}px`,
+        'z-index': '10',
+      })}
+      icon="content_copy"
+      @click=${() => {
+        navigator.clipboard.writeText(this.activeAgentPubKey);
+        this.dispatchEvent(
+          new CustomEvent('show-message', {
+            detail: { message: 'AgentPubKey copied to the clipboard' },
+            bubbles: true,
+            composed: true,
+          })
+        );
+      }}
+    ></mwc-icon-button>`;
+  }
+
   render() {
     return html`
-      <mwc-card class="block-card">
+      <mwc-card class="block-card" style="position: relative;">
         ${this.renderHelp()} ${this.renderTasksTooltips()}
+        ${this.renderCopyButton()}
         <div class="column fill">
           <h3 class="block-title">DHT Cells</h3>
           <div id="graph" class="fill"></div>
@@ -245,6 +274,7 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
       'mwc-card': Card,
       'mwc-menu-surface': MenuSurface,
       'mwc-button': Button,
+      'mwc-icon-button': IconButton,
       'holochain-playground-help-button': HolochainPlaygroundHelpButton,
       'holochain-playground-cell-tasks': HolochainPlaygroundCellTasks,
     };

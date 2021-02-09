@@ -28,7 +28,7 @@ export const sharedStyles = css`
   }
 
   .placeholder {
-    color: grey;
+    opacity: 0.6;
   }
 
   .flex-scrollable-parent {

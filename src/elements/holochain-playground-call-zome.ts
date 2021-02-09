@@ -1,4 +1,11 @@
-import { html, css, LitElement, property, query } from 'lit-element';
+import {
+  html,
+  css,
+  LitElement,
+  property,
+  query,
+  PropertyValues,
+} from 'lit-element';
 
 import {
   AgentPubKey,
@@ -54,7 +61,8 @@ export class HolochainPlaygroundCallZome extends BaseElement {
     `,
   ];
 
-  _arguments = {};
+  // Arguments segmented by zome/fn_name/arg_name
+  _arguments: Dictionary<Dictionary<Dictionary<any>>> = {};
 
   get activeCell(): Cell {
     return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors);
@@ -68,7 +76,7 @@ export class HolochainPlaygroundCallZome extends BaseElement {
     return [this.activeCell];
   }
 
-  async callZomeFunction(fnName: string) {
+  async callZomeFunction(zomeName: string, fnName: string) {
     const zome = this.activeZome;
     const timestamp = Date.now();
     this._results[timestamp] = {
@@ -79,11 +87,13 @@ export class HolochainPlaygroundCallZome extends BaseElement {
     };
     this.requestUpdate();
 
+    const payload = this._arguments[zomeName] && this._arguments[zomeName][fnName];
+
     try {
       const result = await this.activeCell.conductor.callZomeFn({
         cellId: this.activeCell.cellId,
         zome: zome.name,
-        payload: this._arguments,
+        payload,
         fnName,
         cap: null,
       });
@@ -95,11 +105,26 @@ export class HolochainPlaygroundCallZome extends BaseElement {
     }
   }
 
-  renderCallableFunction(name: string, zomeFunction: SimulatedZomeFunction) {
+  setFunctionArgument(
+    zome: string,
+    fnName: string,
+    argName: string,
+    argValue: any
+  ) {
+    if (!this._arguments[zome]) this._arguments[zome] = {};
+    if (!this._arguments[zome][fnName]) this._arguments[zome][fnName] = {};
+    this._arguments[zome][fnName][argName] = argValue;
+  }
+
+  renderCallableFunction(
+    zome: string,
+    name: string,
+    zomeFunction: SimulatedZomeFunction
+  ) {
     return html`<div class="row" style="margin: 8px 0;">
       <mwc-button
         raised
-        @click=${() => this.callZomeFunction(name)}
+        @click=${() => this.callZomeFunction(zome, name)}
         style="width: 12em; margin: 18px; margin-left: 0;"
         >${name}</mwc-button
       >
@@ -114,7 +139,13 @@ export class HolochainPlaygroundCallZome extends BaseElement {
                   style="margin-top: 8px"
                   outlined
                   label=${arg.name + ': ' + arg.type}
-                  @input=${(e) => (this._arguments[arg.name] = e.target.value)}
+                  @input=${(e) =>
+                    this.setFunctionArgument(
+                      zome,
+                      name,
+                      arg.name,
+                      e.target.value
+                    )}
                 ></mwc-textfield>`
             )}
       </div>
@@ -141,8 +172,11 @@ export class HolochainPlaygroundCallZome extends BaseElement {
             <div class="column" style="flex: 1; margin: 16px;">
               ${zomeFns.map(
                 ([name, fn], index) =>
-                  html`${this.renderCallableFunction(name, fn)}${index <
-                  zomeFns.length - 1
+                  html`${this.renderCallableFunction(
+                    zome.name,
+                    name,
+                    fn
+                  )}${index < zomeFns.length - 1
                     ? html`<span class="horizontal-divider"></span>`
                     : html``}`
               )}

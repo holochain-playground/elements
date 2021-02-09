@@ -13,8 +13,8 @@
     <holochain-playground-container id="container">
       <holochain-playground-dht-cells
         style="height: 600px; width: 100%"
-        ></holochain-playground-dht-cells>
-        <holochain-playground-call-zome
+      ></holochain-playground-dht-cells>
+      <holochain-playground-call-zome
         style="height: 350px; width: 100%"
         id="call-zome"
       ></holochain-playground-call-zome>
@@ -33,21 +33,20 @@
             entry_defs: [],
             zome_functions: {
               create_cap: {
-                call: ({ create_cap_grant }) => (agentPubKeyToGrant) => {
-                  console.log(agentPubKeyToGrant)
+                call: ({ create_cap_grant }) => ({ grantedAgent }) => {
                   return create_cap_grant({
                     tag: '',
                     access: {
                       Assigned: {
                         secret: '',
-                        assignees: [agentPubKeyToGrant],
+                        assignees: [grantedAgent],
                       },
                     },
                     functions: [{ zome: 'sample', fn_name: 'sample_fn' }],
                   });
                 },
                 arguments: [
-                  { type: 'AgentPubKey', name: 'agentToGrantCapabilities' },
+                  { type: 'AgentPubKey', name: 'grantedAgent' },
                 ],
               },
               sample_fn: {
@@ -57,13 +56,13 @@
                 arguments: [],
               },
               revoke_cap: {
-                call: ({ delete_cap_grant }) => (cap_grant_to_revoke) => {
-                  return delete_cap_grant({ header_hash: cap_grant_to_revoke });
+                call: ({ delete_cap_grant }) => ({capGrantToRevoke}) => {
+                  return delete_cap_grant({ header_hash: capGrantToRevoke });
                 },
-                arguments: [{ type: 'HeaderHash', name: 'CapGrantToRevoke' }],
+                arguments: [{ type: 'HeaderHash', name: 'capGrantToRevoke' }],
               },
-              call_remote: {
-                call: ({ call_remote }) => (agentToCall) => {
+              remote_sample_fn: {
+                call: ({ call_remote }) => ({agentToCall}) => {
                   return call_remote({
                     agent: agentToCall,
                     zome: 'sample',
@@ -73,15 +72,10 @@
                   });
                 },
                 arguments: [
-                  { type: 'AgentPubKey', name: 'agentToCallRemoteSampleFn' },
+                  { type: 'AgentPubKey', name: 'agentToCall' },
                 ],
               },
             },
-          },
-          {
-            name: 'haf',
-            entry_defs: [],
-            zome_functions: {},
           },
         ],
       };

@@ -4,6 +4,7 @@ import { css, property, PropertyValues } from 'lit-element';
 import { html } from 'lit-html';
 import { styleMap } from 'lit-html/directives/style-map';
 import { Card } from 'scoped-material-components/mwc-card';
+import { Icon } from 'scoped-material-components/mwc-icon';
 import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
 import { List } from 'scoped-material-components/mwc-list';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
@@ -75,7 +76,8 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
         <mwc-list style="max-height: 300px; overflow-y: auto; width: 200px;">
           ${Object.entries(this._tasks).map(
             ([taskName, taskNumber]) => html`
-              <mwc-list-item twoline>
+              <mwc-list-item twoline graphic="icon" style="--mdc-list-item-graphic-margin: 4px;">
+                <mwc-icon slot="graphic">miscellaneous_services</mwc-icon>
                 <span>
                   ${taskNumber > 1 ? taskNumber + 'x' : ''} ${taskName}
                 </span>
@@ -106,6 +108,7 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
     return {
       'mwc-card': Card,
       'mwc-list': List,
+      'mwc-icon': Icon,
       'mwc-list-item': ListItem,
       'mwc-linear-progress': LinearProgress,
     };
