@@ -5,7 +5,6 @@ import { selectCell, selectAllCells } from './utils/selectors.js';
 import { getDhtShard } from '@holochain-playground/core';
 import { J as JsonViewer } from '../json-viewer-d616c533.js';
 import { BaseElement } from './utils/base-element.js';
-import '@holochain-open-dev/common';
 import 'lodash-es';
 import '@open-wc/scoped-elements';
 import '@holochain-playground/container';

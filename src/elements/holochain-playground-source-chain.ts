@@ -8,13 +8,11 @@ import { isEqual } from 'lodash-es';
 
 import { sharedStyles } from './utils/shared-styles';
 
-import { Subscription } from 'rxjs';
-import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
-import { Cell, Conductor } from '@holochain-playground/core';
-import { selectAllCells, selectCell } from './utils/selectors';
+import { Cell } from '@holochain-playground/core';
+import { selectCell } from './utils/selectors';
 import { BaseElement } from './utils/base-element';
-import { JsonViewer } from '@power-elements/json-viewer';
-import { deserializeHash } from '@holochain-open-dev/common';
+import { Card } from 'scoped-material-components/mwc-card';
+import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button';
 
 cytoscape.use(dagre); // register extension
 
@@ -39,12 +37,7 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
   private nodes: any[] = [];
 
   private _cell: Cell;
-  private _subscription: Subscription;
 
-  @property({ type: Object })
-  private _nodeInfo: any | undefined = undefined;
-  @query('#node-info-menu')
-  private _nodeInfoMenu: MenuSurface;
   @query('#source-chain-graph')
   private graph: HTMLElement;
 
@@ -75,17 +68,20 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
           text-halign: right;
           text-valign: center;
           text-margin-x: 4px;
+          shape: round-rectangle;
         }
 
         .header {
           text-margin-x: -5px;
           text-halign: left;
+          shape: round-octagon;
         }
 
         edge {
           width: 4;
           target-arrow-shape: triangle;
           curve-style: bezier;
+          line-style: dotted;
         }
 
         .selected {
@@ -121,21 +117,18 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
       // Node id is <HEADER_HASH>:<ENTRY_HASH>
       const selectedEntryId = event.target.id().split(':')[1];
       this.updatePlayground({
-        activeEntryHash: deserializeHash(selectedEntryId),
+        activeEntryHash: selectedEntryId,
       });
     });
     this.cy.renderer().hoverData.capture = true;
 
-    this.cy.on('mouseover', 'node', (event) => {
-      this._nodeInfo = event.target.data().data;
-      this._nodeInfoMenu.x = event.originalEvent.x;
-      this._nodeInfoMenu.y = event.originalEvent.y;
-      this._nodeInfoMenu.open = true;
-    });
-    this.cy.on('mouseout', 'node', (event) => {
-      this._nodeInfoMenu.open = false;
-    });
     this.requestUpdate();
+  }
+
+  observedCells() {
+    return [
+      selectCell(this.activeDna, this.activeAgentPubKey, this.conductors),
+    ];
   }
 
   updated(changedValues: PropertyValues) {
@@ -146,22 +139,16 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
       this.conductors
     );
 
-    if (activeCell != this._cell) {
-      if (this._subscription) this._subscription.unsubscribe();
-
-      this._subscription = activeCell.signals[
-        'after-workflow-executed'
-      ].subscribe(() => this.requestUpdate());
-      this._cell = activeCell;
-    }
-
     const nodes = sourceChainNodes(activeCell);
     if (!isEqual(nodes, this.nodes)) {
-      this.nodes = nodes;
-
       this.cy.remove('nodes');
       this.cy.add(nodes);
+
+      if (!this.nodes) this.cy.fit([nodes.slice(0, 5)]);
+
       this.cy.layout({ name: 'dagre' }).run();
+
+      this.nodes = nodes;
     }
 
     this.cy.filter('node').removeClass('selected');
@@ -170,32 +157,54 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
     this.cy.renderer().hoverData.capture = true;
   }
 
+  renderHelp() {
+    return html` <holochain-playground-help-button
+      heading="Source-Chain"
+      class="block-help"
+    >
+      <span>
+        This graph displays the source chain of the selected cell. On the
+        top-left sequence, you can see the hash-chain of headers. On the
+        bottom-right sequence, you can see the entries associated with each
+        header. Links between headers
+        <br />
+        <br />
+        Dashed relationships are embedded references: the headers contain the
+        hash of the last header, and also the entry hash if they have an entry.
+      </span>
+    </holochain-playground-help-button>`;
+  }
+
   render() {
     return html`
-      ${this._cell
-        ? html``
-        : html`
-            <div style="flex: 1;" class="center-content">
-              <span>Select a cell to display its source chain</span>
-            </div>
-          `}
-      <mwc-menu-surface id="node-info-menu">
-        <json-viewer .object=${this._nodeInfo} class="json-info"></json-viewer>
-      </mwc-menu-surface>
+      <mwc-card class="block-card">
+        <div class="column fill">
+          <h3 class="block-title">Source chain</h3>
+          ${this.renderHelp()}
+          ${this._cell
+            ? html``
+            : html`
+                <div style="flex: 1;" class="center-content">
+                  <span>Select a cell to display its source chain</span>
+                </div>
+              `}
 
-      <div
-        style=${styleMap({
-          display: this._cell ? '' : 'none',
-        })}
-        id="source-chain-graph"
-      ></div>
+          <div
+            style=${styleMap({
+              display: this._cell ? '' : 'none',
+            })}
+            class="fill"
+            id="source-chain-graph"
+          ></div>
+        </div>
+      </mwc-card>
     `;
   }
 
   static get scopedElements() {
     return {
-      'mwc-menu-surface': MenuSurface,
-      'json-viewer': JsonViewer,
+      'mwc-card': Card,
+      'holochain-playground-help-button': HolochainPlaygroundHelpButton,
     };
   }
 }

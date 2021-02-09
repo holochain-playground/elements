@@ -1,10 +1,7 @@
-import { serializeHash, deserializeHash } from '@holochain-open-dev/common';
 import { isEqual } from 'lodash-es';
 
 function selectCells(dna, conductor) {
-    return conductor.cells
-        .filter((cell) => isEqual(cell.cell.dnaHash, dna))
-        .map((c) => c.cell);
+    return conductor.getCells(dna);
 }
 function selectAllCells(dna, conductors) {
     const cells = conductors.map((c) => selectCells(dna, c));
@@ -38,14 +35,13 @@ function isHoldingEntry(state, entryHash) {
     return false;
 }
 function selectConductorByAgent(agentPubKey, conductors) {
-    return conductors.find((conductor) => conductor.cells.find((cell) => isEqual(cell.cell.agentPubKey, agentPubKey)));
+    return conductors.find((conductor) => conductor.getAllCells().find((cell) => cell.agentPubKey === agentPubKey));
 }
 function selectCell(dnaHash, agentPubKey, conductors) {
     for (const conductor of conductors) {
-        for (const cell of conductor.cells) {
-            if (isEqual(cell.cell.agentPubKey, agentPubKey) &&
-                isEqual(cell.cell.dnaHash, dnaHash)) {
-                return cell.cell;
+        for (const cell of conductor.getAllCells()) {
+            if (cell.agentPubKey === agentPubKey && cell.dnaHash === dnaHash) {
+                return cell;
             }
         }
     }
@@ -64,7 +60,7 @@ function selectFromCAS(hash, cells) {
     if (!hash)
         return undefined;
     for (const cell of cells) {
-        const entry = cell.state.CAS[serializeHash(hash)];
+        const entry = cell.state.CAS[hash];
         if (entry) {
             return entry;
         }
@@ -87,11 +83,11 @@ function selectMedianHoldingDHTOps(cells) {
 function selectAllDNAs(conductors) {
     const dnas = {};
     for (const conductor of conductors) {
-        for (const cell of Object.values(conductor.cells)) {
-            dnas[serializeHash(cell.cell.dnaHash)] = true;
+        for (const cell of conductor.getAllCells()) {
+            dnas[cell.dnaHash] = true;
         }
     }
-    return Object.keys(dnas).map(deserializeHash);
+    return Object.keys(dnas);
 }
 function selectRedundancyFactor(cell) {
     return cell.p2p.redundancyFactor;

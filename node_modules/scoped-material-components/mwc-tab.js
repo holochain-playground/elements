@@ -9,7 +9,7 @@ import 'lit-html/directives/style-map';
 import './mwc-ripple.js';
 import '@material/mwc-base/observer';
 import '@material/tab/foundation';
-export { a as Tab } from './mwc-tab-c4e333c8.js';
+export { a as Tab } from './mwc-tab-f4228183.js';
 import '@material/tab-indicator/fading-foundation';
 import '@material/tab-indicator/sliding-foundation';
 import './mwc-tab-indicator.js';

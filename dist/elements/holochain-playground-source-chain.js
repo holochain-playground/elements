@@ -1,20 +1,24 @@
 import { _ as __decorate, a as __metadata } from '../tslib.es6-654e2c24.js';
-import { css, html, property as property$1, query } from 'lit-element';
+import { css, html, query } from 'lit-element';
 import { styleMap } from 'lit-html/directives/style-map';
 import { sourceChainNodes } from '../processors/graph.js';
-import { b as commonjsGlobal, a as createCommonjsModule, d as commonjsRequire, c as cytoscape_cjs } from '../cytoscape.cjs-2bb12747.js';
+import { a as commonjsGlobal, c as createCommonjsModule, d as commonjsRequire, b as cytoscape_cjs } from '../cytoscape.cjs-f5daa50b.js';
 import { isEqual } from 'lodash-es';
 import { sharedStyles } from './utils/shared-styles.js';
-import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
 import { selectCell } from './utils/selectors.js';
 import { BaseElement } from './utils/base-element.js';
-import { J as JsonViewer } from '../json-viewer-d616c533.js';
-import { deserializeHash } from '@holochain-open-dev/common';
+import { Card } from 'scoped-material-components/mwc-card';
+import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button.js';
 import '@holochain-playground/core';
 import '@holochain-open-dev/core-types';
+import '@holochain-open-dev/common';
 import './utils/hash.js';
 import '@open-wc/scoped-elements';
 import '@holochain-playground/container';
+import 'lit-html';
+import 'scoped-material-components/mwc-button';
+import 'scoped-material-components/mwc-dialog';
+import 'scoped-material-components/mwc-icon-button';
 
 /**
  * Removes all key-value entries from the list cache.
@@ -10850,7 +10854,6 @@ class HolochainPlaygroundSourceChain extends BaseElement {
     constructor() {
         super(...arguments);
         this.nodes = [];
-        this._nodeInfo = undefined;
     }
     static get styles() {
         return [
@@ -10892,17 +10895,20 @@ class HolochainPlaygroundSourceChain extends BaseElement {
           text-halign: right;
           text-valign: center;
           text-margin-x: 4px;
+          shape: round-rectangle;
         }
 
         .header {
           text-margin-x: -5px;
           text-halign: left;
+          shape: round-octagon;
         }
 
         edge {
           width: 4;
           target-arrow-shape: triangle;
           curve-style: bezier;
+          line-style: dotted;
         }
 
         .selected {
@@ -10938,77 +10944,82 @@ class HolochainPlaygroundSourceChain extends BaseElement {
             // Node id is <HEADER_HASH>:<ENTRY_HASH>
             const selectedEntryId = event.target.id().split(':')[1];
             this.updatePlayground({
-                activeEntryHash: deserializeHash(selectedEntryId),
+                activeEntryHash: selectedEntryId,
             });
         });
         this.cy.renderer().hoverData.capture = true;
-        this.cy.on('mouseover', 'node', (event) => {
-            this._nodeInfo = event.target.data().data;
-            this._nodeInfoMenu.x = event.originalEvent.x;
-            this._nodeInfoMenu.y = event.originalEvent.y;
-            this._nodeInfoMenu.open = true;
-        });
-        this.cy.on('mouseout', 'node', (event) => {
-            this._nodeInfoMenu.open = false;
-        });
         this.requestUpdate();
+    }
+    observedCells() {
+        return [
+            selectCell(this.activeDna, this.activeAgentPubKey, this.conductors),
+        ];
     }
     updated(changedValues) {
         super.updated(changedValues);
         const activeCell = selectCell(this.activeDna, this.activeAgentPubKey, this.conductors);
-        if (activeCell != this._cell) {
-            if (this._subscription)
-                this._subscription.unsubscribe();
-            this._subscription = activeCell.signals['after-workflow-executed'].subscribe(() => this.requestUpdate());
-            this._cell = activeCell;
-        }
         const nodes = sourceChainNodes(activeCell);
         if (!isEqual(nodes, this.nodes)) {
-            this.nodes = nodes;
             this.cy.remove('nodes');
             this.cy.add(nodes);
+            if (!this.nodes)
+                this.cy.fit([nodes.slice(0, 5)]);
             this.cy.layout({ name: 'dagre' }).run();
+            this.nodes = nodes;
         }
         this.cy.filter('node').removeClass('selected');
         this.cy.getElementById(this.activeEntryHash).addClass('selected');
         this.cy.renderer().hoverData.capture = true;
     }
+    renderHelp() {
+        return html ` <holochain-playground-help-button
+      heading="Source-Chain"
+      class="block-help"
+    >
+      <span>
+        This graph displays the source chain of the selected cell. On the
+        top-left sequence, you can see the hash-chain of headers. On the
+        bottom-right sequence, you can see the entries associated with each
+        header. Links between headers
+        <br />
+        <br />
+        Dashed relationships are embedded references: the headers contain the
+        hash of the last header, and also the entry hash if they have an entry.
+      </span>
+    </holochain-playground-help-button>`;
+    }
     render() {
         return html `
-      ${this._cell
+      <mwc-card class="block-card">
+        <div class="column fill">
+          <h3 class="block-title">Source chain</h3>
+          ${this.renderHelp()}
+          ${this._cell
             ? html ``
             : html `
-            <div style="flex: 1;" class="center-content">
-              <span>Select a cell to display its source chain</span>
-            </div>
-          `}
-      <mwc-menu-surface id="node-info-menu">
-        <json-viewer .object=${this._nodeInfo} class="json-info"></json-viewer>
-      </mwc-menu-surface>
+                <div style="flex: 1;" class="center-content">
+                  <span>Select a cell to display its source chain</span>
+                </div>
+              `}
 
-      <div
-        style=${styleMap({
+          <div
+            style=${styleMap({
             display: this._cell ? '' : 'none',
         })}
-        id="source-chain-graph"
-      ></div>
+            class="fill"
+            id="source-chain-graph"
+          ></div>
+        </div>
+      </mwc-card>
     `;
     }
     static get scopedElements() {
         return {
-            'mwc-menu-surface': MenuSurface,
-            'json-viewer': JsonViewer,
+            'mwc-card': Card,
+            'holochain-playground-help-button': HolochainPlaygroundHelpButton,
         };
     }
 }
-__decorate([
-    property$1({ type: Object }),
-    __metadata("design:type", Object)
-], HolochainPlaygroundSourceChain.prototype, "_nodeInfo", void 0);
-__decorate([
-    query('#node-info-menu'),
-    __metadata("design:type", MenuSurface)
-], HolochainPlaygroundSourceChain.prototype, "_nodeInfoMenu", void 0);
 __decorate([
     query('#source-chain-graph'),
     __metadata("design:type", HTMLElement)

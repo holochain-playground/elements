@@ -1,0 +1,31 @@
+import {
+  Entry,
+  EntryType,
+  SignedHeaderHashed,
+  Create,
+  Delete,
+  Update,
+} from '@holochain-open-dev/core-types';
+import { ValidationStatus } from '..';
+
+export interface GetEntryFull {
+  entry: Entry;
+  entry_type: EntryType;
+  live_headers: SignedHeaderHashed<Create>[];
+  deletes: SignedHeaderHashed<Delete>[];
+  updates: SignedHeaderHashed<Update>[];
+}
+
+export interface GetElementFull {
+  signed_header: SignedHeaderHashed;
+  /// If there is an entry associated with this header it will be here
+  maybe_entry: Entry | undefined;
+  /// The validation status of this element.
+  validation_status: ValidationStatus;
+  /// All deletes on this header
+  deletes: SignedHeaderHashed<Delete>[];
+  /// Any updates on this entry.
+  updates: SignedHeaderHashed<Update>[];
+}
+
+export type GetResult = GetElementFull | GetEntryFull;

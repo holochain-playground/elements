@@ -12,7 +12,6 @@ import { TabBar } from 'scoped-material-components/mwc-tab-bar';
 import '@open-wc/scoped-elements';
 import '@holochain-playground/container';
 import './utils/selectors.js';
-import '@holochain-open-dev/common';
 import 'lodash-es';
 import '@holochain-playground/core';
 import '../json-viewer-d616c533.js';

@@ -4,14 +4,11 @@ import {
   SignedHeaderHashed,
   NewEntryHeader,
 } from '@holochain-open-dev/core-types';
-import { serializeHash, deserializeHash } from '@holochain-open-dev/common';
 import { Conductor, Cell, CellState } from '@holochain-playground/core';
 import { isEqual } from 'lodash-es';
 
 export function selectCells(dna: Hash, conductor: Conductor): Cell[] {
-  return conductor.cells
-    .filter((cell) => isEqual(cell.cell.dnaHash, dna))
-    .map((c) => c.cell);
+  return conductor.getCells(dna);
 }
 
 export function selectAllCells(dna: Hash, conductors: Conductor[]): Cell[] {
@@ -58,7 +55,7 @@ export function selectConductorByAgent(
   conductors: Conductor[]
 ): Conductor | undefined {
   return conductors.find((conductor) =>
-    conductor.cells.find((cell) => isEqual(cell.cell.agentPubKey, agentPubKey))
+    conductor.getAllCells().find((cell) => cell.agentPubKey === agentPubKey)
   );
 }
 
@@ -68,12 +65,9 @@ export function selectCell(
   conductors: Conductor[]
 ): Cell | undefined {
   for (const conductor of conductors) {
-    for (const cell of conductor.cells) {
-      if (
-        isEqual(cell.cell.agentPubKey, agentPubKey) &&
-        isEqual(cell.cell.dnaHash, dnaHash)
-      ) {
-        return cell.cell;
+    for (const cell of conductor.getAllCells()) {
+      if (cell.agentPubKey === agentPubKey && cell.dnaHash === dnaHash) {
+        return cell;
       }
     }
   }
@@ -97,7 +91,7 @@ export function selectFromCAS(hash: Hash, cells: Cell[]): any {
   if (!hash) return undefined;
 
   for (const cell of cells) {
-    const entry = cell.state.CAS[serializeHash(hash)];
+    const entry = cell.state.CAS[hash];
     if (entry) {
       return entry;
     }
@@ -131,11 +125,11 @@ export function selectAllDNAs(conductors: Conductor[]): Hash[] {
   const dnas = {};
 
   for (const conductor of conductors) {
-    for (const cell of Object.values(conductor.cells)) {
-      dnas[serializeHash(cell.cell.dnaHash)] = true;
+    for (const cell of conductor.getAllCells()) {
+      dnas[cell.dnaHash] = true;
     }
   }
-  return Object.keys(dnas).map(deserializeHash);
+  return Object.keys(dnas);
 }
 
 export function selectRedundancyFactor(cell: Cell): number {

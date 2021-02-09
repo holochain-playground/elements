@@ -7,6 +7,8 @@ import {
 } from '@holochain-open-dev/core-types';
 
 export interface CellState {
+  dnaHash: Hash;
+  agentPubKey: AgentPubKey;
   sourceChain: Array<Hash>;
   CAS: Dictionary<any>;
   metadata: Metadata; // For the moment only DHT shard

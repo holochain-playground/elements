@@ -1,33 +1,15 @@
-import { compareBigInts, location, getEntryTypeString, getAllHeldEntries, getEntryDetails, getLinksForEntry, getAppEntryType } from '@holochain-playground/core';
+import { getEntryTypeString, getAllHeldEntries, getEntryDetails, getLinksForEntry, getAppEntryType } from '@holochain-playground/core';
 import { EntryDhtStatus } from '@holochain-open-dev/core-types';
-import { serializeHash, timestampToMillis } from '@holochain-open-dev/common';
-import { serializeAndShortenHashesRec } from '../elements/utils/hash.js';
+import { timestampToMillis } from '@holochain-open-dev/common';
+import { shortenStrRec } from '../elements/utils/hash.js';
 
-function dnaNodes(cells) {
-    // const images = ['smartphone', 'desktop', 'laptop'];
-    const sortedCells = cells.sort((a, b) => compareBigInts(location(serializeHash(a.agentPubKey)), location(serializeHash(b.agentPubKey))));
-    const cellNodes = sortedCells.map((cell) => ({
-        data: {
-            id: cell.agentPubKey,
-            label: `${serializeHash(cell.agentPubKey).substr(0, 6)}...`,
-        },
-    }));
-    const edges = sortedCells.map((cell) => cell.p2p.getNeighbors().map((neighbor) => ({
-        data: {
-            id: `${cell.agentPubKey}->${neighbor}`,
-            source: cell.agentPubKey,
-            target: neighbor,
-        },
-    })));
-    return [...cellNodes, ...[].concat(...edges)];
-}
 function sourceChainNodes(cell) {
     if (!cell)
         return [];
     const nodes = [];
     const headersHashes = cell.state.sourceChain;
     for (const headerHash of headersHashes) {
-        const strHeaderHash = serializeHash(headerHash);
+        const strHeaderHash = headerHash;
         const header = cell.state.CAS[strHeaderHash];
         nodes.push({
             data: {
@@ -38,7 +20,8 @@ function sourceChainNodes(cell) {
             classes: ['header', header.header.content.type],
         });
         if (header.header.content.prev_header) {
-            const strPreviousHeaderHash = serializeHash(header.header.content.prev_header);
+            const strPreviousHeaderHash = header.header.content
+                .prev_header;
             nodes.push({
                 data: {
                     id: `${strHeaderHash}->${strPreviousHeaderHash}`,
@@ -49,11 +32,11 @@ function sourceChainNodes(cell) {
         }
     }
     for (const headerHash of headersHashes) {
-        const strHeaderHash = serializeHash(headerHash);
+        const strHeaderHash = headerHash;
         const header = cell.state.CAS[strHeaderHash];
         if (header.header.content.entry_hash) {
             const newEntryHeader = header.header.content;
-            const strEntryHash = serializeHash(newEntryHeader.entry_hash);
+            const strEntryHash = newEntryHeader.entry_hash;
             const entryNodeId = `${strHeaderHash}:${strEntryHash}`;
             const entry = cell.state.CAS[strEntryHash];
             const entryType = getEntryTypeString(cell, newEntryHeader.entry_type);
@@ -82,13 +65,12 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
     const entryTypes = {};
     for (const cell of cells) {
         for (const entryHash of getAllHeldEntries(cell.state)) {
-            const strEntryHash = serializeHash(entryHash);
-            details[strEntryHash] = getEntryDetails(cell.state, entryHash);
-            links[strEntryHash] = getLinksForEntry(cell.state, entryHash);
-            const firstEntryHeader = details[strEntryHash].headers[0];
+            details[entryHash] = getEntryDetails(cell.state, entryHash);
+            links[entryHash] = getLinksForEntry(cell.state, entryHash);
+            const firstEntryHeader = details[entryHash].headers[0];
             if (firstEntryHeader &&
                 firstEntryHeader.header.content.entry_type) {
-                entryTypes[strEntryHash] = getEntryTypeString(cell, firstEntryHeader.header.content.entry_type);
+                entryTypes[entryHash] = getEntryTypeString(cell, firstEntryHeader.header.content.entry_type);
             }
         }
     }
@@ -97,34 +79,34 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
     const linksEdges = [];
     const entryNodes = [];
     const entryTypeCount = {};
-    for (const strEntryHash of sortedEntries) {
-        const detail = details[strEntryHash];
+    for (const entryHash of sortedEntries) {
+        const detail = details[entryHash];
         const entry = detail.entry;
         // Get base nodes and edges
         const newEntryHeader = detail
             .headers[0];
-        const entryType = entryTypes[strEntryHash];
+        const entryType = entryTypes[entryHash];
         if (!entryTypeCount[entryType])
             entryTypeCount[entryType] = 0;
         if (!excludedEntryTypes.includes(entryType)) {
             entryNodes.push({
                 data: {
-                    id: strEntryHash,
+                    id: entryHash,
                     data: entry,
                     label: `${entryType}${entryTypeCount[entryType]}`,
                 },
                 classes: [entryType],
             });
             if (showEntryContents) {
-                const content = serializeAndShortenHashesRec(entry.content);
+                const content = shortenStrRec(entry.content);
                 if (typeof content === 'object') {
                     const properties = Object.keys(entry.content);
                     for (const property of properties) {
-                        const propertyParentId = `${strEntryHash}:${property}`;
+                        const propertyParentId = `${entryHash}:${property}`;
                         entryNodes.push({
                             data: {
                                 id: propertyParentId,
-                                parent: strEntryHash,
+                                parent: entryHash,
                             },
                         });
                         entryNodes.push({
@@ -146,9 +128,9 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
                 else {
                     entryNodes.push({
                         data: {
-                            id: `${strEntryHash}:content`,
+                            id: `${entryHash}:content`,
                             label: content,
-                            parent: strEntryHash,
+                            parent: entryHash,
                         },
                     });
                 }
@@ -160,8 +142,8 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
                     if (!excludedEntryTypes.includes(entryTypes[implicitLink.target])) {
                         linksEdges.push({
                             data: {
-                                id: `${strEntryHash}->${implicitLink.target}`,
-                                source: strEntryHash,
+                                id: `${entryHash}->${implicitLink.target}`,
+                                source: entryHash,
                                 target: implicitLink.target,
                                 label: implicitLink.label,
                             },
@@ -171,17 +153,17 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
                 }
             }
             // Get the explicit links from the entry
-            const linksDetails = links[strEntryHash];
+            const linksDetails = links[entryHash];
             for (const linkVal of linksDetails) {
                 const tag = !linkVal.tag || typeof linkVal.tag === 'string'
                     ? linkVal.tag
                     : JSON.stringify(linkVal.tag);
-                const target = serializeHash(linkVal.target);
+                const target = linkVal.target;
                 if (!excludedEntryTypes.includes(entryTypes[target])) {
                     const edgeData = {
                         data: {
-                            id: `${strEntryHash}->${target}`,
-                            source: strEntryHash,
+                            id: `${entryHash}->${target}`,
+                            source: entryHash,
                             target,
                         },
                         classes: ['explicit'],
@@ -194,14 +176,13 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
             }
             // Get the updates edges for the entry
             const updateHeaders = detail.headers.filter((h) => h.header.content.original_header_address &&
-                serializeHash(h.header.content.original_entry_address) ===
-                    strEntryHash);
+                h.header.content.original_entry_address === entryHash);
             for (const update of updateHeaders) {
                 const strUpdateEntryHash = update.header.content.entry_hash;
                 linksEdges.push({
                     data: {
-                        id: `${strEntryHash}-replaced-by-${strUpdateEntryHash}`,
-                        source: strEntryHash,
+                        id: `${entryHash}-replaced-by-${strUpdateEntryHash}`,
+                        source: entryHash,
                         target: strUpdateEntryHash,
                         label: 'replaced by',
                     },
@@ -211,26 +192,11 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
             // Add deleted class if is deleted
             if (detail.entry_dht_status === EntryDhtStatus.Dead)
                 entryNodes
-                    .find((node) => node.data.id === strEntryHash)
+                    .find((node) => node.data.id === entryHash)
                     .classes.push('deleted');
         }
         entryTypeCount[entryType] += 1;
     }
-    /*
-    if (!showAgentIds) {
-      for (const [key, entry] of Object.entries(entries)) {
-        if (entry.type === EntryType.AgentId) {
-          const links = linksEdges.filter(
-            (edge) => edge.data.source === key || edge.data.target === key
-          );
-          if (links.length === 0) {
-            const index = entryNodes.findIndex((node) => node.data.id === key);
-            entryNodes.splice(index, 1);
-          }
-        }
-      }
-    }
-   */
     return {
         entries: [...entryNodes, ...linksEdges],
         entryTypes: Object.keys(entryTypeCount),
@@ -283,5 +249,5 @@ function compareEntries(details, hashA, hashB) {
             : 0;
 }
 
-export { allEntries, dnaNodes, getImplicitLinks, sourceChainNodes };
+export { allEntries, getImplicitLinks, sourceChainNodes };
 //# sourceMappingURL=graph.js.map

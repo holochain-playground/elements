@@ -22,7 +22,7 @@ import './mwc-list-ef3f5c8d.js';
 import '@material/menu-surface/constants';
 import '@material/menu-surface/foundation';
 import './mwc-menu-surface-css-66530c6a.js';
-import { s as style$1, M as MenuBase, a as Menu$1 } from './mwc-menu-9238d320.js';
+import { s as style$1, M as MenuBase, a as Menu$1 } from './mwc-menu-b3e7fc5d.js';
 import '@material/menu/constants';
 import '@material/menu/foundation';
 import '@material/notched-outline/foundation';

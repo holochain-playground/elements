@@ -12,8 +12,9 @@ import {
   SignedHeaderHashed,
   Header,
   CreateLink,
+  Delete,
 } from '@holochain-open-dev/core-types';
-import { hash } from '../../../processors/hash';
+import { hash, HashType } from '../../../processors/hash';
 import { CellState } from '../state';
 import { hashEntry } from '../utils';
 import { getAuthor, getNextHeaderSeq, getTipOfChain } from './utils';
@@ -22,7 +23,7 @@ export function buildShh(header: Header): SignedHeaderHashed {
   return {
     header: {
       content: header,
-      hash: hash(header),
+      hash: hash(header, HashType.HEADER),
     },
     signature: Uint8Array.from([]),
   };
@@ -106,6 +107,19 @@ export function buildUpdate(
   return update;
 }
 
+export function buildDelete(
+  state: CellState,
+  deletes_address: Hash,
+  deletes_entry_address: Hash
+): Delete {
+  const deleteHeader: Delete = {
+    ...buildCommon(state),
+    type: HeaderType.Delete,
+    deletes_address,
+    deletes_entry_address,
+  };
+  return deleteHeader;
+}
 /** Helpers */
 
 function buildCommon(state: CellState) {

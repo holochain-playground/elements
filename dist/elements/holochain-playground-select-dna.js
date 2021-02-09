@@ -1,7 +1,6 @@
 import { html } from 'lit-element';
 import { BaseElement } from './utils/base-element.js';
 import { selectAllDNAs } from './utils/selectors.js';
-import { deserializeHash, serializeHash } from '@holochain-open-dev/common';
 import { Select } from 'scoped-material-components/mwc-select';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import '@open-wc/scoped-elements';
@@ -13,11 +12,11 @@ class HolochainPlaygroundSelectDNA extends BaseElement {
         this.updatePlayground({
             activeAgentPubKey: null,
             activeEntryHash: null,
-            activeDna: deserializeHash(dna),
+            activeDna: dna,
         });
     }
     render() {
-        const dnas = selectAllDNAs(this.conductors).map(serializeHash);
+        const dnas = selectAllDNAs(this.conductors);
         if (dnas.length === 1)
             return html `<span>DNA: ${dnas[0]}</span>`;
         else {
@@ -30,9 +29,7 @@ class HolochainPlaygroundSelectDNA extends BaseElement {
           @selected=${(e) => this.selectDNA(dnas[e.detail.index])}
         >
           ${dnas.map((dna) => html `
-                <mwc-list-item
-                  ?selected=${serializeHash(this.activeDna) === dna}
-                  .value=${dna}
+                <mwc-list-item ?selected=${this.activeDna === dna} .value=${dna}
                   >${dna}</mwc-list-item
                 >
               `)}

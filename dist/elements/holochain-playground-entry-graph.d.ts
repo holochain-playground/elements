@@ -16,6 +16,7 @@ export declare class HolochainPlaygroundEntryGraph extends BaseElement {
     excludedEntryTypes: string[];
     firstUpdated(): void;
     updated(changedValues: any): void;
+    observedCells(): import("@holochain-playground/core").Cell[];
     updatedGraph(): any;
     static get styles(): import("lit-element").CSSResult[];
     renderHelp(): import("lit-element").TemplateResult;

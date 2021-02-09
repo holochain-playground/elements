@@ -1,7 +1,11 @@
-// import { playwrightLauncher } from '@web/test-runner-playwright';
+import { playwrightLauncher } from '@web/test-runner-playwright';
+import rollupCommonjs from '@rollup/plugin-commonjs';
+import { fromRollup } from '@web/dev-server-rollup';
+
+const commonjs = fromRollup(rollupCommonjs);
 
 export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
-  files: 'dist/test/**/*.test.js',
+  files: 'test/**/*.test.js',
   nodeResolve: true,
 
   /** Compile JS for older browsers. Requires @web/dev-server-esbuild plugin */
@@ -19,11 +23,13 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   // concurrency: 1,
 
   /** Browsers to run tests on */
-  // browsers: [
-  //   playwrightLauncher({ product: 'chromium' }),
-  //   playwrightLauncher({ product: 'firefox' }),
-  //   playwrightLauncher({ product: 'webkit' }),
-  // ],
+  browsers: [
+    playwrightLauncher({ product: 'chromium' }),
+    //   playwrightLauncher({ product: 'firefox' }),
+    //   playwrightLauncher({ product: 'webkit' }),
+  ],
+
+  plugins: [commonjs({ include: ['node_modules/blakejs/**/*'] })],
 
   // See documentation for all available options
 });

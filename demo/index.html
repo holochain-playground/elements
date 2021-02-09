@@ -11,13 +11,11 @@
   </head>
   <body>
     <holochain-playground-container id="container">
-      <holochain-playground-entry-detail
-        style="height: 300px; width: 100%"
-      ></holochain-playground-entry-detail>
-      <holochain-playground-entry-graph
-        style="height: 300px; width: 100%"
-      ></holochain-playground-entry-graph>
+      <holochain-playground-dht-cells
+        style="height: 600px; width: 100%"
+      ></holochain-playground-dht-cells>
       <holochain-playground-call-zome
+        style="height: 350px; width: 100%"
         id="call-zome"
       ></holochain-playground-call-zome>
     </holochain-playground-container>
@@ -25,41 +23,86 @@
     <script type="module">
       import { html, render } from 'lit-html';
       import { HolochainPlaygroundCallZome } from '../dist/elements/holochain-playground-call-zome.js';
-      import { HolochainPlaygroundEntryDetail } from '../dist/elements/holochain-playground-entry-detail.js';
-      import { HolochainPlaygroundEntryGraph } from '../dist/elements/holochain-playground-entry-graph.js';
+      import { HolochainPlaygroundDhtCells } from '../dist/elements/holochain-playground-dht-cells';
       import { HolochainPlaygroundContainer } from '@holochain-playground/container';
+
+      const dna = {
+        zomes: [
+          {
+            name: 'sample',
+            entry_defs: [],
+            zome_functions: {
+              create_cap: {
+                call: ({ create_cap_grant }) => ({ grantedAgent }) => {
+                  return create_cap_grant({
+                    tag: '',
+                    access: {
+                      Assigned: {
+                        secret: '',
+                        assignees: [grantedAgent],
+                      },
+                    },
+                    functions: [{ zome: 'sample', fn_name: 'sample_fn' }],
+                  });
+                },
+                arguments: [
+                  { type: 'AgentPubKey', name: 'grantedAgent' },
+                ],
+              },
+              sample_fn: {
+                call: () => () => {
+                  return 'Hello';
+                },
+                arguments: [],
+              },
+              revoke_cap: {
+                call: ({ delete_cap_grant }) => ({capGrantToRevoke}) => {
+                  return delete_cap_grant({ header_hash: capGrantToRevoke });
+                },
+                arguments: [{ type: 'HeaderHash', name: 'capGrantToRevoke' }],
+              },
+              remote_sample_fn: {
+                call: ({ call_remote }) => ({agentToCall}) => {
+                  return call_remote({
+                    agent: agentToCall,
+                    zome: 'sample',
+                    fn_name: 'sample_fn',
+                    cap: null,
+                    payload: null,
+                  });
+                },
+                arguments: [
+                  { type: 'AgentPubKey', name: 'agentToCall' },
+                ],
+              },
+            },
+          },
+        ],
+      };
 
       customElements.define(
         'holochain-playground-container',
         HolochainPlaygroundContainer
       );
       customElements.define(
-        'holochain-playground-entry-detail',
-        HolochainPlaygroundEntryDetail
-      );
-      customElements.define(
-        'holochain-playground-entry-graph',
-        HolochainPlaygroundEntryGraph
+        'holochain-playground-dht-cells',
+        HolochainPlaygroundDhtCells
       );
 
       const container = document.getElementById('container');
-      container.numberOfSimulatedConductors = 1;
+      container.numberOfSimulatedConductors = 6;
+      container.simulatedDnaTemplate = dna;
 
       container.addEventListener('ready', (e) => {
         customElements.define(
           'holochain-playground-call-zome',
           HolochainPlaygroundCallZome
         );
-        const callZome = document.getElementById('call-zome');
         const conductor = e.detail.conductors[0];
 
-        const cellId = conductor.cells[0].id;
+        const cellId = conductor.getAllCells()[0].cellId;
 
-        callZome.conductor = conductor;
-        callZome.cellId = cellId;
-        callZome.zome = Object.values(conductor.registeredDnas)[0].zomes[0];
         container.activeDna = cellId[0];
-        container.activeAgentPubKey = cellId[1];
       });
     </script>
   </body>

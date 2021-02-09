@@ -16,6 +16,7 @@ export const sharedStyles = css`
   .center-content {
     align-items: center;
     justify-content: center;
+    display: flex;
   }
 
   h3 {
@@ -27,7 +28,7 @@ export const sharedStyles = css`
   }
 
   .placeholder {
-    color: grey;
+    opacity: 0.6;
   }
 
   .flex-scrollable-parent {
@@ -56,5 +57,38 @@ export const sharedStyles = css`
   .json-info {
     padding: 4px;
     max-width: 400px;
+  }
+
+  .block-card {
+    width: auto;
+    position: relative;
+    flex: 1;
+  }
+
+  .block-title {
+    margin-left: 16px;
+    margin-top: 16px;
+    font-size: 20px;
+  }
+
+  .block-help {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+  }
+
+  .horizontal-divider {
+    background-color: grey;
+    height: 1px;
+    opacity: 0.3;
+    margin-bottom: 0;
+    width: 100%;
+  }
+  .vertical-divider {
+    background-color: grey;
+    width: 1px;
+    height: 100%;
+    opacity: 0.3;
+    margin-bottom: 0;
   }
 `;

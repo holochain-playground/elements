@@ -1,21 +1,21 @@
 import { PropertyValues } from 'lit-element';
-import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
+import { Cell } from '@holochain-playground/core';
 import { BaseElement } from './utils/base-element';
-import { JsonViewer } from '@power-elements/json-viewer';
+import { Card } from 'scoped-material-components/mwc-card';
+import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button';
 export declare class HolochainPlaygroundSourceChain extends BaseElement {
     static get styles(): import("lit-element").CSSResult[];
     private cy;
     private nodes;
     private _cell;
-    private _subscription;
-    private _nodeInfo;
-    private _nodeInfoMenu;
     private graph;
     firstUpdated(): void;
+    observedCells(): Cell[];
     updated(changedValues: PropertyValues): void;
+    renderHelp(): import("lit-element").TemplateResult;
     render(): import("lit-element").TemplateResult;
     static get scopedElements(): {
-        'mwc-menu-surface': typeof MenuSurface;
-        'json-viewer': typeof JsonViewer;
+        'mwc-card': typeof Card;
+        'holochain-playground-help-button': typeof HolochainPlaygroundHelpButton;
     };
 }

@@ -110,7 +110,7 @@ export class HolochainPlaygroundDhtStats extends BaseElement {
 
       conductors.splice(0, conductorsToRemove);
     }
-/* 
+    /* 
 TODO: handle gossip at the core layer
     if (changedNodes) {
       const peers = conductors.map((c) => c.cells[dna].agentId);

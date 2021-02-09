@@ -1,16 +1,10 @@
-import { serializeHash } from '@holochain-open-dev/common';
-
-function serializeAndShortenHashesRec(object) {
-    if (object instanceof Uint8Array) {
-        const strHash = serializeHash(object);
-        return `Hash(...${strHash.substring(strHash.length - 5)})`;
-    }
-    else if (Array.isArray(object)) {
-        return object.map(serializeAndShortenHashesRec);
+function shortenStrRec(object) {
+    if (Array.isArray(object)) {
+        return object.map(shortenStrRec);
     }
     else if (typeof object === 'object') {
         for (const key of Object.keys(object)) {
-            object[key] = serializeAndShortenHashesRec(object[key]);
+            object[key] = shortenStrRec(object[key]);
         }
         return object;
     }
@@ -19,21 +13,6 @@ function serializeAndShortenHashesRec(object) {
     }
     return object;
 }
-function serializeHashesRec(object) {
-    if (object instanceof Uint8Array) {
-        return serializeHash(object);
-    }
-    else if (Array.isArray(object)) {
-        return object.map(serializeHashesRec);
-    }
-    else if (typeof object === 'object') {
-        for (const key of Object.keys(object)) {
-            object[key] = serializeHashesRec(object[key]);
-        }
-        return object;
-    }
-    return object;
-}
 
-export { serializeAndShortenHashesRec, serializeHashesRec };
+export { shortenStrRec };
 //# sourceMappingURL=hash.js.map

@@ -8,7 +8,6 @@ import { TextField } from 'scoped-material-components/mwc-textfield';
 import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
 import { BaseElement } from './utils/base-element.js';
 import { createConductors, sampleDnaTemplate } from '@holochain-playground/core';
-import '@holochain-open-dev/common';
 import 'lodash-es';
 import '@open-wc/scoped-elements';
 import '@holochain-playground/container';
@@ -61,8 +60,8 @@ class HolochainPlaygroundDhtStats extends BaseElement {
     async republish() {
         const newNodes = parseInt(this.nNodes.value);
         const currentNodes = this.allCells.length;
-        const rFactor = parseInt(this.rFactor.value);
-        const dna = this.activeDna;
+        parseInt(this.rFactor.value);
+        this.activeDna;
         let conductors = this.conductors;
         if (newNodes > currentNodes) {
             const newNodesToCreate = newNodes - currentNodes;
@@ -75,32 +74,32 @@ class HolochainPlaygroundDhtStats extends BaseElement {
             conductors.splice(0, conductorsToRemove);
         }
         /*
-        TODO: handle gossip at the core layer
-            if (changedNodes) {
-              const peers = conductors.map((c) => c.cells[dna].agentId);
+    TODO: handle gossip at the core layer
+        if (changedNodes) {
+          const peers = conductors.map((c) => c.cells[dna].agentId);
+    
+          for (const conductor of conductors) {
+            conductor.cells[dna].peers = peers.filter(
+              (p) => p !== conductor.cells[dna].agentId
+            );
+          }
+        }
         
-              for (const conductor of conductors) {
-                conductor.cells[dna].peers = peers.filter(
-                  (p) => p !== conductor.cells[dna].agentId
-                );
-              }
-            }
-            
-            this.updatePlayground({
-              conductors: conductors,
-            });
-            
-            if (changedNodes || selectRedundancyFactor(this.activeCell) !== rFactor) {
-              const cells = conductors.map((c) => c.cells[dna]);
-              for (const cell of cells) {
-                cell.DHTOpTransforms = {};
-                cell.redundancyFactor = rFactor;
-              }
-              for (const cell of cells) {
-                cell.republish();
-              }
-            }
-            */
+        this.updatePlayground({
+          conductors: conductors,
+        });
+        
+        if (changedNodes || selectRedundancyFactor(this.activeCell) !== rFactor) {
+          const cells = conductors.map((c) => c.cells[dna]);
+          for (const cell of cells) {
+            cell.DHTOpTransforms = {};
+            cell.redundancyFactor = rFactor;
+          }
+          for (const cell of cells) {
+            cell.republish();
+          }
+        }
+        */
         this.processing = false;
     }
     updateDHTStats() {
