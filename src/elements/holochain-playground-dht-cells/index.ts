@@ -223,6 +223,11 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
         .workflowsToDisplay=${this.workflowsToDisplay}
         .workflowDelay=${this.animationDelay}
         .cell=${cell}
+        style=${styleMap({
+          top: `${finalY}px`,
+          left: `${finalX}px`,
+          position: 'absolute',
+        })}
         .x=${finalX}
         .y=${finalY}
       >

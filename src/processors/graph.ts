@@ -18,8 +18,8 @@ import {
   Update,
   Entry,
   LinkMetaVal,
+  timestampToMillis
 } from '@holochain-open-dev/core-types';
-import { timestampToMillis } from '@holochain-open-dev/common';
 import { shortenStrRec } from '../elements/utils/hash';
 
 
