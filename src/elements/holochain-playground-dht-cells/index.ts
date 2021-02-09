@@ -33,7 +33,7 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
     WorkflowType.PRODUCE_DHT_OPS,
     WorkflowType.PUBLISH_DHT_OPS,
     WorkflowType.APP_VALIDATION,
-    WorkflowType.APP_VALIDATION,
+    WorkflowType.SYS_VALIDATION,
   ];
 
   @property({ type: Array })
