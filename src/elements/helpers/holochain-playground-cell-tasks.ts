@@ -18,6 +18,8 @@ import { BaseElement } from '../utils/base-element';
 import { sharedStyles } from '../utils/shared-styles';
 
 export class HolochainPlaygroundCellTasks extends BaseElement {
+  /** Public properties */
+
   @property({ type: Object })
   cell!: Cell;
 
@@ -40,14 +42,16 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
   @property({ type: Number })
   workflowDelay: number = 1000;
 
-  @property({ type: Object })
-  _runningTasks: Dictionary<number> = {};
-
-  @property({ type: Object })
-  _errors: Array<{ task: Workflow<any, any>; error: any }> = [];
-
   @property({ type: Boolean })
-  _expanded: Boolean = false;
+  showErrors = true;
+
+  /** Private properties */
+
+  @property({ type: Object })
+  private _runningTasks: Dictionary<number> = {};
+
+  @property({ type: Object })
+  private _errors: Array<{ task: Workflow<any, any>; error: any }> = [];
 
   observedCells() {
     return [this.cell];
@@ -80,26 +84,31 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
           if (this._runningTasks[task.type] === 0)
             delete this._runningTasks[task.type];
         }
-        const errorInfo = {
-          task,
-          error,
-        };
-        this._errors.push(errorInfo);
 
-        this.requestUpdate();
+        if (this.showErrors) {
+          const errorInfo = {
+            task,
+            error,
+          };
+          this._errors.push(errorInfo);
 
-        await sleep(this.workflowDelay * 3);
+          this.requestUpdate();
 
-        const index = this._errors.findIndex((e) => e === errorInfo);
-        this._errors.splice(index, 1);
-        this.requestUpdate();
+          await sleep(this.workflowDelay * 2);
+
+          const index = this._errors.findIndex((e) => e === errorInfo);
+          this._errors.splice(index, 1);
+          this.requestUpdate();
+        }
       }),
     ];
   }
 
   sortTasks(tasks: Array<[string, number]>) {
     return tasks.sort(
-      (t1, t2) => workflowPriority(t1[0] as WorkflowType) - workflowPriority(t2[0] as WorkflowType)
+      (t1, t2) =>
+        workflowPriority(t1[0] as WorkflowType) -
+        workflowPriority(t2[0] as WorkflowType)
     );
   }
 
