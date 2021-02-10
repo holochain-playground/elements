@@ -5,6 +5,7 @@ import {
   Workflow,
   WorkflowType,
   workflowPriority,
+  CallZomeFnWorkflow,
 } from '@holochain-playground/core';
 import { css, property, PropertyValues } from 'lit-element';
 import { html } from 'lit-html';
@@ -42,6 +43,8 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
 
   /** Private properties */
 
+  @property({ type: Array })
+  private _callZomeTasks: Array<CallZomeFnWorkflow> = [];
   @property({ type: Object })
   private _runningTasks: Dictionary<number> = {};
 
@@ -55,31 +58,43 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
   onNewObservedCell(cell: Cell) {
     return [
       cell.workflowExecutor.before(async (task) => {
-        if (!this.workflowsToDisplay.find((w) => w === task.type)) return;
+        if (!this.workflowsToDisplay.includes(task.type as WorkflowType))
+          return;
 
-        if (!this._runningTasks[task.type]) this._runningTasks[task.type] = 0;
+        if (task.type === WorkflowType.CALL_ZOME) {
+          this._callZomeTasks.push(task);
+        } else {
+          if (!this._runningTasks[task.type]) this._runningTasks[task.type] = 0;
 
-        this._runningTasks[task.type] += 1;
+          this._runningTasks[task.type] += 1;
+        }
         this.requestUpdate();
 
         await sleep(this.workflowDelay);
       }),
       cell.workflowExecutor.success(async (task) => {
-        if (this._runningTasks[task.type]) {
+        if (!this.workflowsToDisplay.includes(task.type as WorkflowType))
+          return;
+
+        if (task.type === WorkflowType.CALL_ZOME) {
+          this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
+        } else if (this._runningTasks[task.type]) {
           this._runningTasks[task.type] -= 1;
           if (this._runningTasks[task.type] === 0)
             delete this._runningTasks[task.type];
-
-          this.requestUpdate();
         }
+        this.requestUpdate();
       }),
       cell.workflowExecutor.error(async (task, error) => {
-        if (this._runningTasks[task.type]) {
-          this._runningTasks[task.type] -= 1;
-          if (this._runningTasks[task.type] === 0)
-            delete this._runningTasks[task.type];
+        if (this.workflowsToDisplay.includes(task.type as WorkflowType)) {
+          if (task.type === WorkflowType.CALL_ZOME) {
+            this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
+          } else if (this._runningTasks[task.type]) {
+            this._runningTasks[task.type] -= 1;
+            if (this._runningTasks[task.type] === 0)
+              delete this._runningTasks[task.type];
+          }
         }
-
         if (this.showErrors) {
           const errorInfo = {
             task,
@@ -93,8 +108,8 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
 
           const index = this._errors.findIndex((e) => e === errorInfo);
           this._errors.splice(index, 1);
-          this.requestUpdate();
         }
+        this.requestUpdate();
       }),
     ];
   }
@@ -107,16 +122,35 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
     );
   }
 
+  showTasks() {
+    return (
+      Object.keys(this._runningTasks).length !== 0 ||
+      this._errors.length !== 0 ||
+      this._callZomeTasks.length !== 0
+    );
+  }
+
   render() {
-    if (
-      Object.keys(this._runningTasks).length === 0 &&
-      this._errors.length === 0
-    )
-      return html``;
+    if (!this.showTasks()) return html``;
     const orderedTasks = this.sortTasks(Object.entries(this._runningTasks));
     return html`
       <mwc-card class="tasks-card">
         <mwc-list style="max-height: 300px; overflow-y: auto; width: 200px;">
+          ${this._callZomeTasks.map(
+            (callZome) => html`
+              <mwc-list-item
+                twoline
+                graphic="icon"
+                style="--mdc-list-item-graphic-margin: 4px;"
+              >
+                <mwc-icon slot="graphic" style="color: green;"
+                  >call_made</mwc-icon
+                >
+                <span>${callZome.details.fnName}</span>
+                <span slot="secondary">Zome: ${callZome.details.zome}</span>
+              </mwc-list-item>
+            `
+          )}
           ${this._errors.map(
             (errorInfo) => html`
               <mwc-list-item
@@ -128,7 +162,15 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
                   >error_outline</mwc-icon
                 >
                 <span> ${errorInfo.error.message} </span>
-                <span slot="secondary"> ${errorInfo.task.type}</span>
+                <span slot="secondary">
+                  ${errorInfo.task.type === WorkflowType.CALL_ZOME
+                    ? `${
+                        (errorInfo.task as CallZomeFnWorkflow).details.fnName
+                      } in ${
+                        (errorInfo.task as CallZomeFnWorkflow).details.zome
+                      }`
+                    : errorInfo.task.type}</span
+                >
               </mwc-list-item>
             `
           )}
@@ -139,16 +181,7 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
                 graphic="icon"
                 style="--mdc-list-item-graphic-margin: 4px;"
               >
-                <mwc-icon
-                  slot="graphic"
-                  style=${styleMap({
-                    color:
-                      taskName === WorkflowType.CALL_ZOME ? 'green' : 'auto',
-                  })}
-                  >${taskName === WorkflowType.CALL_ZOME
-                    ? 'call_made'
-                    : 'miscellaneous_services'}</mwc-icon
-                >
+                <mwc-icon slot="graphic">miscellaneous_services</mwc-icon>
                 <span>
                   ${taskNumber > 1 ? taskNumber + 'x' : ''} ${taskName}
                 </span>

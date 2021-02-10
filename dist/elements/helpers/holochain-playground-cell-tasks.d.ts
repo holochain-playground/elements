@@ -12,11 +12,13 @@ export declare class HolochainPlaygroundCellTasks extends BaseElement {
     workflowDelay: number;
     showErrors: boolean;
     /** Private properties */
+    private _callZomeTasks;
     private _runningTasks;
     private _errors;
     observedCells(): Cell[];
     onNewObservedCell(cell: Cell): import("@holochain-playground/core").MiddlewareSubscription[];
     sortTasks(tasks: Array<[string, number]>): [string, number][];
+    showTasks(): boolean;
     render(): import("lit-element").TemplateResult;
     static get styles(): import("lit-element").CSSResult[];
     static get scopedElements(): {
