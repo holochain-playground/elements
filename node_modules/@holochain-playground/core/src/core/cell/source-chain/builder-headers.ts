@@ -1,5 +1,5 @@
-import { now } from '@holochain-open-dev/common';
 import {
+  now,
   Hash,
   AgentPubKey,
   Dna,

@@ -11,7 +11,6 @@ import { Card } from 'scoped-material-components/mwc-card';
 import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button.js';
 import '@holochain-playground/core';
 import '@holochain-open-dev/core-types';
-import '@holochain-open-dev/common';
 import './utils/hash.js';
 import '@open-wc/scoped-elements';
 import '@holochain-playground/container';
@@ -1185,7 +1184,7 @@ var stubFalse_1 = stubFalse;
 
 var isBuffer_1 = createCommonjsModule(function (module, exports) {
 /** Detect free variable `exports`. */
-var freeExports =  exports && !exports.nodeType && exports;
+var freeExports = exports && !exports.nodeType && exports;
 
 /** Detect free variable `module`. */
 var freeModule = freeExports && 'object' == 'object' && module && !module.nodeType && module;
@@ -1357,7 +1356,7 @@ var _baseUnary = baseUnary;
 
 var _nodeUtil = createCommonjsModule(function (module, exports) {
 /** Detect free variable `exports`. */
-var freeExports =  exports && !exports.nodeType && exports;
+var freeExports = exports && !exports.nodeType && exports;
 
 /** Detect free variable `module`. */
 var freeModule = freeExports && 'object' == 'object' && module && !module.nodeType && module;
@@ -1698,7 +1697,7 @@ var _baseAssignIn = baseAssignIn;
 
 var _cloneBuffer = createCommonjsModule(function (module, exports) {
 /** Detect free variable `exports`. */
-var freeExports =  exports && !exports.nodeType && exports;
+var freeExports = exports && !exports.nodeType && exports;
 
 /** Detect free variable `module`. */
 var freeModule = freeExports && 'object' == 'object' && module && !module.nodeType && module;

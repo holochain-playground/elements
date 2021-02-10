@@ -86,13 +86,7 @@ class HolochainPlaygroundCellTasks extends BaseElement {
             return html ``;
         const orderedTasks = this.sortTasks(Object.entries(this._runningTasks));
         return html `
-      <mwc-card
-        class="tasks-card"
-        style=${styleMap({
-            top: `${this.y}px`,
-            left: `${this.x}px`,
-        })}
-      >
+      <mwc-card class="tasks-card">
         <mwc-list style="max-height: 300px; overflow-y: auto; width: 200px;">
           ${this._errors.map((errorInfo) => html `
               <mwc-list-item
@@ -138,9 +132,7 @@ class HolochainPlaygroundCellTasks extends BaseElement {
             sharedStyles,
             css `
         .tasks-card {
-          position: fixed;
           width: auto;
-          z-index: 100;
         }
       `,
         ];
@@ -159,14 +151,6 @@ __decorate([
     property({ type: Object }),
     __metadata("design:type", Cell)
 ], HolochainPlaygroundCellTasks.prototype, "cell", void 0);
-__decorate([
-    property({ type: Number }),
-    __metadata("design:type", Number)
-], HolochainPlaygroundCellTasks.prototype, "x", void 0);
-__decorate([
-    property({ type: Number }),
-    __metadata("design:type", Number)
-], HolochainPlaygroundCellTasks.prototype, "y", void 0);
 __decorate([
     property({ type: Array }),
     __metadata("design:type", Array)

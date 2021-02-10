@@ -8,8 +8,6 @@ import { BaseElement } from '../utils/base-element';
 export declare class HolochainPlaygroundCellTasks extends BaseElement {
     /** Public properties */
     cell: Cell;
-    x: number;
-    y: number;
     workflowsToDisplay: WorkflowType[];
     workflowDelay: number;
     showErrors: boolean;

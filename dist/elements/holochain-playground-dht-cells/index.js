@@ -92,6 +92,8 @@ class HolochainPlaygroundDhtCells extends BaseElement {
         return [
             cell.p2p.networkRequestsExecutor.before(async (networkRequest) => {
                 this.requestUpdate();
+                if (!this.networkRequestsToDisplay.includes(networkRequest.type))
+                    return;
                 if (networkRequest.toAgent === networkRequest.fromAgent)
                     return;
                 const duration = 3000;
@@ -190,8 +192,12 @@ class HolochainPlaygroundDhtCells extends BaseElement {
         .workflowsToDisplay=${this.workflowsToDisplay}
         .workflowDelay=${this.animationDelay}
         .cell=${cell}
-        .x=${finalX}
-        .y=${finalY}
+        style=${styleMap({
+                top: `${finalY}px`,
+                left: `${finalX}px`,
+                position: 'absolute',
+                'z-index': '100',
+            })}
       >
       </holochain-playground-cell-tasks>`;
         })}`;

@@ -1,5 +1,4 @@
-import { serializeHash } from '@holochain-open-dev/common';
-import { Dictionary, Hash } from '@holochain-open-dev/core-types';
+import { serializeHash, Dictionary, Hash } from '@holochain-open-dev/core-types';
 // @ts-ignore
 import blake from 'blakejs';
 

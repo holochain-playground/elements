@@ -1,9 +1,7 @@
-import { serializeHash } from '@holochain-open-dev/common';
 import {
   Hash,
   AgentPubKey,
   Dna,
-  Header,
   HeaderType,
   CellId,
   Element,
@@ -14,7 +12,6 @@ import {
   Delete,
   ZomeCallCapGrant,
   Update,
-  DeleteLink,
   Entry,
   CapSecret,
 } from '@holochain-open-dev/core-types';

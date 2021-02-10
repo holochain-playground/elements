@@ -13,7 +13,6 @@ import { isEqual } from 'lodash-es';
 import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button.js';
 import '@holochain-playground/core';
 import '@holochain-open-dev/core-types';
-import '@holochain-open-dev/common';
 import './utils/hash.js';
 import '@open-wc/scoped-elements';
 import '@holochain-playground/container';

@@ -23,11 +23,6 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
   @property({ type: Object })
   cell!: Cell;
 
-  @property({ type: Number })
-  x: number;
-  @property({ type: Number })
-  y!: number;
-
   @property({ type: Array })
   workflowsToDisplay: WorkflowType[] = [
     WorkflowType.GENESIS,
@@ -120,13 +115,7 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
       return html``;
     const orderedTasks = this.sortTasks(Object.entries(this._runningTasks));
     return html`
-      <mwc-card
-        class="tasks-card"
-        style=${styleMap({
-          top: `${this.y}px`,
-          left: `${this.x}px`,
-        })}
-      >
+      <mwc-card class="tasks-card">
         <mwc-list style="max-height: 300px; overflow-y: auto; width: 200px;">
           ${this._errors.map(
             (errorInfo) => html`
@@ -178,9 +167,7 @@ export class HolochainPlaygroundCellTasks extends BaseElement {
       sharedStyles,
       css`
         .tasks-card {
-          position: fixed;
           width: auto;
-          z-index: 100;
         }
       `,
     ];

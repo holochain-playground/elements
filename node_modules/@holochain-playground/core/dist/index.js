@@ -1,6 +1,5 @@
-import { getSysMetaValHeaderHash, DHTOpType, getEntry, HeaderType, EntryDhtStatus, ChainStatus, elementToDHTOps } from '@holochain-open-dev/core-types';
+import { getSysMetaValHeaderHash, DHTOpType, serializeHash, getEntry, HeaderType, EntryDhtStatus, ChainStatus, now, elementToDHTOps } from '@holochain-open-dev/core-types';
 import { isEqual, uniq } from 'lodash-es';
-import { serializeHash, now } from '@holochain-open-dev/common';
 
 function getValidationLimboDhtOps(state, status) {
     const pendingDhtOps = {};
@@ -1302,7 +1301,7 @@ class Cascade {
     }
     async dht_get(hash, options) {
         // TODO rrDHT arcs
-        const authority = new Authority(this.cell);
+        new Authority(this.cell);
         const isPresent = this.cell.state.CAS[hash];
         // TODO only return local if GetOptions::content() is given
         if (isPresent && options.strategy === GetStrategy.Contents) {
@@ -1362,7 +1361,7 @@ const hash_entry = (zome_index, cell) => async (args) => {
 };
 
 async function ensure(path, hdk) {
-    const headerHash = await hdk.create_entry({
+    await hdk.create_entry({
         content: path,
         entry_def_id: 'path',
     });

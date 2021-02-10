@@ -1,6 +1,5 @@
 import { getEntryTypeString, getAllHeldEntries, getEntryDetails, getLinksForEntry, getAppEntryType } from '@holochain-playground/core';
-import { EntryDhtStatus } from '@holochain-open-dev/core-types';
-import { timestampToMillis } from '@holochain-open-dev/common';
+import { timestampToMillis, EntryDhtStatus } from '@holochain-open-dev/core-types';
 import { shortenStrRec } from '../elements/utils/hash.js';
 
 function sourceChainNodes(cell) {

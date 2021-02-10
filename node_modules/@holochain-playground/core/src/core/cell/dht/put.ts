@@ -1,4 +1,3 @@
-import { serializeHash } from '@holochain-open-dev/common';
 import {
   Hash,
   DHTOp,
