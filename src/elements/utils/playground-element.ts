@@ -4,11 +4,11 @@ import { PlaygroundMixin } from '@holochain-playground/container';
 import { Dictionary } from '@holochain-open-dev/core-types';
 import { Cell, MiddlewareSubscription } from '@holochain-playground/core';
 
-export class BaseElement extends PlaygroundMixin(
+export class PlaygroundElement extends PlaygroundMixin(
   ScopedElementsMixin(LitElement)
 ) {
   protected _subscriptions: Dictionary<Array<MiddlewareSubscription>> = {};
-  protected cells: Array<Cell> = [];
+  protected _observedCells: Array<Cell> = [];
 
   /** Functions to override */
 
@@ -31,8 +31,8 @@ export class BaseElement extends PlaygroundMixin(
   updated(changedValues: PropertyValues) {
     super.updated(changedValues);
 
-    this.cells = this.observedCells().filter(cell => !!cell);
-    const newCellsById: Dictionary<Cell> = this.cells.reduce(
+    this._observedCells = this.observedCells().filter(cell => !!cell);
+    const newCellsById: Dictionary<Cell> = this._observedCells.reduce(
       (acc, next) => ({ ...acc, [this.getStrCellId(next)]: next }),
       {}
     );
@@ -58,7 +58,7 @@ export class BaseElement extends PlaygroundMixin(
     }
     removedCellsIds.forEach((cellId) => this.unsubscribeFromCellId(cellId));
 
-    if (addedCellsIds.length > 1 || removedCellsIds.length > 1)
+    if (addedCellsIds.length > 0 || removedCellsIds.length > 0)
       this.onCellsChanged();
   }
 

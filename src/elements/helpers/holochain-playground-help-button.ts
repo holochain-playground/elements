@@ -3,9 +3,9 @@ import { html } from 'lit-html';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { BaseElement } from '../utils/base-element';
+import { PlaygroundElement } from '../utils/playground-element';
 
-export class HolochainPlaygroundHelpButton extends BaseElement {
+export class HolochainPlaygroundHelpButton extends PlaygroundElement {
   @property({ type: String })
   heading: string;
 

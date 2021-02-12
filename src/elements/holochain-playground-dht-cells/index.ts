@@ -12,7 +12,7 @@ import {
 import { Card } from 'scoped-material-components/mwc-card';
 import { HolochainPlaygroundCellTasks } from '../helpers/holochain-playground-cell-tasks';
 import { HolochainPlaygroundHelpButton } from '../helpers/holochain-playground-help-button';
-import { BaseElement } from '../utils/base-element';
+import { PlaygroundElement } from '../utils/playground-element';
 import { selectAllCells, selectHoldingCells } from '../utils/selectors';
 import { sharedStyles } from '../utils/shared-styles';
 import { dhtCellsNodes, neighborsEdges } from './processors';
@@ -20,7 +20,7 @@ import { graphStyles, layoutConfig } from './graph';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { styleMap } from 'lit-html/directives/style-map';
 
-export class HolochainPlaygroundDhtCells extends BaseElement {
+export class HolochainPlaygroundDhtCells extends PlaygroundElement {
   @property({ type: Number })
   animationDelay: number = 1000;
 
@@ -49,17 +49,6 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
 
   private _cy;
   private _layout;
-
-  static get styles() {
-    return [
-      sharedStyles,
-      css`
-        :host {
-          display: flex;
-        }
-      `,
-    ];
-  }
 
   async firstUpdated() {
     window.addEventListener('scroll', () => {
@@ -147,9 +136,9 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
     this._cy.remove('node');
     this._cy.remove('edge');
 
-    const nodes = dhtCellsNodes(this.cells);
+    const nodes = dhtCellsNodes(this._observedCells);
     this._cy.add(nodes);
-    const neighbors = neighborsEdges(this.cells);
+    const neighbors = neighborsEdges(this._observedCells);
     this._cy.add(neighbors);
 
     this._layout = this._cy.elements().makeLayout(layoutConfig);
@@ -161,7 +150,7 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
   updated(changedValues) {
     super.updated(changedValues);
 
-    const neighbors = neighborsEdges(this.cells);
+    const neighbors = neighborsEdges(this._observedCells);
     if (this._neighborEdges.length != neighbors.length) {
       this._neighborEdges = neighbors;
       this._cy.add(neighbors);
@@ -205,12 +194,12 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
   }
 
   renderTasksTooltips() {
-    if (!this._cy || !this.cells) return html``;
+    if (!this._cy || !this._observedCells) return html``;
 
     const nodes = this._cy.nodes();
     const cellsWithPosition = nodes.map((node) => {
       const agentPubKey = node.id();
-      const cell = this.cells.find((cell) => cell.agentPubKey === agentPubKey);
+      const cell = this._observedCells.find((cell) => cell.agentPubKey === agentPubKey);
 
       return { cell, position: node.renderedPosition() };
     });
@@ -269,11 +258,22 @@ export class HolochainPlaygroundDhtCells extends BaseElement {
         ${this.renderHelp()} ${this.renderTasksTooltips()}
         ${this.renderCopyButton()}
         <div class="column fill">
-          <h3 class="block-title">DHT Cells</h3>
+          <span class="block-title">DHT Cells</span>
           <div id="graph" class="fill"></div>
         </div>
       </mwc-card>
     `;
+  }
+
+  static get styles() {
+    return [
+      sharedStyles,
+      css`
+        :host {
+          display: flex;
+        }
+      `,
+    ];
   }
 
   static get scopedElements() {

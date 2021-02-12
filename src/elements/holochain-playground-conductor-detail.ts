@@ -1,7 +1,7 @@
 import { LitElement, property, html, css, query } from 'lit-element';
 import { sharedStyles } from './utils/shared-styles';
 
-import { BaseElement } from './utils/base-element';
+import { PlaygroundElement } from './utils/playground-element';
 import { HolochainPlaygroundDhtShard } from './holochain-playground-dht-shard';
 import { HolochainPlaygroundEntryDetail } from './holochain-playground-entry-detail';
 import { Card } from 'scoped-material-components/mwc-card';
@@ -10,7 +10,7 @@ import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { Tab } from 'scoped-material-components/mwc-tab';
 import { TabBar } from 'scoped-material-components/mwc-tab-bar';
 
-export class HolochainPlaygroundConductorDetail extends BaseElement {
+export class HolochainPlaygroundConductorDetail extends PlaygroundElement {
   @property({ type: Number })
   selectedTabIndex: number = 0;
 
@@ -91,7 +91,7 @@ export class HolochainPlaygroundConductorDetail extends BaseElement {
         <div class="column fill">
           <div class="row" style="padding: 16px">
             <div class="column" style="flex: 1;">
-              <h3 class="title">Conductor Detail</h3>
+              <span class="title">Conductor Detail</span>
               <span>Agent Pub Key: ${this.activeAgentPubKey}</span>
             </div>
             <mwc-icon-button

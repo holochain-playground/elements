@@ -4,9 +4,9 @@ import { selectAllCells, selectCell } from './utils/selectors';
 import { getDhtShard } from '@holochain-playground/core';
 
 import { JsonViewer } from '@power-elements/json-viewer';
-import { BaseElement } from './utils/base-element';
+import { PlaygroundElement } from './utils/playground-element';
 
-export class HolochainPlaygroundDhtShard extends BaseElement {
+export class HolochainPlaygroundDhtShard extends PlaygroundElement {
   @property({ type: Object })
   cell: { dna: string; agentId: string } = undefined;
 

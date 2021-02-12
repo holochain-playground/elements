@@ -3,10 +3,10 @@ import { TextField } from 'scoped-material-components/mwc-textfield';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
-import { BaseElement } from './utils/base-element';
+import { PlaygroundElement } from './utils/playground-element';
 //import { checkConnection } from '../processors/connect-to-conductors';
 
-export class HolochainPlaygroundConnectToNodes extends BaseElement {
+export class HolochainPlaygroundConnectToNodes extends PlaygroundElement {
   @property({ type: Boolean })
   private open: Boolean = false;
 
@@ -78,9 +78,9 @@ export class HolochainPlaygroundConnectToNodes extends BaseElement {
       @closed=${() => (this.open = false)}
     >
       <div class="column">
-        <h3 class="title">
+        <span class="title">
           ${this.conductorsUrls ? 'Connected Nodes' : 'Connect to nodes'}
-        </h3>
+        </span>
         ${this.conductorsUrls.map(
           (url, index) => html`
             <div class="row" style="margin-bottom: 16px;">

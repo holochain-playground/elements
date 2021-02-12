@@ -13,14 +13,14 @@ import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { TextField } from 'scoped-material-components/mwc-textfield';
 import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
-import { BaseElement } from './utils/base-element';
+import { PlaygroundElement } from './utils/playground-element';
 import {
   createConductors,
   sampleDnaTemplate,
   Conductor,
 } from '@holochain-playground/core';
 
-export class HolochainPlaygroundDhtStats extends BaseElement {
+export class HolochainPlaygroundDhtStats extends PlaygroundElement {
   @query('#stats-help')
   private statsHelp: Dialog;
   @query('#number-of-nodes')
@@ -154,7 +154,7 @@ TODO: handle gossip at the core layer
       ${this.renderStatsHelp()}
       <div class="column" style="position: relative;">
         <div style="padding: 16px;">
-          <h3 class="title">Global DHT Stats</h3>
+          <span class="title">Global DHT Stats</span>
 
           <mwc-icon-button
             style="position: absolute; right: 8px; top: 8px;"

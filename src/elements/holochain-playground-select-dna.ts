@@ -1,10 +1,10 @@
 import { LitElement, html, property } from 'lit-element';
-import { BaseElement } from './utils/base-element';
+import { PlaygroundElement } from './utils/playground-element';
 import { selectAllDNAs } from './utils/selectors';
 import { Select } from 'scoped-material-components/mwc-select';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 
-export class HolochainPlaygroundSelectDNA extends BaseElement {
+export class HolochainPlaygroundSelectDNA extends PlaygroundElement {
   selectDNA(dna: string) {
     this.updatePlayground({
       activeAgentPubKey: null,

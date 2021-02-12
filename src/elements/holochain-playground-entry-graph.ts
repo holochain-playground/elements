@@ -10,7 +10,7 @@ import { Card } from 'scoped-material-components/mwc-card';
 import { allEntries } from '../processors/graph';
 import { selectAllCells } from './utils/selectors';
 import { sharedStyles } from './utils/shared-styles';
-import { BaseElement } from './utils/base-element';
+import { PlaygroundElement } from './utils/playground-element';
 import { isEqual } from 'lodash-es';
 import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button';
 
@@ -25,7 +25,7 @@ const layoutConfig = {
   },
 };
 
-export class HolochainPlaygroundEntryGraph extends BaseElement {
+export class HolochainPlaygroundEntryGraph extends PlaygroundElement {
   @property({ type: Boolean })
   showFilter: boolean = true;
 
@@ -271,7 +271,7 @@ export class HolochainPlaygroundEntryGraph extends BaseElement {
     return html`
       <mwc-card class="block-card">
         <div class="column fill">
-          <h3 class="block-title">Entry Graph</h3>
+          <span class="block-title">Entry Graph</span>
 
           <div id="entry-graph" class="fill"></div>
 

@@ -14,15 +14,17 @@
       <holochain-playground-dht-cells
         style="height: 1000px; width: 100%"
       ></holochain-playground-dht-cells>
-      <holochain-playground-call-zome
+      <holochain-playground-call-zome-fns
+        hide-results
+        hide-zome-selector
         style="height: 350px; width: 100%"
         id="call-zome"
-      ></holochain-playground-call-zome>
+      ></holochain-playground-call-zome-fns>
     </holochain-playground-container>
 
     <script type="module">
       import { html, render } from 'lit-html';
-      import { HolochainPlaygroundCallZome } from '../dist/elements/holochain-playground-call-zome.js';
+      import { HolochainPlaygroundCallZomeFns } from '../dist/elements/holochain-playground-call-zome-fns';
       import { HolochainPlaygroundDhtCells } from '../dist/elements/holochain-playground-dht-cells';
       import { HolochainPlaygroundContainer } from '@holochain-playground/container';
 
@@ -95,8 +97,8 @@
 
       container.addEventListener('ready', (e) => {
         customElements.define(
-          'holochain-playground-call-zome',
-          HolochainPlaygroundCallZome
+          'holochain-playground-call-zome-fns',
+          HolochainPlaygroundCallZomeFns
         );
         const conductor = e.detail.conductors[0];
 

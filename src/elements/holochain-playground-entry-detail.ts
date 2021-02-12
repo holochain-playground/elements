@@ -4,11 +4,11 @@ import { JsonViewer } from '@power-elements/json-viewer';
 import { getEntryDetails } from '@holochain-playground/core';
 import { sharedStyles } from './utils/shared-styles';
 import { selectAllCells, selectFromCAS } from './utils/selectors';
-import { BaseElement } from './utils/base-element';
+import { PlaygroundElement } from './utils/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
 import { shortenStrRec } from './utils/hash';
 
-export class HolochainPlaygroundEntryDetail extends BaseElement {
+export class HolochainPlaygroundEntryDetail extends PlaygroundElement {
   @property({ type: Boolean })
   withMetadata = false;
 
@@ -41,7 +41,7 @@ export class HolochainPlaygroundEntryDetail extends BaseElement {
     return html`
       <mwc-card style="width: auto; min-height: 200px;" class="fill">
         <div class="column fill" style="padding: 16px;">
-          <h3 class="title">Entry Detail</h3>
+          <span class="title">Entry Detail</span>
           ${this.activeEntry
             ? html`
                 <div class="column fill">

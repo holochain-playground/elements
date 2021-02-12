@@ -15,10 +15,10 @@ import { Icon } from 'scoped-material-components/mwc-icon';
 import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
 import { List } from 'scoped-material-components/mwc-list';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
-import { BaseElement } from '../utils/base-element';
+import { PlaygroundElement } from '../utils/playground-element';
 import { sharedStyles } from '../utils/shared-styles';
 
-export class HolochainPlaygroundCellTasks extends BaseElement {
+export class HolochainPlaygroundCellTasks extends PlaygroundElement {
   /** Public properties */
 
   @property({ type: Object })

@@ -10,13 +10,13 @@ import { sharedStyles } from './utils/shared-styles';
 
 import { Cell } from '@holochain-playground/core';
 import { selectCell } from './utils/selectors';
-import { BaseElement } from './utils/base-element';
+import { PlaygroundElement } from './utils/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
 import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button';
 
 cytoscape.use(dagre); // register extension
 
-export class HolochainPlaygroundSourceChain extends BaseElement {
+export class HolochainPlaygroundSourceChain extends PlaygroundElement {
   static get styles() {
     return [
       sharedStyles,
@@ -179,7 +179,7 @@ export class HolochainPlaygroundSourceChain extends BaseElement {
     return html`
       <mwc-card class="block-card">
         <div class="column fill">
-          <h3 class="block-title">Source chain</h3>
+          <span class="block-title">Source chain</span>
           ${this.renderHelp()}
           ${this._cell
             ? html``
