@@ -356,7 +356,7 @@ export class DhtCells extends PlaygroundElement {
           class="column fill"
           style=${styleMap({
             'background-color': this._onPause ? 'lightgrey' : 'white',
-            opacity: this._onPause ? '0.7' : '1',
+            opacity: this._onPause ? '0.6' : '1',
           })}
         >
           <span class="block-title" style="margin: 16px;">DHT Cells</span>

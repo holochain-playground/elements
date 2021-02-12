@@ -29,7 +29,10 @@
       import { CallZomeFns } from '../dist/elements/call-zome-fns';
       import { DhtCells } from '../dist/elements/dht-cells';
       import { HolochainPlaygroundContainer } from '@holochain-playground/container';
-      import { WorkflowType, NetworkRequestType } from '@holochain-playground/core';
+      import {
+        WorkflowType,
+        NetworkRequestType,
+      } from '@holochain-playground/core';
 
       const dna = {
         zomes: [
@@ -101,8 +104,8 @@
       });
 
       const dhtCells = document.getElementById('cells');
-/*       dhtCells.workflowsToDisplay = [WorkflowType.CALL_ZOME];
+      dhtCells.workflowsToDisplay = [WorkflowType.CALL_ZOME];
       dhtCells.networkRequestsToDisplay = [NetworkRequestType.CALL_REMOTE];
- */    </script>
+    </script>
   </body>
 </html>

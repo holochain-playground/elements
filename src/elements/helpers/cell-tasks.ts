@@ -130,8 +130,28 @@ export class CellTasks extends PlaygroundElement {
 
           this.requestUpdate();
 
-          await sleep(this.workflowDelay * 2);
-
+          if (this._pauseOnNextStep) {
+            this.dispatchEvent(
+              new CustomEvent('execution-paused', {
+                detail: { paused: true },
+                composed: true,
+                bubbles: true,
+              })
+            );
+            await new Promise((resolve) =>
+              this._resumeObservable.subscribe(() => resolve(null))
+            );
+            this.dispatchEvent(
+              new CustomEvent('execution-paused', {
+                detail: { paused: false },
+                composed: true,
+                bubbles: true,
+              })
+            );
+          } else {
+            await sleep(this.workflowDelay);
+          }
+          
           const index = this._errors.findIndex((e) => e === errorInfo);
           this._errors.splice(index, 1);
         }
