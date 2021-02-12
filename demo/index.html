@@ -11,15 +11,15 @@
   </head>
   <body>
     <holochain-playground-container id="container">
-      <holochain-playground-dht-cells
+      <dht-cells
         style="height: 1000px; width: 100%"
-      ></holochain-playground-dht-cells>
-      <holochain-playground-call-zome-fns
+      ></dht-cells>
+      <call-zome-fns
         hide-results
         hide-zome-selector
         style="height: 350px; width: 100%"
         id="call-zome"
-      ></holochain-playground-call-zome-fns>
+      ></call-zome-fns>
     </holochain-playground-container>
 
     <script type="module">
@@ -82,8 +82,8 @@
         'holochain-playground-container',
         HolochainPlaygroundContainer
       );
-      customElements.define('holochain-playground-dht-cells', DhtCells);
-      customElements.define('holochain-playground-call-zome-fns', CallZomeFns);
+      customElements.define('dht-cells', DhtCells);
+      customElements.define('call-zome-fns', CallZomeFns);
 
       const container = document.getElementById('container');
       container.numberOfSimulatedConductors = 2;
