@@ -9,10 +9,10 @@ import { GetOptions } from '../../types';
 export declare type CellSignal = 'after-workflow-executed' | 'before-workflow-executed';
 export declare type CellSignalListener = (payload: any) => void;
 export declare class Cell {
-    #private;
     state: CellState;
     conductor: Conductor;
     p2p: P2pCell;
+    _pendingWorkflows: Dictionary<Workflow<any, any>>;
     workflowExecutor: MiddlewareExecutor<Workflow<any, any>>;
     constructor(state: CellState, conductor: Conductor, p2p: P2pCell);
     get cellId(): CellId;

@@ -33,7 +33,7 @@ export const callZomeFn = (
 
   if (!dna.zomes[zomeIndex].zome_functions[fnName])
     throw new Error(
-      `There is function with the name ${fnName} in this zome with the name ${zomeName}`
+      `There isn't a function with the name ${fnName} in this zome with the name ${zomeName}`
     );
 
   const context = buildZomeFunctionContext(zomeIndex, cell);

@@ -1,8 +1,6 @@
 import {
   Cell,
   getEntryDetails,
-  compareBigInts,
-  location,
   getAllHeldEntries,
   getAppEntryType,
   getEntryTypeString,

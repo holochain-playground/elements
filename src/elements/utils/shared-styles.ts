@@ -19,7 +19,7 @@ export const sharedStyles = css`
     display: flex;
   }
 
-  h3 {
+  span {
     margin-block-start: 0;
   }
 

@@ -28,7 +28,7 @@ export type CellSignal = 'after-workflow-executed' | 'before-workflow-executed';
 export type CellSignalListener = (payload: any) => void;
 
 export class Cell {
-  #pendingWorkflows: Dictionary<Workflow<any, any>> = {};
+  _pendingWorkflows: Dictionary<Workflow<any, any>> = {};
 
   workflowExecutor = new MiddlewareExecutor<Workflow<any, any>>();
 
@@ -94,14 +94,14 @@ export class Cell {
   }
 
   triggerWorkflow(workflow: Workflow<any, any>) {
-    this.#pendingWorkflows[workflow.type] = workflow;
+    this._pendingWorkflows[workflow.type] = workflow;
 
     setTimeout(() => this._runPendingWorkflows(), 300);
   }
 
   async _runPendingWorkflows() {
-    const workflowsToRun = this.#pendingWorkflows;
-    this.#pendingWorkflows = {};
+    const workflowsToRun = this._pendingWorkflows;
+    this._pendingWorkflows = {};
 
     const promises = Object.values(workflowsToRun).map(w =>
       this._runWorkflow(w)
