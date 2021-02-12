@@ -12,7 +12,9 @@
   <body>
     <holochain-playground-container id="container">
       <dht-cells
-        style="height: 1000px; width: 100%"
+        id="cells"
+        paused
+        style="height: 600px; width: 100%"
       ></dht-cells>
       <call-zome-fns
         hide-results
@@ -27,6 +29,7 @@
       import { CallZomeFns } from '../dist/elements/call-zome-fns';
       import { DhtCells } from '../dist/elements/dht-cells';
       import { HolochainPlaygroundContainer } from '@holochain-playground/container';
+      import { WorkflowType, NetworkRequestType } from '@holochain-playground/core';
 
       const dna = {
         zomes: [
@@ -86,7 +89,7 @@
       customElements.define('call-zome-fns', CallZomeFns);
 
       const container = document.getElementById('container');
-      container.numberOfSimulatedConductors = 2;
+      container.numberOfSimulatedConductors = 6;
       container.simulatedDnaTemplate = dna;
 
       container.addEventListener('ready', (e) => {
@@ -96,6 +99,10 @@
 
         container.activeDna = cellId[0];
       });
-    </script>
+
+      const dhtCells = document.getElementById('cells');
+/*       dhtCells.workflowsToDisplay = [WorkflowType.CALL_ZOME];
+      dhtCells.networkRequestsToDisplay = [NetworkRequestType.CALL_REMOTE];
+ */    </script>
   </body>
 </html>

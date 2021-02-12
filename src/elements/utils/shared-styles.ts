@@ -66,8 +66,6 @@ export const sharedStyles = css`
   }
 
   .block-title {
-    margin-left: 16px;
-    margin-top: 16px;
     font-size: 20px;
   }
 
@@ -91,4 +89,5 @@ export const sharedStyles = css`
     opacity: 0.3;
     margin-bottom: 0;
   }
+  
 `;

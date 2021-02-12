@@ -196,13 +196,6 @@ export class EntryGraph extends PlaygroundElement {
         :host {
           display: flex;
         }
-        .vertical-divider {
-          height: 60%;
-          width: 1px;
-          margin: 0 8px;
-          opacity: 0.5;
-          background-color: grey;
-        }
       `,
     ];
   }
