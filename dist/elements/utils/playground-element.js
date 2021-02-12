@@ -30,7 +30,7 @@ class PlaygroundElement extends PlaygroundMixin(ScopedElementsMixin(LitElement))
         const removedCellsIds = oldCellsIds.filter((cellId) => !newCellsIds.includes(cellId));
         for (const addedCellId of addedCellsIds) {
             const cell = newCellsById[addedCellId];
-            const defaultSubscription = cell.workflowExecutor.before(async () => {
+            const defaultSubscription = cell.workflowExecutor.success(async () => {
                 this.requestUpdate();
             });
             this._subscriptions[addedCellId] = [
