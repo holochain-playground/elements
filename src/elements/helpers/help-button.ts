@@ -5,7 +5,7 @@ import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { PlaygroundElement } from '../utils/playground-element';
 
-export class HolochainPlaygroundHelpButton extends PlaygroundElement {
+export class HelpButton extends PlaygroundElement {
   @property({ type: String })
   heading: string;
 

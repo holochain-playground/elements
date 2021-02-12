@@ -24,8 +24,8 @@
 
     <script type="module">
       import { html, render } from 'lit-html';
-      import { HolochainPlaygroundCallZomeFns } from '../dist/elements/holochain-playground-call-zome-fns';
-      import { HolochainPlaygroundDhtCells } from '../dist/elements/holochain-playground-dht-cells';
+      import { CallZomeFns } from '../dist/elements/call-zome-fns';
+      import { DhtCells } from '../dist/elements/dht-cells';
       import { HolochainPlaygroundContainer } from '@holochain-playground/container';
 
       const dna = {
@@ -47,9 +47,7 @@
                     functions: [{ zome: 'sample', fn_name: 'sample_fn' }],
                   });
                 },
-                arguments: [
-                  { type: 'AgentPubKey', name: 'grantedAgent' },
-                ],
+                arguments: [{ type: 'AgentPubKey', name: 'grantedAgent' }],
               },
               sample_fn: {
                 call: () => () => {
@@ -58,13 +56,13 @@
                 arguments: [],
               },
               revoke_cap: {
-                call: ({ delete_cap_grant }) => ({capGrantToRevoke}) => {
+                call: ({ delete_cap_grant }) => ({ capGrantToRevoke }) => {
                   return delete_cap_grant({ header_hash: capGrantToRevoke });
                 },
                 arguments: [{ type: 'HeaderHash', name: 'capGrantToRevoke' }],
               },
               remote_sample_fn: {
-                call: ({ call_remote }) => ({agentToCall}) => {
+                call: ({ call_remote }) => ({ agentToCall }) => {
                   return call_remote({
                     agent: agentToCall,
                     zome: 'sample',
@@ -73,9 +71,7 @@
                     payload: null,
                   });
                 },
-                arguments: [
-                  { type: 'AgentPubKey', name: 'agentToCall' },
-                ],
+                arguments: [{ type: 'AgentPubKey', name: 'agentToCall' }],
               },
             },
           },
@@ -86,20 +82,14 @@
         'holochain-playground-container',
         HolochainPlaygroundContainer
       );
-      customElements.define(
-        'holochain-playground-dht-cells',
-        HolochainPlaygroundDhtCells
-      );
+      customElements.define('holochain-playground-dht-cells', DhtCells);
+      customElements.define('holochain-playground-call-zome-fns', CallZomeFns);
 
       const container = document.getElementById('container');
       container.numberOfSimulatedConductors = 2;
       container.simulatedDnaTemplate = dna;
 
       container.addEventListener('ready', (e) => {
-        customElements.define(
-          'holochain-playground-call-zome-fns',
-          HolochainPlaygroundCallZomeFns
-        );
         const conductor = e.detail.conductors[0];
 
         const cellId = conductor.getAllCells()[0].cellId;

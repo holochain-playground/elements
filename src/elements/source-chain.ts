@@ -12,11 +12,11 @@ import { Cell } from '@holochain-playground/core';
 import { selectCell } from './utils/selectors';
 import { PlaygroundElement } from './utils/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
-import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button';
+import { HelpButton } from './helpers/help-button';
 
 cytoscape.use(dagre); // register extension
 
-export class HolochainPlaygroundSourceChain extends PlaygroundElement {
+export class SourceChain extends PlaygroundElement {
   static get styles() {
     return [
       sharedStyles,
@@ -204,7 +204,7 @@ export class HolochainPlaygroundSourceChain extends PlaygroundElement {
   static get scopedElements() {
     return {
       'mwc-card': Card,
-      'holochain-playground-help-button': HolochainPlaygroundHelpButton,
+      'holochain-playground-help-button': HelpButton,
     };
   }
 }

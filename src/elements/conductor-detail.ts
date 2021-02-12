@@ -2,15 +2,15 @@ import { LitElement, property, html, css, query } from 'lit-element';
 import { sharedStyles } from './utils/shared-styles';
 
 import { PlaygroundElement } from './utils/playground-element';
-import { HolochainPlaygroundDhtShard } from './holochain-playground-dht-shard';
-import { HolochainPlaygroundEntryDetail } from './holochain-playground-entry-detail';
+import { DhtShard } from './dht-shard';
+import { EntryDetail } from './entry-detail';
 import { Card } from 'scoped-material-components/mwc-card';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { Tab } from 'scoped-material-components/mwc-tab';
 import { TabBar } from 'scoped-material-components/mwc-tab-bar';
 
-export class HolochainPlaygroundConductorDetail extends PlaygroundElement {
+export class ConductorDetail extends PlaygroundElement {
   @property({ type: Number })
   selectedTabIndex: number = 0;
 
@@ -150,8 +150,8 @@ export class HolochainPlaygroundConductorDetail extends PlaygroundElement {
 
   static get scopedElements() {
     return {
-      'holochain-playground-dht-shard': HolochainPlaygroundDhtShard,
-      'holochain-playground-entry-detail': HolochainPlaygroundEntryDetail,
+      'holochain-playground-dht-shard': DhtShard,
+      'holochain-playground-entry-detail': EntryDetail,
       'mwc-tab': Tab,
       'mwc-tab-bar': TabBar,
       'mwc-card': Card,

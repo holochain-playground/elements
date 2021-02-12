@@ -8,7 +8,7 @@ import { PlaygroundElement } from './utils/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
 import { shortenStrRec } from './utils/hash';
 
-export class HolochainPlaygroundEntryDetail extends PlaygroundElement {
+export class EntryDetail extends PlaygroundElement {
   @property({ type: Boolean })
   withMetadata = false;
 

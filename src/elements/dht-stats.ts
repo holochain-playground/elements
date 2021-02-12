@@ -20,7 +20,7 @@ import {
   Conductor,
 } from '@holochain-playground/core';
 
-export class HolochainPlaygroundDhtStats extends PlaygroundElement {
+export class DhtStats extends PlaygroundElement {
   @query('#stats-help')
   private statsHelp: Dialog;
   @query('#number-of-nodes')

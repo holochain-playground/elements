@@ -6,7 +6,7 @@ import { getDhtShard } from '@holochain-playground/core';
 import { JsonViewer } from '@power-elements/json-viewer';
 import { PlaygroundElement } from './utils/playground-element';
 
-export class HolochainPlaygroundDhtShard extends PlaygroundElement {
+export class DhtShard extends PlaygroundElement {
   @property({ type: Object })
   cell: { dna: string; agentId: string } = undefined;
 

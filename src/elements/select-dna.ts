@@ -4,7 +4,7 @@ import { selectAllDNAs } from './utils/selectors';
 import { Select } from 'scoped-material-components/mwc-select';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 
-export class HolochainPlaygroundSelectDNA extends PlaygroundElement {
+export class SelectDNA extends PlaygroundElement {
   selectDNA(dna: string) {
     this.updatePlayground({
       activeAgentPubKey: null,

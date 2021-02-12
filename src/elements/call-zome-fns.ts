@@ -1,5 +1,4 @@
 import { html, css, property } from 'lit-element';
-import { ifDefined } from 'lit-html/directives/if-defined';
 
 import { CellId, Dictionary } from '@holochain-open-dev/core-types';
 import {
@@ -33,7 +32,7 @@ export interface ZomeFunctionResult {
       };
 }
 
-export class HolochainPlaygroundCallZomeFns extends PlaygroundElement {
+export class CallZomeFns extends PlaygroundElement {
   @property({ type: Boolean, attribute: 'hide-results' })
   hideResults = false;
 

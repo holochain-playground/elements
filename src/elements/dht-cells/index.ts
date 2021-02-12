@@ -10,8 +10,8 @@ import {
   WorkflowType,
 } from '@holochain-playground/core';
 import { Card } from 'scoped-material-components/mwc-card';
-import { HolochainPlaygroundCellTasks } from '../helpers/holochain-playground-cell-tasks';
-import { HolochainPlaygroundHelpButton } from '../helpers/holochain-playground-help-button';
+import { CellTasks } from '../helpers/cell-tasks';
+import { HelpButton } from '../helpers/help-button';
 import { PlaygroundElement } from '../utils/playground-element';
 import { selectAllCells, selectHoldingCells } from '../utils/selectors';
 import { sharedStyles } from '../utils/shared-styles';
@@ -20,7 +20,7 @@ import { graphStyles, layoutConfig } from './graph';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { styleMap } from 'lit-html/directives/style-map';
 
-export class HolochainPlaygroundDhtCells extends PlaygroundElement {
+export class DhtCells extends PlaygroundElement {
   @property({ type: Number })
   animationDelay: number = 1000;
 
@@ -282,8 +282,8 @@ export class HolochainPlaygroundDhtCells extends PlaygroundElement {
       'mwc-menu-surface': MenuSurface,
       'mwc-button': Button,
       'mwc-icon-button': IconButton,
-      'holochain-playground-help-button': HolochainPlaygroundHelpButton,
-      'holochain-playground-cell-tasks': HolochainPlaygroundCellTasks,
+      'holochain-playground-help-button': HelpButton,
+      'holochain-playground-cell-tasks': CellTasks,
     };
   }
 }

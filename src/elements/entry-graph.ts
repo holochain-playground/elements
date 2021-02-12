@@ -12,7 +12,7 @@ import { selectAllCells } from './utils/selectors';
 import { sharedStyles } from './utils/shared-styles';
 import { PlaygroundElement } from './utils/playground-element';
 import { isEqual } from 'lodash-es';
-import { HolochainPlaygroundHelpButton } from './helpers/holochain-playground-help-button';
+import { HelpButton } from './helpers/help-button';
 
 cytoscape.use(klay);
 
@@ -25,7 +25,7 @@ const layoutConfig = {
   },
 };
 
-export class HolochainPlaygroundEntryGraph extends PlaygroundElement {
+export class EntryGraph extends PlaygroundElement {
   @property({ type: Boolean })
   showFilter: boolean = true;
 
@@ -287,7 +287,7 @@ export class HolochainPlaygroundEntryGraph extends PlaygroundElement {
       'mwc-formfield': Formfield,
       'mwc-icon-button': IconButton,
       'mwc-card': Card,
-      'holochain-playground-help-button': HolochainPlaygroundHelpButton,
+      'holochain-playground-help-button': HelpButton,
     };
   }
 }

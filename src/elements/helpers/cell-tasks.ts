@@ -18,7 +18,7 @@ import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { PlaygroundElement } from '../utils/playground-element';
 import { sharedStyles } from '../utils/shared-styles';
 
-export class HolochainPlaygroundCellTasks extends PlaygroundElement {
+export class CellTasks extends PlaygroundElement {
   /** Public properties */
 
   @property({ type: Object })
