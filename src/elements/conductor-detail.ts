@@ -1,7 +1,7 @@
 import { LitElement, property, html, css, query } from 'lit-element';
 import { sharedStyles } from './utils/shared-styles';
 
-import { PlaygroundElement } from './utils/playground-element';
+import { PlaygroundElement } from '../context/playground-element';
 import { DhtShard } from './dht-shard';
 import { EntryDetail } from './entry-detail';
 import { Card } from 'scoped-material-components/mwc-card';

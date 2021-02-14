@@ -1,6 +1,6 @@
 import { LitElement, PropertyValues } from 'lit-element';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
-import { PlaygroundMixin } from '@holochain-playground/container';
+import { PlaygroundMixin } from './playground-mixin';
 import { Dictionary } from '@holochain-open-dev/core-types';
 import { Cell, MiddlewareSubscription } from '@holochain-playground/core';
 
@@ -31,7 +31,7 @@ export class PlaygroundElement extends PlaygroundMixin(
   updated(changedValues: PropertyValues) {
     super.updated(changedValues);
 
-    this._observedCells = this.observedCells().filter(cell => !!cell);
+    this._observedCells = this.observedCells().filter((cell) => !!cell);
     const newCellsById: Dictionary<Cell> = this._observedCells.reduce(
       (acc, next) => ({ ...acc, [this.getStrCellId(next)]: next }),
       {}

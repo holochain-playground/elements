@@ -14,7 +14,7 @@ import { Slider } from 'scoped-material-components/mwc-slider';
 import { Switch } from 'scoped-material-components/mwc-switch';
 import { CellTasks } from '../helpers/cell-tasks';
 import { HelpButton } from '../helpers/help-button';
-import { PlaygroundElement } from '../utils/playground-element';
+import { PlaygroundElement } from '../../context/playground-element';
 import { selectAllCells, selectHoldingCells } from '../utils/selectors';
 import { sharedStyles } from '../utils/shared-styles';
 import { dhtCellsNodes, neighborsEdges } from './processors';

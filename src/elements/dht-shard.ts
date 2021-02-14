@@ -4,7 +4,7 @@ import { selectAllCells, selectCell } from './utils/selectors';
 import { getDhtShard } from '@holochain-playground/core';
 
 import { JsonViewer } from '@power-elements/json-viewer';
-import { PlaygroundElement } from './utils/playground-element';
+import { PlaygroundElement } from '../context/playground-element';
 
 export class DhtShard extends PlaygroundElement {
   @property({ type: Object })
