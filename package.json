@@ -4,9 +4,8 @@
   "description": "Holochain playground that simulates real life holochain behaviour",
   "author": "guillem.cordoba@gmail.com",
   "license": "MIT",
-  "files": [
-    "dist"
-  ],
+  "main": "dist/index.js",
+  "module": "dist/index.js",
   "scripts": {
     "start": "concurrently -k \"npm:build-watch\" \"wds -c demo/web-dev-server.config.mjs\"",
     "build": "rimraf dist && rollup -c rollup.config.js",
