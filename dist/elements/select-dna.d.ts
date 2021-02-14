@@ -1,4 +1,4 @@
-import { PlaygroundElement } from './utils/playground-element';
+import { PlaygroundElement } from '../context/playground-element';
 import { Select } from 'scoped-material-components/mwc-select';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 export declare class SelectDNA extends PlaygroundElement {

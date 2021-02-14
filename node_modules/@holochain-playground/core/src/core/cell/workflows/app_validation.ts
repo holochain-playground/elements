@@ -32,8 +32,6 @@ export const app_validation = async (cell: Cell): Promise<void> => {
 
     putIntegrationLimboValue(dhtOpHash, value)(cell.state);
   }
-
-  cell.triggerWorkflow(integrate_dht_ops_task(cell));
 };
 
 export type AppValidationWorkflow = Workflow<any, any>;
@@ -43,5 +41,6 @@ export function app_validation_task(cell: Cell): AppValidationWorkflow {
     type: WorkflowType.APP_VALIDATION,
     details: undefined,
     task: () => app_validation(cell),
+    triggers: [integrate_dht_ops_task(cell)],
   };
 }

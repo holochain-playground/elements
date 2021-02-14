@@ -9,13 +9,13 @@ import {
 } from '@holochain-playground/core';
 import { css, property, PropertyValues } from 'lit-element';
 import { html } from 'lit-html';
-import { styleMap } from 'lit-html/directives/style-map';
+import { Subject } from 'rxjs';
 import { Card } from 'scoped-material-components/mwc-card';
 import { Icon } from 'scoped-material-components/mwc-icon';
 import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
 import { List } from 'scoped-material-components/mwc-list';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
-import { PlaygroundElement } from '../utils/playground-element';
+import { PlaygroundElement } from '../../context/playground-element';
 import { sharedStyles } from '../utils/shared-styles';
 
 export class CellTasks extends PlaygroundElement {
@@ -38,8 +38,14 @@ export class CellTasks extends PlaygroundElement {
   @property({ type: Number })
   workflowDelay: number = 1000;
 
+  @property({ type: Boolean, attribute: 'hide-errors' })
+  hideErrors = false;
+
   @property({ type: Boolean })
-  showErrors = true;
+  _pauseOnNextStep: boolean = false;
+
+  _onPause: boolean = false;
+  _resumeObservable!: Subject<any>;
 
   /** Private properties */
 
@@ -70,7 +76,27 @@ export class CellTasks extends PlaygroundElement {
         }
         this.requestUpdate();
 
-        await sleep(this.workflowDelay);
+        if (this._pauseOnNextStep) {
+          this.dispatchEvent(
+            new CustomEvent('execution-paused', {
+              detail: { paused: true },
+              composed: true,
+              bubbles: true,
+            })
+          );
+          await new Promise((resolve) =>
+            this._resumeObservable.subscribe(() => resolve(null))
+          );
+          this.dispatchEvent(
+            new CustomEvent('execution-paused', {
+              detail: { paused: false },
+              composed: true,
+              bubbles: true,
+            })
+          );
+        } else {
+          await sleep(this.workflowDelay);
+        }
       }),
       cell.workflowExecutor.success(async (task) => {
         if (!this.workflowsToDisplay.includes(task.type as WorkflowType))
@@ -95,7 +121,7 @@ export class CellTasks extends PlaygroundElement {
               delete this._runningTasks[task.type];
           }
         }
-        if (this.showErrors) {
+        if (!this.hideErrors) {
           const errorInfo = {
             task,
             error,
@@ -104,8 +130,28 @@ export class CellTasks extends PlaygroundElement {
 
           this.requestUpdate();
 
-          await sleep(this.workflowDelay * 2);
-
+          if (this._pauseOnNextStep) {
+            this.dispatchEvent(
+              new CustomEvent('execution-paused', {
+                detail: { paused: true },
+                composed: true,
+                bubbles: true,
+              })
+            );
+            await new Promise((resolve) =>
+              this._resumeObservable.subscribe(() => resolve(null))
+            );
+            this.dispatchEvent(
+              new CustomEvent('execution-paused', {
+                detail: { paused: false },
+                composed: true,
+                bubbles: true,
+              })
+            );
+          } else {
+            await sleep(this.workflowDelay);
+          }
+          
           const index = this._errors.findIndex((e) => e === errorInfo);
           this._errors.splice(index, 1);
         }

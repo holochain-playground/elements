@@ -1,6 +1,7 @@
 export const layoutConfig = {
   name: 'circle',
-  padding: 60,
+  padding: 1200,
+  startAngle: 2 / 2 * Math.PI,
   ready: (e) => {
     e.cy.resize();
     e.cy.fit();

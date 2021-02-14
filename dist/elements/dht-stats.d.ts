@@ -2,7 +2,7 @@ import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { TextField } from 'scoped-material-components/mwc-textfield';
 import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
-import { PlaygroundElement } from './utils/playground-element';
+import { PlaygroundElement } from '../context/playground-element';
 export declare class DhtStats extends PlaygroundElement {
     private statsHelp;
     private nNodes;

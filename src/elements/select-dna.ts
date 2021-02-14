@@ -1,5 +1,5 @@
 import { LitElement, html, property } from 'lit-element';
-import { PlaygroundElement } from './utils/playground-element';
+import { PlaygroundElement } from '../context/playground-element';
 import { selectAllDNAs } from './utils/selectors';
 import { Select } from 'scoped-material-components/mwc-select';
 import { ListItem } from 'scoped-material-components/mwc-list-item';

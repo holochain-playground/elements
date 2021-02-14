@@ -41,6 +41,11 @@ export class Cell {
     setTimeout(() => {
       this.p2p.join(this);
     });
+    this.workflowExecutor.success(async task => {
+      task.triggers.forEach(workflowToTrigger =>
+        this.triggerWorkflow(workflowToTrigger)
+      );
+    });
   }
 
   get cellId(): CellId {

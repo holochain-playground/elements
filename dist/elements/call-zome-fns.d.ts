@@ -1,7 +1,7 @@
 import { CellId, Dictionary } from '@holochain-open-dev/core-types';
 import { SimulatedZome, SimulatedZomeFunction, Cell } from '@holochain-playground/core';
 import { TextField } from 'scoped-material-components/mwc-textfield';
-import { PlaygroundElement } from './utils/playground-element';
+import { PlaygroundElement } from '../context/playground-element';
 import { Button } from 'scoped-material-components/mwc-button';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 import { Icon } from 'scoped-material-components/mwc-icon';

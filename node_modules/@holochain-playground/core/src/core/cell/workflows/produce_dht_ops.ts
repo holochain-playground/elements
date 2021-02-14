@@ -25,8 +25,6 @@ export const produce_dht_ops = async (cell: Cell): Promise<void> => {
       cell.state.authoredDHTOps[dhtOpHash] = dhtOpValue;
     }
   }
-
-  cell.triggerWorkflow(publish_dht_ops_task(cell));
 };
 
 export type ProduceDhtOpsWorkflow = Workflow<void, void>;
@@ -36,5 +34,6 @@ export function produce_dht_ops_task(cell: Cell): ProduceDhtOpsWorkflow {
     type: WorkflowType.PRODUCE_DHT_OPS,
     details: undefined,
     task: () => produce_dht_ops(cell),
+    triggers: [publish_dht_ops_task(cell)],
   };
 }

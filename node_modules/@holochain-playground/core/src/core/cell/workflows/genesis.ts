@@ -35,8 +35,6 @@ export const genesis = (
     signed_header: buildShh(create_agent_pub_key_entry),
     entry: entry,
   })(cell.state);
-
-  cell.triggerWorkflow(produce_dht_ops_task(cell));
 };
 
 export type GenesisWorkflow = Workflow<
@@ -56,5 +54,6 @@ export function genesis_task(
       membrane_proof,
     },
     task: () => genesis(cellId[1], cellId[0], membrane_proof)(cell),
+    triggers: [produce_dht_ops_task(cell)],
   };
 }

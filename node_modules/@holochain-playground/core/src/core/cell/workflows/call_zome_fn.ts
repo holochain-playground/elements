@@ -44,9 +44,6 @@ export const callZomeFn = (
 
   if (getTipOfChain(cell.state) != currentHeader) {
     // Do validation
-
-    // Trigger production of DHT Ops
-    cell.triggerWorkflow(produce_dht_ops_task(cell));
   }
 
   return result;
@@ -72,5 +69,6 @@ export function call_zome_fn_workflow(
       zome,
     },
     task: () => callZomeFn(zome, fnName, payload, provenance, '')(cell),
+    triggers: [produce_dht_ops_task(cell)],
   };
 }

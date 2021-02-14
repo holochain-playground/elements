@@ -44,7 +44,7 @@ export class MiddlewareExecutor<P> {
   }
 
   private _addListener(callback: Function, middlewareList: Array<Function>) {
-    middlewareList.push(callback);
+    middlewareList.unshift(callback);
 
     return {
       unsubscribe: () => {

@@ -3,7 +3,7 @@ import { TextField } from 'scoped-material-components/mwc-textfield';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
-import { PlaygroundElement } from './utils/playground-element';
+import { PlaygroundElement } from '../context/playground-element';
 //import { checkConnection } from '../processors/connect-to-conductors';
 
 export class ConnectToNodes extends PlaygroundElement {

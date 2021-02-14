@@ -1,7 +1,7 @@
 import { Button } from 'scoped-material-components/mwc-button';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { PlaygroundElement } from '../utils/playground-element';
+import { PlaygroundElement } from '../../context/playground-element';
 export declare class HelpButton extends PlaygroundElement {
     heading: string;
     _helpDialog: Dialog;

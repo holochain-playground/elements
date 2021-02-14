@@ -4,6 +4,7 @@ export interface Workflow<D, R> {
   type: string;
   details: D;
   task: (cell: Cell) => Promise<R>;
+  triggers: Array<Workflow<any, any>>;
 }
 
 export enum WorkflowType {

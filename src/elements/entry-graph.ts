@@ -10,7 +10,7 @@ import { Card } from 'scoped-material-components/mwc-card';
 import { allEntries } from '../processors/graph';
 import { selectAllCells } from './utils/selectors';
 import { sharedStyles } from './utils/shared-styles';
-import { PlaygroundElement } from './utils/playground-element';
+import { PlaygroundElement } from '../context/playground-element';
 import { isEqual } from 'lodash-es';
 import { HelpButton } from './helpers/help-button';
 
@@ -195,13 +195,6 @@ export class EntryGraph extends PlaygroundElement {
       css`
         :host {
           display: flex;
-        }
-        .vertical-divider {
-          height: 60%;
-          width: 1px;
-          margin: 0 8px;
-          opacity: 0.5;
-          background-color: grey;
         }
       `,
     ];

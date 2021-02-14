@@ -1,5 +1,5 @@
 import { JsonViewer } from '@power-elements/json-viewer';
-import { PlaygroundElement } from './utils/playground-element';
+import { PlaygroundElement } from '../context/playground-element';
 export declare class DhtShard extends PlaygroundElement {
     cell: {
         dna: string;

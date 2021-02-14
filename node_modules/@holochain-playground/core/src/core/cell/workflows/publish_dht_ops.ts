@@ -40,5 +40,6 @@ export function publish_dht_ops_task(cell: Cell): PublishDhtOpsWorkflow {
     type: WorkflowType.PUBLISH_DHT_OPS,
     details: undefined,
     task: () => publish_dht_ops(cell),
+    triggers: [],
   };
 }

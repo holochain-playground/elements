@@ -37,5 +37,6 @@ export function integrate_dht_ops_task(cell: Cell): IntegrateDhtOpsWorkflow {
     type: WorkflowType.INTEGRATE_DHT_OPS,
     details: undefined,
     task: () => integrate_dht_ops(cell),
+    triggers: [],
   };
 }

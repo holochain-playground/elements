@@ -3,6 +3,7 @@ export interface Workflow<D, R> {
     type: string;
     details: D;
     task: (cell: Cell) => Promise<R>;
+    triggers: Array<Workflow<any, any>>;
 }
 export declare enum WorkflowType {
     CALL_ZOME = "Call Zome Function",

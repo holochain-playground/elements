@@ -2,7 +2,7 @@ import { Checkbox } from 'scoped-material-components/mwc-checkbox';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Formfield } from 'scoped-material-components/mwc-formfield';
 import { Card } from 'scoped-material-components/mwc-card';
-import { PlaygroundElement } from './utils/playground-element';
+import { PlaygroundElement } from '../context/playground-element';
 import { HelpButton } from './helpers/help-button';
 export declare class EntryGraph extends PlaygroundElement {
     showFilter: boolean;

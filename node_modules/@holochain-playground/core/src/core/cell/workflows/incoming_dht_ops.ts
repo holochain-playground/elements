@@ -31,8 +31,6 @@ export const incoming_dht_ops = (
 
     putValidationLimboValue(dhtOpHash, validationLimboValue)(cell.state);
   }
-
-  cell.triggerWorkflow(sys_validation_task(cell));
 };
 
 export type IncomingDhtOpsWorkflow = Workflow<
@@ -54,5 +52,6 @@ export function incoming_dht_ops_task(
       ops,
     },
     task: () => incoming_dht_ops(dht_hash, ops, from_agent)(cell),
+    triggers: [sys_validation_task(cell)],
   };
 }

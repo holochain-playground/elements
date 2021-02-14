@@ -1146,6 +1146,7 @@ function integrate_dht_ops_task(cell) {
         type: WorkflowType.INTEGRATE_DHT_OPS,
         details: undefined,
         task: () => integrate_dht_ops(cell),
+        triggers: [],
     };
 }
 
@@ -1162,13 +1163,13 @@ const app_validation = async (cell) => {
         };
         putIntegrationLimboValue(dhtOpHash, value)(cell.state);
     }
-    cell.triggerWorkflow(integrate_dht_ops_task(cell));
 };
 function app_validation_task(cell) {
     return {
         type: WorkflowType.APP_VALIDATION,
         details: undefined,
         task: () => app_validation(cell),
+        triggers: [integrate_dht_ops_task(cell)],
     };
 }
 
@@ -1416,6 +1417,7 @@ function publish_dht_ops_task(cell) {
         type: WorkflowType.PUBLISH_DHT_OPS,
         details: undefined,
         task: () => publish_dht_ops(cell),
+        triggers: [],
     };
 }
 
@@ -1435,13 +1437,13 @@ const produce_dht_ops = async (cell) => {
             cell.state.authoredDHTOps[dhtOpHash] = dhtOpValue;
         }
     }
-    cell.triggerWorkflow(publish_dht_ops_task(cell));
 };
 function produce_dht_ops_task(cell) {
     return {
         type: WorkflowType.PRODUCE_DHT_OPS,
         details: undefined,
         task: () => produce_dht_ops(cell),
+        triggers: [publish_dht_ops_task(cell)],
     };
 }
 
@@ -1463,11 +1465,7 @@ const callZomeFn = (zomeName, fnName, payload, provenance, cap) => async (cell) 
         throw new Error(`There isn't a function with the name ${fnName} in this zome with the name ${zomeName}`);
     const context = buildZomeFunctionContext(zomeIndex, cell);
     const result = dna.zomes[zomeIndex].zome_functions[fnName].call(context)(payload);
-    if (getTipOfChain(cell.state) != currentHeader) {
-        // Do validation
-        // Trigger production of DHT Ops
-        cell.triggerWorkflow(produce_dht_ops_task(cell));
-    }
+    if (getTipOfChain(cell.state) != currentHeader) ;
     return result;
 };
 function call_zome_fn_workflow(cell, zome, fnName, payload, provenance) {
@@ -1479,6 +1477,7 @@ function call_zome_fn_workflow(cell, zome, fnName, payload, provenance) {
             zome,
         },
         task: () => callZomeFn(zome, fnName, payload, provenance, '')(cell),
+        triggers: [produce_dht_ops_task(cell)],
     };
 }
 
@@ -1496,7 +1495,6 @@ const genesis = (agentId, dnaHash, membrane_proof) => async (cell) => {
         signed_header: buildShh(create_agent_pub_key_entry),
         entry: entry,
     })(cell.state);
-    cell.triggerWorkflow(produce_dht_ops_task(cell));
 };
 function genesis_task(cell, cellId, membrane_proof) {
     return {
@@ -1506,6 +1504,7 @@ function genesis_task(cell, cellId, membrane_proof) {
             membrane_proof,
         },
         task: () => genesis(cellId[1], cellId[0], membrane_proof)(cell),
+        triggers: [produce_dht_ops_task(cell)],
     };
 }
 
@@ -1518,13 +1517,13 @@ const sys_validation = async (cell) => {
         limboValue.status = ValidationLimboStatus.SysValidated;
         putValidationLimboValue(dhtOpHash, limboValue)(cell.state);
     }
-    cell.triggerWorkflow(app_validation_task(cell));
 };
 function sys_validation_task(cell) {
     return {
         type: WorkflowType.SYS_VALIDATION,
         details: undefined,
         task: () => sys_validation(cell),
+        triggers: [app_validation_task(cell)],
     };
 }
 
@@ -1543,7 +1542,6 @@ const incoming_dht_ops = (basis, dhtOps, from_agent) => async (cell) => {
         };
         putValidationLimboValue(dhtOpHash, validationLimboValue)(cell.state);
     }
-    cell.triggerWorkflow(sys_validation_task(cell));
 };
 function incoming_dht_ops_task(cell, from_agent, dht_hash, // The basis for the DHTOps
 ops) {
@@ -1555,6 +1553,7 @@ ops) {
             ops,
         },
         task: () => incoming_dht_ops(dht_hash, ops, from_agent)(cell),
+        triggers: [sys_validation_task(cell)],
     };
 }
 
@@ -1592,7 +1591,7 @@ class MiddlewareExecutor {
         return this._addListener(callback, this._errorMiddlewares);
     }
     _addListener(callback, middlewareList) {
-        middlewareList.push(callback);
+        middlewareList.unshift(callback);
         return {
             unsubscribe: () => {
                 const index = middlewareList.findIndex(c => c === callback);
@@ -1612,6 +1611,9 @@ class Cell {
         // Let genesis be run before actually joining
         setTimeout(() => {
             this.p2p.join(this);
+        });
+        this.workflowExecutor.success(async (task) => {
+            task.triggers.forEach(workflowToTrigger => this.triggerWorkflow(workflowToTrigger));
         });
     }
     get cellId() {

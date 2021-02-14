@@ -10,19 +10,27 @@ import {
   WorkflowType,
 } from '@holochain-playground/core';
 import { Card } from 'scoped-material-components/mwc-card';
+import { Slider } from 'scoped-material-components/mwc-slider';
+import { Switch } from 'scoped-material-components/mwc-switch';
 import { CellTasks } from '../helpers/cell-tasks';
 import { HelpButton } from '../helpers/help-button';
-import { PlaygroundElement } from '../utils/playground-element';
+import { PlaygroundElement } from '../../context/playground-element';
 import { selectAllCells, selectHoldingCells } from '../utils/selectors';
 import { sharedStyles } from '../utils/shared-styles';
 import { dhtCellsNodes, neighborsEdges } from './processors';
 import { graphStyles, layoutConfig } from './graph';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { styleMap } from 'lit-html/directives/style-map';
+import { Formfield } from 'scoped-material-components/mwc-formfield';
+import { Icon } from 'scoped-material-components/mwc-icon';
+import { Subject } from 'rxjs';
+
+const MIN_ANIMATION_DELAY = 1000;
+const MAX_ANIMATION_DELAY = 7000;
 
 export class DhtCells extends PlaygroundElement {
   @property({ type: Number })
-  animationDelay: number = 1000;
+  animationDelay: number = 2000;
 
   @property({ type: Array })
   workflowsToDisplay: WorkflowType[] = [
@@ -44,11 +52,22 @@ export class DhtCells extends PlaygroundElement {
     NetworkRequestType.GET_REQUEST,
   ];
 
+  @property({ type: Boolean, attribute: 'hide-time-controller' })
+  hideTimeController: boolean = false;
+
   @query('#graph')
-  private graph: any;
+  private _graph: any;
 
   private _cy;
   private _layout;
+
+  private _resumeObservable = new Subject();
+
+  @property({ type: Boolean, attribute: 'paused' })
+  pauseOnNextStep = false;
+
+  @property({ type: Boolean })
+  private _onPause = false;
 
   async firstUpdated() {
     window.addEventListener('scroll', () => {
@@ -57,7 +76,7 @@ export class DhtCells extends PlaygroundElement {
     });
 
     this._cy = cytoscape({
-      container: this.graph,
+      container: this._graph,
       boxSelectionEnabled: false,
       autoungrabify: true,
       userPanningEnabled: false,
@@ -100,8 +119,6 @@ export class DhtCells extends PlaygroundElement {
           return;
         if (networkRequest.toAgent === networkRequest.fromAgent) return;
 
-        const duration = 3000;
-
         const fromNode = this._cy.getElementById(networkRequest.fromAgent);
         if (!fromNode.position()) return;
         const toNode = this._cy.getElementById(networkRequest.toAgent);
@@ -120,12 +137,38 @@ export class DhtCells extends PlaygroundElement {
           },
         ]);
 
-        el.animate({
-          position: toNode.position(),
-          duration: duration,
-        });
+        if (this.pauseOnNextStep) {
+          const halfPosition = {
+            x: (toPosition.x - fromPosition.x) / 2 + fromPosition.x,
+            y: (toPosition.y - fromPosition.y) / 2 + fromPosition.y,
+          };
+          el.animate({
+            position: halfPosition,
+            duration: this.animationDelay / 2,
+          });
 
-        await sleep(duration);
+          await sleep(this.animationDelay / 2);
+
+          this._onPause = true;
+          await new Promise((resolve) =>
+            this._resumeObservable.subscribe(() => resolve(null))
+          );
+          this._onPause = false;
+
+          el.animate({
+            position: toPosition,
+            duration: this.animationDelay / 2,
+          });
+
+          await sleep(this.animationDelay / 2);
+        } else {
+          el.animate({
+            position: toNode.position(),
+            duration: this.animationDelay,
+          });
+
+          await sleep(this.animationDelay);
+        }
         this._cy.remove(el);
       }),
     ];
@@ -164,6 +207,52 @@ export class DhtCells extends PlaygroundElement {
     this.highlightNodesWithEntry(this.activeEntryHash);
   }
 
+  renderTimeController() {
+    if (this.hideTimeController) return html``;
+
+    return html`
+      <div class="row center-content">
+        <mwc-slider
+          .value=${MAX_ANIMATION_DELAY - this.animationDelay}
+          pin
+          .min=${MIN_ANIMATION_DELAY}
+          .max=${MAX_ANIMATION_DELAY}
+          @change=${(e) =>
+            (this.animationDelay = MAX_ANIMATION_DELAY - e.target.value)}
+        ></mwc-slider>
+        <mwc-icon style="margin: 0 16px;">speed</mwc-icon>
+
+        <span
+          class="vertical-divider"
+          style="height: 60%; margin: 0 8px;"
+        ></span>
+
+        <mwc-icon-button
+          .disabled=${this.pauseOnNextStep}
+          icon="pause"
+          @click=${() => (this.pauseOnNextStep = true)}
+        ></mwc-icon-button>
+
+        <mwc-icon-button
+          .disabled=${!this._onPause}
+          icon="skip_next"
+          @click=${() => {
+            this._resumeObservable.next();
+            this.pauseOnNextStep = true;
+          }}
+        ></mwc-icon-button>
+        <mwc-icon-button
+          .disabled=${!this._onPause}
+          icon="fast_forward"
+          @click=${() => {
+            this._resumeObservable.next();
+            this.pauseOnNextStep = false;
+          }}
+        ></mwc-icon-button>
+      </div>
+    `;
+  }
+
   renderHelp() {
     return html`
       <holochain-playground-help-button heading="DHT Cells" class="block-help">
@@ -199,7 +288,9 @@ export class DhtCells extends PlaygroundElement {
     const nodes = this._cy.nodes();
     const cellsWithPosition = nodes.map((node) => {
       const agentPubKey = node.id();
-      const cell = this._observedCells.find((cell) => cell.agentPubKey === agentPubKey);
+      const cell = this._observedCells.find(
+        (cell) => cell.agentPubKey === agentPubKey
+      );
 
       return { cell, position: node.renderedPosition() };
     });
@@ -221,6 +312,10 @@ export class DhtCells extends PlaygroundElement {
           position: 'absolute',
           'z-index': '100',
         })}
+        ._pauseOnNextStep=${this.pauseOnNextStep}
+        ._onPause=${this._onPause}
+        ._resumeObservable=${this._resumeObservable}
+        @execution-paused=${(e) => (this._onPause = e.detail.paused)}
       >
       </holochain-playground-cell-tasks>`;
     })}`;
@@ -257,9 +352,19 @@ export class DhtCells extends PlaygroundElement {
       <mwc-card class="block-card" style="position: relative;">
         ${this.renderHelp()} ${this.renderTasksTooltips()}
         ${this.renderCopyButton()}
-        <div class="column fill">
-          <span class="block-title">DHT Cells</span>
+        <div
+          class="column fill"
+          style=${styleMap({
+            'background-color': this._onPause ? 'lightgrey' : 'white',
+            opacity: this._onPause ? '0.6' : '1',
+          })}
+        >
+          <span class="block-title" style="margin: 16px;">DHT Cells</span>
           <div id="graph" class="fill"></div>
+          <div class="row" style="margin: 16px;">
+            <span style="flex: 1;"></span>
+            ${this.renderTimeController()}
+          </div>
         </div>
       </mwc-card>
     `;
@@ -281,6 +386,10 @@ export class DhtCells extends PlaygroundElement {
       'mwc-card': Card,
       'mwc-menu-surface': MenuSurface,
       'mwc-button': Button,
+      'mwc-icon': Icon,
+      'mwc-slider': Slider,
+      'mwc-switch': Switch,
+      'mwc-formfield': Formfield,
       'mwc-icon-button': IconButton,
       'holochain-playground-help-button': HelpButton,
       'holochain-playground-cell-tasks': CellTasks,

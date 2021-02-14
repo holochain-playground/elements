@@ -3,12 +3,11 @@ import resolve from '@rollup/plugin-node-resolve';
 import json from '@rollup/plugin-json';
 import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
-import multiInput from 'rollup-plugin-multi-input';
 
 const pkg = require('./package.json');
 
 export default {
-  input: `src/**/*.ts`,
+  input: `src/index.ts`,
   output: { dir: 'dist', format: 'es', sourcemap: true },
   external: [
     ...Object.keys(pkg.dependencies).filter(
@@ -21,7 +20,6 @@ export default {
     replace({
       'customElements.define(JsonViewer.is, JsonViewer);': '',
     }),
-    multiInput(),
     json(),
     typescript(),
     resolve({

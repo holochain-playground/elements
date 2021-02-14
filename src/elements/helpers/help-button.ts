@@ -3,7 +3,7 @@ import { html } from 'lit-html';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { PlaygroundElement } from '../utils/playground-element';
+import { PlaygroundElement } from '../../context/playground-element';
 
 export class HelpButton extends PlaygroundElement {
   @property({ type: String })

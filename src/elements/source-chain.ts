@@ -10,7 +10,7 @@ import { sharedStyles } from './utils/shared-styles';
 
 import { Cell } from '@holochain-playground/core';
 import { selectCell } from './utils/selectors';
-import { PlaygroundElement } from './utils/playground-element';
+import { PlaygroundElement } from '../context/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
 import { HelpButton } from './helpers/help-button';
 

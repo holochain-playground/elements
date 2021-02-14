@@ -1,5 +1,5 @@
 import { JsonViewer } from '@power-elements/json-viewer';
-import { PlaygroundElement } from './utils/playground-element';
+import { PlaygroundElement } from '../context/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
 export declare class EntryDetail extends PlaygroundElement {
     withMetadata: boolean;

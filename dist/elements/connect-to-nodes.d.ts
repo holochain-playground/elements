@@ -2,7 +2,7 @@ import { TextField } from 'scoped-material-components/mwc-textfield';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
-import { PlaygroundElement } from './utils/playground-element';
+import { PlaygroundElement } from '../context/playground-element';
 export declare class ConnectToNodes extends PlaygroundElement {
     private open;
     private urlsState;

@@ -20,8 +20,6 @@ export const sys_validation = async (cell: Cell): Promise<void> => {
 
     putValidationLimboValue(dhtOpHash, limboValue)(cell.state);
   }
-
-  cell.triggerWorkflow(app_validation_task(cell));
 };
 
 export type SysValidationWorkflow = Workflow<void, void>;
@@ -31,5 +29,6 @@ export function sys_validation_task(cell: Cell): SysValidationWorkflow {
     type: WorkflowType.SYS_VALIDATION,
     details: undefined,
     task: () => sys_validation(cell),
+    triggers: [app_validation_task(cell)],
   };
 }

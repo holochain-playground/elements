@@ -1,6 +1,6 @@
 import { PropertyValues } from 'lit-element';
 import { Cell } from '@holochain-playground/core';
-import { PlaygroundElement } from './utils/playground-element';
+import { PlaygroundElement } from '../context/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
 import { HelpButton } from './helpers/help-button';
 export declare class SourceChain extends PlaygroundElement {
