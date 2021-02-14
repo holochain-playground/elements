@@ -15,6 +15,7 @@ export default {
     ),
     /scoped-material-components/,
     /lit-html/,
+    'lodash-es',
   ],
   plugins: [
     replace({
