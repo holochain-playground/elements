@@ -205,6 +205,12 @@ export class DhtCells extends PlaygroundElement {
     this._cy.getElementById(this.activeAgentPubKey).addClass('selected');
 
     this.highlightNodesWithEntry(this.activeEntryHash);
+
+    if (changedValues.has('_onPause')) {
+      this._cy.style().selector('.cell').style({
+        opacity: this._onPause ? 0.4 : 1,
+      });
+    }
   }
 
   renderTimeController() {
@@ -212,21 +218,6 @@ export class DhtCells extends PlaygroundElement {
 
     return html`
       <div class="row center-content">
-        <mwc-slider
-          .value=${MAX_ANIMATION_DELAY - this.animationDelay}
-          pin
-          .min=${MIN_ANIMATION_DELAY}
-          .max=${MAX_ANIMATION_DELAY}
-          @change=${(e) =>
-            (this.animationDelay = MAX_ANIMATION_DELAY - e.target.value)}
-        ></mwc-slider>
-        <mwc-icon style="margin: 0 16px;">speed</mwc-icon>
-
-        <span
-          class="vertical-divider"
-          style="height: 60%; margin: 0 8px;"
-        ></span>
-
         <mwc-icon-button
           .disabled=${this.pauseOnNextStep}
           icon="pause"
@@ -236,6 +227,12 @@ export class DhtCells extends PlaygroundElement {
         <mwc-icon-button
           .disabled=${!this._onPause}
           icon="skip_next"
+          style=${styleMap({
+            'background-color': this._onPause
+              ? 'var(--mdc-theme-primary, #dbdbdb)'
+              : 'white',
+            'border-radius': '50%',
+          })}
           @click=${() => {
             this._resumeObservable.next();
             this.pauseOnNextStep = true;
@@ -249,6 +246,22 @@ export class DhtCells extends PlaygroundElement {
             this.pauseOnNextStep = false;
           }}
         ></mwc-icon-button>
+
+        <span
+          class="vertical-divider"
+          style="height: 60%; margin: 0 8px;"
+        ></span>
+
+        <mwc-slider
+          style="margin-left: 16px;"
+          .value=${MAX_ANIMATION_DELAY - this.animationDelay}
+          pin
+          .min=${MIN_ANIMATION_DELAY}
+          .max=${MAX_ANIMATION_DELAY}
+          @change=${(e) =>
+            (this.animationDelay = MAX_ANIMATION_DELAY - e.target.value)}
+        ></mwc-slider>
+        <mwc-icon style="margin-left: 16px;">speed</mwc-icon>
       </div>
     `;
   }
@@ -352,15 +365,15 @@ export class DhtCells extends PlaygroundElement {
       <mwc-card class="block-card" style="position: relative;">
         ${this.renderHelp()} ${this.renderTasksTooltips()}
         ${this.renderCopyButton()}
-        <div
-          class="column fill"
-          style=${styleMap({
-            'background-color': this._onPause ? 'lightgrey' : 'white',
-            opacity: this._onPause ? '0.6' : '1',
-          })}
-        >
+        <div class="column fill">
           <span class="block-title" style="margin: 16px;">DHT Cells</span>
-          <div id="graph" class="fill"></div>
+          <div
+            id="graph"
+            class="fill"
+            style=${styleMap({
+              'background-color': this._onPause ? '#DBDBDB' : 'white',
+            })}
+          ></div>
           <div class="row" style="margin: 16px;">
             <span style="flex: 1;"></span>
             ${this.renderTimeController()}
