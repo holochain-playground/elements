@@ -14,6 +14,7 @@ export function dhtCellsNodes(cells: Cell[]) {
       id: cell.agentPubKey,
       label: `${cell.agentPubKey.substr(0, 10)}...`,
     },
+    classes: ['cell']
   }));
 
   return cellNodes;

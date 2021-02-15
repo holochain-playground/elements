@@ -34303,6 +34303,7 @@ function dhtCellsNodes(cells) {
             id: cell.agentPubKey,
             label: `${cell.agentPubKey.substr(0, 10)}...`,
         },
+        classes: ['cell']
     }));
     return cellNodes;
 }
@@ -34320,11 +34321,11 @@ function neighborsEdges(cells) {
 
 const layoutConfig = {
     name: 'circle',
-    padding: 1200,
-    startAngle: 2 / 2 * Math.PI,
+    startAngle: (4 / 2) * Math.PI,
     ready: (e) => {
+        const nodes = e.cy.nodes();
         e.cy.resize();
-        e.cy.fit();
+        e.cy.fit(nodes, nodes.length < 3 ? 170 : 0);
         e.cy.center();
     },
 };
@@ -34338,30 +34339,20 @@ const graphStyles = `
     width: 50px;
     height: 50px;
   }
-  
-   .desktop{
-      background-image: url("assets/desktop_windows-outline-white-36dp.svg");
-    }
-  
-   .laptop{
-      background-image: url("assets/laptop-outline-white-36dp.svg");
-   }
-  
 
+  .cell {
+    
+  }
+  
   .selected {
     border-width: 4px;
     border-color: black;
     border-style: solid;
   }
 
-  .smartphone{
-    background-image: url("assets/smartphone-outline-white-36dp.svg");
-  }
-
   .highlighted {
     background-color: yellow;
   }
-
 
   edge {
     width: 1;
@@ -34521,26 +34512,17 @@ class DhtCells extends PlaygroundElement {
         this.observedCells().forEach((cell) => this._cy.getElementById(cell.agentPubKey).removeClass('selected'));
         this._cy.getElementById(this.activeAgentPubKey).addClass('selected');
         this.highlightNodesWithEntry(this.activeEntryHash);
+        if (changedValues.has('_onPause')) {
+            this._cy.style().selector('.cell').style({
+                opacity: this._onPause ? 0.4 : 1,
+            });
+        }
     }
     renderTimeController() {
         if (this.hideTimeController)
             return html ``;
         return html `
       <div class="row center-content">
-        <mwc-slider
-          .value=${MAX_ANIMATION_DELAY - this.animationDelay}
-          pin
-          .min=${MIN_ANIMATION_DELAY}
-          .max=${MAX_ANIMATION_DELAY}
-          @change=${(e) => (this.animationDelay = MAX_ANIMATION_DELAY - e.target.value)}
-        ></mwc-slider>
-        <mwc-icon style="margin: 0 16px;">speed</mwc-icon>
-
-        <span
-          class="vertical-divider"
-          style="height: 60%; margin: 0 8px;"
-        ></span>
-
         <mwc-icon-button
           .disabled=${this.pauseOnNextStep}
           icon="pause"
@@ -34550,6 +34532,12 @@ class DhtCells extends PlaygroundElement {
         <mwc-icon-button
           .disabled=${!this._onPause}
           icon="skip_next"
+          style=${styleMap({
+            'background-color': this._onPause
+                ? 'var(--mdc-theme-primary, #dbdbdb)'
+                : 'white',
+            'border-radius': '50%',
+        })}
           @click=${() => {
             this._resumeObservable.next();
             this.pauseOnNextStep = true;
@@ -34563,6 +34551,21 @@ class DhtCells extends PlaygroundElement {
             this.pauseOnNextStep = false;
         }}
         ></mwc-icon-button>
+
+        <span
+          class="vertical-divider"
+          style="height: 60%; margin: 0 8px;"
+        ></span>
+
+        <mwc-slider
+          style="margin-left: 16px;"
+          .value=${MAX_ANIMATION_DELAY - this.animationDelay}
+          pin
+          .min=${MIN_ANIMATION_DELAY}
+          .max=${MAX_ANIMATION_DELAY}
+          @change=${(e) => (this.animationDelay = MAX_ANIMATION_DELAY - e.target.value)}
+        ></mwc-slider>
+        <mwc-icon style="margin-left: 16px;">speed</mwc-icon>
       </div>
     `;
     }
@@ -34654,15 +34657,15 @@ class DhtCells extends PlaygroundElement {
       <mwc-card class="block-card" style="position: relative;">
         ${this.renderHelp()} ${this.renderTasksTooltips()}
         ${this.renderCopyButton()}
-        <div
-          class="column fill"
-          style=${styleMap({
-            'background-color': this._onPause ? 'lightgrey' : 'white',
-            opacity: this._onPause ? '0.6' : '1',
-        })}
-        >
+        <div class="column fill">
           <span class="block-title" style="margin: 16px;">DHT Cells</span>
-          <div id="graph" class="fill"></div>
+          <div
+            id="graph"
+            class="fill"
+            style=${styleMap({
+            'background-color': this._onPause ? '#DBDBDB' : 'white',
+        })}
+          ></div>
           <div class="row" style="margin: 16px;">
             <span style="flex: 1;"></span>
             ${this.renderTimeController()}

@@ -4,5 +4,6 @@ export declare function dhtCellsNodes(cells: Cell[]): {
         id: string;
         label: string;
     };
+    classes: string[];
 }[];
 export declare function neighborsEdges(cells: Cell[]): any[];

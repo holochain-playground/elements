@@ -1,10 +1,10 @@
 export const layoutConfig = {
   name: 'circle',
-  padding: 1200,
-  startAngle: 2 / 2 * Math.PI,
+  startAngle: (4 / 2) * Math.PI,
   ready: (e) => {
+    const nodes = e.cy.nodes();
     e.cy.resize();
-    e.cy.fit();
+    e.cy.fit(nodes, nodes.length < 3 ? 170 : 0);
     e.cy.center();
   },
 };
@@ -19,30 +19,20 @@ export const graphStyles = `
     width: 50px;
     height: 50px;
   }
-  
-   .desktop{
-      background-image: url("assets/desktop_windows-outline-white-36dp.svg");
-    }
-  
-   .laptop{
-      background-image: url("assets/laptop-outline-white-36dp.svg");
-   }
-  
 
+  .cell {
+    
+  }
+  
   .selected {
     border-width: 4px;
     border-color: black;
     border-style: solid;
   }
 
-  .smartphone{
-    background-image: url("assets/smartphone-outline-white-36dp.svg");
-  }
-
   .highlighted {
     background-color: yellow;
   }
-
 
   edge {
     width: 1;
