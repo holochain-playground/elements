@@ -261,7 +261,7 @@ export class DhtCells extends PlaygroundElement {
           @change=${(e) =>
             (this.animationDelay = MAX_ANIMATION_DELAY - e.target.value)}
         ></mwc-slider>
-        <mwc-icon style="margin-left: 16px;">speed</mwc-icon>
+        <mwc-icon style="margin: 0 16px;">speed</mwc-icon>
       </div>
     `;
   }
@@ -335,7 +335,8 @@ export class DhtCells extends PlaygroundElement {
   }
 
   renderCopyButton() {
-    if (!this.activeAgentPubKey) return html``;
+    //if (!this.activeAgentPubKey)
+      return html``;
 
     const el = this._cy.getElementById(this.activeAgentPubKey);
     const pos = el.renderedPosition();

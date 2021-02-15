@@ -97,6 +97,8 @@ export class CallZomeFns extends PlaygroundElement {
     if (!this._arguments[dnaHash][pubKey][zomeName][fnName])
       this._arguments[dnaHash][pubKey][zomeName][fnName] = {};
     this._arguments[dnaHash][pubKey][zomeName][fnName][argName] = argValue;
+
+    this.requestUpdate();
   }
 
   getFunctionArguments(fnName: string): Dictionary<any> {
@@ -114,6 +116,7 @@ export class CallZomeFns extends PlaygroundElement {
     const dnaHash = this.activeCell.dnaHash;
     const agentPubKey = this.activeCell.agentPubKey;
     const zomeName = this.activeZome.name;
+
     return (
       this._arguments[dnaHash] &&
       this._arguments[dnaHash][agentPubKey] &&
@@ -338,7 +341,7 @@ export class CallZomeFns extends PlaygroundElement {
           ? html`
               <div class="row" style="flex: 1;">
                 <div class="column" style="flex: 1">
-                  <span class="title" style="margin: 16px;">Call Zome Fns</span>
+                  <span class="title" style="margin: 16px;">Call Zome Fns, <span class="placeholder">for agent ${this.activeAgentPubKey}</span></span>
                   ${this.hideZomeSelector
                     ? html``
                     : html`

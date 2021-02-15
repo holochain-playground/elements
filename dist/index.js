@@ -1065,6 +1065,7 @@ class CallZomeFns extends PlaygroundElement {
         if (!this._arguments[dnaHash][pubKey][zomeName][fnName])
             this._arguments[dnaHash][pubKey][zomeName][fnName] = {};
         this._arguments[dnaHash][pubKey][zomeName][fnName][argName] = argValue;
+        this.requestUpdate();
     }
     getFunctionArguments(fnName) {
         const dnaHash = this.activeCell.dnaHash;
@@ -1272,7 +1273,7 @@ class CallZomeFns extends PlaygroundElement {
             ? html `
               <div class="row" style="flex: 1;">
                 <div class="column" style="flex: 1">
-                  <span class="title" style="margin: 16px;">Call Zome Fns</span>
+                  <span class="title" style="margin: 16px;">Call Zome Fns, <span class="placeholder">for agent ${this.activeAgentPubKey}</span></span>
                   ${this.hideZomeSelector
                 ? html ``
                 : html `
@@ -2492,7 +2493,7 @@ function _nonIterableRest() {
 
 var window$1 = typeof window === 'undefined' ? null : window; // eslint-disable-line no-undef
 
-var navigator$1 = window$1 ? window$1.navigator : null;
+var navigator = window$1 ? window$1.navigator : null;
 window$1 ? window$1.document : null;
 
 var typeofstr = _typeof('');
@@ -2577,7 +2578,7 @@ var promise = function promise(obj) {
   return object(obj) && fn(obj.then);
 };
 var ms = function ms() {
-  return navigator$1 && navigator$1.userAgent.match(/msie|trident|edge/i);
+  return navigator && navigator.userAgent.match(/msie|trident|edge/i);
 }; // probably a better way to detect this...
 
 var memoize = function memoize(fn, keyFn) {
@@ -34565,7 +34566,7 @@ class DhtCells extends PlaygroundElement {
           .max=${MAX_ANIMATION_DELAY}
           @change=${(e) => (this.animationDelay = MAX_ANIMATION_DELAY - e.target.value)}
         ></mwc-slider>
-        <mwc-icon style="margin-left: 16px;">speed</mwc-icon>
+        <mwc-icon style="margin: 0 16px;">speed</mwc-icon>
       </div>
     `;
     }
@@ -34630,27 +34631,8 @@ class DhtCells extends PlaygroundElement {
         })}`;
     }
     renderCopyButton() {
-        if (!this.activeAgentPubKey)
-            return html ``;
-        const el = this._cy.getElementById(this.activeAgentPubKey);
-        const pos = el.renderedPosition();
-        return html `<mwc-icon-button
-      style=${styleMap({
-            position: 'absolute',
-            top: `${pos.y - 2}px`,
-            left: `${pos.x + 63}px`,
-            'z-index': '10',
-        })}
-      icon="content_copy"
-      @click=${() => {
-            navigator.clipboard.writeText(this.activeAgentPubKey);
-            this.dispatchEvent(new CustomEvent('show-message', {
-                detail: { message: 'AgentPubKey copied to the clipboard' },
-                bubbles: true,
-                composed: true,
-            }));
-        }}
-    ></mwc-icon-button>`;
+        //if (!this.activeAgentPubKey)
+        return html ``;
     }
     render() {
         return html `
