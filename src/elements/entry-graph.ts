@@ -263,7 +263,7 @@ export class EntryGraph extends PlaygroundElement {
   render() {
     return html`
       <mwc-card class="block-card">
-        <div class="column fill">
+        <div class="column fill" style="margin: 16px;">
           <span class="block-title">Entry Graph</span>
 
           <div id="entry-graph" class="fill"></div>
