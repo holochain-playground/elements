@@ -55,16 +55,18 @@ export class DhtCells extends PlaygroundElement {
   @property({ type: Boolean, attribute: 'hide-time-controller' })
   hideTimeController: boolean = false;
 
+  @property({ type: Boolean, attribute: 'step-by-step' })
+  stepByStep = false;
+
   @query('#graph')
   private _graph: any;
+  @query('#step-by-step-switch')
+  private _stepSwitch!: Switch;
 
   private _cy;
   private _layout;
 
   private _resumeObservable = new Subject();
-
-  @property({ type: Boolean, attribute: 'paused' })
-  pauseOnNextStep = false;
 
   @property({ type: Boolean })
   private _onPause = false;
@@ -137,7 +139,7 @@ export class DhtCells extends PlaygroundElement {
           },
         ]);
 
-        if (this.pauseOnNextStep) {
+        if (this.stepByStep) {
           const halfPosition = {
             x: (toPosition.x - fromPosition.x) / 2 + fromPosition.x,
             y: (toPosition.y - fromPosition.y) / 2 + fromPosition.y,
@@ -207,9 +209,12 @@ export class DhtCells extends PlaygroundElement {
     this.highlightNodesWithEntry(this.activeEntryHash);
 
     if (changedValues.has('_onPause')) {
-      this._cy.style().selector('.cell').style({
-        opacity: this._onPause ? 0.4 : 1,
-      });
+      this._cy
+        .style()
+        .selector('.cell')
+        .style({
+          opacity: this._onPause ? 0.4 : 1,
+        });
     }
   }
 
@@ -218,50 +223,45 @@ export class DhtCells extends PlaygroundElement {
 
     return html`
       <div class="row center-content">
-        <mwc-icon-button
-          .disabled=${this.pauseOnNextStep}
-          icon="pause"
-          @click=${() => (this.pauseOnNextStep = true)}
-        ></mwc-icon-button>
-
-        <mwc-icon-button
-          .disabled=${!this._onPause}
-          icon="skip_next"
-          style=${styleMap({
-            'background-color': this._onPause
-              ? 'var(--mdc-theme-primary, #dbdbdb)'
-              : 'white',
-            'border-radius': '50%',
-          })}
-          @click=${() => {
-            this._resumeObservable.next();
-            this.pauseOnNextStep = true;
-          }}
-        ></mwc-icon-button>
-        <mwc-icon-button
-          .disabled=${!this._onPause}
-          icon="fast_forward"
-          @click=${() => {
-            this._resumeObservable.next();
-            this.pauseOnNextStep = false;
-          }}
-        ></mwc-icon-button>
+        ${this.stepByStep
+          ? html`
+              <mwc-icon-button
+                .disabled=${!this._onPause}
+                icon="play_arrow"
+                style=${styleMap({
+                  'background-color': this._onPause
+                    ? 'var(--mdc-theme-primary, #dbdbdb)'
+                    : 'white',
+                  'border-radius': '50%',
+                })}
+                @click=${() => this._resumeObservable.next()}
+              ></mwc-icon-button>
+            `
+          : html`
+              <mwc-slider
+                style="margin-right: 16px;"
+                .value=${MAX_ANIMATION_DELAY - this.animationDelay}
+                pin
+                .min=${MIN_ANIMATION_DELAY}
+                .max=${MAX_ANIMATION_DELAY}
+                @change=${(e) =>
+                  (this.animationDelay = MAX_ANIMATION_DELAY - e.target.value)}
+              ></mwc-slider>
+              <mwc-icon style="margin: 0 8px;">speed</mwc-icon>
+            `}
 
         <span
           class="vertical-divider"
-          style="height: 60%; margin: 0 8px;"
+          style="height: 60%; margin: 0 16px; margin-right: 24px;"
         ></span>
 
-        <mwc-slider
-          style="margin-left: 16px;"
-          .value=${MAX_ANIMATION_DELAY - this.animationDelay}
-          pin
-          .min=${MIN_ANIMATION_DELAY}
-          .max=${MAX_ANIMATION_DELAY}
-          @change=${(e) =>
-            (this.animationDelay = MAX_ANIMATION_DELAY - e.target.value)}
-        ></mwc-slider>
-        <mwc-icon style="margin: 0 16px;">speed</mwc-icon>
+        <mwc-formfield label="Step By Step" style="margin-right: 16px;">
+          <mwc-switch
+            id="step-by-step-switch"
+            .checked=${this.stepByStep}
+            @change=${(e) => (this.stepByStep = e.target.checked)}
+          ></mwc-switch>
+        </mwc-formfield>
       </div>
     `;
   }
@@ -325,7 +325,7 @@ export class DhtCells extends PlaygroundElement {
           position: 'absolute',
           'z-index': '100',
         })}
-        ._pauseOnNextStep=${this.pauseOnNextStep}
+        .stepByStep=${this.stepByStep}
         ._onPause=${this._onPause}
         ._resumeObservable=${this._resumeObservable}
         @execution-paused=${(e) => (this._onPause = e.detail.paused)}
@@ -336,7 +336,7 @@ export class DhtCells extends PlaygroundElement {
 
   renderCopyButton() {
     //if (!this.activeAgentPubKey)
-      return html``;
+    return html``;
 
     const el = this._cy.getElementById(this.activeAgentPubKey);
     const pos = el.renderedPosition();
