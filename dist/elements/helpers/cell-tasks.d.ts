@@ -12,7 +12,7 @@ export declare class CellTasks extends PlaygroundElement {
     workflowsToDisplay: WorkflowType[];
     workflowDelay: number;
     hideErrors: boolean;
-    _pauseOnNextStep: boolean;
+    stepByStep: boolean;
     _onPause: boolean;
     _resumeObservable: Subject<any>;
     /** Private properties */

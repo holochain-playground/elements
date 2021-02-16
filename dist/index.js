@@ -12,14 +12,15 @@ import { isEqual } from 'lodash-es';
 import { Tab } from 'scoped-material-components/mwc-tab';
 import { TabBar } from 'scoped-material-components/mwc-tab-bar';
 import { Card } from 'scoped-material-components/mwc-card';
+import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { List as List$1 } from 'scoped-material-components/mwc-list';
+import { Drawer } from 'scoped-material-components/mwc-drawer';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
 import { Slider } from 'scoped-material-components/mwc-slider';
 import { Switch } from 'scoped-material-components/mwc-switch';
 import { html as html$1 } from 'lit-html';
 import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
-import { List as List$1 } from 'scoped-material-components/mwc-list';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { Formfield } from 'scoped-material-components/mwc-formfield';
 import { Subject } from 'rxjs';
 import { Checkbox } from 'scoped-material-components/mwc-checkbox';
@@ -1021,6 +1022,7 @@ class CallZomeFns extends PlaygroundElement {
         this.hideResults = false;
         this.hideZomeSelector = false;
         this._selectedZomeIndex = 0;
+        this._selectedZomeFn = undefined;
         // Results segmented by dnaHash/agentPubKey/timestamp
         this._results = {};
         // Arguments segmented by dnaHash/agentPubKey/zome/fn_name/arg_name
@@ -1031,6 +1033,10 @@ class CallZomeFns extends PlaygroundElement {
     }
     get activeZome() {
         return this.activeCell.getSimulatedDna().zomes[this._selectedZomeIndex];
+    }
+    get activeZomeFn() {
+        return (this._selectedZomeFn &&
+            this.activeZome.zome_functions[this._selectedZomeFn]);
     }
     observedCells() {
         return [this.activeCell];
@@ -1117,26 +1123,29 @@ class CallZomeFns extends PlaygroundElement {
         }
     }
     renderCallableFunction(fnName, zomeFunction) {
-        return html `<div class="row" style="margin: 8px 0;">
-      <mwc-button
-        raised
-        @click=${() => this.callZomeFunction(fnName)}
-        style="width: 12em; margin: 18px; margin-left: 0;"
-        >${fnName}</mwc-button
-      >
-      <div class="column" style="flex: 1; margin-left: 16px;">
-        ${zomeFunction.arguments.length === 0
+        return html ` <div class="column" style="flex: 1; margin: 16px;">
+      <div class="flex-scrollable-parent">
+        <div class="flex-scrollable-container">
+          <div class="flex-scrollable-y">
+            <div class="column" style="flex: 1;">
+              ${zomeFunction.arguments.length === 0
             ? html `<span class="placeholder" style="margin-top: 28px;"
-              >This function has no arguments</span
-            >`
+                    >This function has no arguments</span
+                  >`
             : zomeFunction.arguments.map((arg) => html `<mwc-textfield
-                style="margin-top: 8px"
-                outlined
-                label=${arg.name + ': ' + arg.type}
-                .value=${this.getFunctionArgument(fnName, arg.name) || ''}
-                @input=${(e) => this.setFunctionArgument(fnName, arg.name, e.target.value)}
-              ></mwc-textfield>`)}
+                      style="margin-top: 8px"
+                      outlined
+                      label=${arg.name + ': ' + arg.type}
+                      .value=${this.getFunctionArgument(fnName, arg.name) || ''}
+                      @input=${(e) => this.setFunctionArgument(fnName, arg.name, e.target.value)}
+                    ></mwc-textfield>`)}
+            </div>
+          </div>
+        </div>
       </div>
+      <mwc-button raised @click=${() => this.callZomeFunction(fnName)}
+        >Execute</mwc-button
+      >
     </div>`;
     }
     renderActiveZomeFns() {
@@ -1149,18 +1158,31 @@ class CallZomeFns extends PlaygroundElement {
         >
       </div> `;
         return html `
-      <div class="flex-scrollable-parent">
-        <div class="flex-scrollable-container">
-          <div class="flex-scrollable-y">
-            <div class="column" style="flex: 1; margin: 0 16px;">
-              ${zomeFns.map(([name, fn], index) => html `${this.renderCallableFunction(name, fn)}${index <
-            zomeFns.length - 1
-            ? html `<span class="horizontal-divider"></span>`
-            : html ``}`)}
-            </div>
-          </div>
+      <mwc-drawer>
+        <mwc-list
+          activatable
+          @selected=${(e) => (this._selectedZomeFn = zomeFns[e.detail.index][0])}
+        >
+          ${zomeFns.map(([name, fn]) => html `
+              <mwc-list-item .activated=${this._selectedZomeFn === name}
+                >${name}
+              </mwc-list-item>
+            `)}
+        </mwc-list>
+        <div slot="appContent" class="column" style="height: 100%;">
+          ${this.activeZomeFn === undefined
+            ? html ` <div class="column center-content" style="flex: 1;">
+                <span style="align-self: center" class="placeholder"
+                  >Select a Zome Function to call it</span
+                >
+              </div>`
+            : html `
+                <div class="column" style="flex: 1;">
+                  ${this.renderCallableFunction(this._selectedZomeFn, this.activeZomeFn)}
+                </div>
+              `}
         </div>
-      </div>
+      </mwc-drawer>
     `;
     }
     renderResults() {
@@ -1180,14 +1202,10 @@ class CallZomeFns extends PlaygroundElement {
             : html ` <div class="flex-scrollable-parent">
               <div class="flex-scrollable-container">
                 <div class="flex-scrollable-y">
-                  <div style="margin: 0 16px; margin-top: 16px;">
-                    <span class="title">
-                      Results for
-                      ${shortenStrRec(this.activeCell.cellId[1])}</span
-                    >
+                  <div style="margin: 0 16px;">
                     ${sortedResults.map(([timestamp, result], index) => html `
                           <div class="column" style="flex: 1;">
-                            <div class="row" style="margin: 8px 16px;">
+                            <div class="row" style="margin: 8px 0;">
                               ${result.result
                 ? html `
                                     <mwc-icon
@@ -1271,29 +1289,39 @@ class CallZomeFns extends PlaygroundElement {
       <mwc-card style="width: auto; flex: 1;">
         ${this.activeCell
             ? html `
-              <div class="row" style="flex: 1;">
-                <div class="column" style="flex: 1">
-                  <span class="title" style="margin: 16px;">Call Zome Fns, <span class="placeholder">for agent ${this.activeAgentPubKey}</span></span>
-                  ${this.hideZomeSelector
+              <div class="column" style="flex: 1">
+                <span class="title" style="margin: 16px;"
+                  >Call Zome Fns,
+                  <span class="placeholder"
+                    >for agent ${this.activeAgentPubKey}</span
+                  ></span
+                >
+                <div class="row" style="flex: 1;">
+                  <div class="column" style="flex: 1">
+                    ${this.hideZomeSelector
                 ? html ``
                 : html `
-                        <mwc-tab-bar
-                          .activeIndex=${this._selectedZomeIndex}
-                          @MDCTabBar:activated=${(e) => (this._selectedZomeIndex = e.detail.index)}
-                        >
-                          ${this.activeCell
+                          <mwc-tab-bar
+                            .activeIndex=${this._selectedZomeIndex}
+                            @MDCTabBar:activated=${(e) => (this._selectedZomeIndex = e.detail.index)}
+                          >
+                            ${this.activeCell
                     .getSimulatedDna()
-                    .zomes.map((zome) => html ` <mwc-tab .label=${zome.name}></mwc-tab> `)}
-                        </mwc-tab-bar>
-                      `}
-                  ${this.renderActiveZomeFns()}
-                </div>
-                ${this.hideResults
+                    .zomes.map((zome) => html `
+                                    <mwc-tab .label=${zome.name}></mwc-tab>
+                                  `)}
+                          </mwc-tab-bar>
+                        `}
+                    ${this.renderActiveZomeFns()}
+                  </div>
+
+                  ${this.hideResults
                 ? html ``
                 : html `
-                      <span class="vertical-divider"></span>
-                      ${this.renderResults()}
-                    `}
+                        <span class="vertical-divider"></span>
+                        ${this.renderResults()}
+                      `}
+                </div>
               </div>
             `
             : html `<div class="fill center-content placeholder">
@@ -1322,6 +1350,9 @@ class CallZomeFns extends PlaygroundElement {
             'mwc-circular-progress': CircularProgress,
             'mwc-icon': Icon,
             'mwc-tab': Tab,
+            'mwc-list': List$1,
+            'mwc-drawer': Drawer,
+            'mwc-list-item': ListItem,
             'mwc-tab-bar': TabBar,
             'mwc-card': Card,
             'json-viewer': JsonViewer,
@@ -1340,6 +1371,10 @@ __decorate([
     property$1({ type: Number }),
     __metadata("design:type", Number)
 ], CallZomeFns.prototype, "_selectedZomeIndex", void 0);
+__decorate([
+    property$1({ type: String }),
+    __metadata("design:type", String)
+], CallZomeFns.prototype, "_selectedZomeFn", void 0);
 __decorate([
     property$1({ type: Array }),
     __metadata("design:type", Object)
@@ -34048,7 +34083,7 @@ class CellTasks extends PlaygroundElement {
         ];
         this.workflowDelay = 1000;
         this.hideErrors = false;
-        this._pauseOnNextStep = false;
+        this.stepByStep = false;
         this._onPause = false;
         /** Private properties */
         this._callZomeTasks = [];
@@ -34072,7 +34107,7 @@ class CellTasks extends PlaygroundElement {
                     this._runningTasks[task.type] += 1;
                 }
                 this.requestUpdate();
-                if (this._pauseOnNextStep) {
+                if (this.stepByStep) {
                     this.dispatchEvent(new CustomEvent('execution-paused', {
                         detail: { paused: true },
                         composed: true,
@@ -34120,7 +34155,7 @@ class CellTasks extends PlaygroundElement {
                     };
                     this._errors.push(errorInfo);
                     this.requestUpdate();
-                    if (this._pauseOnNextStep) {
+                    if (this.stepByStep) {
                         this.dispatchEvent(new CustomEvent('execution-paused', {
                             detail: { paused: true },
                             composed: true,
@@ -34203,7 +34238,9 @@ class CellTasks extends PlaygroundElement {
               </mwc-list-item>
             `)}
         </mwc-list>
-        <mwc-linear-progress indeterminate></mwc-linear-progress>
+        ${this.stepByStep
+            ? html$1 ``
+            : html$1 ` <mwc-linear-progress indeterminate></mwc-linear-progress> `}
       </mwc-card>
     `;
     }
@@ -34246,7 +34283,7 @@ __decorate([
 __decorate([
     property$1({ type: Boolean }),
     __metadata("design:type", Boolean)
-], CellTasks.prototype, "_pauseOnNextStep", void 0);
+], CellTasks.prototype, "stepByStep", void 0);
 __decorate([
     property$1({ type: Array }),
     __metadata("design:type", Array)
@@ -34399,8 +34436,8 @@ class DhtCells extends PlaygroundElement {
             NetworkRequestType.GET_REQUEST,
         ];
         this.hideTimeController = false;
+        this.stepByStep = false;
         this._resumeObservable = new Subject();
-        this.pauseOnNextStep = false;
         this._onPause = false;
         this._neighborEdges = [];
     }
@@ -34461,7 +34498,7 @@ class DhtCells extends PlaygroundElement {
                         classes: ['network-request'],
                     },
                 ]);
-                if (this.pauseOnNextStep) {
+                if (this.stepByStep) {
                     const halfPosition = {
                         x: (toPosition.x - fromPosition.x) / 2 + fromPosition.x,
                         y: (toPosition.y - fromPosition.y) / 2 + fromPosition.y,
@@ -34514,7 +34551,10 @@ class DhtCells extends PlaygroundElement {
         this._cy.getElementById(this.activeAgentPubKey).addClass('selected');
         this.highlightNodesWithEntry(this.activeEntryHash);
         if (changedValues.has('_onPause')) {
-            this._cy.style().selector('.cell').style({
+            this._cy
+                .style()
+                .selector('.cell')
+                .style({
                 opacity: this._onPause ? 0.4 : 1,
             });
         }
@@ -34524,49 +34564,44 @@ class DhtCells extends PlaygroundElement {
             return html ``;
         return html `
       <div class="row center-content">
-        <mwc-icon-button
-          .disabled=${this.pauseOnNextStep}
-          icon="pause"
-          @click=${() => (this.pauseOnNextStep = true)}
-        ></mwc-icon-button>
-
-        <mwc-icon-button
-          .disabled=${!this._onPause}
-          icon="skip_next"
-          style=${styleMap({
-            'background-color': this._onPause
-                ? 'var(--mdc-theme-primary, #dbdbdb)'
-                : 'white',
-            'border-radius': '50%',
-        })}
-          @click=${() => {
-            this._resumeObservable.next();
-            this.pauseOnNextStep = true;
-        }}
-        ></mwc-icon-button>
-        <mwc-icon-button
-          .disabled=${!this._onPause}
-          icon="fast_forward"
-          @click=${() => {
-            this._resumeObservable.next();
-            this.pauseOnNextStep = false;
-        }}
-        ></mwc-icon-button>
+        ${this.stepByStep
+            ? html `
+              <mwc-icon-button
+                .disabled=${!this._onPause}
+                icon="play_arrow"
+                style=${styleMap({
+                'background-color': this._onPause
+                    ? 'var(--mdc-theme-primary, #dbdbdb)'
+                    : 'white',
+                'border-radius': '50%',
+            })}
+                @click=${() => this._resumeObservable.next()}
+              ></mwc-icon-button>
+            `
+            : html `
+              <mwc-slider
+                style="margin-right: 16px;"
+                .value=${MAX_ANIMATION_DELAY - this.animationDelay}
+                pin
+                .min=${MIN_ANIMATION_DELAY}
+                .max=${MAX_ANIMATION_DELAY}
+                @change=${(e) => (this.animationDelay = MAX_ANIMATION_DELAY - e.target.value)}
+              ></mwc-slider>
+              <mwc-icon style="margin: 0 8px;">speed</mwc-icon>
+            `}
 
         <span
           class="vertical-divider"
-          style="height: 60%; margin: 0 8px;"
+          style="height: 60%; margin: 0 16px; margin-right: 24px;"
         ></span>
 
-        <mwc-slider
-          style="margin-left: 16px;"
-          .value=${MAX_ANIMATION_DELAY - this.animationDelay}
-          pin
-          .min=${MIN_ANIMATION_DELAY}
-          .max=${MAX_ANIMATION_DELAY}
-          @change=${(e) => (this.animationDelay = MAX_ANIMATION_DELAY - e.target.value)}
-        ></mwc-slider>
-        <mwc-icon style="margin: 0 16px;">speed</mwc-icon>
+        <mwc-formfield label="Step By Step" style="margin-right: 16px;">
+          <mwc-switch
+            id="step-by-step-switch"
+            .checked=${this.stepByStep}
+            @change=${(e) => (this.stepByStep = e.target.checked)}
+          ></mwc-switch>
+        </mwc-formfield>
       </div>
     `;
     }
@@ -34622,7 +34657,7 @@ class DhtCells extends PlaygroundElement {
                 position: 'absolute',
                 'z-index': '100',
             })}
-        ._pauseOnNextStep=${this.pauseOnNextStep}
+        .stepByStep=${this.stepByStep}
         ._onPause=${this._onPause}
         ._resumeObservable=${this._resumeObservable}
         @execution-paused=${(e) => (this._onPause = e.detail.paused)}
@@ -34698,13 +34733,17 @@ __decorate([
     __metadata("design:type", Boolean)
 ], DhtCells.prototype, "hideTimeController", void 0);
 __decorate([
+    property$1({ type: Boolean, attribute: 'step-by-step' }),
+    __metadata("design:type", Object)
+], DhtCells.prototype, "stepByStep", void 0);
+__decorate([
     query('#graph'),
     __metadata("design:type", Object)
 ], DhtCells.prototype, "_graph", void 0);
 __decorate([
-    property$1({ type: Boolean, attribute: 'paused' }),
-    __metadata("design:type", Object)
-], DhtCells.prototype, "pauseOnNextStep", void 0);
+    query('#step-by-step-switch'),
+    __metadata("design:type", Switch)
+], DhtCells.prototype, "_stepSwitch", void 0);
 __decorate([
     property$1({ type: Boolean }),
     __metadata("design:type", Object)

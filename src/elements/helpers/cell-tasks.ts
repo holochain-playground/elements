@@ -42,7 +42,7 @@ export class CellTasks extends PlaygroundElement {
   hideErrors = false;
 
   @property({ type: Boolean })
-  _pauseOnNextStep: boolean = false;
+  stepByStep: boolean = false;
 
   _onPause: boolean = false;
   _resumeObservable!: Subject<any>;
@@ -76,7 +76,7 @@ export class CellTasks extends PlaygroundElement {
         }
         this.requestUpdate();
 
-        if (this._pauseOnNextStep) {
+        if (this.stepByStep) {
           this.dispatchEvent(
             new CustomEvent('execution-paused', {
               detail: { paused: true },
@@ -130,7 +130,7 @@ export class CellTasks extends PlaygroundElement {
 
           this.requestUpdate();
 
-          if (this._pauseOnNextStep) {
+          if (this.stepByStep) {
             this.dispatchEvent(
               new CustomEvent('execution-paused', {
                 detail: { paused: true },
@@ -151,7 +151,7 @@ export class CellTasks extends PlaygroundElement {
           } else {
             await sleep(this.workflowDelay);
           }
-          
+
           const index = this._errors.findIndex((e) => e === errorInfo);
           this._errors.splice(index, 1);
         }
@@ -236,7 +236,9 @@ export class CellTasks extends PlaygroundElement {
             `
           )}
         </mwc-list>
-        <mwc-linear-progress indeterminate></mwc-linear-progress>
+        ${this.stepByStep
+          ? html``
+          : html` <mwc-linear-progress indeterminate></mwc-linear-progress> `}
       </mwc-card>
     `;
   }

@@ -19,6 +19,9 @@ import { TabBar } from 'scoped-material-components/mwc-tab-bar';
 import { Card } from 'scoped-material-components/mwc-card';
 import { shortenStrRec } from './utils/hash';
 import { JsonViewer } from '@power-elements/json-viewer';
+import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { List } from 'scoped-material-components/mwc-list';
+import { Drawer } from 'scoped-material-components/mwc-drawer';
 
 export interface ZomeFunctionResult {
   cellId: CellId;
@@ -41,6 +44,8 @@ export class CallZomeFns extends PlaygroundElement {
 
   @property({ type: Number })
   _selectedZomeIndex: number = 0;
+  @property({ type: String })
+  _selectedZomeFn: string | undefined = undefined;
 
   @property({ type: Array })
   // Results segmented by dnaHash/agentPubKey/timestamp
@@ -57,6 +62,13 @@ export class CallZomeFns extends PlaygroundElement {
 
   get activeZome(): SimulatedZome {
     return this.activeCell.getSimulatedDna().zomes[this._selectedZomeIndex];
+  }
+
+  get activeZomeFn(): SimulatedZomeFunction | undefined {
+    return (
+      this._selectedZomeFn &&
+      this.activeZome.zome_functions[this._selectedZomeFn]
+    );
   }
 
   observedCells() {
@@ -160,29 +172,36 @@ export class CallZomeFns extends PlaygroundElement {
   }
 
   renderCallableFunction(fnName: string, zomeFunction: SimulatedZomeFunction) {
-    return html`<div class="row" style="margin: 8px 0;">
-      <mwc-button
-        raised
-        @click=${() => this.callZomeFunction(fnName)}
-        style="width: 12em; margin: 18px; margin-left: 0;"
-        >${fnName}</mwc-button
-      >
-      <div class="column" style="flex: 1; margin-left: 16px;">
-        ${zomeFunction.arguments.length === 0
-          ? html`<span class="placeholder" style="margin-top: 28px;"
-              >This function has no arguments</span
-            >`
-          : zomeFunction.arguments.map(
-              (arg) => html`<mwc-textfield
-                style="margin-top: 8px"
-                outlined
-                label=${arg.name + ': ' + arg.type}
-                .value=${this.getFunctionArgument(fnName, arg.name) || ''}
-                @input=${(e) =>
-                  this.setFunctionArgument(fnName, arg.name, e.target.value)}
-              ></mwc-textfield>`
-            )}
+    return html` <div class="column" style="flex: 1; margin: 16px;">
+      <div class="flex-scrollable-parent">
+        <div class="flex-scrollable-container">
+          <div class="flex-scrollable-y">
+            <div class="column" style="flex: 1;">
+              ${zomeFunction.arguments.length === 0
+                ? html`<span class="placeholder" style="margin-top: 28px;"
+                    >This function has no arguments</span
+                  >`
+                : zomeFunction.arguments.map(
+                    (arg) => html`<mwc-textfield
+                      style="margin-top: 8px"
+                      outlined
+                      label=${arg.name + ': ' + arg.type}
+                      .value=${this.getFunctionArgument(fnName, arg.name) || ''}
+                      @input=${(e) =>
+                        this.setFunctionArgument(
+                          fnName,
+                          arg.name,
+                          e.target.value
+                        )}
+                    ></mwc-textfield>`
+                  )}
+            </div>
+          </div>
+        </div>
       </div>
+      <mwc-button raised @click=${() => this.callZomeFunction(fnName)}
+        >Execute</mwc-button
+      >
     </div>`;
   }
 
@@ -200,21 +219,37 @@ export class CallZomeFns extends PlaygroundElement {
       </div> `;
 
     return html`
-      <div class="flex-scrollable-parent">
-        <div class="flex-scrollable-container">
-          <div class="flex-scrollable-y">
-            <div class="column" style="flex: 1; margin: 0 16px;">
-              ${zomeFns.map(
-                ([name, fn], index) =>
-                  html`${this.renderCallableFunction(name, fn)}${index <
-                  zomeFns.length - 1
-                    ? html`<span class="horizontal-divider"></span>`
-                    : html``}`
-              )}
-            </div>
-          </div>
+      <mwc-drawer>
+        <mwc-list
+          activatable
+          @selected=${(e) =>
+            (this._selectedZomeFn = zomeFns[e.detail.index][0])}
+        >
+          ${zomeFns.map(
+            ([name, fn]) => html`
+              <mwc-list-item .activated=${this._selectedZomeFn === name}
+                >${name}
+              </mwc-list-item>
+            `
+          )}
+        </mwc-list>
+        <div slot="appContent" class="column" style="height: 100%;">
+          ${this.activeZomeFn === undefined
+            ? html` <div class="column center-content" style="flex: 1;">
+                <span style="align-self: center" class="placeholder"
+                  >Select a Zome Function to call it</span
+                >
+              </div>`
+            : html`
+                <div class="column" style="flex: 1;">
+                  ${this.renderCallableFunction(
+                    this._selectedZomeFn,
+                    this.activeZomeFn
+                  )}
+                </div>
+              `}
         </div>
-      </div>
+      </mwc-drawer>
     `;
   }
 
@@ -240,16 +275,12 @@ export class CallZomeFns extends PlaygroundElement {
           : html` <div class="flex-scrollable-parent">
               <div class="flex-scrollable-container">
                 <div class="flex-scrollable-y">
-                  <div style="margin: 0 16px; margin-top: 16px;">
-                    <span class="title">
-                      Results for
-                      ${shortenStrRec(this.activeCell.cellId[1])}</span
-                    >
+                  <div style="margin: 0 16px;">
                     ${sortedResults.map(
                       ([timestamp, result], index) =>
                         html`
                           <div class="column" style="flex: 1;">
-                            <div class="row" style="margin: 8px 16px;">
+                            <div class="row" style="margin: 8px 0;">
                               ${result.result
                                 ? html`
                                     <mwc-icon
@@ -339,33 +370,43 @@ export class CallZomeFns extends PlaygroundElement {
       <mwc-card style="width: auto; flex: 1;">
         ${this.activeCell
           ? html`
-              <div class="row" style="flex: 1;">
-                <div class="column" style="flex: 1">
-                  <span class="title" style="margin: 16px;">Call Zome Fns, <span class="placeholder">for agent ${this.activeAgentPubKey}</span></span>
-                  ${this.hideZomeSelector
+              <div class="column" style="flex: 1">
+                <span class="title" style="margin: 16px;"
+                  >Call Zome Fns,
+                  <span class="placeholder"
+                    >for agent ${this.activeAgentPubKey}</span
+                  ></span
+                >
+                <div class="row" style="flex: 1;">
+                  <div class="column" style="flex: 1">
+                    ${this.hideZomeSelector
+                      ? html``
+                      : html`
+                          <mwc-tab-bar
+                            .activeIndex=${this._selectedZomeIndex}
+                            @MDCTabBar:activated=${(e: CustomEvent) =>
+                              (this._selectedZomeIndex = e.detail.index)}
+                          >
+                            ${this.activeCell
+                              .getSimulatedDna()
+                              .zomes.map(
+                                (zome) =>
+                                  html`
+                                    <mwc-tab .label=${zome.name}></mwc-tab>
+                                  `
+                              )}
+                          </mwc-tab-bar>
+                        `}
+                    ${this.renderActiveZomeFns()}
+                  </div>
+
+                  ${this.hideResults
                     ? html``
                     : html`
-                        <mwc-tab-bar
-                          .activeIndex=${this._selectedZomeIndex}
-                          @MDCTabBar:activated=${(e: CustomEvent) =>
-                            (this._selectedZomeIndex = e.detail.index)}
-                        >
-                          ${this.activeCell
-                            .getSimulatedDna()
-                            .zomes.map(
-                              (zome) =>
-                                html` <mwc-tab .label=${zome.name}></mwc-tab> `
-                            )}
-                        </mwc-tab-bar>
+                        <span class="vertical-divider"></span>
+                        ${this.renderResults()}
                       `}
-                  ${this.renderActiveZomeFns()}
                 </div>
-                ${this.hideResults
-                  ? html``
-                  : html`
-                      <span class="vertical-divider"></span>
-                      ${this.renderResults()}
-                    `}
               </div>
             `
           : html`<div class="fill center-content placeholder">
@@ -396,6 +437,9 @@ export class CallZomeFns extends PlaygroundElement {
       'mwc-circular-progress': CircularProgress,
       'mwc-icon': Icon,
       'mwc-tab': Tab,
+      'mwc-list': List,
+      'mwc-drawer': Drawer,
+      'mwc-list-item': ListItem,
       'mwc-tab-bar': TabBar,
       'mwc-card': Card,
       'json-viewer': JsonViewer,

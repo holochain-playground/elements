@@ -9,6 +9,9 @@ import { Tab } from 'scoped-material-components/mwc-tab';
 import { TabBar } from 'scoped-material-components/mwc-tab-bar';
 import { Card } from 'scoped-material-components/mwc-card';
 import { JsonViewer } from '@power-elements/json-viewer';
+import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { List } from 'scoped-material-components/mwc-list';
+import { Drawer } from 'scoped-material-components/mwc-drawer';
 export interface ZomeFunctionResult {
     cellId: CellId;
     zome: SimulatedZome;
@@ -22,10 +25,12 @@ export declare class CallZomeFns extends PlaygroundElement {
     hideResults: boolean;
     hideZomeSelector: boolean;
     _selectedZomeIndex: number;
+    _selectedZomeFn: string | undefined;
     _results: Dictionary<Dictionary<Dictionary<ZomeFunctionResult>>>;
     _arguments: Dictionary<Dictionary<Dictionary<Dictionary<Dictionary<any>>>>>;
     get activeCell(): Cell;
     get activeZome(): SimulatedZome;
+    get activeZomeFn(): SimulatedZomeFunction | undefined;
     observedCells(): Cell[];
     setResultValue(timestamp: number, value: ZomeFunctionResult): void;
     getResultValue(timestamp: number): ZomeFunctionResult | undefined;
@@ -45,6 +50,9 @@ export declare class CallZomeFns extends PlaygroundElement {
         'mwc-circular-progress': typeof CircularProgress;
         'mwc-icon': typeof Icon;
         'mwc-tab': typeof Tab;
+        'mwc-list': typeof List;
+        'mwc-drawer': typeof Drawer;
+        'mwc-list-item': typeof ListItem;
         'mwc-tab-bar': typeof TabBar;
         'mwc-card': typeof Card;
         'json-viewer': typeof JsonViewer;

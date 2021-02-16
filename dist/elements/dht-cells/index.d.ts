@@ -16,11 +16,12 @@ export declare class DhtCells extends PlaygroundElement {
     workflowsToDisplay: WorkflowType[];
     networkRequestsToDisplay: NetworkRequestType[];
     hideTimeController: boolean;
+    stepByStep: boolean;
     private _graph;
+    private _stepSwitch;
     private _cy;
     private _layout;
     private _resumeObservable;
-    pauseOnNextStep: boolean;
     private _onPause;
     firstUpdated(): Promise<void>;
     highlightNodesWithEntry(entryHash: Hash): void;
