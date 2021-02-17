@@ -252,7 +252,7 @@ export class DhtCells extends PlaygroundElement {
 
         <span
           class="vertical-divider"
-          style="height: 60%; margin: 0 16px; margin-right: 24px;"
+          style="margin: 0 16px; margin-right: 24px;"
         ></span>
 
         <mwc-formfield label="Step By Step" style="margin-right: 16px;">
