@@ -11,6 +11,7 @@ export declare class SourceChain extends PlaygroundElement {
     private graph;
     firstUpdated(): void;
     observedCells(): Cell[];
+    setupGraph(): void;
     updated(changedValues: PropertyValues): void;
     renderHelp(): import("lit-element").TemplateResult;
     render(): import("lit-element").TemplateResult;
