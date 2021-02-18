@@ -26,6 +26,8 @@ export declare class DhtCells extends PlaygroundElement {
     private _networkRequestsMenu;
     private _cy;
     private _layout;
+    private _graphReady;
+    private _cellsReady;
     private _resumeObservable;
     private _onPause;
     firstUpdated(): Promise<void>;
@@ -33,6 +35,7 @@ export declare class DhtCells extends PlaygroundElement {
     observedCells(): Cell[];
     onNewObservedCell(cell: Cell): import("@holochain-playground/core").MiddlewareSubscription[];
     onCellsChanged(): void;
+    setupGraphNodes(): void;
     _neighborEdges: any[];
     updated(changedValues: any): void;
     renderTimeController(): import("lit-element").TemplateResult;

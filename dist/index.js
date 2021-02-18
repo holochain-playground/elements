@@ -34240,6 +34240,8 @@ class DhtCells extends PlaygroundElement {
         ];
         this.hideTimeController = false;
         this.stepByStep = false;
+        this._graphReady = false;
+        this._cellsReady = false;
         this._resumeObservable = new Subject();
         this._onPause = false;
         this._neighborEdges = [];
@@ -34255,7 +34257,14 @@ class DhtCells extends PlaygroundElement {
             autoungrabify: true,
             userPanningEnabled: false,
             userZoomingEnabled: false,
-            layout: layoutConfig,
+            layout: {
+                ...layoutConfig,
+                ready: () => {
+                    this._graphReady = true;
+                    if (this._cellsReady)
+                        this.setupGraphNodes();
+                },
+            },
             style: graphStyles,
         });
         this._cy.on('tap', 'node', (evt) => {
@@ -34332,6 +34341,12 @@ class DhtCells extends PlaygroundElement {
         ];
     }
     onCellsChanged() {
+        this._cellsReady = true;
+        if (!this._graphReady)
+            return;
+        this.setupGraphNodes();
+    }
+    setupGraphNodes() {
         if (this._layout)
             this._layout.stop();
         this._cy.remove('node');
@@ -34375,9 +34390,7 @@ class DhtCells extends PlaygroundElement {
                 .disabled=${!this._onPause}
                 icon="play_arrow"
                 style=${styleMap({
-                'background-color': this._onPause
-                    ? '#dbdbdb'
-                    : 'white',
+                'background-color': this._onPause ? '#dbdbdb' : 'white',
                 'border-radius': '50%',
             })}
                 @click=${() => this._resumeObservable.next()}
@@ -34483,7 +34496,7 @@ class DhtCells extends PlaygroundElement {
         const networkRequestNames = Object.values(NetworkRequestType);
         return html `
       <div class="row center-content" style="margin: 16px; position: relative;">
-      <mwc-button
+        <mwc-button
           label="Visible Worfklows"
           style="--mdc-theme-primary: rgba(0,0,0,0.7);"
           icon="arrow_drop_down"

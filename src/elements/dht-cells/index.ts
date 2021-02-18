@@ -67,6 +67,8 @@ export class DhtCells extends PlaygroundElement {
 
   private _cy;
   private _layout;
+  private _graphReady = false;
+  private _cellsReady = false;
 
   private _resumeObservable = new Subject();
 
@@ -85,7 +87,13 @@ export class DhtCells extends PlaygroundElement {
       autoungrabify: true,
       userPanningEnabled: false,
       userZoomingEnabled: false,
-      layout: layoutConfig,
+      layout: {
+        ...layoutConfig,
+        ready: () => {
+          this._graphReady = true;
+          if (this._cellsReady) this.setupGraphNodes();
+        },
+      },
       style: graphStyles,
     });
 
@@ -179,6 +187,12 @@ export class DhtCells extends PlaygroundElement {
   }
 
   onCellsChanged() {
+    this._cellsReady = true;
+    if (!this._graphReady) return;
+    this.setupGraphNodes();
+  }
+
+  setupGraphNodes() {
     if (this._layout) this._layout.stop();
     this._cy.remove('node');
     this._cy.remove('edge');
@@ -234,9 +248,7 @@ export class DhtCells extends PlaygroundElement {
                 .disabled=${!this._onPause}
                 icon="play_arrow"
                 style=${styleMap({
-                  'background-color': this._onPause
-                    ? '#dbdbdb'
-                    : 'white',
+                  'background-color': this._onPause ? '#dbdbdb' : 'white',
                   'border-radius': '50%',
                 })}
                 @click=${() => this._resumeObservable.next()}
@@ -374,7 +386,7 @@ export class DhtCells extends PlaygroundElement {
     const networkRequestNames = Object.values(NetworkRequestType);
     return html`
       <div class="row center-content" style="margin: 16px; position: relative;">
-      <mwc-button
+        <mwc-button
           label="Visible Worfklows"
           style="--mdc-theme-primary: rgba(0,0,0,0.7);"
           icon="arrow_drop_down"
@@ -443,7 +455,9 @@ export class DhtCells extends PlaygroundElement {
                   type as NetworkRequestType
                 )}
               >
-                ${this.networkRequestsToDisplay.includes(type as NetworkRequestType)
+                ${this.networkRequestsToDisplay.includes(
+                  type as NetworkRequestType
+                )
                   ? html` <mwc-icon slot="graphic">check</mwc-icon> `
                   : html``}
                 ${type}
