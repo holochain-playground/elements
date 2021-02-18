@@ -183,7 +183,7 @@ export class EntryGraph extends PlaygroundElement {
       )
     ) {
       if (this.layout) this.layout.stop();
-      this.cy.remove('nodes');
+      this.cy.remove('node');
       this.cy.add(entries);
 
       this.layout = this.cy.elements().makeLayout(layoutConfig);
@@ -277,31 +277,6 @@ export class EntryGraph extends PlaygroundElement {
           `
         )}
       </mwc-menu>
-      <!-- 
-      ${this._entryTypes.map(
-        (entryType) => html`
-          <mwc-formfield label="Show ${entryType}s">
-            <mwc-checkbox
-              .checked=${!this.excludedEntryTypes.includes(entryType)}
-              @change=${(e) => {
-                const excluded = this.excludedEntryTypes.includes(entryType);
-                const toExclude = !e.target.checked;
-
-                if (excluded && !toExclude) {
-                  this.excludedEntryTypes = [
-                    ...this.excludedEntryTypes.filter((t) => t !== entryType),
-                  ];
-                } else if (!excluded && toExclude) {
-                  this.excludedEntryTypes = [
-                    ...this.excludedEntryTypes,
-                    entryType,
-                  ];
-                }
-              }}
-            ></mwc-checkbox
-          ></mwc-formfield>
-        `
-      )} -->
     </div>`;
   }
 
