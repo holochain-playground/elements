@@ -87,13 +87,7 @@ export class DhtCells extends PlaygroundElement {
       autoungrabify: true,
       userPanningEnabled: false,
       userZoomingEnabled: false,
-      layout: {
-        ...layoutConfig,
-        ready: () => {
-          this._graphReady = true;
-          if (this._cellsReady) this.setupGraphNodes();
-        },
-      },
+      layout: layoutConfig,
       style: graphStyles,
     });
 
@@ -102,6 +96,10 @@ export class DhtCells extends PlaygroundElement {
         activeAgentPubKey: evt.target.id(),
         activeEntryHash: null,
       });
+    });
+
+    this._cy.on('render', () => {
+      this.setupGraphNodes();
     });
   }
 
@@ -187,8 +185,6 @@ export class DhtCells extends PlaygroundElement {
   }
 
   onCellsChanged() {
-    this._cellsReady = true;
-    if (!this._graphReady) return;
     this.setupGraphNodes();
   }
 
