@@ -26,8 +26,6 @@ export declare class DhtCells extends PlaygroundElement {
     private _networkRequestsMenu;
     private _cy;
     private _layout;
-    private _graphReady;
-    private _cellsReady;
     private _resumeObservable;
     private _onPause;
     firstUpdated(): Promise<void>;

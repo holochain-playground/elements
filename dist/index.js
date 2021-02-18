@@ -34240,8 +34240,6 @@ class DhtCells extends PlaygroundElement {
         ];
         this.hideTimeController = false;
         this.stepByStep = false;
-        this._graphReady = false;
-        this._cellsReady = false;
         this._resumeObservable = new Subject();
         this._onPause = false;
         this._neighborEdges = [];
@@ -34266,8 +34264,14 @@ class DhtCells extends PlaygroundElement {
                 activeEntryHash: null,
             });
         });
+        let rendered = false;
         this._cy.on('render', () => {
-            this.setupGraphNodes();
+            if (this._cy.width() !== 0) {
+                if (!rendered) {
+                    rendered = true;
+                    this.setupGraphNodes();
+                }
+            }
         });
     }
     highlightNodesWithEntry(entryHash) {
@@ -34340,11 +34344,11 @@ class DhtCells extends PlaygroundElement {
         this.setupGraphNodes();
     }
     setupGraphNodes() {
+        const nodes = dhtCellsNodes(this._observedCells);
         if (this._layout)
             this._layout.stop();
         this._cy.remove('node');
         this._cy.remove('edge');
-        const nodes = dhtCellsNodes(this._observedCells);
         this._cy.add(nodes);
         const neighbors = neighborsEdges(this._observedCells);
         this._cy.add(neighbors);

@@ -67,9 +67,6 @@ export class DhtCells extends PlaygroundElement {
 
   private _cy;
   private _layout;
-  private _graphReady = false;
-  private _cellsReady = false;
-
   private _resumeObservable = new Subject();
 
   @property({ type: Boolean })
@@ -98,8 +95,14 @@ export class DhtCells extends PlaygroundElement {
       });
     });
 
+    let rendered = false;
     this._cy.on('render', () => {
-      this.setupGraphNodes();
+      if (this._cy.width() !== 0) {
+        if (!rendered) {
+          rendered = true;
+          this.setupGraphNodes();
+        }
+      }
     });
   }
 
@@ -189,11 +192,12 @@ export class DhtCells extends PlaygroundElement {
   }
 
   setupGraphNodes() {
+    const nodes = dhtCellsNodes(this._observedCells);
+
     if (this._layout) this._layout.stop();
     this._cy.remove('node');
     this._cy.remove('edge');
 
-    const nodes = dhtCellsNodes(this._observedCells);
     this._cy.add(nodes);
     const neighbors = neighborsEdges(this._observedCells);
     this._cy.add(neighbors);
