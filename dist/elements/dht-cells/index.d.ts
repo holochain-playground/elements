@@ -11,6 +11,8 @@ import { PlaygroundElement } from '../../context/playground-element';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Formfield } from 'scoped-material-components/mwc-formfield';
 import { Icon } from 'scoped-material-components/mwc-icon';
+import { Menu } from 'scoped-material-components/mwc-menu';
+import { ListItem } from 'scoped-material-components/mwc-list-item';
 export declare class DhtCells extends PlaygroundElement {
     animationDelay: number;
     workflowsToDisplay: WorkflowType[];
@@ -18,7 +20,10 @@ export declare class DhtCells extends PlaygroundElement {
     hideTimeController: boolean;
     stepByStep: boolean;
     private _graph;
-    private _stepSwitch;
+    private _activeWorkflowsButton;
+    private _activeWorkflowsMenu;
+    private _networkRequestsButton;
+    private _networkRequestsMenu;
     private _cy;
     private _layout;
     private _resumeObservable;
@@ -34,6 +39,7 @@ export declare class DhtCells extends PlaygroundElement {
     renderHelp(): import("lit-element").TemplateResult;
     renderTasksTooltips(): import("lit-element").TemplateResult;
     renderCopyButton(): import("lit-element").TemplateResult;
+    renderBottomToolbar(): import("lit-element").TemplateResult;
     render(): import("lit-element").TemplateResult;
     static get styles(): import("lit-element").CSSResult[];
     static get scopedElements(): {
@@ -41,6 +47,8 @@ export declare class DhtCells extends PlaygroundElement {
         'mwc-menu-surface': typeof MenuSurface;
         'mwc-button': typeof Button;
         'mwc-icon': typeof Icon;
+        'mwc-menu': typeof Menu;
+        'mwc-list-item': typeof ListItem;
         'mwc-slider': typeof Slider;
         'mwc-switch': typeof Switch;
         'mwc-formfield': typeof Formfield;

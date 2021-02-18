@@ -1,6 +1,7 @@
 import { Snackbar } from 'scoped-material-components/mwc-snackbar';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import { ProviderMixin, ConsumerMixin } from 'lit-element-context';
 import { LitElement, css as css$1, html, property as property$1, query } from 'lit-element';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { sampleDnaTemplate, createConductors, getDhtShard, getEntryDetails, WorkflowType, sleep, workflowPriority, Cell, distance, NetworkRequestType, getEntryTypeString, getAllHeldEntries, getLinksForEntry, getAppEntryType } from '@holochain-playground/core';
@@ -23,6 +24,7 @@ import { html as html$1 } from 'lit-html';
 import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
 import { Formfield } from 'scoped-material-components/mwc-formfield';
 import { Subject } from 'rxjs';
+import { Menu } from 'scoped-material-components/mwc-menu';
 import { Checkbox } from 'scoped-material-components/mwc-checkbox';
 import { timestampToMillis, EntryDhtStatus } from '@holochain-open-dev/core-types';
 
@@ -51,190 +53,6 @@ function __decorate(decorators, target, key, desc) {
 function __metadata(metadataKey, metadataValue) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
 }
-
-const appliedClassMixins = new WeakMap();
-
-/** Vefify if the Mixin was previously applyed
- * @private
- * @param {function} mixin      Mixin being applyed
- * @param {object} superClass   Class receiving the new mixin
- * @returns {boolean}
- */
-function wasMixinPreviouslyApplied(mixin, superClass) {
-  let klass = superClass;
-  while (klass) {
-    if (appliedClassMixins.get(klass) === mixin) {
-      return true;
-    }
-    klass = Object.getPrototypeOf(klass);
-  }
-  return false;
-}
-
-/** Apply each mixin in the chain to make sure they are not applied more than once to the final class.
- * @export
- * @param {function} mixin      Mixin to be applyed
- * @returns {object}            Mixed class with mixin applied
- */
-function dedupeMixin(mixin) {
-  return superClass => {
-    if (wasMixinPreviouslyApplied(mixin, superClass)) {
-      return superClass;
-    }
-    const mixedClass = mixin(superClass);
-    appliedClassMixins.set(mixedClass, mixin);
-    return mixedClass;
-  };
-}
-
-const connectEvent = "context.connectEvent";
-
-const ConsumerMixin = dedupeMixin((Base) => {
-    return class extends Base {
-        connectedCallback() {
-            if (super.connectedCallback) {
-                super.connectedCallback();
-            }
-
-            this._injectedContexts = new Map();
-
-            for (const key of this.constructor.inject) {
-                this._injectContext(key);
-            }
-        }
-
-        /**
-         * Create an event and propagate it through the tree up, to find provider,
-         * usbubscribe callback we save to injected contexts, to call them on unmount
-         */
-        _injectContext(key) {
-            const callback = (value, oldValue) => {
-                this._contextValueChanged(key, value, oldValue);
-            };
-
-            // Composed event because lit-element can work without shadow root
-            const event = new CustomEvent(connectEvent, {
-                bubbles: true,
-                cancelable: true,
-                composed: true,
-                detail: { key, connected: false, callback },
-            });
-
-            this.dispatchEvent(event);
-
-            if (event.detail.connected) {
-                this._injectedContexts.set(key, {
-                    unsubscribe: event.detail.unsubscribe,
-                });
-            }
-        }
-
-        /**
-         * Change value of property recieved from a context, then property changes
-         */
-        _contextValueChanged(key, value, oldValue) {
-            if (value !== oldValue) {
-                this[key] = value;
-            }
-        }
-
-        disconnectedCallback() {
-            for (const context of this._injectedContexts.values()) {
-                context.unsubscribe();
-            }
-
-            if (super.disconnectedCallback) {
-                super.disconnectedCallback();
-            }
-        }
-    };
-});
-
-const ProviderMixin = dedupeMixin((Base) => {
-    return class extends Base {
-        connectedCallback() {
-            if (super.connectedCallback) {
-                super.connectedCallback();
-            }
-
-            this._providedContexts = new Map();
-
-            for (const key of this.constructor.provide) {
-                this._provideContext(key);
-            }
-        }
-
-        /**
-         * Create a new instance of the event listener and save it in provided
-         * contexts map to remove the listener on unmount.
-         */
-        _provideContext(key) {
-            const listener = (event) => {
-                const { detail } = event;
-
-                if (detail.key === key) {
-                    event.stopPropagation();
-
-                    const context = this._providedContexts.get(key);
-
-                    context.callbacks.add(detail.callback);
-
-                    detail.connected = true;
-                    detail.unsubscribe = () => {
-                        context.callbacks.delete(detail.callback);
-                    };
-
-                    detail.callback(this[key]);
-                }
-            };
-
-            this.addEventListener(connectEvent, listener);
-
-            this._providedContexts.set(key, {
-                listener,
-                callbacks: new Set(),
-            });
-        }
-
-        /**
-         * Trigger subscriber callback to provide new context value
-         */
-        _updateContextValue(key, value, oldValue) {
-            if (this._providedContexts.has(key)) {
-                const context = this._providedContexts.get(key);
-
-                for (const callback of context.callbacks) {
-                    callback(value, oldValue);
-                }
-            }
-        }
-
-        /**
-         * Notify listeners about property changes before render
-         */
-        shouldUpdate(changedProperties) {
-            const shouldUpdate = super.shouldUpdate(changedProperties);
-
-            for (const [key, oldValue] of changedProperties.entries()) {
-                if (this.constructor.provide.includes(key)) {
-                    this._updateContextValue(key, this[key], oldValue);
-                }
-            }
-
-            return shouldUpdate;
-        }
-
-        disconnectedCallback() {
-            for (const context of this._providedContexts.values()) {
-                this.removeEventListener(connectEvent, context.listener);
-            }
-
-            if (super.disconnectedCallback) {
-                super.disconnectedCallback();
-            }
-        }
-    };
-});
 
 class HolochainPlaygroundContainer extends ProviderMixin(ScopedElementsMixin(LitElement)) {
     constructor() {
@@ -555,7 +373,7 @@ const sharedStyles = css$1 `
   .vertical-divider {
     background-color: grey;
     width: 1px;
-    height: 100%;
+    height: 60%; 
     opacity: 0.3;
     margin-bottom: 0;
   }
@@ -34125,8 +33943,6 @@ class CellTasks extends PlaygroundElement {
                 }
             }),
             cell.workflowExecutor.success(async (task) => {
-                if (!this.workflowsToDisplay.includes(task.type))
-                    return;
                 if (task.type === WorkflowType.CALL_ZOME) {
                     this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
                 }
@@ -34138,15 +33954,13 @@ class CellTasks extends PlaygroundElement {
                 this.requestUpdate();
             }),
             cell.workflowExecutor.error(async (task, error) => {
-                if (this.workflowsToDisplay.includes(task.type)) {
-                    if (task.type === WorkflowType.CALL_ZOME) {
-                        this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
-                    }
-                    else if (this._runningTasks[task.type]) {
-                        this._runningTasks[task.type] -= 1;
-                        if (this._runningTasks[task.type] === 0)
-                            delete this._runningTasks[task.type];
-                    }
+                if (task.type === WorkflowType.CALL_ZOME) {
+                    this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
+                }
+                else if (this._runningTasks[task.type]) {
+                    this._runningTasks[task.type] -= 1;
+                    if (this._runningTasks[task.type] === 0)
+                        delete this._runningTasks[task.type];
                 }
                 if (!this.hideErrors) {
                     const errorInfo = {
@@ -34420,20 +34234,12 @@ class DhtCells extends PlaygroundElement {
         super(...arguments);
         this.animationDelay = 2000;
         this.workflowsToDisplay = [
-            WorkflowType.GENESIS,
             WorkflowType.CALL_ZOME,
-            WorkflowType.INCOMING_DHT_OPS,
-            WorkflowType.INTEGRATE_DHT_OPS,
-            WorkflowType.PRODUCE_DHT_OPS,
-            WorkflowType.PUBLISH_DHT_OPS,
             WorkflowType.APP_VALIDATION,
-            WorkflowType.SYS_VALIDATION,
         ];
         this.networkRequestsToDisplay = [
-            NetworkRequestType.ADD_NEIGHBOR,
             NetworkRequestType.PUBLISH_REQUEST,
             NetworkRequestType.CALL_REMOTE,
-            NetworkRequestType.GET_REQUEST,
         ];
         this.hideTimeController = false;
         this.stepByStep = false;
@@ -34571,7 +34377,7 @@ class DhtCells extends PlaygroundElement {
                 icon="play_arrow"
                 style=${styleMap({
                 'background-color': this._onPause
-                    ? 'var(--mdc-theme-primary, #dbdbdb)'
+                    ? '#dbdbdb'
                     : 'white',
                 'border-radius': '50%',
             })}
@@ -34592,14 +34398,18 @@ class DhtCells extends PlaygroundElement {
 
         <span
           class="vertical-divider"
-          style="height: 60%; margin: 0 16px; margin-right: 24px;"
+          style="margin: 0 16px; margin-right: 24px;"
         ></span>
 
         <mwc-formfield label="Step By Step" style="margin-right: 16px;">
           <mwc-switch
             id="step-by-step-switch"
             .checked=${this.stepByStep}
-            @change=${(e) => (this.stepByStep = e.target.checked)}
+            @change=${(e) => {
+            this.stepByStep = e.target.checked;
+            if (this._onPause)
+                this._resumeObservable.next();
+        }}
           ></mwc-switch>
         </mwc-formfield>
       </div>
@@ -34669,6 +34479,77 @@ class DhtCells extends PlaygroundElement {
         //if (!this.activeAgentPubKey)
         return html ``;
     }
+    renderBottomToolbar() {
+        const workflowsNames = Object.values(WorkflowType);
+        const networkRequestNames = Object.values(NetworkRequestType);
+        return html `
+      <div class="row center-content" style="margin: 16px; position: relative;">
+      <mwc-button
+          label="Visible Worfklows"
+          style="--mdc-theme-primary: rgba(0,0,0,0.7);"
+          icon="arrow_drop_down"
+          id="active-workflows-button"
+          trailingIcon
+          @click=${() => this._activeWorkflowsMenu.show()}
+        ></mwc-button>
+        <mwc-menu
+          corner="BOTTOM_END"
+          multi
+          activatable
+          id="active-workflows-menu"
+          .anchor=${this._activeWorkflowsButton}
+          @selected=${(e) => (this.workflowsToDisplay = [...e.detail.index].map((index) => workflowsNames[index]))}
+        >
+          ${workflowsNames.map((type) => html `
+              <mwc-list-item
+                graphic="icon"
+                .selected=${this.workflowsToDisplay.includes(type)}
+                .activated=${this.workflowsToDisplay.includes(type)}
+              >
+                ${this.workflowsToDisplay.includes(type)
+            ? html ` <mwc-icon slot="graphic">check</mwc-icon> `
+            : html ``}
+                ${type}
+              </mwc-list-item>
+            `)}
+        </mwc-menu>
+
+        <mwc-button
+          label="Visible Network Requests"
+          style="--mdc-theme-primary: rgba(0,0,0,0.7);"
+          icon="arrow_drop_down"
+          id="network-requests-button"
+          trailingIcon
+          @click=${() => this._networkRequestsMenu.show()}
+        ></mwc-button>
+        <mwc-menu
+          corner="BOTTOM_END"
+          multi
+          activatable
+          id="network-requests-menu"
+          .anchor=${this._networkRequestsButton}
+          @selected=${(e) => (this.networkRequestsToDisplay = [...e.detail.index].map((index) => networkRequestNames[index]))}
+        >
+          ${networkRequestNames.map((type) => html `
+              <mwc-list-item
+                graphic="icon"
+                .selected=${this.networkRequestsToDisplay.includes(type)}
+                .activated=${this.networkRequestsToDisplay.includes(type)}
+              >
+                ${this.networkRequestsToDisplay.includes(type)
+            ? html ` <mwc-icon slot="graphic">check</mwc-icon> `
+            : html ``}
+                ${type}
+              </mwc-list-item>
+            `)}
+        </mwc-menu>
+
+        <span style="flex: 1;"></span>
+
+        ${this.renderTimeController()}
+      </div>
+    `;
+    }
     render() {
         return html `
       <mwc-card class="block-card" style="position: relative;">
@@ -34680,13 +34561,10 @@ class DhtCells extends PlaygroundElement {
             id="graph"
             class="fill"
             style=${styleMap({
-            'background-color': this._onPause ? '#DBDBDB' : 'white',
+            'background-color': this._onPause ? '#dbdbdba0' : 'white',
         })}
           ></div>
-          <div class="row" style="margin: 16px;">
-            <span style="flex: 1;"></span>
-            ${this.renderTimeController()}
-          </div>
+          ${this.renderBottomToolbar()}
         </div>
       </mwc-card>
     `;
@@ -34707,6 +34585,8 @@ class DhtCells extends PlaygroundElement {
             'mwc-menu-surface': MenuSurface,
             'mwc-button': Button,
             'mwc-icon': Icon,
+            'mwc-menu': Menu,
+            'mwc-list-item': ListItem,
             'mwc-slider': Slider,
             'mwc-switch': Switch,
             'mwc-formfield': Formfield,
@@ -34741,9 +34621,21 @@ __decorate([
     __metadata("design:type", Object)
 ], DhtCells.prototype, "_graph", void 0);
 __decorate([
-    query('#step-by-step-switch'),
-    __metadata("design:type", Switch)
-], DhtCells.prototype, "_stepSwitch", void 0);
+    query('#active-workflows-button'),
+    __metadata("design:type", Button)
+], DhtCells.prototype, "_activeWorkflowsButton", void 0);
+__decorate([
+    query('#active-workflows-menu'),
+    __metadata("design:type", Menu)
+], DhtCells.prototype, "_activeWorkflowsMenu", void 0);
+__decorate([
+    query('#network-requests-button'),
+    __metadata("design:type", Button)
+], DhtCells.prototype, "_networkRequestsButton", void 0);
+__decorate([
+    query('#network-requests-menu'),
+    __metadata("design:type", Menu)
+], DhtCells.prototype, "_networkRequestsMenu", void 0);
 __decorate([
     property$1({ type: Boolean }),
     __metadata("design:type", Object)
@@ -37891,10 +37783,10 @@ class EntryGraph extends PlaygroundElement {
         super(...arguments);
         this.showFilter = true;
         this.showEntryContents = true;
+        this.excludedEntryTypes = [];
         this.lastEntriesIds = [];
         this.ready = false;
         this._entryTypes = [];
-        this.excludedEntryTypes = [];
     }
     firstUpdated() {
         window.addEventListener('scroll', () => {
@@ -38049,7 +37941,7 @@ class EntryGraph extends PlaygroundElement {
     renderFilter() {
         return html ` <div
       class="row"
-      style="align-items: center; justify-content: start;"
+      style="align-items: center; justify-content: start; position: relative;"
     >
       <mwc-formfield label="Show Entry Contents" style="margin-right: 16px">
         <mwc-checkbox
@@ -38060,6 +37952,40 @@ class EntryGraph extends PlaygroundElement {
 
       <span class="vertical-divider"></span>
 
+      <mwc-button
+        label="Visible entries"
+        style="--mdc-theme-primary: rgba(0,0,0,0.7); margin-left: 16px;"
+        icon="arrow_drop_down"
+        id="visible-entries-button"
+        trailingIcon
+        @click=${() => this._visibleEntriesMenu.show()}
+      ></mwc-button>
+      <mwc-menu
+        corner="BOTTOM_END"
+        multi
+        activatable
+        id="visible-entries-menu"
+        .anchor=${this._visibleEntriesButton}
+        @selected=${(e) => {
+            const includedEntryTypes = [...e.detail.index];
+            this.excludedEntryTypes = this._entryTypes
+                .filter((type, index) => !includedEntryTypes.includes(index));
+        }}
+      >
+        ${this._entryTypes.map((type) => html `
+            <mwc-list-item
+              graphic="icon"
+              .selected=${!this.excludedEntryTypes.includes(type)}
+              .activated=${!this.excludedEntryTypes.includes(type)}
+            >
+              ${!this.excludedEntryTypes.includes(type)
+            ? html ` <mwc-icon slot="graphic">check</mwc-icon> `
+            : html ``}
+              ${type}
+            </mwc-list-item>
+          `)}
+      </mwc-menu>
+      <!-- 
       ${this._entryTypes.map((entryType) => html `
           <mwc-formfield label="Show ${entryType}s">
             <mwc-checkbox
@@ -38081,7 +38007,7 @@ class EntryGraph extends PlaygroundElement {
         }}
             ></mwc-checkbox
           ></mwc-formfield>
-        `)}
+        `)} -->
     </div>`;
     }
     render() {
@@ -38103,6 +38029,10 @@ class EntryGraph extends PlaygroundElement {
             'mwc-formfield': Formfield,
             'mwc-icon-button': IconButton,
             'mwc-card': Card,
+            'mwc-menu': Menu,
+            'mwc-icon': Icon,
+            'mwc-list-item': ListItem,
+            'mwc-button': Button,
             'holochain-playground-help-button': HelpButton,
         };
     }
@@ -38116,6 +38046,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], EntryGraph.prototype, "showEntryContents", void 0);
 __decorate([
+    property$1({ type: Array }),
+    __metadata("design:type", Array)
+], EntryGraph.prototype, "excludedEntryTypes", void 0);
+__decorate([
     query('#entry-graph'),
     __metadata("design:type", HTMLElement)
 ], EntryGraph.prototype, "entryGraph", void 0);
@@ -38124,9 +38058,13 @@ __decorate([
     __metadata("design:type", Object)
 ], EntryGraph.prototype, "_entryTypes", void 0);
 __decorate([
-    property$1({ type: Array }),
-    __metadata("design:type", Array)
-], EntryGraph.prototype, "excludedEntryTypes", void 0);
+    query('#visible-entries-button'),
+    __metadata("design:type", Button)
+], EntryGraph.prototype, "_visibleEntriesButton", void 0);
+__decorate([
+    query('#visible-entries-menu'),
+    __metadata("design:type", Menu)
+], EntryGraph.prototype, "_visibleEntriesMenu", void 0);
 
 /**
  * Removes all key-value entries from the list cache.
@@ -40075,9 +40013,9 @@ var Set$2 = _getNative(_root, 'Set');
 var _Set = Set$2;
 
 /* Built-in method references that are verified to be native. */
-var WeakMap$1 = _getNative(_root, 'WeakMap');
+var WeakMap = _getNative(_root, 'WeakMap');
 
-var _WeakMap = WeakMap$1;
+var _WeakMap = WeakMap;
 
 /** `Object#toString` result references. */
 var mapTag$1 = '[object Map]',

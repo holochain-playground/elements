@@ -4,16 +4,22 @@ import { Formfield } from 'scoped-material-components/mwc-formfield';
 import { Card } from 'scoped-material-components/mwc-card';
 import { PlaygroundElement } from '../context/playground-element';
 import { HelpButton } from './helpers/help-button';
+import { Menu } from 'scoped-material-components/mwc-menu';
+import { Button } from 'scoped-material-components/mwc-button';
+import { Icon } from 'scoped-material-components/mwc-icon';
+import { ListItem } from 'scoped-material-components/mwc-list-item';
 export declare class EntryGraph extends PlaygroundElement {
     showFilter: boolean;
     showEntryContents: boolean;
+    excludedEntryTypes: string[];
     private entryGraph;
     private lastEntriesIds;
     private cy;
     private layout;
     private ready;
     private _entryTypes;
-    excludedEntryTypes: string[];
+    private _visibleEntriesButton;
+    private _visibleEntriesMenu;
     firstUpdated(): void;
     updated(changedValues: any): void;
     observedCells(): import("@holochain-playground/core").Cell[];
@@ -27,6 +33,10 @@ export declare class EntryGraph extends PlaygroundElement {
         'mwc-formfield': typeof Formfield;
         'mwc-icon-button': typeof IconButton;
         'mwc-card': typeof Card;
+        'mwc-menu': typeof Menu;
+        'mwc-icon': typeof Icon;
+        'mwc-list-item': typeof ListItem;
+        'mwc-button': typeof Button;
         'holochain-playground-help-button': typeof HelpButton;
     };
 }

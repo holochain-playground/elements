@@ -24,6 +24,8 @@ import { styleMap } from 'lit-html/directives/style-map';
 import { Formfield } from 'scoped-material-components/mwc-formfield';
 import { Icon } from 'scoped-material-components/mwc-icon';
 import { Subject } from 'rxjs';
+import { Menu } from 'scoped-material-components/mwc-menu';
+import { ListItem } from 'scoped-material-components/mwc-list-item';
 
 const MIN_ANIMATION_DELAY = 1000;
 const MAX_ANIMATION_DELAY = 7000;
@@ -34,22 +36,14 @@ export class DhtCells extends PlaygroundElement {
 
   @property({ type: Array })
   workflowsToDisplay: WorkflowType[] = [
-    WorkflowType.GENESIS,
     WorkflowType.CALL_ZOME,
-    WorkflowType.INCOMING_DHT_OPS,
-    WorkflowType.INTEGRATE_DHT_OPS,
-    WorkflowType.PRODUCE_DHT_OPS,
-    WorkflowType.PUBLISH_DHT_OPS,
     WorkflowType.APP_VALIDATION,
-    WorkflowType.SYS_VALIDATION,
   ];
 
   @property({ type: Array })
   networkRequestsToDisplay: NetworkRequestType[] = [
-    NetworkRequestType.ADD_NEIGHBOR,
     NetworkRequestType.PUBLISH_REQUEST,
     NetworkRequestType.CALL_REMOTE,
-    NetworkRequestType.GET_REQUEST,
   ];
 
   @property({ type: Boolean, attribute: 'hide-time-controller' })
@@ -60,8 +54,16 @@ export class DhtCells extends PlaygroundElement {
 
   @query('#graph')
   private _graph: any;
-  @query('#step-by-step-switch')
-  private _stepSwitch!: Switch;
+
+  @query('#active-workflows-button')
+  private _activeWorkflowsButton: Button;
+  @query('#active-workflows-menu')
+  private _activeWorkflowsMenu: Menu;
+
+  @query('#network-requests-button')
+  private _networkRequestsButton: Button;
+  @query('#network-requests-menu')
+  private _networkRequestsMenu: Menu;
 
   private _cy;
   private _layout;
@@ -230,7 +232,7 @@ export class DhtCells extends PlaygroundElement {
                 icon="play_arrow"
                 style=${styleMap({
                   'background-color': this._onPause
-                    ? 'var(--mdc-theme-primary, #dbdbdb)'
+                    ? '#dbdbdb'
                     : 'white',
                   'border-radius': '50%',
                 })}
@@ -252,14 +254,17 @@ export class DhtCells extends PlaygroundElement {
 
         <span
           class="vertical-divider"
-          style="height: 60%; margin: 0 16px; margin-right: 24px;"
+          style="margin: 0 16px; margin-right: 24px;"
         ></span>
 
         <mwc-formfield label="Step By Step" style="margin-right: 16px;">
           <mwc-switch
             id="step-by-step-switch"
             .checked=${this.stepByStep}
-            @change=${(e) => (this.stepByStep = e.target.checked)}
+            @change=${(e) => {
+              this.stepByStep = e.target.checked;
+              if (this._onPause) this._resumeObservable.next();
+            }}
           ></mwc-switch>
         </mwc-formfield>
       </div>
@@ -361,6 +366,96 @@ export class DhtCells extends PlaygroundElement {
     ></mwc-icon-button>`;
   }
 
+  renderBottomToolbar() {
+    const workflowsNames = Object.values(WorkflowType);
+    const networkRequestNames = Object.values(NetworkRequestType);
+    return html`
+      <div class="row center-content" style="margin: 16px; position: relative;">
+      <mwc-button
+          label="Visible Worfklows"
+          style="--mdc-theme-primary: rgba(0,0,0,0.7);"
+          icon="arrow_drop_down"
+          id="active-workflows-button"
+          trailingIcon
+          @click=${() => this._activeWorkflowsMenu.show()}
+        ></mwc-button>
+        <mwc-menu
+          corner="BOTTOM_END"
+          multi
+          activatable
+          id="active-workflows-menu"
+          .anchor=${this._activeWorkflowsButton}
+          @selected=${(e) =>
+            (this.workflowsToDisplay = [...e.detail.index].map(
+              (index) => workflowsNames[index]
+            ))}
+        >
+          ${workflowsNames.map(
+            (type) => html`
+              <mwc-list-item
+                graphic="icon"
+                .selected=${this.workflowsToDisplay.includes(
+                  type as WorkflowType
+                )}
+                .activated=${this.workflowsToDisplay.includes(
+                  type as WorkflowType
+                )}
+              >
+                ${this.workflowsToDisplay.includes(type as WorkflowType)
+                  ? html` <mwc-icon slot="graphic">check</mwc-icon> `
+                  : html``}
+                ${type}
+              </mwc-list-item>
+            `
+          )}
+        </mwc-menu>
+
+        <mwc-button
+          label="Visible Network Requests"
+          style="--mdc-theme-primary: rgba(0,0,0,0.7);"
+          icon="arrow_drop_down"
+          id="network-requests-button"
+          trailingIcon
+          @click=${() => this._networkRequestsMenu.show()}
+        ></mwc-button>
+        <mwc-menu
+          corner="BOTTOM_END"
+          multi
+          activatable
+          id="network-requests-menu"
+          .anchor=${this._networkRequestsButton}
+          @selected=${(e) =>
+            (this.networkRequestsToDisplay = [...e.detail.index].map(
+              (index) => networkRequestNames[index]
+            ))}
+        >
+          ${networkRequestNames.map(
+            (type) => html`
+              <mwc-list-item
+                graphic="icon"
+                .selected=${this.networkRequestsToDisplay.includes(
+                  type as NetworkRequestType
+                )}
+                .activated=${this.networkRequestsToDisplay.includes(
+                  type as NetworkRequestType
+                )}
+              >
+                ${this.networkRequestsToDisplay.includes(type as NetworkRequestType)
+                  ? html` <mwc-icon slot="graphic">check</mwc-icon> `
+                  : html``}
+                ${type}
+              </mwc-list-item>
+            `
+          )}
+        </mwc-menu>
+
+        <span style="flex: 1;"></span>
+
+        ${this.renderTimeController()}
+      </div>
+    `;
+  }
+
   render() {
     return html`
       <mwc-card class="block-card" style="position: relative;">
@@ -372,13 +467,10 @@ export class DhtCells extends PlaygroundElement {
             id="graph"
             class="fill"
             style=${styleMap({
-              'background-color': this._onPause ? '#DBDBDB' : 'white',
+              'background-color': this._onPause ? '#dbdbdba0' : 'white',
             })}
           ></div>
-          <div class="row" style="margin: 16px;">
-            <span style="flex: 1;"></span>
-            ${this.renderTimeController()}
-          </div>
+          ${this.renderBottomToolbar()}
         </div>
       </mwc-card>
     `;
@@ -401,6 +493,8 @@ export class DhtCells extends PlaygroundElement {
       'mwc-menu-surface': MenuSurface,
       'mwc-button': Button,
       'mwc-icon': Icon,
+      'mwc-menu': Menu,
+      'mwc-list-item': ListItem,
       'mwc-slider': Slider,
       'mwc-switch': Switch,
       'mwc-formfield': Formfield,
