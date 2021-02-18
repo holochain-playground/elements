@@ -137,9 +137,11 @@ export class SourceChain extends PlaygroundElement {
       if (this.nodes.length === 0) {
         const tipNodes = nodes.slice(0, 7);
 
-        this.cy.fit(tipNodes);
-        this.cy.center(tipNodes);
-        this.cy.resize();
+        setTimeout(() => {
+          this.cy.fit(tipNodes);
+          this.cy.center(tipNodes);
+          this.cy.resize();
+        });
       }
 
       this.cy.layout({ name: 'dagre' }).run();
