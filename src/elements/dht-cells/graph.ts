@@ -2,10 +2,7 @@ export const layoutConfig = {
   name: 'circle',
   startAngle: (4 / 2) * Math.PI,
   ready: (e) => {
-    const nodes = e.cy.nodes();
     e.cy.resize();
-    e.cy.fit(nodes, nodes.length < 3 ? 170 : 0);
-    e.cy.center();
   },
 };
 

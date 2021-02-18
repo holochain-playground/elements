@@ -7,7 +7,7 @@ export declare class SourceChain extends PlaygroundElement {
     static get styles(): import("lit-element").CSSResult[];
     private cy;
     private nodes;
-    private _cell;
+    get activeCell(): Cell | undefined;
     private graph;
     firstUpdated(): void;
     observedCells(): Cell[];

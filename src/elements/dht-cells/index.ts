@@ -190,6 +190,9 @@ export class DhtCells extends PlaygroundElement {
 
     this._layout = this._cy.elements().makeLayout(layoutConfig);
     this._layout.run();
+
+    this._cy.fit(nodes, nodes.length < 3 ? 170 : 0);
+    this._cy.center();
   }
 
   _neighborEdges = [];
@@ -328,7 +331,7 @@ export class DhtCells extends PlaygroundElement {
           top: `${finalY}px`,
           left: `${finalX}px`,
           position: 'absolute',
-          'z-index': '100',
+          'z-index': '3',
         })}
         .stepByStep=${this.stepByStep}
         ._onPause=${this._onPause}

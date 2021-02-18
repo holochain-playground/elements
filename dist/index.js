@@ -34175,10 +34175,7 @@ const layoutConfig = {
     name: 'circle',
     startAngle: (4 / 2) * Math.PI,
     ready: (e) => {
-        const nodes = e.cy.nodes();
         e.cy.resize();
-        e.cy.fit(nodes, nodes.length < 3 ? 170 : 0);
-        e.cy.center();
     },
 };
 const graphStyles = `
@@ -34345,6 +34342,8 @@ class DhtCells extends PlaygroundElement {
         this._cy.add(neighbors);
         this._layout = this._cy.elements().makeLayout(layoutConfig);
         this._layout.run();
+        this._cy.fit(nodes, nodes.length < 3 ? 170 : 0);
+        this._cy.center();
     }
     updated(changedValues) {
         super.updated(changedValues);
@@ -34465,7 +34464,7 @@ class DhtCells extends PlaygroundElement {
                 top: `${finalY}px`,
                 left: `${finalX}px`,
                 position: 'absolute',
-                'z-index': '100',
+                'z-index': '3',
             })}
         .stepByStep=${this.stepByStep}
         ._onPause=${this._onPause}
@@ -37900,7 +37899,7 @@ class EntryGraph extends PlaygroundElement {
         if (!isEqual(this.lastEntriesIds, entries.map((e) => e.data.id))) {
             if (this.layout)
                 this.layout.stop();
-            this.cy.remove('nodes');
+            this.cy.remove('node');
             this.cy.add(entries);
             this.layout = this.cy.elements().makeLayout(layoutConfig$1);
             this.layout.run();
@@ -37985,29 +37984,6 @@ class EntryGraph extends PlaygroundElement {
             </mwc-list-item>
           `)}
       </mwc-menu>
-      <!-- 
-      ${this._entryTypes.map((entryType) => html `
-          <mwc-formfield label="Show ${entryType}s">
-            <mwc-checkbox
-              .checked=${!this.excludedEntryTypes.includes(entryType)}
-              @change=${(e) => {
-            const excluded = this.excludedEntryTypes.includes(entryType);
-            const toExclude = !e.target.checked;
-            if (excluded && !toExclude) {
-                this.excludedEntryTypes = [
-                    ...this.excludedEntryTypes.filter((t) => t !== entryType),
-                ];
-            }
-            else if (!excluded && toExclude) {
-                this.excludedEntryTypes = [
-                    ...this.excludedEntryTypes,
-                    entryType,
-                ];
-            }
-        }}
-            ></mwc-checkbox
-          ></mwc-formfield>
-        `)} -->
     </div>`;
     }
     render() {
@@ -48915,6 +48891,9 @@ class SourceChain extends PlaygroundElement {
       `,
         ];
     }
+    get activeCell() {
+        return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors);
+    }
     firstUpdated() {
         window.addEventListener('scroll', () => {
             this.cy.resize();
@@ -48923,10 +48902,6 @@ class SourceChain extends PlaygroundElement {
             container: this.graph,
             layout: {
                 name: 'dagre',
-                ready: (e) => {
-                    e.cy.fit();
-                    e.cy.center();
-                },
             },
             autoungrabify: true,
             userZoomingEnabled: true,
@@ -48941,13 +48916,12 @@ class SourceChain extends PlaygroundElement {
           text-halign: right;
           text-valign: center;
           text-margin-x: 4px;
-          shape: round-rectangle;
         }
 
         .header {
           text-margin-x: -5px;
           text-halign: left;
-          shape: round-octagon;
+          shape: round-rectangle;
         }
 
         edge {
@@ -48966,7 +48940,7 @@ class SourceChain extends PlaygroundElement {
         .Dna {
           background-color: green;
         }
-        .AgentId {
+        .AgentValidationPkg {
           background-color: lime;
         }
         .Create {
@@ -48997,24 +48971,30 @@ class SourceChain extends PlaygroundElement {
         this.requestUpdate();
     }
     observedCells() {
-        return [
-            selectCell(this.activeDna, this.activeAgentPubKey, this.conductors),
-        ];
+        return [this.activeCell];
     }
     updated(changedValues) {
         super.updated(changedValues);
-        const activeCell = selectCell(this.activeDna, this.activeAgentPubKey, this.conductors);
-        const nodes = sourceChainNodes(activeCell);
+        const nodes = sourceChainNodes(this.activeCell);
         if (!isEqual(nodes, this.nodes)) {
-            this.cy.remove('nodes');
+            this.cy.remove('node');
             this.cy.add(nodes);
-            if (!this.nodes)
-                this.cy.fit([nodes.slice(0, 5)]);
+            if (this.nodes.length === 0) {
+                const tipNodes = nodes.slice(0, 7);
+                this.cy.fit(tipNodes);
+                this.cy.center(tipNodes);
+                this.cy.resize();
+            }
             this.cy.layout({ name: 'dagre' }).run();
             this.nodes = nodes;
         }
         this.cy.filter('node').removeClass('selected');
-        this.cy.getElementById(this.activeEntryHash).addClass('selected');
+        const nodeElements = this.cy.nodes();
+        for (const nodeElement of nodeElements) {
+            if (nodeElement.id().includes(this.activeEntryHash)) {
+                nodeElement.addClass('selected');
+            }
+        }
         this.cy.renderer().hoverData.capture = true;
     }
     renderHelp() {
@@ -49038,19 +49018,19 @@ class SourceChain extends PlaygroundElement {
         return html `
       <mwc-card class="block-card">
         <div class="column fill">
-          <span class="block-title">Source chain</span>
+          <span class="block-title" style="margin: 16px;">Source chain</span>
           ${this.renderHelp()}
-          ${this._cell
+          ${this.activeCell
             ? html ``
             : html `
-                <div style="flex: 1;" class="center-content">
+                <div style="flex: 1;" class="center-content placeholder">
                   <span>Select a cell to display its source chain</span>
                 </div>
               `}
 
           <div
             style=${styleMap({
-            display: this._cell ? '' : 'none',
+            display: this.activeCell ? '' : 'none',
         })}
             class="fill"
             id="source-chain-graph"

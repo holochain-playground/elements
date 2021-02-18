@@ -36,7 +36,9 @@ export class SourceChain extends PlaygroundElement {
 
   private nodes: any[] = [];
 
-  private _cell: Cell;
+  get activeCell(): Cell | undefined {
+    return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors);
+  }
 
   @query('#source-chain-graph')
   private graph: HTMLElement;
@@ -50,10 +52,6 @@ export class SourceChain extends PlaygroundElement {
       container: this.graph,
       layout: {
         name: 'dagre',
-        ready: (e) => {
-          e.cy.fit();
-          e.cy.center();
-        },
       },
       autoungrabify: true,
       userZoomingEnabled: true,
@@ -68,13 +66,12 @@ export class SourceChain extends PlaygroundElement {
           text-halign: right;
           text-valign: center;
           text-margin-x: 4px;
-          shape: round-rectangle;
         }
 
         .header {
           text-margin-x: -5px;
           text-halign: left;
-          shape: round-octagon;
+          shape: round-rectangle;
         }
 
         edge {
@@ -93,7 +90,7 @@ export class SourceChain extends PlaygroundElement {
         .Dna {
           background-color: green;
         }
-        .AgentId {
+        .AgentValidationPkg {
           background-color: lime;
         }
         .Create {
@@ -126,25 +123,24 @@ export class SourceChain extends PlaygroundElement {
   }
 
   observedCells() {
-    return [
-      selectCell(this.activeDna, this.activeAgentPubKey, this.conductors),
-    ];
+    return [this.activeCell];
   }
 
   updated(changedValues: PropertyValues) {
     super.updated(changedValues);
-    const activeCell = selectCell(
-      this.activeDna,
-      this.activeAgentPubKey,
-      this.conductors
-    );
 
-    const nodes = sourceChainNodes(activeCell);
+    const nodes = sourceChainNodes(this.activeCell);
     if (!isEqual(nodes, this.nodes)) {
-      this.cy.remove('nodes');
+      this.cy.remove('node');
       this.cy.add(nodes);
 
-      if (!this.nodes) this.cy.fit([nodes.slice(0, 5)]);
+      if (this.nodes.length === 0) {
+        const tipNodes = nodes.slice(0, 7);
+
+        this.cy.fit(tipNodes);
+        this.cy.center(tipNodes);
+        this.cy.resize();
+      }
 
       this.cy.layout({ name: 'dagre' }).run();
 
@@ -152,7 +148,14 @@ export class SourceChain extends PlaygroundElement {
     }
 
     this.cy.filter('node').removeClass('selected');
-    this.cy.getElementById(this.activeEntryHash).addClass('selected');
+
+    const nodeElements = this.cy.nodes();
+
+    for (const nodeElement of nodeElements) {
+      if (nodeElement.id().includes(this.activeEntryHash)) {
+        nodeElement.addClass('selected');
+      }
+    }
 
     this.cy.renderer().hoverData.capture = true;
   }
@@ -179,19 +182,19 @@ export class SourceChain extends PlaygroundElement {
     return html`
       <mwc-card class="block-card">
         <div class="column fill">
-          <span class="block-title">Source chain</span>
+          <span class="block-title" style="margin: 16px;">Source chain</span>
           ${this.renderHelp()}
-          ${this._cell
+          ${this.activeCell
             ? html``
             : html`
-                <div style="flex: 1;" class="center-content">
+                <div style="flex: 1;" class="center-content placeholder">
                   <span>Select a cell to display its source chain</span>
                 </div>
               `}
 
           <div
             style=${styleMap({
-              display: this._cell ? '' : 'none',
+              display: this.activeCell ? '' : 'none',
             })}
             class="fill"
             id="source-chain-graph"

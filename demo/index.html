@@ -16,7 +16,7 @@
         step-by-step
         style="height: 600px; width: 100%"
       ></dht-cells>
-      <entry-graph style="height: 350px; width: 100%"></entry-graph>
+      <source-chain style="height: 350px; width: 100%"></source-chain>
       <call-zome-fns
         hide-results
         hide-zome-selector
@@ -30,6 +30,7 @@
       import {
         HolochainPlaygroundContainer,
         CallZomeFns,
+        SourceChain,
         DhtCells,
         EntryGraph,
       } from '../dist';
@@ -104,6 +105,7 @@
       );
       customElements.define('dht-cells', DhtCells);
       customElements.define('call-zome-fns', CallZomeFns);
+      customElements.define('source-chain', SourceChain);
       customElements.define('entry-graph', EntryGraph);
 
       const container = document.getElementById('container');
