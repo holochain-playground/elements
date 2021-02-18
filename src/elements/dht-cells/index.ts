@@ -100,7 +100,11 @@ export class DhtCells extends PlaygroundElement {
       if (this._cy.width() !== 0) {
         if (!rendered) {
           rendered = true;
-          this.setupGraphNodes();
+          // This is needed to render the nodes after the graph itself 
+          // has resized properly so it computes the positions appriopriately
+          setTimeout(()=>{
+            this.setupGraphNodes();
+          })
         }
       }
     });

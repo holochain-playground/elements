@@ -34269,7 +34269,11 @@ class DhtCells extends PlaygroundElement {
             if (this._cy.width() !== 0) {
                 if (!rendered) {
                     rendered = true;
-                    this.setupGraphNodes();
+                    // This is needed to render the nodes after the graph itself 
+                    // has resized properly so it computes the positions appriopriately
+                    setTimeout(() => {
+                        this.setupGraphNodes();
+                    });
                 }
             }
         });
@@ -48991,9 +48995,11 @@ class SourceChain extends PlaygroundElement {
             this.cy.add(nodes);
             if (this.nodes.length === 0) {
                 const tipNodes = nodes.slice(0, 7);
-                this.cy.fit(tipNodes);
-                this.cy.center(tipNodes);
-                this.cy.resize();
+                setTimeout(() => {
+                    this.cy.fit(tipNodes);
+                    this.cy.center(tipNodes);
+                    this.cy.resize();
+                });
             }
             this.cy.layout({ name: 'dagre' }).run();
             this.nodes = nodes;
