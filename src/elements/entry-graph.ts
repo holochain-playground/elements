@@ -13,6 +13,10 @@ import { sharedStyles } from './utils/shared-styles';
 import { PlaygroundElement } from '../context/playground-element';
 import { isEqual } from 'lodash-es';
 import { HelpButton } from './helpers/help-button';
+import { Menu } from 'scoped-material-components/mwc-menu';
+import { Button } from 'scoped-material-components/mwc-button';
+import { Icon } from 'scoped-material-components/mwc-icon';
+import { ListItem } from 'scoped-material-components/mwc-list-item';
 
 cytoscape.use(klay);
 
@@ -32,6 +36,9 @@ export class EntryGraph extends PlaygroundElement {
   @property({ type: Boolean })
   showEntryContents: boolean = true;
 
+  @property({ type: Array })
+  excludedEntryTypes: string[] = [];
+
   @query('#entry-graph')
   private entryGraph: HTMLElement;
 
@@ -43,8 +50,10 @@ export class EntryGraph extends PlaygroundElement {
   @property({ type: Array })
   private _entryTypes = [];
 
-  @property({ type: Array })
-  excludedEntryTypes: string[] = [];
+  @query('#visible-entries-button')
+  private _visibleEntriesButton: Button;
+  @query('#visible-entries-menu')
+  private _visibleEntriesMenu: Menu;
 
   firstUpdated() {
     window.addEventListener('scroll', () => {
@@ -222,7 +231,7 @@ export class EntryGraph extends PlaygroundElement {
   renderFilter() {
     return html` <div
       class="row"
-      style="align-items: center; justify-content: start;"
+      style="align-items: center; justify-content: start; position: relative;"
     >
       <mwc-formfield label="Show Entry Contents" style="margin-right: 16px">
         <mwc-checkbox
@@ -233,6 +242,42 @@ export class EntryGraph extends PlaygroundElement {
 
       <span class="vertical-divider"></span>
 
+      <mwc-button
+        label="Visible entries"
+        style="--mdc-theme-primary: rgba(0,0,0,0.7); margin-left: 16px;"
+        icon="arrow_drop_down"
+        id="visible-entries-button"
+        trailingIcon
+        @click=${() => this._visibleEntriesMenu.show()}
+      ></mwc-button>
+      <mwc-menu
+        corner="BOTTOM_END"
+        multi
+        activatable
+        id="visible-entries-menu"
+        .anchor=${this._visibleEntriesButton}
+        @selected=${(e) => {
+          const includedEntryTypes = [...e.detail.index];
+          this.excludedEntryTypes = this._entryTypes
+            .filter((type, index) => !includedEntryTypes.includes(index));
+        }}
+      >
+        ${this._entryTypes.map(
+          (type) => html`
+            <mwc-list-item
+              graphic="icon"
+              .selected=${!this.excludedEntryTypes.includes(type)}
+              .activated=${!this.excludedEntryTypes.includes(type)}
+            >
+              ${!this.excludedEntryTypes.includes(type)
+                ? html` <mwc-icon slot="graphic">check</mwc-icon> `
+                : html``}
+              ${type}
+            </mwc-list-item>
+          `
+        )}
+      </mwc-menu>
+      <!-- 
       ${this._entryTypes.map(
         (entryType) => html`
           <mwc-formfield label="Show ${entryType}s">
@@ -256,7 +301,7 @@ export class EntryGraph extends PlaygroundElement {
             ></mwc-checkbox
           ></mwc-formfield>
         `
-      )}
+      )} -->
     </div>`;
   }
 
@@ -280,6 +325,10 @@ export class EntryGraph extends PlaygroundElement {
       'mwc-formfield': Formfield,
       'mwc-icon-button': IconButton,
       'mwc-card': Card,
+      'mwc-menu': Menu,
+      'mwc-icon': Icon,
+      'mwc-list-item': ListItem,
+      'mwc-button': Button,
       'holochain-playground-help-button': HelpButton,
     };
   }

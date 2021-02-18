@@ -99,9 +99,6 @@ export class CellTasks extends PlaygroundElement {
         }
       }),
       cell.workflowExecutor.success(async (task) => {
-        if (!this.workflowsToDisplay.includes(task.type as WorkflowType))
-          return;
-
         if (task.type === WorkflowType.CALL_ZOME) {
           this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
         } else if (this._runningTasks[task.type]) {
@@ -112,7 +109,6 @@ export class CellTasks extends PlaygroundElement {
         this.requestUpdate();
       }),
       cell.workflowExecutor.error(async (task, error) => {
-        if (this.workflowsToDisplay.includes(task.type as WorkflowType)) {
           if (task.type === WorkflowType.CALL_ZOME) {
             this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
           } else if (this._runningTasks[task.type]) {
@@ -120,8 +116,8 @@ export class CellTasks extends PlaygroundElement {
             if (this._runningTasks[task.type] === 0)
               delete this._runningTasks[task.type];
           }
-        }
-        if (!this.hideErrors) {
+
+          if (!this.hideErrors) {
           const errorInfo = {
             task,
             error,

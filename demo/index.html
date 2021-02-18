@@ -16,6 +16,7 @@
         step-by-step
         style="height: 600px; width: 100%"
       ></dht-cells>
+      <entry-graph style="height: 350px; width: 100%"></entry-graph>
       <call-zome-fns
         hide-results
         hide-zome-selector
@@ -30,6 +31,7 @@
         HolochainPlaygroundContainer,
         CallZomeFns,
         DhtCells,
+        EntryGraph,
       } from '../dist';
       import {
         WorkflowType,
@@ -40,7 +42,12 @@
         zomes: [
           {
             name: 'sample',
-            entry_defs: [],
+            entry_defs: [
+              {
+                id: 'sample_entry',
+                visibility: 'Public',
+              },
+            ],
             zome_functions: {
               create_cap: {
                 call: ({ create_cap_grant }) => ({ grantedAgent }) => {
@@ -58,7 +65,12 @@
                 arguments: [{ type: 'AgentPubKey', name: 'grantedAgent' }],
               },
               sample_fn: {
-                call: () => () => {
+                call: ({ create_entry }) => async () => {
+                  await create_entry({
+                    content: 'hi',
+                    entry_def_id: 'sample_entry',
+                  });
+
                   return 'Hello';
                 },
                 arguments: [],
@@ -92,6 +104,7 @@
       );
       customElements.define('dht-cells', DhtCells);
       customElements.define('call-zome-fns', CallZomeFns);
+      customElements.define('entry-graph', EntryGraph);
 
       const container = document.getElementById('container');
       container.numberOfSimulatedConductors = 3;
@@ -106,7 +119,7 @@
       });
 
       const dhtCells = document.getElementById('cells');
-      dhtCells.workflowsToDisplay = [WorkflowType.CALL_ZOME];
+      //      dhtCells.workflowsToDisplay = [WorkflowType.CALL_ZOME];
       dhtCells.networkRequestsToDisplay = [NetworkRequestType.CALL_REMOTE];
     </script>
   </body>
