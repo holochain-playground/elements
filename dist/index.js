@@ -854,6 +854,7 @@ class ExpandableLine extends ScopedElementsMixin(LitElement) {
           <div
             style=${styleMap({
             height: this._expanded ? 'auto' : '30px',
+            width: this._expanded ? 'auto' : '100%',
             overflow: this._expanded ? 'auto' : 'hidden',
             position: this._expanded ? 'unset' : 'absolute',
             flex: '1',
