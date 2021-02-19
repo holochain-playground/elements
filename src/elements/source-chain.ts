@@ -117,7 +117,20 @@ export class SourceChain extends PlaygroundElement {
         activeEntryHash: selectedEntryId,
       });
     });
-    this.cy.renderer().hoverData.capture = true;
+
+    let rendered = false;
+    this.cy.on('render', () => {
+      if (this.cy.width() !== 0) {
+        if (!rendered) {
+          rendered = true;
+          // This is needed to render the nodes after the graph itself
+          // has resized properly so it computes the positions appriopriately
+          setTimeout(() => {
+            this.setupGraph();
+          });
+        }
+      }
+    });
 
     this.requestUpdate();
   }
@@ -126,40 +139,40 @@ export class SourceChain extends PlaygroundElement {
     return [this.activeCell];
   }
 
+  setupGraph() {
+    this.cy.remove('node');
+    this.cy.add(this.nodes);
+
+    const tipNodes = this.nodes.slice(0, 7);
+
+    this.cy.fit(tipNodes);
+    this.cy.center(tipNodes);
+    this.cy.resize();
+
+    this.cy.layout({ name: 'dagre' }).run();
+  }
+
   updated(changedValues: PropertyValues) {
     super.updated(changedValues);
 
     const nodes = sourceChainNodes(this.activeCell);
+
     if (!isEqual(nodes, this.nodes)) {
-      this.cy.remove('node');
-      this.cy.add(nodes);
-
-      if (this.nodes.length === 0) {
-        const tipNodes = nodes.slice(0, 7);
-
-        setTimeout(() => {
-          this.cy.fit(tipNodes);
-          this.cy.center(tipNodes);
-          this.cy.resize();
-        });
-      }
-
-      this.cy.layout({ name: 'dagre' }).run();
-
       this.nodes = nodes;
+      this.setupGraph();
     }
 
-    this.cy.filter('node').removeClass('selected');
+    if (changedValues.has('activeEntryHash')) {
+      this.cy.filter('node').removeClass('selected');
 
-    const nodeElements = this.cy.nodes();
+      const nodeElements = this.cy.nodes();
 
-    for (const nodeElement of nodeElements) {
-      if (nodeElement.id().includes(this.activeEntryHash)) {
-        nodeElement.addClass('selected');
+      for (const nodeElement of nodeElements) {
+        if (nodeElement.id().includes(this.activeEntryHash)) {
+          nodeElement.addClass('selected');
+        }
       }
     }
-
-    this.cy.renderer().hoverData.capture = true;
   }
 
   renderHelp() {

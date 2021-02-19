@@ -42,6 +42,9 @@ export class CallZomeFns extends PlaygroundElement {
   @property({ type: Boolean, attribute: 'hide-zome-selector' })
   hideZomeSelector = false;
 
+  @property({ type: Boolean, attribute: 'hide-agent-pub-key' })
+  hideAgentPubKey = false;
+
   @property({ type: Number })
   _selectedZomeIndex: number = 0;
   @property({ type: String })
@@ -219,7 +222,7 @@ export class CallZomeFns extends PlaygroundElement {
       </div> `;
 
     return html`
-      <mwc-drawer>
+      <mwc-drawer style="--mdc-drawer-width: auto;">
         <mwc-list
           activatable
           @selected=${(e) =>
@@ -372,11 +375,17 @@ export class CallZomeFns extends PlaygroundElement {
           ? html`
               <div class="column" style="flex: 1">
                 <span class="title" style="margin: 16px;"
-                  >Call Zome Fns,
-                  <span class="placeholder"
-                    >for agent ${this.activeAgentPubKey}</span
-                  ></span
+                  >Call Zome
+                  Fns${this.hideAgentPubKey
+                    ? html``
+                    : html`,
+                        <span class="placeholder"
+                          >for agent ${this.activeAgentPubKey}</span
+                        > `}</span
                 >
+                ${this.hideZomeSelector
+                  ? html` <span class="horizontal-divider"></span> `
+                  : html``}
                 <div class="row" style="flex: 1;">
                   <div class="column" style="flex: 1">
                     ${this.hideZomeSelector
@@ -403,7 +412,10 @@ export class CallZomeFns extends PlaygroundElement {
                   ${this.hideResults
                     ? html``
                     : html`
-                        <span class="vertical-divider"></span>
+                        <span
+                          class="vertical-divider"
+                          style="height: 100%;"
+                        ></span>
                         ${this.renderResults()}
                       `}
                 </div>
