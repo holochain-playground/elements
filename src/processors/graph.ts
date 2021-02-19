@@ -25,11 +25,12 @@ export function sourceChainNodes(cell: Cell) {
   if (!cell) return [];
 
   const nodes = [];
+  const state = cell.getState();
 
-  const headersHashes = cell.state.sourceChain;
+  const headersHashes = state.sourceChain;
   for (const headerHash of headersHashes) {
     const strHeaderHash = headerHash;
-    const header: SignedHeaderHashed = cell.state.CAS[strHeaderHash];
+    const header: SignedHeaderHashed = state.CAS[strHeaderHash];
 
     nodes.push({
       data: {
@@ -55,14 +56,14 @@ export function sourceChainNodes(cell: Cell) {
 
   for (const headerHash of headersHashes) {
     const strHeaderHash = headerHash;
-    const header: SignedHeaderHashed = cell.state.CAS[strHeaderHash];
+    const header: SignedHeaderHashed = state.CAS[strHeaderHash];
 
     if ((header.header.content as NewEntryHeader).entry_hash) {
       const newEntryHeader = header.header.content as NewEntryHeader;
       const strEntryHash = newEntryHeader.entry_hash;
       const entryNodeId = `${strHeaderHash}:${strEntryHash}`;
 
-      const entry: Entry = cell.state.CAS[strEntryHash];
+      const entry: Entry = state.CAS[strEntryHash];
 
       const entryType: string = getEntryTypeString(
         cell,
@@ -100,10 +101,11 @@ export function allEntries(
   const entryTypes: Dictionary<string> = {};
 
   for (const cell of cells) {
-    for (const entryHash of getAllHeldEntries(cell.state)) {
+    const state = cell.getState();
+    for (const entryHash of getAllHeldEntries(state)) {
 
-      details[entryHash] = getEntryDetails(cell.state, entryHash);
-      links[entryHash] = getLinksForEntry(cell.state, entryHash);
+      details[entryHash] = getEntryDetails(state, entryHash);
+      links[entryHash] = getLinksForEntry(state, entryHash);
 
       const firstEntryHeader = details[entryHash].headers[0];
       if (

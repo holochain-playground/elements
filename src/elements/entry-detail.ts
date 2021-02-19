@@ -31,7 +31,7 @@ export class EntryDetail extends PlaygroundElement {
   get activeEntryDetails() {
     const allCells = selectAllCells(this.activeDna, this.conductors);
     for (const cell of allCells) {
-      const details = getEntryDetails(cell.state, this.activeEntryHash);
+      const details = getEntryDetails(cell.getState(), this.activeEntryHash);
       if (details) return details;
     }
     return undefined;

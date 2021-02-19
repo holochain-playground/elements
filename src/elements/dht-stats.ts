@@ -100,7 +100,7 @@ export class DhtStats extends PlaygroundElement {
       const getMaxSourceChainLength = (conductor: Conductor) =>
         Math.max(
           ...selectCells(this.activeDna, conductor).map(
-            (cell) => cell.state.sourceChain.length
+            (cell) => cell.getState().sourceChain.length
           )
         );
 

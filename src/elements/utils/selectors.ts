@@ -20,14 +20,14 @@ export function selectGlobalDHTOpsCount(cells: Cell[]): number {
   let dhtOps = 0;
 
   for (const cell of cells) {
-    dhtOps += Object.keys(cell.state.integratedDHTOps).length;
+    dhtOps += Object.keys(cell.getState().integratedDHTOps).length;
   }
 
   return dhtOps;
 }
 
 export function selectHoldingCells(entryHash: Hash, cells: Cell[]): Cell[] {
-  return cells.filter((cell) => isHoldingEntry(cell.state, entryHash));
+  return cells.filter((cell) => isHoldingEntry(cell.getState(), entryHash));
 }
 
 export function isHoldingEntry(state: CellState, entryHash: Hash) {
@@ -79,7 +79,7 @@ export function selectUniqueDHTOpsCount(cells: Cell[]): number {
   const globalDHTOps = {};
 
   for (const cell of cells) {
-    for (const hash of Object.keys(cell.state.integratedDHTOps)) {
+    for (const hash of Object.keys(cell.getState().integratedDHTOps)) {
       globalDHTOps[hash] = {};
     }
   }
@@ -91,7 +91,7 @@ export function selectFromCAS(hash: Hash, cells: Cell[]): any {
   if (!hash) return undefined;
 
   for (const cell of cells) {
-    const entry = cell.state.CAS[hash];
+    const entry = cell.getState().CAS[hash];
     if (entry) {
       return entry;
     }
@@ -111,7 +111,7 @@ export function selectMedianHoldingDHTOps(cells: Cell[]): number {
   const holdingDHTOps = [];
 
   for (const cell of cells) {
-    holdingDHTOps.push(Object.keys(cell.state.integratedDHTOps).length);
+    holdingDHTOps.push(Object.keys(cell.getState().integratedDHTOps).length);
   }
 
   holdingDHTOps.sort();

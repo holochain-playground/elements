@@ -34,7 +34,7 @@ export class DhtShard extends PlaygroundElement {
               <json-viewer
                 id="dht-shard"
                 style="margin-top: 16px;"
-                .object=${JSON.stringify(getDhtShard(this.activeCell.state))}
+                .object=${JSON.stringify(getDhtShard(this.activeCell.getState()))}
               >
               </json-viewer>
             `
