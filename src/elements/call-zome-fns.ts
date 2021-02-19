@@ -335,9 +335,8 @@ export class CallZomeFns extends PlaygroundElement {
                                             ? result.result.payload
                                             : html`
                                                 <json-viewer
-                                                  .object=${shortenStrRec(
-                                                    result.result.payload
-                                                  )}
+                                                  .object=${result.result
+                                                    .payload}
                                                   class="fill"
                                                 ></json-viewer>
                                               `}</span

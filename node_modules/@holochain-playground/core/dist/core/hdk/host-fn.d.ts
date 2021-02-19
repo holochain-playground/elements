@@ -1,2 +1,11 @@
-import { Cell } from '../cell';
-export declare type HostFn<Fn extends Function> = (zome_index: number, cell: Cell) => Fn;
+import { P2pCell } from '../..';
+import { SimulatedDna } from '../../dnas/simulated-dna';
+import { CellState } from '../cell';
+import { Cascade } from '../cell/cascade';
+export declare type HostFn<Fn extends Function> = (hostFnWorkspace: HostFnWorkspace, zome_index: number) => Fn;
+export interface HostFnWorkspace {
+    state: CellState;
+    p2p: P2pCell;
+    cascade: Cascade;
+    dna: SimulatedDna;
+}

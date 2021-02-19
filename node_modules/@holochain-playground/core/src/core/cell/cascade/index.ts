@@ -6,25 +6,27 @@ import {
 } from '@holochain-open-dev/core-types';
 import { getHashType, HashType } from '../../../processors/hash';
 import { GetOptions, GetStrategy } from '../../../types';
+import { P2pCell } from '../../network/p2p-cell';
 import { Cell } from '../cell';
+import { CellState } from '../state';
 import { Authority } from './authority';
 
 export class Cascade {
-  constructor(protected cell: Cell) {}
+  constructor(protected state: CellState, protected p2p: P2pCell) {}
 
   async dht_get(hash: Hash, options: GetOptions): Promise<Element | undefined> {
     // TODO rrDHT arcs
-    const authority = new Authority(this.cell);
+    const authority = new Authority(this.state, this.p2p);
 
-    const isPresent = this.cell.state.CAS[hash];
+    const isPresent = this.state.CAS[hash];
 
     // TODO only return local if GetOptions::content() is given
     if (isPresent && options.strategy === GetStrategy.Contents) {
       const hashType = getHashType(hash);
 
       if (hashType === HashType.ENTRY) {
-        const entry = this.cell.state.CAS[hash];
-        const signed_header = Object.values(this.cell.state.CAS).find(
+        const entry = this.state.CAS[hash];
+        const signed_header = Object.values(this.state.CAS).find(
           header =>
             (header as SignedHeaderHashed).header &&
             (header as SignedHeaderHashed<NewEntryHeader>).header.content
@@ -38,8 +40,8 @@ export class Cascade {
       }
 
       if (hashType === HashType.HEADER) {
-        const signed_header = this.cell.state.CAS[hash];
-        const entry = this.cell.state.CAS[
+        const signed_header = this.state.CAS[hash];
+        const entry = this.state.CAS[
           (signed_header as SignedHeaderHashed<NewEntryHeader>).header.content
             .entry_hash
         ];
@@ -50,6 +52,6 @@ export class Cascade {
       }
     }
 
-    return this.cell.p2p.get(hash, options);
+    return this.p2p.get(hash, options);
   }
 }

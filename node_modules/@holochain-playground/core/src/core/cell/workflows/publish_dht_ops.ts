@@ -1,14 +1,14 @@
 import { DHTOp, Dictionary } from '@holochain-open-dev/core-types';
-import { Cell, Workflow } from '../../cell';
+import { Cell, CellState, Workflow } from '../../cell';
 import { getNonPublishedDhtOps } from '../source-chain/utils';
 import { getDHTOpBasis } from '../utils';
-import { WorkflowReturn, WorkflowType } from './workflows';
+import { WorkflowReturn, WorkflowType, Workspace } from './workflows';
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/publish_dht_ops_workflow.rs
 export const publish_dht_ops = async (
-  cell: Cell
+  workspace: Workspace
 ): Promise<WorkflowReturn<void>> => {
-  const dhtOps = getNonPublishedDhtOps(cell.state);
+  const dhtOps = getNonPublishedDhtOps(workspace.state);
 
   const dhtOpsByBasis: Dictionary<Dictionary<DHTOp>> = {};
 
@@ -24,10 +24,12 @@ export const publish_dht_ops = async (
   const promises = Object.entries(dhtOpsByBasis).map(
     async ([basis, dhtOps]) => {
       // Publish the operations
-      await cell.p2p.publish(basis, dhtOps);
+      await workspace.p2p.publish(basis, dhtOps);
 
       for (const dhtOpHash of Object.keys(dhtOps)) {
-        cell.state.authoredDHTOps[dhtOpHash].last_publish_time = Date.now();
+        workspace.state.authoredDHTOps[
+          dhtOpHash
+        ].last_publish_time = Date.now();
       }
     }
   );
@@ -42,10 +44,10 @@ export const publish_dht_ops = async (
 
 export type PublishDhtOpsWorkflow = Workflow<void, void>;
 
-export function publish_dht_ops_task(cell: Cell): PublishDhtOpsWorkflow {
+export function publish_dht_ops_task(): PublishDhtOpsWorkflow {
   return {
     type: WorkflowType.PUBLISH_DHT_OPS,
     details: undefined,
-    task: () => publish_dht_ops(cell),
+    task: worskpace => publish_dht_ops(worskpace),
   };
 }

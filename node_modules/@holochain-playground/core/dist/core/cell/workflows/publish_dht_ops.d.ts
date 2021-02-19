@@ -1,5 +1,5 @@
-import { Cell, Workflow } from '../../cell';
-import { WorkflowReturn } from './workflows';
-export declare const publish_dht_ops: (cell: Cell) => Promise<WorkflowReturn<void>>;
+import { Workflow } from '../../cell';
+import { WorkflowReturn, Workspace } from './workflows';
+export declare const publish_dht_ops: (workspace: Workspace) => Promise<WorkflowReturn<void>>;
 export declare type PublishDhtOpsWorkflow = Workflow<void, void>;
-export declare function publish_dht_ops_task(cell: Cell): PublishDhtOpsWorkflow;
+export declare function publish_dht_ops_task(): PublishDhtOpsWorkflow;

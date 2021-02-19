@@ -9,25 +9,25 @@ import {
   SignedHeaderHashed,
   Update,
 } from '@holochain-open-dev/core-types';
+import { P2pCell } from '../../..';
 import { GetOptions } from '../../../types';
 import { Cell } from '../cell';
 import { getHeaderModifiers, getHeadersForEntry } from '../dht/get';
-import { ValidationStatus } from '../state';
+import { CellState, ValidationStatus } from '../state';
 import { GetEntryFull, GetElementFull } from './types';
-
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain_cascade/src/authority.rs
 export class Authority {
-  constructor(protected cell: Cell) {}
+  constructor(protected state: CellState, protected p2p: P2pCell) {}
 
   public async handle_get_entry(
     entry_hash: Hash,
     options: GetOptions
   ): Promise<GetEntryFull | undefined> {
-    const entry = this.cell.state.CAS[entry_hash];
+    const entry = this.state.CAS[entry_hash];
     if (!entry) return undefined;
 
-    const allHeaders = getHeadersForEntry(this.cell.state, entry_hash);
+    const allHeaders = getHeadersForEntry(this.state, entry_hash);
 
     let entry_type: EntryType | undefined = undefined;
     const live_headers: SignedHeaderHashed<Create>[] = [];
@@ -70,11 +70,11 @@ export class Authority {
     header_hash: Hash,
     options: GetOptions
   ): Promise<GetElementFull | undefined> {
-    if (this.cell.state.metadata.misc_meta[header_hash] !== 'StoreElement') {
+    if (this.state.metadata.misc_meta[header_hash] !== 'StoreElement') {
       return undefined;
     }
 
-    const header = this.cell.state.CAS[header_hash] as SignedHeaderHashed;
+    const header = this.state.CAS[header_hash] as SignedHeaderHashed;
     let maybe_entry: Entry | undefined = undefined;
     let validation_status: ValidationStatus = ValidationStatus.Valid;
 
@@ -84,13 +84,13 @@ export class Authority {
       ) {
         const entryHash = (header as SignedHeaderHashed<NewEntryHeader>).header
           .content.entry_hash;
-        maybe_entry = this.cell.state.CAS[entryHash];
+        maybe_entry = this.state.CAS[entryHash];
       }
     } else {
       validation_status = ValidationStatus.Rejected;
     }
 
-    const modifiers = getHeaderModifiers(this.cell.state, header_hash);
+    const modifiers = getHeaderModifiers(this.state, header_hash);
 
     return {
       deletes: modifiers.deletes,

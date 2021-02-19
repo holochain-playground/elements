@@ -1,4 +1,4 @@
-import { Cell } from '../cell';
+import { HostFnWorkspace } from './host-fn';
 import { CreateCapGrant } from './host-fn/actions/create-cap-grant';
 import { CreateEntry } from './host-fn/actions/create-entry';
 import { CreateLink } from './host-fn/actions/create-link';
@@ -17,4 +17,4 @@ export interface SimulatedZomeFunctionContext {
     call_remote: CallRemote;
     path: Path;
 }
-export declare function buildZomeFunctionContext(zome_index: number, cell: Cell): SimulatedZomeFunctionContext;
+export declare function buildZomeFunctionContext(workspace: HostFnWorkspace, zome_index: number): SimulatedZomeFunctionContext;

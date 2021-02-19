@@ -274,25 +274,25 @@
   SignedHeaderHashed,
   Update,
 } from '@holochain-open-dev/core-types';
+import { P2pCell } from '../../..';
 import { GetOptions } from '../../../types';
 import { Cell } from '../cell';
 import { getHeaderModifiers, getHeadersForEntry } from '../dht/get';
-import { ValidationStatus } from '../state';
+import { CellState, ValidationStatus } from '../state';
 import { GetEntryFull, GetElementFull } from './types';
-&nbsp;
 &nbsp;
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain_cascade/src/authority.rs
 export class Authority {
-  constructor(protected cell: Cell) {}
+  constructor(protected state: CellState, protected p2p: P2pCell) {}
 &nbsp;
   public <span class="fstat-no" title="function not covered" >async handle_get_entry(</span>
 <span class="cstat-no" title="statement not covered" >    entry_hash: Hash,</span>
 <span class="cstat-no" title="statement not covered" >    options: GetOptions</span>
 <span class="cstat-no" title="statement not covered" >  ): Promise&lt;GetEntryFull | undefined&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    const entry = this.cell.state.CAS[entry_hash];</span>
+<span class="cstat-no" title="statement not covered" >    const entry = this.state.CAS[entry_hash];</span>
 <span class="cstat-no" title="statement not covered" >    if (!entry) return undefined;</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    const allHeaders = getHeadersForEntry(this.cell.state, entry_hash);</span>
+<span class="cstat-no" title="statement not covered" >    const allHeaders = getHeadersForEntry(this.state, entry_hash);</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    let entry_type: EntryType | undefined = undefined;</span>
 <span class="cstat-no" title="statement not covered" >    const live_headers: SignedHeaderHashed&lt;Create&gt;[] = [];</span>
@@ -335,11 +335,11 @@ export class Authority {
 <span class="cstat-no" title="statement not covered" >    header_hash: Hash,</span>
 <span class="cstat-no" title="statement not covered" >    options: GetOptions</span>
 <span class="cstat-no" title="statement not covered" >  ): Promise&lt;GetElementFull | undefined&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (this.cell.state.metadata.misc_meta[header_hash] !== 'StoreElement') {</span>
+<span class="cstat-no" title="statement not covered" >    if (this.state.metadata.misc_meta[header_hash] !== 'StoreElement') {</span>
 <span class="cstat-no" title="statement not covered" >      return undefined;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    const header = this.cell.state.CAS[header_hash] as SignedHeaderHashed;</span>
+<span class="cstat-no" title="statement not covered" >    const header = this.state.CAS[header_hash] as SignedHeaderHashed;</span>
 <span class="cstat-no" title="statement not covered" >    let maybe_entry: Entry | undefined = undefined;</span>
 <span class="cstat-no" title="statement not covered" >    let validation_status: ValidationStatus = ValidationStatus.Valid;</span>
 <span class="cstat-no" title="statement not covered" ></span>
@@ -349,13 +349,13 @@ export class Authority {
 <span class="cstat-no" title="statement not covered" >      ) {</span>
 <span class="cstat-no" title="statement not covered" >        const entryHash = (header as SignedHeaderHashed&lt;NewEntryHeader&gt;).header</span>
 <span class="cstat-no" title="statement not covered" >          .content.entry_hash;</span>
-<span class="cstat-no" title="statement not covered" >        maybe_entry = this.cell.state.CAS[entryHash];</span>
+<span class="cstat-no" title="statement not covered" >        maybe_entry = this.state.CAS[entryHash];</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
 <span class="cstat-no" title="statement not covered" >    } else {</span>
 <span class="cstat-no" title="statement not covered" >      validation_status = ValidationStatus.Rejected;</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    const modifiers = getHeaderModifiers(this.cell.state, header_hash);</span>
+<span class="cstat-no" title="statement not covered" >    const modifiers = getHeaderModifiers(this.state, header_hash);</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    return {</span>
 <span class="cstat-no" title="statement not covered" >      deletes: modifiers.deletes,</span>
@@ -373,7 +373,7 @@ export class Authority {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Fri Feb 19 2021 10:45:15 GMT+0100 (Hora estàndard del Centre d’Europa)
+                at Fri Feb 19 2021 13:14:48 GMT+0100 (Hora estàndard del Centre d’Europa)
             </div>
         </div>
         <script src="../../../../prettify.js"></script>

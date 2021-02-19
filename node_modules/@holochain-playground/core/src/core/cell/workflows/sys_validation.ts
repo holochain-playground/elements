@@ -3,14 +3,14 @@ import { ValidationLimboStatus } from '../state';
 import { getValidationLimboDhtOps } from '../dht/get';
 import { putValidationLimboValue } from '../dht/put';
 import { app_validation_task } from './app_validation';
-import { Workflow, WorkflowReturn, WorkflowType } from './workflows';
+import { Workflow, WorkflowReturn, WorkflowType, Workspace } from './workflows';
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/sys_validation_workflow.rs
 export const sys_validation = async (
-  cell: Cell
+  worskpace: Workspace
 ): Promise<WorkflowReturn<void>> => {
   const pendingDhtOps = getValidationLimboDhtOps(
-    cell.state,
+    worskpace.state,
     ValidationLimboStatus.Pending
   );
 
@@ -20,21 +20,21 @@ export const sys_validation = async (
 
     limboValue.status = ValidationLimboStatus.SysValidated;
 
-    putValidationLimboValue(dhtOpHash, limboValue)(cell.state);
+    putValidationLimboValue(dhtOpHash, limboValue)(worskpace.state);
   }
 
   return {
     result: undefined,
-    triggers: [app_validation_task(cell)],
+    triggers: [app_validation_task()],
   };
 };
 
 export type SysValidationWorkflow = Workflow<void, void>;
 
-export function sys_validation_task(cell: Cell): SysValidationWorkflow {
+export function sys_validation_task(): SysValidationWorkflow {
   return {
     type: WorkflowType.SYS_VALIDATION,
     details: undefined,
-    task: () => sys_validation(cell),
+    task: worskpace => sys_validation(worskpace),
   };
 }

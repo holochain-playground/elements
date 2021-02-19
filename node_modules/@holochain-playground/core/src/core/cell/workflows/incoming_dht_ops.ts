@@ -5,17 +5,21 @@ import {
   AgentPubKey,
 } from '@holochain-open-dev/core-types';
 import { Cell, Workflow } from '../../cell';
-import { ValidationLimboValue, ValidationLimboStatus } from '../state';
+import {
+  ValidationLimboValue,
+  ValidationLimboStatus,
+  CellState,
+} from '../state';
 import { putValidationLimboValue } from '../dht/put';
 import { sys_validation_task } from './sys_validation';
-import { WorkflowReturn, WorkflowType } from './workflows';
+import { WorkflowReturn, WorkflowType, Workspace } from './workflows';
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/incoming_dht_ops_workflow.rs
 export const incoming_dht_ops = (
   basis: Hash,
   dhtOps: Dictionary<DHTOp>,
   from_agent: AgentPubKey | undefined
-) => async (cell: Cell): Promise<WorkflowReturn<void>> => {
+) => async (worskpace: Workspace): Promise<WorkflowReturn<void>> => {
   for (const dhtOpHash of Object.keys(dhtOps)) {
     const dhtOp = dhtOps[dhtOpHash];
 
@@ -29,12 +33,12 @@ export const incoming_dht_ops = (
       time_added: Date.now(),
     };
 
-    putValidationLimboValue(dhtOpHash, validationLimboValue)(cell.state);
+    putValidationLimboValue(dhtOpHash, validationLimboValue)(worskpace.state);
   }
 
   return {
     result: undefined,
-    triggers: [sys_validation_task(cell)],
+    triggers: [sys_validation_task()],
   };
 };
 
@@ -44,7 +48,6 @@ export type IncomingDhtOpsWorkflow = Workflow<
 >;
 
 export function incoming_dht_ops_task(
-  cell: Cell,
   from_agent: AgentPubKey,
   dht_hash: Hash, // The basis for the DHTOps
   ops: Dictionary<DHTOp>
@@ -56,6 +59,6 @@ export function incoming_dht_ops_task(
       dht_hash,
       ops,
     },
-    task: () => incoming_dht_ops(dht_hash, ops, from_agent)(cell),
+    task: worskpace => incoming_dht_ops(dht_hash, ops, from_agent)(worskpace),
   };
 }

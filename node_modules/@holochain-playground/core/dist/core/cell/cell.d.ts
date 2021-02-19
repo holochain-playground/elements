@@ -6,26 +6,22 @@ import { Workflow } from './workflows/workflows';
 import { MiddlewareExecutor } from '../../executor/middleware-executor';
 import { GetResult } from './cascade/types';
 import { GetOptions } from '../../types';
-import { Cascade } from './cascade';
 export declare type CellSignal = 'after-workflow-executed' | 'before-workflow-executed';
 export declare type CellSignalListener = (payload: any) => void;
 export declare class Cell {
-    state: CellState;
+    private _state;
     conductor: Conductor;
     p2p: P2pCell;
     _pendingWorkflows: Dictionary<Workflow<any, any>>;
     workflowExecutor: MiddlewareExecutor<Workflow<any, any>>;
-    constructor(state: CellState, conductor: Conductor, p2p: P2pCell);
+    constructor(_state: CellState, conductor: Conductor, p2p: P2pCell);
     get cellId(): CellId;
     get agentPubKey(): AgentPubKey;
     get dnaHash(): Hash;
-    getSimulatedDna(): import("../..").SimulatedDna;
-    getCascade(): Cascade;
-    static create(conductor: Conductor, cellId: CellId, membrane_proof: any): Promise<Cell>;
     getState(): CellState;
-    triggerWorkflow(workflow: Workflow<any, any>): void;
-    _runPendingWorkflows(): Promise<void>;
-    _runWorkflow(workflow: Workflow<any, any>): Promise<any>;
+    getSimulatedDna(): import("../..").SimulatedDna;
+    private getCascade;
+    static create(conductor: Conductor, cellId: CellId, membrane_proof: any): Promise<Cell>;
     /** Workflows */
     callZomeFn(args: {
         zome: string;
@@ -40,4 +36,10 @@ export declare class Cell {
     ops: Dictionary<DHTOp>): Promise<void>;
     handle_get(dht_hash: Hash, options: GetOptions): Promise<GetResult | undefined>;
     handle_call_remote(from_agent: AgentPubKey, zome_name: string, fn_name: string, cap: CapSecret | undefined, payload: any): Promise<any>;
+    /** Workflow internal execution */
+    triggerWorkflow(workflow: Workflow<any, any>): void;
+    _runPendingWorkflows(): Promise<void>;
+    _runWorkflow(workflow: Workflow<any, any>): Promise<any>;
+    /** Private helpers */
+    private buildWorkspace;
 }

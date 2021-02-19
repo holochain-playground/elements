@@ -1,4 +1,5 @@
-import { Cell } from '../cell';
+import { Cell, Workspace } from '../cell';
+import { HostFnWorkspace } from './host-fn';
 import {
   CreateCapGrant,
   create_cap_grant,
@@ -26,17 +27,17 @@ export interface SimulatedZomeFunctionContext {
 }
 
 export function buildZomeFunctionContext(
-  zome_index: number,
-  cell: Cell
+  workspace: HostFnWorkspace,
+  zome_index: number
 ): SimulatedZomeFunctionContext {
   return {
-    create_entry: create_entry(zome_index, cell),
-    hash_entry: hash_entry(zome_index, cell),
-    get: get(zome_index, cell),
-    create_link: create_link(zome_index, cell),
-    create_cap_grant: create_cap_grant(zome_index, cell),
-    delete_cap_grant: delete_cap_grant(zome_index, cell),
-    call_remote: call_remote(zome_index, cell),
+    create_entry: create_entry(workspace, zome_index),
+    hash_entry: hash_entry(workspace, zome_index),
+    get: get(workspace, zome_index),
+    create_link: create_link(workspace, zome_index),
+    create_cap_grant: create_cap_grant(workspace, zome_index),
+    delete_cap_grant: delete_cap_grant(workspace, zome_index),
+    call_remote: call_remote(workspace, zome_index),
     path,
   };
 }

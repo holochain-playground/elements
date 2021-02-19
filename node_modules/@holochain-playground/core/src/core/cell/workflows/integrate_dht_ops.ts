@@ -1,26 +1,26 @@
 import { Cell, Workflow } from '../../cell';
-import { IntegratedDhtOpsValue } from '../state';
+import { CellState, IntegratedDhtOpsValue } from '../state';
 import { pullAllIntegrationLimboDhtOps } from '../dht/get';
 import {
   putDhtOpData,
   putDhtOpMetadata,
   putDhtOpToIntegrated,
 } from '../dht/put';
-import { WorkflowReturn, WorkflowType } from './workflows';
+import { WorkflowReturn, WorkflowType, Workspace } from './workflows';
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/integrate_dht_ops_workflow.rs
 export const integrate_dht_ops = async (
-  cell: Cell
+  worskpace: Workspace
 ): Promise<WorkflowReturn<void>> => {
-  const opsToIntegrate = pullAllIntegrationLimboDhtOps(cell.state);
+  const opsToIntegrate = pullAllIntegrationLimboDhtOps(worskpace.state);
 
   for (const dhtOpHash of Object.keys(opsToIntegrate)) {
     const integrationLimboValue = opsToIntegrate[dhtOpHash];
 
     const dhtOp = integrationLimboValue.op;
 
-    await putDhtOpData(dhtOp)(cell.state);
-    putDhtOpMetadata(dhtOp)(cell.state);
+    await putDhtOpData(dhtOp)(worskpace.state);
+    putDhtOpMetadata(dhtOp)(worskpace.state);
 
     const value: IntegratedDhtOpsValue = {
       op: dhtOp,
@@ -28,7 +28,7 @@ export const integrate_dht_ops = async (
       when_integrated: Date.now(),
     };
 
-    putDhtOpToIntegrated(dhtOpHash, value)(cell.state);
+    putDhtOpToIntegrated(dhtOpHash, value)(worskpace.state);
   }
   return {
     result: undefined,
@@ -38,10 +38,11 @@ export const integrate_dht_ops = async (
 
 export type IntegrateDhtOpsWorkflow = Workflow<void, void>;
 
-export function integrate_dht_ops_task(cell: Cell): IntegrateDhtOpsWorkflow {
+export function integrate_dht_ops_task(
+): IntegrateDhtOpsWorkflow {
   return {
     type: WorkflowType.INTEGRATE_DHT_OPS,
     details: undefined,
-    task: () => integrate_dht_ops(cell),
+    task: (worskpace) => integrate_dht_ops(worskpace),
   };
 }

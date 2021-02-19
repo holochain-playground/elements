@@ -1,7 +1,7 @@
 import { Entry, Hash, Element } from '@holochain-open-dev/core-types';
 import { GetOptions, GetStrategy } from '../../../types';
 import { Cell } from '../../cell';
-import { HostFn } from '../host-fn';
+import { HostFn, HostFnWorkspace } from '../host-fn';
 
 export type Get = (
   args: Hash,
@@ -9,7 +9,7 @@ export type Get = (
 ) => Promise<Element | undefined>;
 
 // Creates a new Create header and its entry in the source chain
-export const get: HostFn<Get> = (zome_index: number, cell: Cell): Get => async (
+export const get: HostFn<Get> = (workspace: HostFnWorkspace): Get => async (
   hash,
   options
 ): Promise<Element | undefined> => {
@@ -17,7 +17,5 @@ export const get: HostFn<Get> = (zome_index: number, cell: Cell): Get => async (
 
   options = options || { strategy: GetStrategy.Contents };
 
-  const cascade = cell.getCascade();
-
-  return cascade.dht_get(hash, options);
+  return workspace.cascade.dht_get(hash, options);
 };

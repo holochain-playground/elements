@@ -12,11 +12,14 @@ import {
 } from '@holochain-open-dev/core-types';
 import { Conductor } from '../conductor';
 import { genesis, genesis_task } from './workflows/genesis';
-import { call_zome_fn_workflow } from './workflows/call_zome_fn';
+import {
+  CallZomeFnWorkflow,
+  call_zome_fn_workflow,
+} from './workflows/call_zome_fn';
 import { P2pCell } from '../network/p2p-cell';
 import { incoming_dht_ops_task } from './workflows/incoming_dht_ops';
 import { CellState } from './state';
-import { Workflow } from './workflows/workflows';
+import { Workflow, WorkflowType, Workspace } from './workflows/workflows';
 import { MiddlewareExecutor } from '../../executor/middleware-executor';
 import { GetResult } from './cascade/types';
 import { Authority } from './cascade/authority';
@@ -24,6 +27,12 @@ import { getHashType, HashType } from '../../processors/hash';
 import { valid_cap_grant } from './source-chain/utils';
 import { GetOptions } from '../../types';
 import { Cascade } from './cascade';
+import { cloneDeep } from 'lodash-es';
+import {
+  buildZomeFunctionContext,
+  HostFnWorkspace,
+  SimulatedZomeFunctionContext,
+} from '../hdk';
 
 export type CellSignal = 'after-workflow-executed' | 'before-workflow-executed';
 export type CellSignalListener = (payload: any) => void;
@@ -34,7 +43,7 @@ export class Cell {
   workflowExecutor = new MiddlewareExecutor<Workflow<any, any>>();
 
   constructor(
-    public state: CellState,
+    private _state: CellState,
     public conductor: Conductor,
     public p2p: P2pCell
   ) {
@@ -45,7 +54,7 @@ export class Cell {
   }
 
   get cellId(): CellId {
-    return [this.state.dnaHash, this.state.agentPubKey];
+    return [this._state.dnaHash, this._state.agentPubKey];
   }
 
   get agentPubKey(): AgentPubKey {
@@ -56,12 +65,16 @@ export class Cell {
     return this.cellId[0];
   }
 
+  getState(): CellState {
+    return cloneDeep(this._state);
+  }
+
   getSimulatedDna() {
     return this.conductor.registeredDnas[this.dnaHash];
   }
 
-  public getCascade(): Cascade {
-    return new Cascade(this);
+  private getCascade(): Cascade {
+    return new Cascade(this._state, this.p2p);
   }
 
   static async create(
@@ -89,42 +102,9 @@ export class Cell {
 
     const cell = new Cell(newCellState, conductor, p2p);
 
-    await cell._runWorkflow(genesis_task(cell, cellId, membrane_proof));
+    await cell._runWorkflow(genesis_task(cellId, membrane_proof));
 
     return cell;
-  }
-
-  getState(): CellState {
-    return this.state;
-  }
-
-  triggerWorkflow(workflow: Workflow<any, any>) {
-    this._pendingWorkflows[workflow.type] = workflow;
-
-    setTimeout(() => this._runPendingWorkflows(), 300);
-  }
-
-  async _runPendingWorkflows() {
-    const workflowsToRun = this._pendingWorkflows;
-    this._pendingWorkflows = {};
-
-    const promises = Object.values(workflowsToRun).map(w =>
-      this._runWorkflow(w)
-    );
-
-    await Promise.all(promises);
-  }
-
-  async _runWorkflow(workflow: Workflow<any, any>): Promise<any> {
-    const result = await this.workflowExecutor.execute(
-      () => workflow.task(this),
-      workflow
-    );
-
-    result.triggers.forEach(triggeredWorkflow =>
-      this.triggerWorkflow(triggeredWorkflow)
-    );
-    return result.result;
   }
 
   /** Workflows */
@@ -138,7 +118,6 @@ export class Cell {
   }): Promise<any> {
     return this._runWorkflow(
       call_zome_fn_workflow(
-        this,
         args.zome,
         args.fnName,
         args.payload,
@@ -158,16 +137,14 @@ export class Cell {
     dht_hash: Hash, // The basis for the DHTOps
     ops: Dictionary<DHTOp>
   ): Promise<void> {
-    return this._runWorkflow(
-      incoming_dht_ops_task(this, from_agent, dht_hash, ops)
-    );
+    return this._runWorkflow(incoming_dht_ops_task(from_agent, dht_hash, ops));
   }
 
   public async handle_get(
     dht_hash: Hash,
     options: GetOptions
   ): Promise<GetResult | undefined> {
-    const authority = new Authority(this);
+    const authority = new Authority(this._state, this.p2p);
 
     const hashType = getHashType(dht_hash);
     if (hashType === HashType.ENTRY || hashType === HashType.AGENT) {
@@ -192,5 +169,68 @@ export class Cell {
       payload,
       provenance: from_agent,
     });
+  }
+
+  /** Workflow internal execution */
+
+  triggerWorkflow(workflow: Workflow<any, any>) {
+    this._pendingWorkflows[workflow.type] = workflow;
+
+    setTimeout(() => this._runPendingWorkflows(), 300);
+  }
+
+  async _runPendingWorkflows() {
+    const workflowsToRun = this._pendingWorkflows;
+    this._pendingWorkflows = {};
+
+    const promises = Object.values(workflowsToRun).map(w =>
+      this._runWorkflow(w)
+    );
+
+    await Promise.all(promises);
+  }
+
+  async _runWorkflow(workflow: Workflow<any, any>): Promise<any> {
+    let zomeIndex: number | undefined = undefined;
+    if (workflow.type === WorkflowType.CALL_ZOME) {
+      const zomeName = (workflow as CallZomeFnWorkflow).details.zome;
+      const i = this.getSimulatedDna().zomes.findIndex(
+        zome => zome.name === zomeName
+      );
+      if (i >= 0) zomeIndex = i;
+    }
+
+    const result = await this.workflowExecutor.execute(
+      () => workflow.task(this.buildWorkspace(zomeIndex)),
+      workflow
+    );
+
+    result.triggers.forEach(triggeredWorkflow =>
+      this.triggerWorkflow(triggeredWorkflow)
+    );
+    return result.result;
+  }
+
+  /** Private helpers */
+
+  private buildWorkspace(zomeIndex?: number): Workspace {
+    let zomeFnContext: SimulatedZomeFunctionContext | undefined = undefined;
+
+    if (zomeIndex !== undefined) {
+      const hostFnWorkspace: HostFnWorkspace = {
+        cascade: this.getCascade(),
+        state: this._state,
+        dna: this.getSimulatedDna(),
+        p2p: this.p2p,
+      };
+      zomeFnContext = buildZomeFunctionContext(hostFnWorkspace, zomeIndex);
+    }
+
+    return {
+      state: this._state,
+      p2p: this.p2p,
+      dna: this.getSimulatedDna(),
+      zomeFnContext,
+    };
   }
 }

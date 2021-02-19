@@ -14,14 +14,13 @@ import {
   buildShh,
 } from '../../../cell/source-chain/builder-headers';
 import { putElement } from '../../../cell/source-chain/put';
-import { HostFn } from '../../host-fn';
+import { HostFn, HostFnWorkspace } from '../../host-fn';
 
 export type CreateCapGrant = (cap_grant: ZomeCallCapGrant) => Promise<Hash>;
 
 // Creates a new Create header and its entry in the source chain
 export const create_cap_grant: HostFn<CreateCapGrant> = (
-  zome_index: number,
-  cell: Cell
+  worskpace: HostFnWorkspace
 ): CreateCapGrant => async (cap_grant: ZomeCallCapGrant): Promise<Hash> => {
   if (
     (cap_grant.access as {
@@ -36,13 +35,13 @@ export const create_cap_grant: HostFn<CreateCapGrant> = (
 
   const entry: Entry = { entry_type: 'CapGrant', content: cap_grant };
 
-  const create = buildCreate(cell.state, entry, 'CapGrant');
+  const create = buildCreate(worskpace.state, entry, 'CapGrant');
 
   const element: Element = {
     signed_header: buildShh(create),
     entry,
   };
-  putElement(element)(cell.state);
+  putElement(element)(worskpace.state);
 
   return element.signed_header.header.hash;
 };

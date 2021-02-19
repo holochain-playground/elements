@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70.91% </span>
+                <span class="strong">71.93% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>39/55</span>
+                <span class='fraction'>41/57</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70.91% </span>
+                <span class="strong">71.93% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>39/55</span>
+                <span class='fraction'>41/57</span>
             </div>
         
             
@@ -112,7 +112,9 @@
 <a name='L53'></a><a href='#L53'>53</a>
 <a name='L54'></a><a href='#L54'>54</a>
 <a name='L55'></a><a href='#L55'>55</a>
-<a name='L56'></a><a href='#L56'>56</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
@@ -129,14 +131,16 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -150,19 +154,19 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -175,25 +179,27 @@
 } from '@holochain-open-dev/core-types';
 import { getHashType, HashType } from '../../../processors/hash';
 import { GetOptions, GetStrategy } from '../../../types';
+import { P2pCell } from '../../network/p2p-cell';
 import { Cell } from '../cell';
+import { CellState } from '../state';
 import { Authority } from './authority';
 &nbsp;
 export class Cascade {
-  constructor(protected cell: Cell) {}
+  constructor(protected state: CellState, protected p2p: P2pCell) {}
 &nbsp;
   async dht_get(hash: Hash, options: GetOptions): Promise&lt;Element | undefined&gt; {
     // TODO rrDHT arcs
-    const authority = new Authority(this.cell);
+    const authority = new Authority(this.state, this.p2p);
 &nbsp;
-    const isPresent = this.cell.state.CAS[hash];
+    const isPresent = this.state.CAS[hash];
 &nbsp;
     // TODO only return local if GetOptions::content() is given
     if (isPresent &amp;&amp; options.strategy === GetStrategy.Contents) {
       const hashType = getHashType(hash);
 &nbsp;
       if (hashType === HashType.ENTRY) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
-<span class="cstat-no" title="statement not covered" >        const entry = this.cell.state.CAS[hash];</span>
-<span class="cstat-no" title="statement not covered" >        const signed_header = Object.values(this.cell.state.CAS).find(</span>
+<span class="cstat-no" title="statement not covered" >        const entry = this.state.CAS[hash];</span>
+<span class="cstat-no" title="statement not covered" >        const signed_header = Object.values(this.state.CAS).find(</span>
 <span class="cstat-no" title="statement not covered" >          header =&gt;</span>
 <span class="cstat-no" title="statement not covered" >            (header as SignedHeaderHashed).header &amp;&amp;</span>
 <span class="cstat-no" title="statement not covered" >            (header as SignedHeaderHashed&lt;NewEntryHeader&gt;).header.content</span>
@@ -207,8 +213,8 @@ export class Cascade {
 <span class="cstat-no" title="statement not covered" >      }</span>
 &nbsp;
       if (hashType === HashType.HEADER) {
-        const signed_header = this.cell.state.CAS[hash];
-        const entry = this.cell.state.CAS[
+        const signed_header = this.state.CAS[hash];
+        const entry = this.state.CAS[
           (signed_header as SignedHeaderHashed&lt;NewEntryHeader&gt;).header.content
             .entry_hash
         ];
@@ -219,7 +225,7 @@ export class Cascade {
       }
     }
 <span class="cstat-no" title="statement not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span>
-<span class="cstat-no" title="statement not covered" >    return this.cell.p2p.get(hash, options);</span>
+<span class="cstat-no" title="statement not covered" >    return this.p2p.get(hash, options);</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -229,7 +235,7 @@ export class Cascade {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Fri Feb 19 2021 10:45:15 GMT+0100 (Hora estàndard del Centre d’Europa)
+                at Fri Feb 19 2021 13:14:48 GMT+0100 (Hora estàndard del Centre d’Europa)
             </div>
         </div>
         <script src="../../../../prettify.js"></script>

@@ -1,23 +1,22 @@
 import { Element, Hash, NewEntryHeader } from '@holochain-open-dev/core-types';
 import { GetStrategy } from '../../../../types';
-import { Cell } from '../../../cell';
+import { Cell, CellState } from '../../../cell';
 import { Cascade } from '../../../cell/cascade';
 import {
   buildDelete,
   buildShh,
 } from '../../../cell/source-chain/builder-headers';
 import { putElement } from '../../../cell/source-chain/put';
-import { HostFn } from '../../host-fn';
+import { P2pCell } from '../../../network/p2p-cell';
+import { HostFn, HostFnWorkspace } from '../../host-fn';
 
 export type DeleteCapGrant = (args: { header_hash: Hash }) => Promise<Hash>;
 
 // Creates a new Create header and its entry in the source chain
 export const delete_cap_grant: HostFn<DeleteCapGrant> = (
-  zome_index: number,
-  cell: Cell
+  worskpace: HostFnWorkspace
 ): DeleteCapGrant => async ({ header_hash }): Promise<Hash> => {
-  const cascade = new Cascade(cell);
-  const elementToDelete = await cascade.dht_get(header_hash, {
+  const elementToDelete = await worskpace.cascade.dht_get(header_hash, {
     strategy: GetStrategy.Contents,
   });
 
@@ -27,7 +26,7 @@ export const delete_cap_grant: HostFn<DeleteCapGrant> = (
     .content as NewEntryHeader).entry_hash;
 
   const deleteHeader = buildDelete(
-    cell.state,
+    worskpace.state,
     header_hash,
     deletesEntryAddress
   );
@@ -36,7 +35,7 @@ export const delete_cap_grant: HostFn<DeleteCapGrant> = (
     signed_header: buildShh(deleteHeader),
     entry: undefined,
   };
-  putElement(element)(cell.state);
+  putElement(element)(worskpace.state);
 
   return element.signed_header.header.hash;
 };

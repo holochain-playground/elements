@@ -13,7 +13,6 @@
     <holochain-playground-container id="container">
       <dht-cells
         id="cells"
-        step-by-step
         style="height: 600px; width: 100%"
       ></dht-cells>
       <source-chain style="height: 350px; width: 100%"></source-chain>
@@ -37,6 +36,7 @@
       import {
         WorkflowType,
         NetworkRequestType,
+        sampleDnaTemplate
       } from '@holochain-playground/core';
 
       const dna = {
@@ -110,7 +110,7 @@
 
       const container = document.getElementById('container');
       container.numberOfSimulatedConductors = 3;
-      container.simulatedDnaTemplate = dna;
+      //container.simulatedDnaTemplate = dna;
 
       container.addEventListener('ready', (e) => {
         const conductor = e.detail.conductors[0];

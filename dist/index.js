@@ -390,12 +390,12 @@ function selectAllCells(dna, conductors) {
 function selectGlobalDHTOpsCount(cells) {
     let dhtOps = 0;
     for (const cell of cells) {
-        dhtOps += Object.keys(cell.state.integratedDHTOps).length;
+        dhtOps += Object.keys(cell.getState().integratedDHTOps).length;
     }
     return dhtOps;
 }
 function selectHoldingCells(entryHash, cells) {
-    return cells.filter((cell) => isHoldingEntry(cell.state, entryHash));
+    return cells.filter((cell) => isHoldingEntry(cell.getState(), entryHash));
 }
 function isHoldingEntry(state, entryHash) {
     for (const integratedDhtOpValue of Object.values(state.integratedDHTOps)) {
@@ -427,7 +427,7 @@ function selectCell(dnaHash, agentPubKey, conductors) {
 function selectUniqueDHTOpsCount(cells) {
     const globalDHTOps = {};
     for (const cell of cells) {
-        for (const hash of Object.keys(cell.state.integratedDHTOps)) {
+        for (const hash of Object.keys(cell.getState().integratedDHTOps)) {
             globalDHTOps[hash] = {};
         }
     }
@@ -437,7 +437,7 @@ function selectFromCAS(hash, cells) {
     if (!hash)
         return undefined;
     for (const cell of cells) {
-        const entry = cell.state.CAS[hash];
+        const entry = cell.getState().CAS[hash];
         if (entry) {
             return entry;
         }
@@ -447,7 +447,7 @@ function selectFromCAS(hash, cells) {
 function selectMedianHoldingDHTOps(cells) {
     const holdingDHTOps = [];
     for (const cell of cells) {
-        holdingDHTOps.push(Object.keys(cell.state.integratedDHTOps).length);
+        holdingDHTOps.push(Object.keys(cell.getState().integratedDHTOps).length);
     }
     holdingDHTOps.sort();
     const medianIndex = Math.floor(holdingDHTOps.length / 2);
@@ -455,22 +455,6 @@ function selectMedianHoldingDHTOps(cells) {
 }
 function selectRedundancyFactor(cell) {
     return cell.p2p.redundancyFactor;
-}
-
-function shortenStrRec(object) {
-    if (Array.isArray(object)) {
-        return object.map(shortenStrRec);
-    }
-    else if (typeof object === 'object') {
-        for (const key of Object.keys(object)) {
-            object[key] = shortenStrRec(object[key]);
-        }
-        return object;
-    }
-    else if (typeof object === 'string' && object.length > 23) {
-        return `${object.substring(0, 20)}...`;
-    }
-    return object;
 }
 
 const compose =
@@ -1074,7 +1058,8 @@ class CallZomeFns extends PlaygroundElement {
                     ? result.result.payload
                     : html `
                                                 <json-viewer
-                                                  .object=${shortenStrRec(result.result.payload)}
+                                                  .object=${result.result
+                        .payload}
                                                   class="fill"
                                                 ></json-viewer>
                                               `}</span
@@ -1238,7 +1223,7 @@ class DhtShard extends PlaygroundElement {
               <json-viewer
                 id="dht-shard"
                 style="margin-top: 16px;"
-                .object=${JSON.stringify(getDhtShard(this.activeCell.state))}
+                .object=${JSON.stringify(getDhtShard(this.activeCell.getState()))}
               >
               </json-viewer>
             `
@@ -1260,6 +1245,22 @@ __decorate([
     property$1({ type: Object }),
     __metadata("design:type", Object)
 ], DhtShard.prototype, "cell", void 0);
+
+function shortenStrRec(object) {
+    if (Array.isArray(object)) {
+        return object.map(shortenStrRec);
+    }
+    else if (typeof object === 'object') {
+        for (const key of Object.keys(object)) {
+            object[key] = shortenStrRec(object[key]);
+        }
+        return object;
+    }
+    else if (typeof object === 'string' && object.length > 23) {
+        return `${object.substring(0, 20)}...`;
+    }
+    return object;
+}
 
 class EntryDetail extends PlaygroundElement {
     constructor() {
@@ -1283,7 +1284,7 @@ class EntryDetail extends PlaygroundElement {
     get activeEntryDetails() {
         const allCells = selectAllCells(this.activeDna, this.conductors);
         for (const cell of allCells) {
-            const details = getEntryDetails(cell.state, this.activeEntryHash);
+            const details = getEntryDetails(cell.getState(), this.activeEntryHash);
             if (details)
                 return details;
         }
@@ -34725,7 +34726,7 @@ class DhtStats extends PlaygroundElement {
         }
         else if (newNodes < currentNodes) {
             const conductorsToRemove = currentNodes - newNodes;
-            const getMaxSourceChainLength = (conductor) => Math.max(...selectCells(this.activeDna, conductor).map((cell) => cell.state.sourceChain.length));
+            const getMaxSourceChainLength = (conductor) => Math.max(...selectCells(this.activeDna, conductor).map((cell) => cell.getState().sourceChain.length));
             conductors = conductors.sort((c1, c2) => getMaxSourceChainLength(c1) - getMaxSourceChainLength(c2));
             conductors.splice(0, conductorsToRemove);
         }
@@ -37554,10 +37555,11 @@ function sourceChainNodes(cell) {
     if (!cell)
         return [];
     const nodes = [];
-    const headersHashes = cell.state.sourceChain;
+    const state = cell.getState();
+    const headersHashes = state.sourceChain;
     for (const headerHash of headersHashes) {
         const strHeaderHash = headerHash;
-        const header = cell.state.CAS[strHeaderHash];
+        const header = state.CAS[strHeaderHash];
         nodes.push({
             data: {
                 id: strHeaderHash,
@@ -37580,12 +37582,12 @@ function sourceChainNodes(cell) {
     }
     for (const headerHash of headersHashes) {
         const strHeaderHash = headerHash;
-        const header = cell.state.CAS[strHeaderHash];
+        const header = state.CAS[strHeaderHash];
         if (header.header.content.entry_hash) {
             const newEntryHeader = header.header.content;
             const strEntryHash = newEntryHeader.entry_hash;
             const entryNodeId = `${strHeaderHash}:${strEntryHash}`;
-            const entry = cell.state.CAS[strEntryHash];
+            const entry = state.CAS[strEntryHash];
             const entryType = getEntryTypeString(cell, newEntryHeader.entry_type);
             nodes.push({
                 data: {
@@ -37611,9 +37613,10 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
     const links = {};
     const entryTypes = {};
     for (const cell of cells) {
-        for (const entryHash of getAllHeldEntries(cell.state)) {
-            details[entryHash] = getEntryDetails(cell.state, entryHash);
-            links[entryHash] = getLinksForEntry(cell.state, entryHash);
+        const state = cell.getState();
+        for (const entryHash of getAllHeldEntries(state)) {
+            details[entryHash] = getEntryDetails(state, entryHash);
+            links[entryHash] = getLinksForEntry(state, entryHash);
             const firstEntryHeader = details[entryHash].headers[0];
             if (firstEntryHeader &&
                 firstEntryHeader.header.content.entry_type) {

@@ -1,8 +1,17 @@
-import { Cell } from '../../cell';
+import { SimulatedDna } from '../../../dnas/simulated-dna';
+import { SimulatedZomeFunctionContext } from '../../hdk';
+import { P2pCell } from '../../network/p2p-cell';
+import { CellState } from '../state';
+export interface Workspace {
+    state: CellState;
+    p2p: P2pCell;
+    dna: SimulatedDna;
+    zomeFnContext?: SimulatedZomeFunctionContext;
+}
 export interface Workflow<D, R> {
     type: string;
     details: D;
-    task: (cell: Cell) => Promise<WorkflowReturn<R>>;
+    task: (worskpace: Workspace) => Promise<WorkflowReturn<R>>;
 }
 export declare type WorkflowReturn<R> = {
     result: R;
