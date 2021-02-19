@@ -22,6 +22,7 @@ import { JsonViewer } from '@power-elements/json-viewer';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { List } from 'scoped-material-components/mwc-list';
 import { Drawer } from 'scoped-material-components/mwc-drawer';
+import { ExpandableLine } from './helpers/expandable-line';
 
 export interface ZomeFunctionResult {
   cellId: CellId;
@@ -48,7 +49,7 @@ export class CallZomeFns extends PlaygroundElement {
   @property({ type: Number })
   _selectedZomeIndex: number = 0;
   @property({ type: String })
-  _selectedZomeFn: string | undefined = undefined;
+  _selectedZomeFnName: string | undefined = undefined;
 
   @property({ type: Array })
   // Results segmented by dnaHash/agentPubKey/timestamp
@@ -67,11 +68,16 @@ export class CallZomeFns extends PlaygroundElement {
     return this.activeCell.getSimulatedDna().zomes[this._selectedZomeIndex];
   }
 
-  get activeZomeFn(): SimulatedZomeFunction | undefined {
-    return (
-      this._selectedZomeFn &&
-      this.activeZome.zome_functions[this._selectedZomeFn]
-    );
+  get activeZomeFn(): { name: string; fn: SimulatedZomeFunction } {
+    let zomeFnName = Object.keys(this.activeZome.zome_functions)[0];
+    if (this._selectedZomeFnName) {
+      zomeFnName = this._selectedZomeFnName;
+    }
+
+    return {
+      name: zomeFnName,
+      fn: this.activeZome.zome_functions[zomeFnName],
+    };
   }
 
   observedCells() {
@@ -226,31 +232,23 @@ export class CallZomeFns extends PlaygroundElement {
         <mwc-list
           activatable
           @selected=${(e) =>
-            (this._selectedZomeFn = zomeFns[e.detail.index][0])}
+            (this._selectedZomeFnName = zomeFns[e.detail.index][0])}
         >
           ${zomeFns.map(
             ([name, fn]) => html`
-              <mwc-list-item .activated=${this._selectedZomeFn === name}
+              <mwc-list-item .activated=${this.activeZomeFn.name === name}
                 >${name}
               </mwc-list-item>
             `
           )}
         </mwc-list>
         <div slot="appContent" class="column" style="height: 100%;">
-          ${this.activeZomeFn === undefined
-            ? html` <div class="column center-content" style="flex: 1;">
-                <span style="align-self: center" class="placeholder"
-                  >Select a Zome Function to call it</span
-                >
-              </div>`
-            : html`
-                <div class="column" style="flex: 1;">
-                  ${this.renderCallableFunction(
-                    this._selectedZomeFn,
-                    this.activeZomeFn
-                  )}
-                </div>
-              `}
+          <div class="column" style="flex: 1;">
+            ${this.renderCallableFunction(
+              this.activeZomeFn.name,
+              this.activeZomeFn.fn
+            )}
+          </div>
         </div>
       </mwc-drawer>
     `;
@@ -291,7 +289,8 @@ export class CallZomeFns extends PlaygroundElement {
                                         color: result.result.success
                                           ? 'green'
                                           : 'red',
-                                        'align-self': 'center',
+                                        'align-self': 'start',
+                                        'margin-top': '16px',
                                         '--mdc-icon-size': '36px',
                                       })}
                                       >${result.result.success
@@ -314,7 +313,12 @@ export class CallZomeFns extends PlaygroundElement {
                                   <span style="flex: 1; margin-bottom: 8px;">
                                     ${result.fnName}
                                     <span class="placeholder">
-                                      in ${result.zome.name} zome
+                                      in ${result.zome.name}
+                                      zome${result.result
+                                        ? result.result.success
+                                          ? ', result:'
+                                          : ', error:'
+                                        : ''}
                                     </span>
                                   </span>
                                   <span class="placeholder">
@@ -323,29 +327,22 @@ export class CallZomeFns extends PlaygroundElement {
                                     ).toLocaleTimeString()}
                                   </span>
                                 </div>
-                                <div class="row">
-                                  ${result.result
-                                    ? html`
-                                        <span>
-                                          ${result.result.success
-                                            ? 'Result'
-                                            : 'Error'}:
-                                          ${typeof result.result.payload ===
-                                          'string'
-                                            ? result.result.payload
-                                            : html`
-                                                <json-viewer
-                                                  .object=${result.result
-                                                    .payload}
-                                                  class="fill"
-                                                ></json-viewer>
-                                              `}</span
-                                        >
+                                ${result.result
+                                  ? typeof result.result.payload === 'string'
+                                    ? html`<span
+                                        >${result.result.payload}</span
+                                      >`
+                                    : html`
+                                        <expandable-line>
+                                          <json-viewer
+                                            .object=${result.result.payload}
+                                            class="fill"
+                                          ></json-viewer>
+                                        </expandable-line>
                                       `
-                                    : html`<span class="placeholder"
-                                        >Executing...</span
-                                      >`}
-                                </div>
+                                  : html`<span class="placeholder"
+                                      >Executing...</span
+                                    >`}
                               </div>
                             </div>
                             ${index < sortedResults.length - 1
@@ -454,6 +451,7 @@ export class CallZomeFns extends PlaygroundElement {
       'mwc-tab-bar': TabBar,
       'mwc-card': Card,
       'json-viewer': JsonViewer,
+      'expandable-line': ExpandableLine,
     };
   }
 }

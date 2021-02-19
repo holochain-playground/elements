@@ -12,6 +12,7 @@ import { JsonViewer } from '@power-elements/json-viewer';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { List } from 'scoped-material-components/mwc-list';
 import { Drawer } from 'scoped-material-components/mwc-drawer';
+import { ExpandableLine } from './helpers/expandable-line';
 export interface ZomeFunctionResult {
     cellId: CellId;
     zome: SimulatedZome;
@@ -26,12 +27,15 @@ export declare class CallZomeFns extends PlaygroundElement {
     hideZomeSelector: boolean;
     hideAgentPubKey: boolean;
     _selectedZomeIndex: number;
-    _selectedZomeFn: string | undefined;
+    _selectedZomeFnName: string | undefined;
     _results: Dictionary<Dictionary<Dictionary<ZomeFunctionResult>>>;
     _arguments: Dictionary<Dictionary<Dictionary<Dictionary<Dictionary<any>>>>>;
     get activeCell(): Cell;
     get activeZome(): SimulatedZome;
-    get activeZomeFn(): SimulatedZomeFunction | undefined;
+    get activeZomeFn(): {
+        name: string;
+        fn: SimulatedZomeFunction;
+    };
     observedCells(): Cell[];
     setResultValue(timestamp: number, value: ZomeFunctionResult): void;
     getResultValue(timestamp: number): ZomeFunctionResult | undefined;
@@ -57,5 +61,6 @@ export declare class CallZomeFns extends PlaygroundElement {
         'mwc-tab-bar': typeof TabBar;
         'mwc-card': typeof Card;
         'json-viewer': typeof JsonViewer;
+        'expandable-line': typeof ExpandableLine;
     };
 }

@@ -818,6 +818,67 @@ class JsonViewer extends HTMLElement {
 
 customElements.define(JsonViewer.is, JsonViewer);
 
+class ExpandableLine extends ScopedElementsMixin(LitElement) {
+    constructor() {
+        super(...arguments);
+        this._expanded = false;
+    }
+    render() {
+        return html `
+      <div class="row">
+        <mwc-icon-button
+          style="--mdc-icon-button-size: 30px; margin-right: 4px;"
+          .icon=${this._expanded ? 'arrow_drop_up' : 'arrow_drop_down'}
+          @click=${() => (this._expanded = !this._expanded)}
+        ></mwc-icon-button>
+
+        <div
+          style=${styleMap({
+            position: this._expanded ? 'unset' : 'relative',
+            flex: '1',
+            display: 'flex',
+        })}
+        >
+          <div
+            style=${styleMap({
+            display: this._expanded ? 'none' : 'block',
+            'z-index': '3',
+            position: this._expanded ? 'unset' : 'absolute',
+            width: '100%',
+            height: '100%',
+            'box-shadow': this._expanded
+                ? ''
+                : 'inset 0 -10px 10px -10px #000000',
+        })}
+          ></div>
+          <div
+            style=${styleMap({
+            height: this._expanded ? 'auto' : '30px',
+            overflow: this._expanded ? 'auto' : 'hidden',
+            position: this._expanded ? 'unset' : 'absolute',
+            flex: '1',
+        })}
+          >
+            <slot></slot>
+          </div>
+        </div>
+      </div>
+    `;
+    }
+    static get styles() {
+        return sharedStyles;
+    }
+    static get scopedElements() {
+        return {
+            'mwc-icon-button': IconButton,
+        };
+    }
+}
+__decorate([
+    property$1({ type: Boolean }),
+    __metadata("design:type", Object)
+], ExpandableLine.prototype, "_expanded", void 0);
+
 class CallZomeFns extends PlaygroundElement {
     constructor() {
         super(...arguments);
@@ -825,7 +886,7 @@ class CallZomeFns extends PlaygroundElement {
         this.hideZomeSelector = false;
         this.hideAgentPubKey = false;
         this._selectedZomeIndex = 0;
-        this._selectedZomeFn = undefined;
+        this._selectedZomeFnName = undefined;
         // Results segmented by dnaHash/agentPubKey/timestamp
         this._results = {};
         // Arguments segmented by dnaHash/agentPubKey/zome/fn_name/arg_name
@@ -838,8 +899,14 @@ class CallZomeFns extends PlaygroundElement {
         return this.activeCell.getSimulatedDna().zomes[this._selectedZomeIndex];
     }
     get activeZomeFn() {
-        return (this._selectedZomeFn &&
-            this.activeZome.zome_functions[this._selectedZomeFn]);
+        let zomeFnName = Object.keys(this.activeZome.zome_functions)[0];
+        if (this._selectedZomeFnName) {
+            zomeFnName = this._selectedZomeFnName;
+        }
+        return {
+            name: zomeFnName,
+            fn: this.activeZome.zome_functions[zomeFnName],
+        };
     }
     observedCells() {
         return [this.activeCell];
@@ -964,26 +1031,18 @@ class CallZomeFns extends PlaygroundElement {
       <mwc-drawer style="--mdc-drawer-width: auto;">
         <mwc-list
           activatable
-          @selected=${(e) => (this._selectedZomeFn = zomeFns[e.detail.index][0])}
+          @selected=${(e) => (this._selectedZomeFnName = zomeFns[e.detail.index][0])}
         >
           ${zomeFns.map(([name, fn]) => html `
-              <mwc-list-item .activated=${this._selectedZomeFn === name}
+              <mwc-list-item .activated=${this.activeZomeFn.name === name}
                 >${name}
               </mwc-list-item>
             `)}
         </mwc-list>
         <div slot="appContent" class="column" style="height: 100%;">
-          ${this.activeZomeFn === undefined
-            ? html ` <div class="column center-content" style="flex: 1;">
-                <span style="align-self: center" class="placeholder"
-                  >Select a Zome Function to call it</span
-                >
-              </div>`
-            : html `
-                <div class="column" style="flex: 1;">
-                  ${this.renderCallableFunction(this._selectedZomeFn, this.activeZomeFn)}
-                </div>
-              `}
+          <div class="column" style="flex: 1;">
+            ${this.renderCallableFunction(this.activeZomeFn.name, this.activeZomeFn.fn)}
+          </div>
         </div>
       </mwc-drawer>
     `;
@@ -1016,7 +1075,8 @@ class CallZomeFns extends PlaygroundElement {
                     color: result.result.success
                         ? 'green'
                         : 'red',
-                    'align-self': 'center',
+                    'align-self': 'start',
+                    'margin-top': '16px',
                     '--mdc-icon-size': '36px',
                 })}
                                       >${result.result.success
@@ -1039,36 +1099,34 @@ class CallZomeFns extends PlaygroundElement {
                                   <span style="flex: 1; margin-bottom: 8px;">
                                     ${result.fnName}
                                     <span class="placeholder">
-                                      in ${result.zome.name} zome
+                                      in ${result.zome.name}
+                                      zome${result.result
+                ? result.result.success
+                    ? ', result:'
+                    : ', error:'
+                : ''}
                                     </span>
                                   </span>
                                   <span class="placeholder">
                                     ${new Date(parseInt(timestamp)).toLocaleTimeString()}
                                   </span>
                                 </div>
-                                <div class="row">
-                                  ${result.result
-                ? html `
-                                        <span>
-                                          ${result.result.success
-                    ? 'Result'
-                    : 'Error'}:
-                                          ${typeof result.result.payload ===
-                    'string'
-                    ? result.result.payload
+                                ${result.result
+                ? typeof result.result.payload === 'string'
+                    ? html `<span
+                                        >${result.result.payload}</span
+                                      >`
                     : html `
-                                                <json-viewer
-                                                  .object=${result.result
-                        .payload}
-                                                  class="fill"
-                                                ></json-viewer>
-                                              `}</span
-                                        >
+                                        <expandable-line>
+                                          <json-viewer
+                                            .object=${result.result.payload}
+                                            class="fill"
+                                          ></json-viewer>
+                                        </expandable-line>
                                       `
                 : html `<span class="placeholder"
-                                        >Executing...</span
-                                      >`}
-                                </div>
+                                      >Executing...</span
+                                    >`}
                               </div>
                             </div>
                             ${index < sortedResults.length - 1
@@ -1169,6 +1227,7 @@ class CallZomeFns extends PlaygroundElement {
             'mwc-tab-bar': TabBar,
             'mwc-card': Card,
             'json-viewer': JsonViewer,
+            'expandable-line': ExpandableLine,
         };
     }
 }
@@ -1191,7 +1250,7 @@ __decorate([
 __decorate([
     property$1({ type: String }),
     __metadata("design:type", String)
-], CallZomeFns.prototype, "_selectedZomeFn", void 0);
+], CallZomeFns.prototype, "_selectedZomeFnName", void 0);
 __decorate([
     property$1({ type: Array }),
     __metadata("design:type", Object)
