@@ -15,7 +15,9 @@ export const callZomeFn = (
   payload: any,
   provenance: AgentPubKey,
   cap: string
-) => async (cell: Cell): Promise<any> => {
+) => async (
+  cell: Cell
+): Promise<{ result: any; triggers: Array<Workflow<any, any>> }> => {
   if (!valid_cap_grant(cell.state, zomeName, fnName, provenance, cap))
     throw new Error('Unauthorized Zome Call');
 
@@ -38,15 +40,21 @@ export const callZomeFn = (
 
   const context = buildZomeFunctionContext(zomeIndex, cell);
 
-  const result = dna.zomes[zomeIndex].zome_functions[fnName].call(context)(
-    payload
-  );
+  const result = await dna.zomes[zomeIndex].zome_functions[fnName].call(
+    context
+  )(payload);
 
+  let triggers: Array<Workflow<any, any>> = [];
   if (getTipOfChain(cell.state) != currentHeader) {
     // Do validation
+
+    triggers.push(produce_dht_ops_task(cell));
   }
 
-  return result;
+  return {
+    result,
+    triggers,
+  };
 };
 
 export type CallZomeFnWorkflow = Workflow<
@@ -69,6 +77,5 @@ export function call_zome_fn_workflow(
       zome,
     },
     task: () => callZomeFn(zome, fnName, payload, provenance, '')(cell),
-    triggers: [produce_dht_ops_task(cell)],
   };
 }

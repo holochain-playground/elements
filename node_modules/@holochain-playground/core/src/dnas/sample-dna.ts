@@ -19,6 +19,12 @@ export const sampleZome: SimulatedZome = {
       },
       arguments: [{ name: 'content', type: 'any' }],
     },
+    get: {
+      call: ({ get }) => ({ hash }) => {
+        return get(hash);
+      },
+      arguments: [{ name: 'hash', type: 'AnyDhtHash' }],
+    },
     create_link: {
       call: ({ create_link }) => ({ base, target, tag }) => {
         return create_link({ base, target, tag });

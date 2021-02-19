@@ -3,9 +3,12 @@ import { Cell } from '../../cell';
 export interface Workflow<D, R> {
   type: string;
   details: D;
-  task: (cell: Cell) => Promise<R>;
-  triggers: Array<Workflow<any, any>>;
+  task: (cell: Cell) => Promise<WorkflowReturn<R>>;
 }
+export type WorkflowReturn<R> = {
+  result: R;
+  triggers: Array<Workflow<any, any>>;
+};
 
 export enum WorkflowType {
   CALL_ZOME = 'Call Zome Function',

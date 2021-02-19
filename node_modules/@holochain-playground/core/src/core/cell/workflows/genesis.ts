@@ -13,13 +13,13 @@ import {
 } from '../source-chain/builder-headers';
 import { putElement } from '../source-chain/put';
 import { produce_dht_ops_task } from './produce_dht_ops';
-import { WorkflowType } from './workflows';
+import { WorkflowReturn, WorkflowType } from './workflows';
 
 export const genesis = (
   agentId: AgentPubKey,
   dnaHash: Hash,
   membrane_proof: any
-) => async (cell: Cell): Promise<void> => {
+) => async (cell: Cell): Promise<WorkflowReturn<void>> => {
   const dna = buildDna(dnaHash, agentId);
   putElement({ signed_header: buildShh(dna), entry: undefined })(cell.state);
 
@@ -35,6 +35,11 @@ export const genesis = (
     signed_header: buildShh(create_agent_pub_key_entry),
     entry: entry,
   })(cell.state);
+
+  return {
+    result: undefined,
+    triggers: [produce_dht_ops_task(cell)],
+  };
 };
 
 export type GenesisWorkflow = Workflow<
@@ -54,6 +59,5 @@ export function genesis_task(
       membrane_proof,
     },
     task: () => genesis(cellId[1], cellId[0], membrane_proof)(cell),
-    triggers: [produce_dht_ops_task(cell)],
   };
 }

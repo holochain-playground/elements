@@ -10,11 +10,13 @@ import {
   delete_cap_grant,
 } from './host-fn/actions/delete-cap-grant';
 import { CallRemote, call_remote } from './host-fn/call-remote';
+import { get, Get } from './host-fn/get';
 import { HashEntry, hash_entry } from './host-fn/hash-entry';
 import { path, Path } from './path';
 
 export interface SimulatedZomeFunctionContext {
   create_entry: CreateEntry;
+  get: Get;
   hash_entry: HashEntry;
   create_link: CreateLink;
   create_cap_grant: CreateCapGrant;
@@ -30,6 +32,7 @@ export function buildZomeFunctionContext(
   return {
     create_entry: create_entry(zome_index, cell),
     hash_entry: hash_entry(zome_index, cell),
+    get: get(zome_index, cell),
     create_link: create_link(zome_index, cell),
     create_cap_grant: create_cap_grant(zome_index, cell),
     delete_cap_grant: delete_cap_grant(zome_index, cell),

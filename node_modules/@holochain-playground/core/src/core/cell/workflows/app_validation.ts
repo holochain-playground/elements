@@ -10,10 +10,12 @@ import {
   putIntegrationLimboValue,
 } from '../dht/put';
 import { integrate_dht_ops_task } from './integrate_dht_ops';
-import { WorkflowType } from './workflows';
+import { WorkflowReturn, WorkflowType } from './workflows';
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/app_validation_workflow.rs
-export const app_validation = async (cell: Cell): Promise<void> => {
+export const app_validation = async (
+  cell: Cell
+): Promise<WorkflowReturn<void>> => {
   const pendingDhtOps = getValidationLimboDhtOps(
     cell.state,
     ValidationLimboStatus.SysValidated
@@ -32,6 +34,11 @@ export const app_validation = async (cell: Cell): Promise<void> => {
 
     putIntegrationLimboValue(dhtOpHash, value)(cell.state);
   }
+
+  return {
+    result: undefined,
+    triggers: [integrate_dht_ops_task(cell)],
+  };
 };
 
 export type AppValidationWorkflow = Workflow<any, any>;
@@ -41,6 +48,5 @@ export function app_validation_task(cell: Cell): AppValidationWorkflow {
     type: WorkflowType.APP_VALIDATION,
     details: undefined,
     task: () => app_validation(cell),
-    triggers: [integrate_dht_ops_task(cell)],
   };
 }

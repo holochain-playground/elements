@@ -4,10 +4,12 @@ import { Cell, Workflow } from '../../cell';
 import { getNewHeaders } from '../source-chain/get';
 import { getElement } from '../source-chain/utils';
 import { publish_dht_ops_task } from './publish_dht_ops';
-import { WorkflowType } from './workflows';
+import { WorkflowReturn, WorkflowType } from './workflows';
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/produce_dht_ops_workflow.rs
-export const produce_dht_ops = async (cell: Cell): Promise<void> => {
+export const produce_dht_ops = async (
+  cell: Cell
+): Promise<WorkflowReturn<void>> => {
   const newHeaderHashes = getNewHeaders(cell.state);
 
   for (const newHeaderHash of newHeaderHashes) {
@@ -25,6 +27,11 @@ export const produce_dht_ops = async (cell: Cell): Promise<void> => {
       cell.state.authoredDHTOps[dhtOpHash] = dhtOpValue;
     }
   }
+
+  return {
+    result: undefined,
+    triggers: [publish_dht_ops_task(cell)],
+  };
 };
 
 export type ProduceDhtOpsWorkflow = Workflow<void, void>;
@@ -34,6 +41,5 @@ export function produce_dht_ops_task(cell: Cell): ProduceDhtOpsWorkflow {
     type: WorkflowType.PRODUCE_DHT_OPS,
     details: undefined,
     task: () => produce_dht_ops(cell),
-    triggers: [publish_dht_ops_task(cell)],
   };
 }

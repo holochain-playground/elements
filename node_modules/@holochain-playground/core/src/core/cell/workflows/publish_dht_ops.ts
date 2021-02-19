@@ -2,10 +2,12 @@ import { DHTOp, Dictionary } from '@holochain-open-dev/core-types';
 import { Cell, Workflow } from '../../cell';
 import { getNonPublishedDhtOps } from '../source-chain/utils';
 import { getDHTOpBasis } from '../utils';
-import { WorkflowType } from './workflows';
+import { WorkflowReturn, WorkflowType } from './workflows';
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/publish_dht_ops_workflow.rs
-export const publish_dht_ops = async (cell: Cell): Promise<void> => {
+export const publish_dht_ops = async (
+  cell: Cell
+): Promise<WorkflowReturn<void>> => {
   const dhtOps = getNonPublishedDhtOps(cell.state);
 
   const dhtOpsByBasis: Dictionary<Dictionary<DHTOp>> = {};
@@ -31,6 +33,11 @@ export const publish_dht_ops = async (cell: Cell): Promise<void> => {
   );
 
   await Promise.all(promises);
+
+  return {
+    result: undefined,
+    triggers: [],
+  };
 };
 
 export type PublishDhtOpsWorkflow = Workflow<void, void>;
@@ -40,6 +47,5 @@ export function publish_dht_ops_task(cell: Cell): PublishDhtOpsWorkflow {
     type: WorkflowType.PUBLISH_DHT_OPS,
     details: undefined,
     task: () => publish_dht_ops(cell),
-    triggers: [],
   };
 }

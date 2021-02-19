@@ -4,10 +4,12 @@ import { CreateEntry } from './host-fn/actions/create-entry';
 import { CreateLink } from './host-fn/actions/create-link';
 import { DeleteCapGrant } from './host-fn/actions/delete-cap-grant';
 import { CallRemote } from './host-fn/call-remote';
+import { Get } from './host-fn/get';
 import { HashEntry } from './host-fn/hash-entry';
 import { Path } from './path';
 export interface SimulatedZomeFunctionContext {
     create_entry: CreateEntry;
+    get: Get;
     hash_entry: HashEntry;
     create_link: CreateLink;
     create_cap_grant: CreateCapGrant;

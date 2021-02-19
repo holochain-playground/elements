@@ -8,7 +8,7 @@ describe('Conductor', () => {
 
     const cell = conductors[0].getAllCells()[0];
 
-    const result = await conductors[0].callZomeFn({
+    let result = await conductors[0].callZomeFn({
       cellId: cell.cellId,
       cap: null,
       fnName: 'create_entry',
@@ -21,5 +21,17 @@ describe('Conductor', () => {
     expect(Object.keys(cell.state.integratedDHTOps).length).to.be.greaterThan(
       10
     );
+
+    result = await conductors[0].callZomeFn({
+      cellId: cell.cellId,
+      cap: null,
+      fnName: 'get',
+      payload: {
+        hash: result,
+      },
+      zome: 'sample',
+    });
+
+    expect(result).to.be.ok;
   });
 });

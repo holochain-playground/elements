@@ -6,6 +6,7 @@ import { Workflow } from './workflows/workflows';
 import { MiddlewareExecutor } from '../../executor/middleware-executor';
 import { GetResult } from './cascade/types';
 import { GetOptions } from '../../types';
+import { Cascade } from './cascade';
 export declare type CellSignal = 'after-workflow-executed' | 'before-workflow-executed';
 export declare type CellSignalListener = (payload: any) => void;
 export declare class Cell {
@@ -19,6 +20,7 @@ export declare class Cell {
     get agentPubKey(): AgentPubKey;
     get dnaHash(): Hash;
     getSimulatedDna(): import("../..").SimulatedDna;
+    getCascade(): Cascade;
     static create(conductor: Conductor, cellId: CellId, membrane_proof: any): Promise<Cell>;
     getState(): CellState;
     triggerWorkflow(workflow: Workflow<any, any>): void;
