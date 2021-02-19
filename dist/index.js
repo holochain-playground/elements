@@ -839,6 +839,7 @@ class CallZomeFns extends PlaygroundElement {
         super(...arguments);
         this.hideResults = false;
         this.hideZomeSelector = false;
+        this.hideAgentPubKey = false;
         this._selectedZomeIndex = 0;
         this._selectedZomeFn = undefined;
         // Results segmented by dnaHash/agentPubKey/timestamp
@@ -976,7 +977,7 @@ class CallZomeFns extends PlaygroundElement {
         >
       </div> `;
         return html `
-      <mwc-drawer>
+      <mwc-drawer style="--mdc-drawer-width: auto;">
         <mwc-list
           activatable
           @selected=${(e) => (this._selectedZomeFn = zomeFns[e.detail.index][0])}
@@ -1109,11 +1110,17 @@ class CallZomeFns extends PlaygroundElement {
             ? html `
               <div class="column" style="flex: 1">
                 <span class="title" style="margin: 16px;"
-                  >Call Zome Fns,
-                  <span class="placeholder"
-                    >for agent ${this.activeAgentPubKey}</span
-                  ></span
+                  >Call Zome
+                  Fns${this.hideAgentPubKey
+                ? html ``
+                : html `,
+                        <span class="placeholder"
+                          >for agent ${this.activeAgentPubKey}</span
+                        > `}</span
                 >
+                ${this.hideZomeSelector
+                ? html ` <span class="horizontal-divider"></span> `
+                : html ``}
                 <div class="row" style="flex: 1;">
                   <div class="column" style="flex: 1">
                     ${this.hideZomeSelector
@@ -1136,7 +1143,10 @@ class CallZomeFns extends PlaygroundElement {
                   ${this.hideResults
                 ? html ``
                 : html `
-                        <span class="vertical-divider"></span>
+                        <span
+                          class="vertical-divider"
+                          style="height: 100%;"
+                        ></span>
                         ${this.renderResults()}
                       `}
                 </div>
@@ -1185,6 +1195,10 @@ __decorate([
     property$1({ type: Boolean, attribute: 'hide-zome-selector' }),
     __metadata("design:type", Object)
 ], CallZomeFns.prototype, "hideZomeSelector", void 0);
+__decorate([
+    property$1({ type: Boolean, attribute: 'hide-agent-pub-key' }),
+    __metadata("design:type", Object)
+], CallZomeFns.prototype, "hideAgentPubKey", void 0);
 __decorate([
     property$1({ type: Number }),
     __metadata("design:type", Number)

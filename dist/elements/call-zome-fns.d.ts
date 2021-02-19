@@ -24,6 +24,7 @@ export interface ZomeFunctionResult {
 export declare class CallZomeFns extends PlaygroundElement {
     hideResults: boolean;
     hideZomeSelector: boolean;
+    hideAgentPubKey: boolean;
     _selectedZomeIndex: number;
     _selectedZomeFn: string | undefined;
     _results: Dictionary<Dictionary<Dictionary<ZomeFunctionResult>>>;
