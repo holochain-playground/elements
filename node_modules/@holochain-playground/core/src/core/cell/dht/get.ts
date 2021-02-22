@@ -51,7 +51,10 @@ export function getHeadersForEntry(
   state: CellState,
   entryHash: Hash
 ): SignedHeaderHashed[] {
-  return state.metadata.system_meta[entryHash]
+  const entryMetadata = state.metadata.system_meta[entryHash];
+  if (!entryMetadata) return [];
+
+  return entryMetadata
     .map(h => {
       const hash = getSysMetaValHeaderHash(h);
       if (hash) {
@@ -107,6 +110,12 @@ export function getHeaderModifiers(
   deletes: SignedHeaderHashed<Delete>[];
 } {
   const allModifiers = state.metadata.system_meta[headerHash];
+  if (!allModifiers)
+    return {
+      updates: [],
+      deletes: [],
+    };
+
   const updates = allModifiers
     .filter(m => (m as { Update: Hash }).Update)
     .map(m => state.CAS[(m as { Update: Hash }).Update]);

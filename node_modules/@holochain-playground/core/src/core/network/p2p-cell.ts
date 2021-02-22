@@ -89,7 +89,7 @@ export class P2pCell {
       this.cellId[0],
       this.cellId[1],
       dht_hash,
-      0,
+      1, // TODO: what about this?
       (cell: Cell) =>
         this._executeNetworkRequest(
           cell,
@@ -101,7 +101,7 @@ export class P2pCell {
 
     const result = gets.find(get => !!get);
 
-    if (!result) return undefined;
+    if (result === undefined) return undefined;
 
     if ((result as GetElementFull).signed_header) {
       return {
@@ -181,7 +181,7 @@ export class P2pCell {
     await Promise.all(promises);
 
     if (this.neighbors.length < this.neighborNumber) {
-      setTimeout(() => this.syncNeighbors(), 4000);
+      setTimeout(() => this.syncNeighbors(), 400);
     }
   }
 

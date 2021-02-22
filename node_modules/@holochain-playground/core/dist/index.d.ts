@@ -12,3 +12,4 @@ export * from './executor/middleware-executor';
 export * from './executor/delay-middleware';
 export * from './processors/hash';
 export * from './processors/create-conductors';
+export * from './types';

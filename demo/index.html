@@ -11,10 +11,7 @@
   </head>
   <body>
     <holochain-playground-container id="container">
-      <dht-cells
-        id="cells"
-        style="height: 600px; width: 100%"
-      ></dht-cells>
+      <dht-cells id="cells" style="height: 600px; width: 100%"></dht-cells>
       <call-zome-fns
         hide-zome-selector
         hide-agent-pub-key
@@ -33,9 +30,10 @@
         EntryGraph,
       } from '../dist';
       import {
+        GetStrategy,
         WorkflowType,
         NetworkRequestType,
-        sampleDnaTemplate
+        sampleDnaTemplate,
       } from '@holochain-playground/core';
 
       const dna = {
@@ -49,49 +47,17 @@
               },
             ],
             zome_functions: {
-              create_cap: {
-                call: ({ create_cap_grant }) => ({ grantedAgent }) => {
-                  return create_cap_grant({
-                    tag: '',
-                    access: {
-                      Assigned: {
-                        secret: '',
-                        assignees: [grantedAgent],
-                      },
-                    },
-                    functions: [{ zome: 'sample', fn_name: 'sample_fn' }],
-                  });
+              create_entry: {
+                call: ({ create_entry, hash_entry }) => async ({ content }) => {
+                  return create_entry({ content, entry_def_id: 'sample_entry' });
                 },
-                arguments: [{ type: 'AgentPubKey', name: 'grantedAgent' }],
+                arguments: [{ name: 'content', type: 'String' }],
               },
-              sample_fn: {
-                call: ({ create_entry }) => async () => {
-                  await create_entry({
-                    content: 'hi',
-                    entry_def_id: 'sample_entry',
-                  });
-
-                  return 'Hello';
+              get: {
+                call: ({ get }) => (hash) => {
+                  return get(hash, { strategy: GetStrategy.Latest });
                 },
-                arguments: [],
-              },
-              revoke_cap: {
-                call: ({ delete_cap_grant }) => ({ capGrantToRevoke }) => {
-                  return delete_cap_grant({ header_hash: capGrantToRevoke });
-                },
-                arguments: [{ type: 'HeaderHash', name: 'capGrantToRevoke' }],
-              },
-              remote_sample_fn: {
-                call: ({ call_remote }) => ({ agentToCall }) => {
-                  return call_remote({
-                    agent: agentToCall,
-                    zome: 'sample',
-                    fn_name: 'sample_fn',
-                    cap: null,
-                    payload: null,
-                  });
-                },
-                arguments: [{ type: 'AgentPubKey', name: 'agentToCall' }],
+                arguments: [{ name: 'hash', type: 'Hash' }],
               },
             },
           },
@@ -109,7 +75,7 @@
 
       const container = document.getElementById('container');
       container.numberOfSimulatedConductors = 15;
-      //container.simulatedDnaTemplate = dna;
+      container.simulatedDnaTemplate = dna;
 
       container.addEventListener('ready', (e) => {
         const conductor = e.detail.conductors[0];

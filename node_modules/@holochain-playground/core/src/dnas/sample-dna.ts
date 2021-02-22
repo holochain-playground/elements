@@ -1,3 +1,4 @@
+import { GetStrategy } from '../types';
 import { SimulatedDnaTemplate, SimulatedZome } from './simulated-dna';
 
 export const sampleZome: SimulatedZome = {
@@ -14,14 +15,15 @@ export const sampleZome: SimulatedZome = {
   ],
   zome_functions: {
     create_entry: {
-      call: ({ create_entry }) => ({ content }) => {
-        return create_entry({ content, entry_def_id: 'sample_entry' });
+      call: ({ hash_entry, create_entry }) => async ({ content }) => {
+        await create_entry({ content, entry_def_id: 'sample_entry' });
+        return hash_entry({ content });
       },
       arguments: [{ name: 'content', type: 'any' }],
     },
     get: {
       call: ({ get }) => ({ hash }) => {
-        return get(hash);
+        return get(hash, { strategy: GetStrategy.Latest });
       },
       arguments: [{ name: 'hash', type: 'AnyDhtHash' }],
     },

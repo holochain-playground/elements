@@ -10,6 +10,7 @@ import {
   SysMetaVal,
   EntryDhtStatus,
   Header,
+  SignedHeaderHashed,
 } from '@holochain-open-dev/core-types';
 import { hash, HashType } from '../../../processors/hash';
 import {
@@ -63,23 +64,11 @@ export const putDhtOpMetadata = (dhtOp: DHTOp) => (state: CellState) => {
     const entryHash = dhtOp.header.header.content.entry_hash;
 
     if (dhtOp.header.header.content.type === HeaderType.Update) {
-      register_header_on_basis(
-        headerHash,
-        dhtOp.header.header.content,
-        headerHash
-      )(state);
-      register_header_on_basis(
-        entryHash,
-        dhtOp.header.header.content,
-        headerHash
-      )(state);
+      register_header_on_basis(headerHash, dhtOp.header)(state);
+      register_header_on_basis(entryHash, dhtOp.header)(state);
     }
 
-    register_header_on_basis(
-      entryHash,
-      dhtOp.header.header.content,
-      headerHash
-    )(state);
+    register_header_on_basis(entryHash, dhtOp.header)(state);
     update_entry_dht_status(entryHash)(state);
   } else if (dhtOp.type === DHTOpType.RegisterAgentActivity) {
     state.metadata.misc_meta[headerHash] = {
@@ -95,13 +84,11 @@ export const putDhtOpMetadata = (dhtOp: DHTOp) => (state: CellState) => {
   ) {
     register_header_on_basis(
       dhtOp.header.header.content.original_header_address,
-      dhtOp.header.header.content,
-      headerHash
+      dhtOp.header
     )(state);
     register_header_on_basis(
       dhtOp.header.header.content.original_entry_address,
-      dhtOp.header.header.content,
-      headerHash
+      dhtOp.header
     )(state);
     update_entry_dht_status(dhtOp.header.header.content.original_entry_address)(
       state
@@ -112,13 +99,11 @@ export const putDhtOpMetadata = (dhtOp: DHTOp) => (state: CellState) => {
   ) {
     register_header_on_basis(
       dhtOp.header.header.content.deletes_address,
-      dhtOp.header.header.content,
-      headerHash
+      dhtOp.header
     )(state);
     register_header_on_basis(
       dhtOp.header.header.content.deletes_entry_address,
-      dhtOp.header.header.content,
-      headerHash
+      dhtOp.header
     )(state);
 
     update_entry_dht_status(dhtOp.header.header.content.deletes_entry_address)(
@@ -172,16 +157,16 @@ const update_entry_dht_status = (entryHash: Hash) => (state: CellState) => {
 
 export const register_header_on_basis = (
   basis: Hash,
-  header: Header,
-  headerHash: Hash
+  header: SignedHeaderHashed
 ) => (state: CellState) => {
   let value: SysMetaVal | undefined;
-  if (header.type === HeaderType.Create) {
-    value = { NewEntry: headerHash };
-  } else if (header.type === HeaderType.Update) {
-    value = { Update: headerHash };
-  } else if (header.type === HeaderType.Delete) {
-    value = { Delete: headerHash };
+  const headerType = header.header.content.type;
+  if (headerType === HeaderType.Create) {
+    value = { NewEntry: header.header.hash };
+  } else if (headerType === HeaderType.Update) {
+    value = { Update: header.header.hash };
+  } else if (headerType === HeaderType.Delete) {
+    value = { Delete: header.header.hash };
   }
 
   if (value) {

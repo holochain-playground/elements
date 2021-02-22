@@ -34350,9 +34350,11 @@ class DhtCells extends PlaygroundElement {
     highlightNodesWithEntry() {
         const allCells = selectAllCells(this.activeDna, this.conductors);
         allCells.forEach((cell) => this._cy.getElementById(cell.agentPubKey).removeClass('highlighted'));
-        const holdingCells = selectHoldingCells(this.activeHash, allCells);
-        for (const cell of holdingCells) {
-            this._cy.getElementById(cell.agentPubKey).addClass('highlighted');
+        if (this.activeHash) {
+            const holdingCells = selectHoldingCells(this.activeHash, allCells);
+            for (const cell of holdingCells) {
+                this._cy.getElementById(cell.agentPubKey).addClass('highlighted');
+            }
         }
     }
     observedCells() {

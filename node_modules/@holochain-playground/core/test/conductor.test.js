@@ -3,8 +3,11 @@ import { expect } from '@esm-bundle/chai';
 import { sleep } from './utils';
 
 describe('Conductor', () => {
-  it('create conductors and call zome fn', async () => {
+  it('create conductors and call zome fn', async function () {
+    this.timeout(0);
+
     const conductors = await createConductors(10, [], sampleDnaTemplate());
+    await sleep(10000);
 
     const cell = conductors[0].getAllCells()[0];
 
@@ -17,10 +20,10 @@ describe('Conductor', () => {
     });
 
     expect(hash).to.be.ok;
-    await sleep(1000);
-    expect(Object.keys(cell.getState().integratedDHTOps).length).to.be.greaterThan(
-      6
-    );
+    await sleep(3000);
+    expect(
+      Object.keys(cell.getState().integratedDHTOps).length
+    ).to.be.greaterThan(6);
 
     let getresult = await conductors[0].callZomeFn({
       cellId: cell.cellId,

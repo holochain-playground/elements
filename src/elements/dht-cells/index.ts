@@ -119,10 +119,13 @@ export class DhtCells extends PlaygroundElement {
     allCells.forEach((cell) =>
       this._cy.getElementById(cell.agentPubKey).removeClass('highlighted')
     );
-    const holdingCells = selectHoldingCells(this.activeHash, allCells);
 
-    for (const cell of holdingCells) {
-      this._cy.getElementById(cell.agentPubKey).addClass('highlighted');
+    if (this.activeHash) {
+      const holdingCells = selectHoldingCells(this.activeHash, allCells);
+
+      for (const cell of holdingCells) {
+        this._cy.getElementById(cell.agentPubKey).addClass('highlighted');
+      }
     }
   }
 
