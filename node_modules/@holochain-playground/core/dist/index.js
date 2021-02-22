@@ -1595,8 +1595,8 @@ async function common_delete(worskpace, header_hash) {
 }
 
 // Creates a new Create header and its entry in the source chain
-const delete_cap_grant = (worskpace) => async ({ header_hash }) => {
-    return common_delete(worskpace, header_hash);
+const delete_cap_grant = (worskpace) => async ({ deletes_header_hash }) => {
+    return common_delete(worskpace, deletes_header_hash);
 };
 
 // Creates a new Create header and its entry in the source chain
