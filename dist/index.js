@@ -1327,7 +1327,7 @@ class EntryContents extends PlaygroundElement {
       <mwc-card style="width: auto; min-height: 200px;" class="fill">
         <div class="column fill" style="padding: 16px;">
           <span class="title">
-            ${this.activeHashedContent && this.activeHashedContent.prev_header
+            ${this.activeHashedContent && this.activeHashedContent.header
             ? 'Header'
             : 'Entry'}
             Contents</span
@@ -1336,7 +1336,7 @@ class EntryContents extends PlaygroundElement {
             ? html `
                 <div class="column fill">
                   <span style="margin-bottom: 16px;">
-                    ${this.activeHashedContent.prev_header ? 'Header' : 'Entry'}
+                    ${this.activeHashedContent.header ? 'Header' : 'Entry'}
                     Hash: ${this.activeHash}
                   </span>
                   <div class="fill flex-scrollable-parent">
