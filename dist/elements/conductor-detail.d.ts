@@ -1,6 +1,6 @@
 import { PlaygroundElement } from '../context/playground-element';
 import { DhtShard } from './dht-shard';
-import { EntryDetail } from './entry-detail';
+import { HashContents } from './hash-contents';
 import { Card } from 'scoped-material-components/mwc-card';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
@@ -15,7 +15,7 @@ export declare class ConductorDetail extends PlaygroundElement {
     render(): import("lit-element").TemplateResult;
     static get scopedElements(): {
         'holochain-playground-dht-shard': typeof DhtShard;
-        'holochain-playground-entry-detail': typeof EntryDetail;
+        'holochain-playground-entry-detail': typeof HashContents;
         'mwc-tab': typeof Tab;
         'mwc-tab-bar': typeof TabBar;
         'mwc-card': typeof Card;

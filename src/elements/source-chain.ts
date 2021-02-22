@@ -114,7 +114,7 @@ export class SourceChain extends PlaygroundElement {
       // Node id is <HEADER_HASH>:<ENTRY_HASH>
       const selectedEntryId = event.target.id().split(':')[1];
       this.updatePlayground({
-        activeEntryHash: selectedEntryId,
+        activeHash: selectedEntryId,
       });
     });
 
@@ -162,13 +162,13 @@ export class SourceChain extends PlaygroundElement {
       this.setupGraph();
     }
 
-    if (changedValues.has('activeEntryHash')) {
+    if (changedValues.has('activeHash')) {
       this.cy.filter('node').removeClass('selected');
 
       const nodeElements = this.cy.nodes();
 
       for (const nodeElement of nodeElements) {
-        if (nodeElement.id().includes(this.activeEntryHash)) {
+        if (nodeElement.id().includes(this.activeHash)) {
           nodeElement.addClass('selected');
         }
       }

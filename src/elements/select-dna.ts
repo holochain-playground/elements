@@ -8,7 +8,7 @@ export class SelectDNA extends PlaygroundElement {
   selectDNA(dna: string) {
     this.updatePlayground({
       activeAgentPubKey: null,
-      activeEntryHash: null,
+      activeHash: null,
       activeDna: dna,
     });
   }

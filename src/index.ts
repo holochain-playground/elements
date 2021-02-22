@@ -8,6 +8,6 @@ export * from './elements/conductor-detail';
 export * from './elements/dht-cells';
 export * from './elements/dht-shard';
 export * from './elements/dht-stats';
-export * from './elements/entry-detail';
+export * from './elements/hash-contents';
 export * from './elements/entry-graph';
 export * from './elements/source-chain';

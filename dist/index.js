@@ -4,7 +4,7 @@ import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { ProviderMixin, ConsumerMixin } from 'lit-element-context';
 import { LitElement, css as css$1, html, property as property$1, query } from 'lit-element';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
-import { sampleDnaTemplate, createConductors, isHoldingEntry, getDhtShard, getEntryDetails, WorkflowType, sleep, workflowPriority, Cell, location, NetworkRequestType, getEntryTypeString, getAllHeldEntries, getLinksForEntry, getAppEntryType } from '@holochain-playground/core';
+import { sampleDnaTemplate, createConductors, isHoldingEntry, getDhtShard, WorkflowType, sleep, workflowPriority, Cell, location, NetworkRequestType, getEntryTypeString, getAllHeldEntries, getEntryDetails, getLinksForEntry, getAppEntryType } from '@holochain-playground/core';
 import { TextField } from 'scoped-material-components/mwc-textfield';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Icon } from 'scoped-material-components/mwc-icon';
@@ -219,7 +219,7 @@ const PlaygroundMixin = (baseClass) => {
     __decorate([
         property$1({ type: String }),
         __metadata("design:type", String)
-    ], PE.prototype, "activeEntryHash", void 0);
+    ], PE.prototype, "activeHash", void 0);
     __decorate([
         property$1({ type: Array }),
         __metadata("design:type", Array)
@@ -394,8 +394,8 @@ function selectGlobalDHTOpsCount(cells) {
     }
     return dhtOps;
 }
-function selectHoldingCells(entryHash, cells) {
-    return cells.filter((cell) => isHoldingEntry(cell.getState(), entryHash));
+function selectHoldingCells(hash, cells) {
+    return cells.filter((cell) => isHoldingEntry(cell.getState(), hash));
 }
 function selectCell(dnaHash, agentPubKey, conductors) {
     for (const conductor of conductors) {
@@ -1305,11 +1305,7 @@ function shortenStrRec(object) {
     return object;
 }
 
-class EntryDetail extends PlaygroundElement {
-    constructor() {
-        super(...arguments);
-        this.withMetadata = false;
-    }
+class HashContents extends PlaygroundElement {
     static get styles() {
         return [
             sharedStyles,
@@ -1320,49 +1316,37 @@ class EntryDetail extends PlaygroundElement {
       `,
         ];
     }
-    get activeEntry() {
+    get activeHashedContent() {
         const allCells = selectAllCells(this.activeDna, this.conductors);
-        return selectFromCAS(this.activeEntryHash, allCells);
-    }
-    get activeEntryDetails() {
-        const allCells = selectAllCells(this.activeDna, this.conductors);
-        for (const cell of allCells) {
-            const details = getEntryDetails(cell.getState(), this.activeEntryHash);
-            if (details)
-                return details;
-        }
-        return undefined;
+        return selectFromCAS(this.activeHash, allCells);
     }
     render() {
         return html `
       <mwc-card style="width: auto; min-height: 200px;" class="fill">
         <div class="column fill" style="padding: 16px;">
-          <span class="title">Entry Detail</span>
-          ${this.activeEntry
+          <span class="title">
+            ${this.activeHashedContent && this.activeHashedContent.prev_header
+            ? 'Header'
+            : 'Entry'}
+            Contents</span
+          >
+          ${this.activeHashedContent
             ? html `
                 <div class="column fill">
                   <span style="margin-bottom: 16px;">
-                    ${this.activeEntry.prev_header ? 'Header' : 'Entry'} Hash:
-                    ${this.activeEntryHash}
+                    ${this.activeHashedContent.prev_header ? 'Header' : 'Entry'}
+                    Hash: ${this.activeHash}
                   </span>
                   <div class="fill flex-scrollable-parent">
                     <div class="flex-scrollable-container">
                       <div class="flex-scrollable-y" style="height: 100%;">
                         <json-viewer
-                          .object=${shortenStrRec(this.activeEntry)}
+                          .object=${shortenStrRec(this.activeHashedContent)}
                           class="fill"
                         ></json-viewer>
                       </div>
                     </div>
                   </div>
-                  ${this.withMetadata
-                ? html ` <span style="margin: 16px 0; font-weight: bold;">
-                          Metadata
-                        </span>
-                        <json-viewer
-                          .object=${shortenStrRec(this.activeEntryDetails)}
-                        ></json-viewer>`
-                : html ``}
                 </div>
               `
             : html `
@@ -1381,10 +1365,6 @@ class EntryDetail extends PlaygroundElement {
         };
     }
 }
-__decorate([
-    property$1({ type: Boolean }),
-    __metadata("design:type", Object)
-], EntryDetail.prototype, "withMetadata", void 0);
 
 class ConductorDetail extends PlaygroundElement {
     constructor() {
@@ -1520,7 +1500,7 @@ class ConductorDetail extends PlaygroundElement {
     static get scopedElements() {
         return {
             'holochain-playground-dht-shard': DhtShard,
-            'holochain-playground-entry-detail': EntryDetail,
+            'holochain-playground-entry-detail': HashContents,
             'mwc-tab': Tab,
             'mwc-tab-bar': TabBar,
             'mwc-card': Card,
@@ -34346,7 +34326,7 @@ class DhtCells extends PlaygroundElement {
         this._cy.on('tap', 'node', (evt) => {
             this.updatePlayground({
                 activeAgentPubKey: evt.target.id(),
-                activeEntryHash: null,
+                activeHash: null,
             });
         });
         let rendered = false;
@@ -34462,7 +34442,7 @@ class DhtCells extends PlaygroundElement {
         }
         this.observedCells().forEach((cell) => this._cy.getElementById(cell.agentPubKey).removeClass('selected'));
         this._cy.getElementById(this.activeAgentPubKey).addClass('selected');
-        this.highlightNodesWithEntry(this.activeEntryHash);
+        this.highlightNodesWithEntry(this.activeHash);
         if (changedValues.has('_onPause')) {
             this._cy
                 .style()
@@ -37981,7 +37961,7 @@ class EntryGraph extends PlaygroundElement {
         this.cy.on('tap', 'node', (event) => {
             const selectedEntryId = event.target.id();
             this.updatePlayground({
-                activeEntryHash: selectedEntryId,
+                activeHash: selectedEntryId,
             });
         });
         this.cy.ready((e) => {
@@ -38015,7 +37995,9 @@ class EntryGraph extends PlaygroundElement {
         }
         this.lastEntriesIds = entries.map((e) => e.data.id);
         this.cy.filter('node').removeClass('selected');
-        this.cy.getElementById(this.activeEntryHash).addClass('selected');
+        const activeHashElement = this.cy.getElementById(this.activeHash);
+        if (activeHashElement)
+            activeHashElement.addClass('selected');
     }
     static get styles() {
         return [
@@ -38075,8 +38057,7 @@ class EntryGraph extends PlaygroundElement {
         .anchor=${this._visibleEntriesButton}
         @selected=${(e) => {
             const includedEntryTypes = [...e.detail.index];
-            this.excludedEntryTypes = this._entryTypes
-                .filter((type, index) => !includedEntryTypes.includes(index));
+            this.excludedEntryTypes = this._entryTypes.filter((type, index) => !includedEntryTypes.includes(index));
         }}
       >
         ${this._entryTypes.map((type) => html `
@@ -49107,7 +49088,7 @@ class SourceChain extends PlaygroundElement {
             // Node id is <HEADER_HASH>:<ENTRY_HASH>
             const selectedEntryId = event.target.id().split(':')[1];
             this.updatePlayground({
-                activeEntryHash: selectedEntryId,
+                activeHash: selectedEntryId,
             });
         });
         let rendered = false;
@@ -49144,11 +49125,11 @@ class SourceChain extends PlaygroundElement {
             this.nodes = nodes;
             this.setupGraph();
         }
-        if (changedValues.has('activeEntryHash')) {
+        if (changedValues.has('activeHash')) {
             this.cy.filter('node').removeClass('selected');
             const nodeElements = this.cy.nodes();
             for (const nodeElement of nodeElements) {
-                if (nodeElement.id().includes(this.activeEntryHash)) {
+                if (nodeElement.id().includes(this.activeHash)) {
                     nodeElement.addClass('selected');
                 }
             }
@@ -49208,5 +49189,5 @@ __decorate([
     __metadata("design:type", HTMLElement)
 ], SourceChain.prototype, "graph", void 0);
 
-export { CallZomeFns, ConductorDetail, DhtCells, DhtShard, DhtStats, EntryDetail, EntryGraph, HolochainPlaygroundContainer, PlaygroundElement, PlaygroundMixin, SourceChain };
+export { CallZomeFns, ConductorDetail, DhtCells, DhtShard, DhtStats, EntryGraph, HashContents, HolochainPlaygroundContainer, PlaygroundElement, PlaygroundMixin, SourceChain };
 //# sourceMappingURL=index.js.map

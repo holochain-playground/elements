@@ -1,11 +1,9 @@
 import { JsonViewer } from '@power-elements/json-viewer';
 import { PlaygroundElement } from '../context/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
-export declare class EntryDetail extends PlaygroundElement {
-    withMetadata: boolean;
+export declare class HashContents extends PlaygroundElement {
     static get styles(): import("lit-element").CSSResult[];
-    get activeEntry(): any;
-    get activeEntryDetails(): import("@holochain-open-dev/core-types").EntryDetails;
+    get activeHashedContent(): any;
     render(): import("lit-element").TemplateResult;
     static get scopedElements(): {
         'json-viewer': typeof JsonViewer;
