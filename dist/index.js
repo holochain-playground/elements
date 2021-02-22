@@ -1157,7 +1157,10 @@ class CallZomeFns extends PlaygroundElement {
                 : html `
                           <mwc-tab-bar
                             .activeIndex=${this._selectedZomeIndex}
-                            @MDCTabBar:activated=${(e) => (this._selectedZomeIndex = e.detail.index)}
+                            @MDCTabBar:activated=${(e) => {
+                    this.selectedZomeFnName = undefined;
+                    this._selectedZomeIndex = e.detail.index;
+                }}
                           >
                             ${this.activeCell
                     .getSimulatedDna()
