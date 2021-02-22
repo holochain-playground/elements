@@ -119,10 +119,13 @@ export class DhtCells extends PlaygroundElement {
     allCells.forEach((cell) =>
       this._cy.getElementById(cell.agentPubKey).removeClass('highlighted')
     );
-    const holdingCells = selectHoldingCells(this.activeHash, allCells);
 
-    for (const cell of holdingCells) {
-      this._cy.getElementById(cell.agentPubKey).addClass('highlighted');
+    if (this.activeHash) {
+      const holdingCells = selectHoldingCells(this.activeHash, allCells);
+
+      for (const cell of holdingCells) {
+        this._cy.getElementById(cell.agentPubKey).addClass('highlighted');
+      }
     }
   }
 
@@ -243,9 +246,7 @@ export class DhtCells extends PlaygroundElement {
     );
     this._cy.getElementById(this.activeAgentPubKey).addClass('selected');
 
-    if (changedValues.has('activeHash')) {
-      this.highlightNodesWithEntry();
-    }
+    this.highlightNodesWithEntry();
 
     if (changedValues.has('_onPause')) {
       this._cy
