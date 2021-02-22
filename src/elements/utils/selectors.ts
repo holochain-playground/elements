@@ -4,8 +4,15 @@ import {
   SignedHeaderHashed,
   NewEntryHeader,
 } from '@holochain-open-dev/core-types';
-import { Conductor, Cell, CellState, isHoldingEntry } from '@holochain-playground/core';
-import { isEqual } from 'lodash-es';
+import {
+  Conductor,
+  Cell,
+  CellState,
+  isHoldingEntry,
+  isHoldingElement,
+  getHashType,
+  HashType,
+} from '@holochain-playground/core';
 
 export function selectCells(dna: Hash, conductor: Conductor): Cell[] {
   return conductor.getCells(dna);
@@ -27,7 +34,9 @@ export function selectGlobalDHTOpsCount(cells: Cell[]): number {
 }
 
 export function selectHoldingCells(hash: Hash, cells: Cell[]): Cell[] {
-  return cells.filter((cell) => isHoldingEntry(cell.getState(), hash));
+  if (getHashType(hash) === HashType.ENTRY)
+    return cells.filter((cell) => isHoldingEntry(cell.getState(), hash));
+  return cells.filter((cell) => isHoldingElement(cell.getState(), hash));
 }
 
 export function selectConductorByAgent(
