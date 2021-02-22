@@ -243,9 +243,7 @@ export class DhtCells extends PlaygroundElement {
     );
     this._cy.getElementById(this.activeAgentPubKey).addClass('selected');
 
-    if (changedValues.has('activeHash')) {
-      this.highlightNodesWithEntry();
-    }
+    this.highlightNodesWithEntry();
 
     if (changedValues.has('_onPause')) {
       this._cy
