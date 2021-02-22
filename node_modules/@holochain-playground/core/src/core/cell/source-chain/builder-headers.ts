@@ -13,6 +13,7 @@ import {
   Header,
   CreateLink,
   Delete,
+  DeleteLink,
 } from '@holochain-open-dev/core-types';
 import { hash, HashType } from '../../../processors/hash';
 import { CellState } from '../state';
@@ -117,6 +118,20 @@ export function buildDelete(
     type: HeaderType.Delete,
     deletes_address,
     deletes_entry_address,
+  };
+  return deleteHeader;
+}
+
+export function buildDeleteLink(
+  state: CellState,
+  base_address: Hash,
+  link_add_address: Hash
+): DeleteLink {
+  const deleteHeader: DeleteLink = {
+    ...buildCommon(state),
+    type: HeaderType.DeleteLink,
+    base_address,
+    link_add_address,
   };
   return deleteHeader;
 }

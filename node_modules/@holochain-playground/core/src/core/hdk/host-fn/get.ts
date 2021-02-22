@@ -3,13 +3,13 @@ import { GetOptions, GetStrategy } from '../../../types';
 import { Cell } from '../../cell';
 import { HostFn, HostFnWorkspace } from '../host-fn';
 
-export type Get = (
+export type GetFn = (
   args: Hash,
   options?: GetOptions
 ) => Promise<Element | undefined>;
 
 // Creates a new Create header and its entry in the source chain
-export const get: HostFn<Get> = (workspace: HostFnWorkspace): Get => async (
+export const get: HostFn<GetFn> = (workspace: HostFnWorkspace): GetFn => async (
   hash,
   options
 ): Promise<Element | undefined> => {

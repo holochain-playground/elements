@@ -1079,6 +1079,15 @@ function buildDelete(state, deletes_address, deletes_entry_address) {
     };
     return deleteHeader;
 }
+function buildDeleteLink(state, base_address, link_add_address) {
+    const deleteHeader = {
+        ...buildCommon(state),
+        type: HeaderType.DeleteLink,
+        base_address,
+        link_add_address,
+    };
+    return deleteHeader;
+}
 /** Helpers */
 function buildCommon(state) {
     const author = getAuthor(state);
@@ -1521,6 +1530,16 @@ class Cascade {
     }
 }
 
+function common_create(worskpace, entry, entry_type) {
+    const create = buildCreate(worskpace.state, entry, entry_type);
+    const element = {
+        signed_header: buildShh(create),
+        entry,
+    };
+    putElement(element)(worskpace.state);
+    return element.signed_header.header.hash;
+}
+
 // Creates a new Create header and its entry in the source chain
 const create_entry = (workspace, zome_index) => async (args) => {
     const entry = { entry_type: 'App', content: args.content };
@@ -1535,13 +1554,7 @@ const create_entry = (workspace, zome_index) => async (args) => {
             visibility: workspace.dna.zomes[zome_index].entry_defs[entryDefIndex].visibility,
         },
     };
-    const create = buildCreate(workspace.state, entry, entry_type);
-    const element = {
-        signed_header: buildShh(create),
-        entry,
-    };
-    putElement(element)(workspace.state);
-    return element.signed_header.header.hash;
+    return common_create(workspace, entry, entry_type);
 };
 
 // Creates a new Create header and its entry in the source chain
@@ -1550,13 +1563,7 @@ const create_cap_grant = (worskpace) => async (cap_grant) => {
         throw new Error('Tried to assign a capability to an invalid agent');
     }
     const entry = { entry_type: 'CapGrant', content: cap_grant };
-    const create = buildCreate(worskpace.state, entry, 'CapGrant');
-    const element = {
-        signed_header: buildShh(create),
-        entry,
-    };
-    putElement(element)(worskpace.state);
-    return element.signed_header.header.hash;
+    return common_create(worskpace, entry, 'CapGrant');
 };
 
 // Creates a new CreateLink header in the source chain
@@ -1570,8 +1577,7 @@ const create_link = (worskpace, zome_id) => async (args) => {
     return element.signed_header.header.hash;
 };
 
-// Creates a new Create header and its entry in the source chain
-const delete_cap_grant = (worskpace) => async ({ header_hash }) => {
+async function common_delete(worskpace, header_hash) {
     const elementToDelete = await worskpace.cascade.dht_get(header_hash, {
         strategy: GetStrategy.Contents,
     });
@@ -1586,6 +1592,70 @@ const delete_cap_grant = (worskpace) => async ({ header_hash }) => {
     };
     putElement(element)(worskpace.state);
     return element.signed_header.header.hash;
+}
+
+// Creates a new Create header and its entry in the source chain
+const delete_cap_grant = (worskpace) => async ({ header_hash }) => {
+    return common_delete(worskpace, header_hash);
+};
+
+// Creates a new Create header and its entry in the source chain
+const delete_entry = (worskpace) => async ({ header_hash }) => {
+    return common_delete(worskpace, header_hash);
+};
+
+// Creates a new Create header and its entry in the source chain
+const delete_link = (worskpace) => async ({ header_hash }) => {
+    const elementToDelete = await worskpace.cascade.dht_get(header_hash, {
+        strategy: GetStrategy.Contents,
+    });
+    if (!elementToDelete)
+        throw new Error('Could not find element to be deleted');
+    const baseAddress = elementToDelete.signed_header.header
+        .content.base_address;
+    if (!baseAddress)
+        throw new Error('Header for the given hash is not a CreateLink header');
+    const deleteHeader = buildDeleteLink(worskpace.state, baseAddress, header_hash);
+    const element = {
+        signed_header: buildShh(deleteHeader),
+        entry: undefined,
+    };
+    putElement(element)(worskpace.state);
+    return element.signed_header.header.hash;
+};
+
+async function common_update(worskpace, original_header_hash, entry, entry_type) {
+    const elementToDelete = await worskpace.cascade.dht_get(original_header_hash, {
+        strategy: GetStrategy.Contents,
+    });
+    if (!elementToDelete)
+        throw new Error('Could not find element to be deleted');
+    const original_entry_hash = elementToDelete.signed_header.header
+        .content.entry_hash;
+    const deleteHeader = buildUpdate(worskpace.state, entry, entry_type, original_entry_hash, original_header_hash);
+    const element = {
+        signed_header: buildShh(deleteHeader),
+        entry: undefined,
+    };
+    putElement(element)(worskpace.state);
+    return element.signed_header.header.hash;
+}
+
+// Creates a new Create header and its entry in the source chain
+const update_entry = (workspace, zome_index) => async (args) => {
+    const entry = { entry_type: 'App', content: args.content };
+    const entryDefIndex = workspace.dna.zomes[zome_index].entry_defs.findIndex(entry_def => entry_def.id === args.entry_def_id);
+    if (entryDefIndex < 0) {
+        throw new Error(`Given entry def id ${args.entry_def_id} does not exist in this zome`);
+    }
+    const entry_type = {
+        App: {
+            id: entryDefIndex,
+            zome_id: zome_index,
+            visibility: workspace.dna.zomes[zome_index].entry_defs[entryDefIndex].visibility,
+        },
+    };
+    return common_update(workspace, args.original_header_address, entry, entry_type);
 };
 
 // Creates a new Create header and its entry in the source chain
@@ -1639,9 +1709,12 @@ const path = {
 function buildZomeFunctionContext(workspace, zome_index) {
     return {
         create_entry: create_entry(workspace, zome_index),
+        delete_entry: delete_entry(workspace),
+        update_entry: update_entry(workspace, zome_index),
         hash_entry: hash_entry(),
         get: get(workspace),
         create_link: create_link(workspace, zome_index),
+        delete_link: delete_link(workspace),
         create_cap_grant: create_cap_grant(workspace),
         delete_cap_grant: delete_cap_grant(workspace),
         call_remote: call_remote(workspace),
@@ -2170,5 +2243,5 @@ async function createConductors(conductorsToCreate, currentConductors, dnaTempla
     return allConductors;
 }
 
-export { AGENT_PREFIX, Cell, Conductor, DHTOP_PREFIX, DNA_PREFIX, DelayMiddleware, Discover, ENTRY_PREFIX, HEADER_PREFIX, HashType, index as Hdk, KitsuneP2p, MiddlewareExecutor, Network, NetworkRequestType, P2pCell, ValidationLimboStatus, ValidationStatus, WorkflowType, app_validation, app_validation_task, buildAgentValidationPkg, buildCreate, buildCreateLink, buildDelete, buildDna, buildShh, buildUpdate, callZomeFn, call_zome_fn_workflow, createConductors, deleteValidationLimboValue, distance, genesis, genesis_task, getAllAuthoredEntries, getAllAuthoredHeaders, getAllHeldEntries, getAppEntryType, getAuthor, getCellId, getClosestNeighbors, getDHTOpBasis, getDhtShard, getDnaHash, getElement, getEntryDetails, getEntryDhtStatus, getEntryTypeString, getFarthestNeighbors, getHashType, getHeaderAt, getHeaderModifiers, getHeadersForEntry, getLinksForEntry, getNewHeaders, getNextHeaderSeq, getNonPublishedDhtOps, getTipOfChain, getValidationLimboDhtOps, hash, hashEntry, incoming_dht_ops, incoming_dht_ops_task, integrate_dht_ops, integrate_dht_ops_task, isHoldingEntry, location, locationDistance, produce_dht_ops, produce_dht_ops_task, publish_dht_ops, publish_dht_ops_task, pullAllIntegrationLimboDhtOps, putDhtOpData, putDhtOpMetadata, putDhtOpToIntegrated, putElement, putIntegrationLimboValue, putSystemMetadata, putValidationLimboValue, register_header_on_basis, sampleDnaTemplate, sampleZome, sleep, sys_validation, sys_validation_task, valid_cap_grant, workflowPriority, wrap };
+export { AGENT_PREFIX, Cell, Conductor, DHTOP_PREFIX, DNA_PREFIX, DelayMiddleware, Discover, ENTRY_PREFIX, HEADER_PREFIX, HashType, index as Hdk, KitsuneP2p, MiddlewareExecutor, Network, NetworkRequestType, P2pCell, ValidationLimboStatus, ValidationStatus, WorkflowType, app_validation, app_validation_task, buildAgentValidationPkg, buildCreate, buildCreateLink, buildDelete, buildDeleteLink, buildDna, buildShh, buildUpdate, callZomeFn, call_zome_fn_workflow, createConductors, deleteValidationLimboValue, distance, genesis, genesis_task, getAllAuthoredEntries, getAllAuthoredHeaders, getAllHeldEntries, getAppEntryType, getAuthor, getCellId, getClosestNeighbors, getDHTOpBasis, getDhtShard, getDnaHash, getElement, getEntryDetails, getEntryDhtStatus, getEntryTypeString, getFarthestNeighbors, getHashType, getHeaderAt, getHeaderModifiers, getHeadersForEntry, getLinksForEntry, getNewHeaders, getNextHeaderSeq, getNonPublishedDhtOps, getTipOfChain, getValidationLimboDhtOps, hash, hashEntry, incoming_dht_ops, incoming_dht_ops_task, integrate_dht_ops, integrate_dht_ops_task, isHoldingEntry, location, locationDistance, produce_dht_ops, produce_dht_ops_task, publish_dht_ops, publish_dht_ops_task, pullAllIntegrationLimboDhtOps, putDhtOpData, putDhtOpMetadata, putDhtOpToIntegrated, putElement, putIntegrationLimboValue, putSystemMetadata, putValidationLimboValue, register_header_on_basis, sampleDnaTemplate, sampleZome, sleep, sys_validation, sys_validation_task, valid_cap_grant, workflowPriority, wrap };
 //# sourceMappingURL=index.js.map

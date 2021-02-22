@@ -7,17 +7,17 @@ import {
 import { putElement } from '../../../cell/source-chain/put';
 import { HostFn, HostFnWorkspace } from '../../host-fn';
 
-export type CreateLink = (args: {
+export type CreateLinkFn = (args: {
   base: Hash;
   target: Hash;
   tag: any;
 }) => Promise<Hash>;
 
 // Creates a new CreateLink header in the source chain
-export const create_link: HostFn<CreateLink> = (
+export const create_link: HostFn<CreateLinkFn> = (
   worskpace: HostFnWorkspace,
   zome_id: number
-): CreateLink => async (args): Promise<Hash> => {
+): CreateLinkFn => async (args): Promise<Hash> => {
   const createLink = buildCreateLink(
     worskpace.state,
     zome_id,

@@ -1,7 +1,7 @@
 import { AgentPubKey, CapSecret } from '@holochain-open-dev/core-types';
 import { HostFn, HostFnWorkspace } from '../host-fn';
 
-export type CallRemote = (args: {
+export type CallRemoteFn = (args: {
   agent: AgentPubKey;
   zome: string;
   fn_name: string;
@@ -10,9 +10,9 @@ export type CallRemote = (args: {
 }) => Promise<any>;
 
 // Creates a new Create header and its entry in the source chain
-export const call_remote: HostFn<CallRemote> = (
+export const call_remote: HostFn<CallRemoteFn> = (
   workspace: HostFnWorkspace
-): CallRemote => async (args): Promise<any> => {
+): CallRemoteFn => async (args): Promise<any> => {
   return workspace.p2p.call_remote(
     args.agent,
     args.zome,

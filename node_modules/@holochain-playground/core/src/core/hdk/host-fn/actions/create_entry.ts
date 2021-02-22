@@ -1,27 +1,17 @@
-import {
-  Entry,
-  EntryType,
-  Element,
-  Hash,
-} from '@holochain-open-dev/core-types';
-import { Cell } from '../../../cell';
-import {
-  buildCreate,
-  buildShh,
-} from '../../../cell/source-chain/builder-headers';
-import { putElement } from '../../../cell/source-chain/put';
+import { Entry, Hash } from '@holochain-open-dev/core-types';
 import { HostFn, HostFnWorkspace } from '../../host-fn';
+import { common_create } from './common/create';
 
-export type CreateEntry = (args: {
+export type CreateEntryFn = (args: {
   content: any;
   entry_def_id: string;
 }) => Promise<Hash>;
 
 // Creates a new Create header and its entry in the source chain
-export const create_entry: HostFn<CreateEntry> = (
+export const create_entry: HostFn<CreateEntryFn> = (
   workspace: HostFnWorkspace,
   zome_index: number
-): CreateEntry => async (args: {
+): CreateEntryFn => async (args: {
   content: any;
   entry_def_id: string;
 }): Promise<Hash> => {
@@ -45,13 +35,5 @@ export const create_entry: HostFn<CreateEntry> = (
     },
   };
 
-  const create = buildCreate(workspace.state, entry, entry_type);
-
-  const element: Element = {
-    signed_header: buildShh(create),
-    entry,
-  };
-  putElement(element)(workspace.state);
-
-  return element.signed_header.header.hash;
+  return common_create(workspace, entry, entry_type);
 };

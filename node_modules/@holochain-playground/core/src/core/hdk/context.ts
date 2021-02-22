@@ -1,29 +1,34 @@
-import { Cell, Workspace } from '../cell';
 import { HostFnWorkspace } from './host-fn';
 import {
-  CreateCapGrant,
+  CreateCapGrantFn,
   create_cap_grant,
-} from './host-fn/actions/create-cap-grant';
-import { CreateEntry, create_entry } from './host-fn/actions/create-entry';
-import { CreateLink, create_link } from './host-fn/actions/create-link';
+} from './host-fn/actions/create_cap_grant';
+import { CreateEntryFn, create_entry } from './host-fn/actions/create_entry';
+import { CreateLinkFn, create_link } from './host-fn/actions/create_link';
 import {
-  DeleteCapGrant,
+  DeleteCapGrantFn,
   delete_cap_grant,
-} from './host-fn/actions/delete-cap-grant';
-import { AgentInfoFn, agent_info } from './host-fn/agent-info';
-import { CallRemote, call_remote } from './host-fn/call-remote';
-import { get, Get } from './host-fn/get';
-import { HashEntry, hash_entry } from './host-fn/hash-entry';
+} from './host-fn/actions/delete_cap_grant';
+import { DeleteEntryFn, delete_entry } from './host-fn/actions/delete_entry';
+import { DeleteLinkFn, delete_link } from './host-fn/actions/delete_link';
+import { UpdateEntryFn, update_entry } from './host-fn/actions/update_entry';
+import { AgentInfoFn, agent_info } from './host-fn/agent_info';
+import { CallRemoteFn, call_remote } from './host-fn/call_remote';
+import { get, GetFn } from './host-fn/get';
+import { HashEntryFn, hash_entry } from './host-fn/hash_entry';
 import { path, Path } from './path';
 
 export interface SimulatedZomeFunctionContext {
-  create_entry: CreateEntry;
-  get: Get;
-  hash_entry: HashEntry;
-  create_link: CreateLink;
-  create_cap_grant: CreateCapGrant;
-  delete_cap_grant: DeleteCapGrant;
-  call_remote: CallRemote;
+  create_entry: CreateEntryFn;
+  delete_entry: DeleteEntryFn;
+  update_entry: UpdateEntryFn;
+  get: GetFn;
+  hash_entry: HashEntryFn;
+  create_link: CreateLinkFn;
+  delete_link: DeleteLinkFn;
+  create_cap_grant: CreateCapGrantFn;
+  delete_cap_grant: DeleteCapGrantFn;
+  call_remote: CallRemoteFn;
   agent_info: AgentInfoFn;
   path: Path;
 }
@@ -34,9 +39,12 @@ export function buildZomeFunctionContext(
 ): SimulatedZomeFunctionContext {
   return {
     create_entry: create_entry(workspace, zome_index),
+    delete_entry: delete_entry(workspace, zome_index),
+    update_entry: update_entry(workspace, zome_index),
     hash_entry: hash_entry(workspace, zome_index),
     get: get(workspace, zome_index),
     create_link: create_link(workspace, zome_index),
+    delete_link: delete_link(workspace, zome_index),
     create_cap_grant: create_cap_grant(workspace, zome_index),
     delete_cap_grant: delete_cap_grant(workspace, zome_index),
     call_remote: call_remote(workspace, zome_index),
