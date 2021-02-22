@@ -65,7 +65,7 @@ class HolochainPlaygroundContainer extends ProviderMixin(ScopedElementsMixin(Lit
         return [
             'activeDna',
             'activeAgentPubKey',
-            'activeEntryHash',
+            'activeHash',
             'conductors',
             'conductorsUrls',
         ];
@@ -87,7 +87,7 @@ class HolochainPlaygroundContainer extends ProviderMixin(ScopedElementsMixin(Lit
                 detail: {
                     activeDna: this.activeDna,
                     activeAgentPubKey: this.activeAgentPubKey,
-                    activeEntryHash: this.activeEntryHash,
+                    activeHash: this.activeHash,
                     conductors: this.conductors,
                     conductorsUrls: this.conductorsUrls,
                 },
@@ -168,7 +168,7 @@ __decorate([
 __decorate([
     property$1({ type: String }),
     __metadata("design:type", String)
-], HolochainPlaygroundContainer.prototype, "activeEntryHash", void 0);
+], HolochainPlaygroundContainer.prototype, "activeHash", void 0);
 __decorate([
     property$1({ type: Array }),
     __metadata("design:type", Array)

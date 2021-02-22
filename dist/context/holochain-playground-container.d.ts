@@ -13,7 +13,7 @@ export declare class HolochainPlaygroundContainer extends HolochainPlaygroundCon
     /** Context variables */
     activeDna: Hash | undefined;
     activeAgentPubKey: AgentPubKey | undefined;
-    activeEntryHash: Hash | undefined;
+    activeHash: Hash | undefined;
     conductors: Conductor[];
     conductorsUrls: string[] | undefined;
     static get provide(): string[];
