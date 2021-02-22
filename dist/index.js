@@ -49086,9 +49086,12 @@ class SourceChain extends PlaygroundElement {
         });
         this.cy.on('tap', 'node', (event) => {
             // Node id is <HEADER_HASH>:<ENTRY_HASH>
-            const selectedEntryId = event.target.id().split(':')[1];
+            let activeHash = event.target.id();
+            if (activeHash.includes(':')) {
+                activeHash = activeHash.split(':')[1];
+            }
             this.updatePlayground({
-                activeHash: selectedEntryId,
+                activeHash,
             });
         });
         let rendered = false;
