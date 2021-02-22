@@ -1,5 +1,6 @@
 export function shortenStrRec(object: any) {
-  if (Array.isArray(object)) {
+  if (object === undefined) return object;
+  else if (Array.isArray(object)) {
     return object.map(shortenStrRec);
   } else if (typeof object === 'object') {
     for (const key of Object.keys(object)) {

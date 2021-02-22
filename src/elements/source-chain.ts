@@ -171,7 +171,11 @@ export class SourceChain extends PlaygroundElement {
       const nodeElements = this.cy.nodes();
 
       for (const nodeElement of nodeElements) {
-        if (nodeElement.id().includes(this.activeHash)) {
+        const nodeId = nodeElement.id();
+        if (
+          nodeId === this.activeHash ||
+          nodeId.includes(`:${this.activeHash}`)
+        ) {
           nodeElement.addClass('selected');
         }
       }

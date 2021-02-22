@@ -1290,7 +1290,9 @@ __decorate([
 ], DhtShard.prototype, "cell", void 0);
 
 function shortenStrRec(object) {
-    if (Array.isArray(object)) {
+    if (object === undefined)
+        return object;
+    else if (Array.isArray(object)) {
         return object.map(shortenStrRec);
     }
     else if (typeof object === 'object') {
@@ -37615,24 +37617,23 @@ function sourceChainNodes(cell) {
     const state = cell.getState();
     const headersHashes = state.sourceChain;
     for (const headerHash of headersHashes) {
-        const strHeaderHash = headerHash;
-        const header = state.CAS[strHeaderHash];
+        const header = state.CAS[headerHash];
         nodes.push({
             data: {
-                id: strHeaderHash,
+                id: headerHash,
                 data: header,
                 label: header.header.content.type,
             },
             classes: ['header', header.header.content.type],
         });
         if (header.header.content.prev_header) {
-            const strPreviousHeaderHash = header.header.content
+            const previousHeaderHash = header.header.content
                 .prev_header;
             nodes.push({
                 data: {
-                    id: `${strHeaderHash}->${strPreviousHeaderHash}`,
-                    source: strHeaderHash,
-                    target: strPreviousHeaderHash,
+                    id: `${headerHash}->${previousHeaderHash}`,
+                    source: headerHash,
+                    target: previousHeaderHash,
                 },
             });
         }
@@ -37642,9 +37643,9 @@ function sourceChainNodes(cell) {
         const header = state.CAS[strHeaderHash];
         if (header.header.content.entry_hash) {
             const newEntryHeader = header.header.content;
-            const strEntryHash = newEntryHeader.entry_hash;
-            const entryNodeId = `${strHeaderHash}:${strEntryHash}`;
-            const entry = state.CAS[strEntryHash];
+            const entryHash = newEntryHeader.entry_hash;
+            const entryNodeId = `${strHeaderHash}:${entryHash}`;
+            const entry = state.CAS[entryHash];
             const entryType = getEntryTypeString(cell, newEntryHeader.entry_type);
             nodes.push({
                 data: {
@@ -49132,7 +49133,9 @@ class SourceChain extends PlaygroundElement {
             this.cy.filter('node').removeClass('selected');
             const nodeElements = this.cy.nodes();
             for (const nodeElement of nodeElements) {
-                if (nodeElement.id().includes(this.activeHash)) {
+                const nodeId = nodeElement.id();
+                if (nodeId === this.activeHash ||
+                    nodeId.includes(`:${this.activeHash}`)) {
                     nodeElement.addClass('selected');
                 }
             }
