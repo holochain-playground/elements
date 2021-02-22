@@ -4,12 +4,11 @@ import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { ProviderMixin, ConsumerMixin } from 'lit-element-context';
 import { LitElement, css as css$1, html, property as property$1, query } from 'lit-element';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
-import { sampleDnaTemplate, createConductors, getDhtShard, getEntryDetails, WorkflowType, sleep, workflowPriority, Cell, distance, NetworkRequestType, getEntryTypeString, getAllHeldEntries, getLinksForEntry, getAppEntryType } from '@holochain-playground/core';
+import { sampleDnaTemplate, createConductors, isHoldingEntry, getDhtShard, getEntryDetails, WorkflowType, sleep, workflowPriority, Cell, location, NetworkRequestType, getEntryTypeString, getAllHeldEntries, getLinksForEntry, getAppEntryType } from '@holochain-playground/core';
 import { TextField } from 'scoped-material-components/mwc-textfield';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Icon } from 'scoped-material-components/mwc-icon';
 import { styleMap } from 'lit-html/directives/style-map';
-import { isEqual } from 'lodash-es';
 import { Tab } from 'scoped-material-components/mwc-tab';
 import { TabBar } from 'scoped-material-components/mwc-tab-bar';
 import { Card } from 'scoped-material-components/mwc-card';
@@ -27,6 +26,7 @@ import { Subject } from 'rxjs';
 import { Menu } from 'scoped-material-components/mwc-menu';
 import { Checkbox } from 'scoped-material-components/mwc-checkbox';
 import { timestampToMillis, EntryDhtStatus } from '@holochain-open-dev/core-types';
+import { isEqual } from 'lodash-es';
 
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -396,23 +396,6 @@ function selectGlobalDHTOpsCount(cells) {
 }
 function selectHoldingCells(entryHash, cells) {
     return cells.filter((cell) => isHoldingEntry(cell.getState(), entryHash));
-}
-function isHoldingEntry(state, entryHash) {
-    for (const integratedDhtOpValue of Object.values(state.integratedDHTOps)) {
-        const holdedEntryHash = integratedDhtOpValue.op.header.header
-            .content.entry_hash;
-        if (holdedEntryHash && isEqual(holdedEntryHash, entryHash)) {
-            return true;
-        }
-    }
-    for (const authoredDhtOpsValue of Object.values(state.authoredDHTOps)) {
-        const holdedEntryHash = authoredDhtOpsValue.op.header.header
-            .content.entry_hash;
-        if (holdedEntryHash && isEqual(holdedEntryHash, entryHash)) {
-            return true;
-        }
-    }
-    return false;
 }
 function selectCell(dnaHash, agentPubKey, conductors) {
     for (const conductor of conductors) {
@@ -34224,26 +34207,52 @@ __decorate([
 ], HelpButton.prototype, "_helpDialog", void 0);
 
 function dhtCellsNodes(cells) {
-    const sortedCells = cells.sort((a, b) => distance(a.agentPubKey, b.agentPubKey));
+    const sortedCells = cells.sort((a, b) => location(a.agentPubKey) - location(b.agentPubKey));
     const cellNodes = sortedCells.map((cell) => ({
         data: {
             id: cell.agentPubKey,
             label: `${cell.agentPubKey.substr(0, 10)}...`,
         },
-        classes: ['cell']
+        classes: ['cell'],
     }));
     return cellNodes;
 }
 function neighborsEdges(cells) {
-    const edges = cells.map((cell) => cell.p2p.getNeighbors().map((neighbor) => ({
-        data: {
-            id: `${cell.agentPubKey}->${neighbor}`,
-            source: cell.agentPubKey,
-            target: neighbor,
-        },
-        classes: ['neighbor-edge'],
-    })));
-    return [].concat(...edges.filter((e) => e.length > 0));
+    // Segmented by originAgentPubKey/targetAgentPubKey
+    const allNeighbors = {};
+    const edges = [];
+    for (const cell of cells) {
+        const cellAgentPubKey = cell.agentPubKey;
+        const cellNeighbors = cell.p2p.getNeighbors();
+        for (const cellNeighbor of cellNeighbors) {
+            if (allNeighbors[cellNeighbor] &&
+                allNeighbors[cellNeighbor][cellAgentPubKey]) {
+                edges.push({
+                    data: {
+                        id: `${cellAgentPubKey}->${cellNeighbor}`,
+                        source: cellAgentPubKey,
+                        target: cellNeighbor,
+                    },
+                    classes: ['neighbor-edge'],
+                });
+            }
+            if (!allNeighbors[cellAgentPubKey]) {
+                allNeighbors[cellAgentPubKey] = {};
+            }
+            allNeighbors[cellAgentPubKey][cellNeighbor] = true;
+        }
+        for (const farNeighbor of cell.p2p.farKnownPeers) {
+            edges.push({
+                data: {
+                    id: `${cellAgentPubKey}->${farNeighbor}`,
+                    source: cellAgentPubKey,
+                    target: farNeighbor,
+                },
+                classes: ['far-neighbor-edge'],
+            });
+        }
+    }
+    return edges;
 }
 
 const layoutConfig = {
@@ -34262,10 +34271,6 @@ const graphStyles = `
     font-size: 20px;
     width: 50px;
     height: 50px;
-  }
-
-  .cell {
-    
   }
   
   .selected {
@@ -34289,6 +34294,11 @@ const graphStyles = `
 
   .neighbor-edge {
     line-style: dotted;
+  }
+
+  .far-neighbor-edge {
+    line-style: dotted;
+    opacity: 0.2;
   }
 
   .network-request {
@@ -44455,11 +44465,46 @@ function createFind(findIndexFunc) {
 
 var _createFind = createFind;
 
+/** Used to match a single whitespace character. */
+var reWhitespace = /\s/;
+
+/**
+ * Used by `_.trim` and `_.trimEnd` to get the index of the last non-whitespace
+ * character of `string`.
+ *
+ * @private
+ * @param {string} string The string to inspect.
+ * @returns {number} Returns the index of the last non-whitespace character.
+ */
+function trimmedEndIndex(string) {
+  var index = string.length;
+
+  while (index-- && reWhitespace.test(string.charAt(index))) {}
+  return index;
+}
+
+var _trimmedEndIndex = trimmedEndIndex;
+
+/** Used to match leading whitespace. */
+var reTrimStart = /^\s+/;
+
+/**
+ * The base implementation of `_.trim`.
+ *
+ * @private
+ * @param {string} string The string to trim.
+ * @returns {string} Returns the trimmed string.
+ */
+function baseTrim(string) {
+  return string
+    ? string.slice(0, _trimmedEndIndex(string) + 1).replace(reTrimStart, '')
+    : string;
+}
+
+var _baseTrim = baseTrim;
+
 /** Used as references for various `Number` constants. */
 var NAN$1 = 0 / 0;
-
-/** Used to match leading and trailing whitespace. */
-var reTrim$1 = /^\s+|\s+$/g;
 
 /** Used to detect bad signed hexadecimal string values. */
 var reIsBadHex$1 = /^[-+]0x[0-9a-f]+$/i;
@@ -44510,7 +44555,7 @@ function toNumber$1(value) {
   if (typeof value != 'string') {
     return value === 0 ? value : +value;
   }
-  value = value.replace(reTrim$1, '');
+  value = _baseTrim(value);
   var isBinary = reIsBinary$1.test(value);
   return (isBinary || reIsOctal$1.test(value))
     ? freeParseInt$1(value.slice(2), isBinary ? 2 : 8)

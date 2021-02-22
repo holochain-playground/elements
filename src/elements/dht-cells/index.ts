@@ -6,6 +6,7 @@ import { Hash } from '@holochain-open-dev/core-types';
 import {
   Cell,
   sleep,
+  location,
   NetworkRequestType,
   WorkflowType,
 } from '@holochain-playground/core';

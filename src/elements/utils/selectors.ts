@@ -4,7 +4,7 @@ import {
   SignedHeaderHashed,
   NewEntryHeader,
 } from '@holochain-open-dev/core-types';
-import { Conductor, Cell, CellState } from '@holochain-playground/core';
+import { Conductor, Cell, CellState, isHoldingEntry } from '@holochain-playground/core';
 import { isEqual } from 'lodash-es';
 
 export function selectCells(dna: Hash, conductor: Conductor): Cell[] {
@@ -28,26 +28,6 @@ export function selectGlobalDHTOpsCount(cells: Cell[]): number {
 
 export function selectHoldingCells(entryHash: Hash, cells: Cell[]): Cell[] {
   return cells.filter((cell) => isHoldingEntry(cell.getState(), entryHash));
-}
-
-export function isHoldingEntry(state: CellState, entryHash: Hash) {
-  for (const integratedDhtOpValue of Object.values(state.integratedDHTOps)) {
-    const holdedEntryHash = (integratedDhtOpValue.op.header.header
-      .content as NewEntryHeader).entry_hash;
-    if (holdedEntryHash && isEqual(holdedEntryHash, entryHash)) {
-      return true;
-    }
-  }
-
-  for (const authoredDhtOpsValue of Object.values(state.authoredDHTOps)) {
-    const holdedEntryHash = (authoredDhtOpsValue.op.header.header
-      .content as NewEntryHeader).entry_hash;
-    if (holdedEntryHash && isEqual(holdedEntryHash, entryHash)) {
-      return true;
-    }
-  }
-
-  return false;
 }
 
 export function selectConductorByAgent(
