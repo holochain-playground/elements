@@ -16,10 +16,6 @@ export const graphStyles = `
     width: 50px;
     height: 50px;
   }
-
-  .cell {
-    
-  }
   
   .selected {
     border-width: 4px;
@@ -42,6 +38,11 @@ export const graphStyles = `
 
   .neighbor-edge {
     line-style: dotted;
+  }
+
+  .far-neighbor-edge {
+    line-style: dotted;
+    opacity: 0.2;
   }
 
   .network-request {
