@@ -17,7 +17,7 @@ export declare class P2pCell {
     farKnownPeers: AgentPubKey[];
     redundancyFactor: number;
     neighborNumber: number;
-    networkRequestsExecutor: MiddlewareExecutor<NetworkRequestInfo>;
+    networkRequestsExecutor: MiddlewareExecutor<NetworkRequestInfo<any, any>>;
     constructor(state: P2pCellState, cellId: CellId, network: Network);
     getState(): P2pCellState;
     /** P2p actions */

@@ -34,7 +34,9 @@ export class P2pCell {
   redundancyFactor: number;
   neighborNumber: number;
 
-  networkRequestsExecutor = new MiddlewareExecutor<NetworkRequestInfo>();
+  networkRequestsExecutor = new MiddlewareExecutor<
+    NetworkRequestInfo<any, any>
+  >();
 
   constructor(
     state: P2pCellState,
@@ -76,6 +78,7 @@ export class P2pCell {
         this._executeNetworkRequest(
           cell,
           NetworkRequestType.PUBLISH_REQUEST,
+          { dhtOps: ops },
           (cell: Cell) => cell.handle_publish(this.cellId[1], dht_hash, ops)
         )
     );
@@ -91,6 +94,7 @@ export class P2pCell {
         this._executeNetworkRequest(
           cell,
           NetworkRequestType.GET_REQUEST,
+          { hash: dht_hash, options },
           (cell: Cell) => cell.handle_get(dht_hash, options)
         )
     );
@@ -127,6 +131,7 @@ export class P2pCell {
         this._executeNetworkRequest(
           cell,
           NetworkRequestType.CALL_REMOTE,
+          {},
           (cell: Cell) =>
             cell.handle_call_remote(this.cellId[1], zome, fnName, cap, payload)
         )
@@ -156,14 +161,12 @@ export class P2pCell {
       .getFarKnownPeers(dnaHash, agentPubKey)
       .map(p => p.agentPubKey);
 
-    const neighbors = this.network.bootstrapService.getNeighborhood(
-      dnaHash,
-      agentPubKey,
-      this.neighborNumber
-    );
+    const neighbors = this.network.bootstrapService
+      .getNeighborhood(dnaHash, agentPubKey, this.neighborNumber)
+      .filter(cell => cell.agentPubKey != agentPubKey);
 
     const newNeighbors = neighbors.filter(
-      cell => ![this.cellId[1], ...this.neighbors].includes(cell.agentPubKey)
+      cell => !this.neighbors.includes(cell.agentPubKey)
     );
     this.neighbors = neighbors.map(n => n.agentPubKey);
 
@@ -171,22 +174,29 @@ export class P2pCell {
       this._executeNetworkRequest(
         neighbor,
         NetworkRequestType.ADD_NEIGHBOR,
+        {},
         (cell: Cell) => cell.handle_new_neighbor(agentPubKey)
       )
     );
     await Promise.all(promises);
+
+    if (this.neighbors.length < this.neighborNumber) {
+      setTimeout(() => this.syncNeighbors(), 4000);
+    }
   }
 
-  private _executeNetworkRequest<T>(
+  private _executeNetworkRequest<R, T extends NetworkRequestType, D>(
     toCell: Cell,
-    type: NetworkRequestType,
-    request: NetworkRequest<T>
-  ): Promise<T> {
-    const networkRequest: NetworkRequestInfo = {
+    type: T,
+    details: D,
+    request: NetworkRequest<R>
+  ): Promise<R> {
+    const networkRequest: NetworkRequestInfo<T, D> = {
       fromAgent: this.cellId[1],
       toAgent: toCell.agentPubKey,
       dnaHash: this.cellId[0],
       type,
+      details,
     };
 
     return this.networkRequestsExecutor.execute(

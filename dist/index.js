@@ -24,9 +24,9 @@ import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
 import { Formfield } from 'scoped-material-components/mwc-formfield';
 import { Subject } from 'rxjs';
 import { Menu } from 'scoped-material-components/mwc-menu';
+import { uniq, isEqual } from 'lodash-es';
 import { Checkbox } from 'scoped-material-components/mwc-checkbox';
 import { timestampToMillis, EntryDhtStatus } from '@holochain-open-dev/core-types';
-import { isEqual } from 'lodash-es';
 
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -34225,8 +34225,8 @@ function neighborsEdges(cells) {
         const cellAgentPubKey = cell.agentPubKey;
         const cellNeighbors = cell.p2p.getNeighbors();
         for (const cellNeighbor of cellNeighbors) {
-            if (allNeighbors[cellNeighbor] &&
-                allNeighbors[cellNeighbor][cellAgentPubKey]) {
+            if (!(allNeighbors[cellNeighbor] &&
+                allNeighbors[cellNeighbor][cellAgentPubKey])) {
                 edges.push({
                     data: {
                         id: `${cellAgentPubKey}->${cellNeighbor}`,
@@ -34354,7 +34354,7 @@ class DhtCells extends PlaygroundElement {
             if (this._cy.width() !== 0) {
                 if (!rendered) {
                     rendered = true;
-                    // This is needed to render the nodes after the graph itself 
+                    // This is needed to render the nodes after the graph itself
                     // has resized properly so it computes the positions appriopriately
                     setTimeout(() => {
                         this.setupGraphNodes();
@@ -34388,12 +34388,19 @@ class DhtCells extends PlaygroundElement {
                 const toNode = this._cy.getElementById(networkRequest.toAgent);
                 const fromPosition = fromNode.position();
                 const toPosition = toNode.position();
+                let label = networkRequest.type;
+                if (networkRequest.type === NetworkRequestType.PUBLISH_REQUEST) {
+                    const dhtOps = networkRequest
+                        .details.dhtOps;
+                    const types = Object.values(dhtOps).map((dhtOp) => dhtOp.type);
+                    label = `Publish: ${uniq(types).join(', ')}`;
+                }
                 const el = this._cy.add([
                     {
                         group: 'nodes',
                         data: {
                             networkRequest,
-                            label: networkRequest.type,
+                            label,
                         },
                         position: { x: fromPosition.x + 1, y: fromPosition.y + 1 },
                         classes: ['network-request'],

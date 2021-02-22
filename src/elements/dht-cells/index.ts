@@ -2,13 +2,14 @@ import { LitElement, html, query, css, property } from 'lit-element';
 import cytoscape from 'cytoscape';
 import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
 import { Button } from 'scoped-material-components/mwc-button';
-import { Hash } from '@holochain-open-dev/core-types';
+import { Hash, DHTOp, Dictionary } from '@holochain-open-dev/core-types';
 import {
   Cell,
   sleep,
   location,
   NetworkRequestType,
   WorkflowType,
+  PublishRequestInfo,
 } from '@holochain-playground/core';
 import { Card } from 'scoped-material-components/mwc-card';
 import { Slider } from 'scoped-material-components/mwc-slider';
@@ -27,6 +28,7 @@ import { Icon } from 'scoped-material-components/mwc-icon';
 import { Subject } from 'rxjs';
 import { Menu } from 'scoped-material-components/mwc-menu';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { uniq } from 'lodash-es';
 
 const MIN_ANIMATION_DELAY = 1000;
 const MAX_ANIMATION_DELAY = 7000;
@@ -101,11 +103,11 @@ export class DhtCells extends PlaygroundElement {
       if (this._cy.width() !== 0) {
         if (!rendered) {
           rendered = true;
-          // This is needed to render the nodes after the graph itself 
+          // This is needed to render the nodes after the graph itself
           // has resized properly so it computes the positions appriopriately
-          setTimeout(()=>{
+          setTimeout(() => {
             this.setupGraphNodes();
-          })
+          });
         }
       }
     });
@@ -143,12 +145,23 @@ export class DhtCells extends PlaygroundElement {
 
         const fromPosition = fromNode.position();
         const toPosition = toNode.position();
+
+        let label = networkRequest.type;
+        if (networkRequest.type === NetworkRequestType.PUBLISH_REQUEST) {
+          const dhtOps: Dictionary<DHTOp> = (networkRequest as PublishRequestInfo)
+            .details.dhtOps;
+
+          const types = Object.values(dhtOps).map((dhtOp) => dhtOp.type);
+
+          label = `Publish: ${uniq(types).join(', ')}`;
+        }
+
         const el = this._cy.add([
           {
             group: 'nodes',
             data: {
               networkRequest,
-              label: networkRequest.type,
+              label,
             },
             position: { x: fromPosition.x + 1, y: fromPosition.y + 1 },
             classes: ['network-request'],

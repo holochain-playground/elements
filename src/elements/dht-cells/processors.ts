@@ -1,8 +1,5 @@
 import { Dictionary } from '@holochain-open-dev/core-types';
-import {
-  Cell,
-  location,
-} from '@holochain-playground/core';
+import { Cell, location } from '@holochain-playground/core';
 
 export function dhtCellsNodes(cells: Cell[]) {
   const sortedCells = cells.sort(
@@ -30,8 +27,10 @@ export function neighborsEdges(cells: Cell[]) {
 
     for (const cellNeighbor of cellNeighbors) {
       if (
-        allNeighbors[cellNeighbor] &&
-        allNeighbors[cellNeighbor][cellAgentPubKey]
+        !(
+          allNeighbors[cellNeighbor] &&
+          allNeighbors[cellNeighbor][cellAgentPubKey]
+        )
       ) {
         edges.push({
           data: {

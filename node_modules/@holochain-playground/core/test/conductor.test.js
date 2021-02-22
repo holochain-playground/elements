@@ -19,7 +19,7 @@ describe('Conductor', () => {
     expect(hash).to.be.ok;
     await sleep(1000);
     expect(Object.keys(cell.getState().integratedDHTOps).length).to.be.greaterThan(
-      10
+      6
     );
 
     let getresult = await conductors[0].callZomeFn({
