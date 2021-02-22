@@ -26,8 +26,8 @@ export function selectGlobalDHTOpsCount(cells: Cell[]): number {
   return dhtOps;
 }
 
-export function selectHoldingCells(entryHash: Hash, cells: Cell[]): Cell[] {
-  return cells.filter((cell) => isHoldingEntry(cell.getState(), entryHash));
+export function selectHoldingCells(hash: Hash, cells: Cell[]): Cell[] {
+  return cells.filter((cell) => isHoldingEntry(cell.getState(), hash));
 }
 
 export function selectConductorByAgent(

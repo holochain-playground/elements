@@ -21,7 +21,7 @@ export const PlaygroundMixin = <T extends Constructor<HTMLElement>>(
     @property({ type: String })
     activeAgentPubKey: AgentPubKey | undefined;
     @property({ type: String })
-    activeEntryHash: Hash | undefined;
+    activeHash: Hash | undefined;
     @property({ type: Array })
     conductors: Conductor[] = [];
 

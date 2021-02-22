@@ -142,7 +142,7 @@ export class EntryGraph extends PlaygroundElement {
     this.cy.on('tap', 'node', (event) => {
       const selectedEntryId = event.target.id();
       this.updatePlayground({
-        activeEntryHash: selectedEntryId,
+        activeHash: selectedEntryId,
       });
     });
 
@@ -195,7 +195,9 @@ export class EntryGraph extends PlaygroundElement {
     this.lastEntriesIds = entries.map((e) => e.data.id);
 
     this.cy.filter('node').removeClass('selected');
-    this.cy.getElementById(this.activeEntryHash).addClass('selected');
+
+    const activeHashElement = this.cy.getElementById(this.activeHash);
+    if (activeHashElement) activeHashElement.addClass('selected');
   }
 
   static get styles() {
@@ -258,8 +260,9 @@ export class EntryGraph extends PlaygroundElement {
         .anchor=${this._visibleEntriesButton}
         @selected=${(e) => {
           const includedEntryTypes = [...e.detail.index];
-          this.excludedEntryTypes = this._entryTypes
-            .filter((type, index) => !includedEntryTypes.includes(index));
+          this.excludedEntryTypes = this._entryTypes.filter(
+            (type, index) => !includedEntryTypes.includes(index)
+          );
         }}
       >
         ${this._entryTypes.map(

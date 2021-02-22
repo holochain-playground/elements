@@ -17,7 +17,6 @@ import { selectCell } from './utils/selectors';
 import { Tab } from 'scoped-material-components/mwc-tab';
 import { TabBar } from 'scoped-material-components/mwc-tab-bar';
 import { Card } from 'scoped-material-components/mwc-card';
-import { shortenStrRec } from './utils/hash';
 import { JsonViewer } from '@power-elements/json-viewer';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { List } from 'scoped-material-components/mwc-list';
