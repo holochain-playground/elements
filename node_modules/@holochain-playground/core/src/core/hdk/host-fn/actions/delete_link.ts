@@ -7,13 +7,13 @@ import {
 import { putElement } from '../../../cell/source-chain/put';
 import { HostFn, HostFnWorkspace } from '../../host-fn';
 
-export type DeleteLinkFn = (args: { header_hash: Hash }) => Promise<Hash>;
+export type DeleteLinkFn = (deletes_address: Hash) => Promise<Hash>;
 
 // Creates a new Create header and its entry in the source chain
 export const delete_link: HostFn<DeleteLinkFn> = (
   worskpace: HostFnWorkspace
-): DeleteLinkFn => async ({ header_hash }): Promise<Hash> => {
-  const elementToDelete = await worskpace.cascade.dht_get(header_hash, {
+): DeleteLinkFn => async (deletes_address): Promise<Hash> => {
+  const elementToDelete = await worskpace.cascade.dht_get(deletes_address, {
     strategy: GetStrategy.Contents,
   });
 
@@ -28,7 +28,7 @@ export const delete_link: HostFn<DeleteLinkFn> = (
   const deleteHeader = buildDeleteLink(
     worskpace.state,
     baseAddress,
-    header_hash
+    deletes_address
   );
 
   const element: Element = {

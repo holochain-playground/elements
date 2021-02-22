@@ -188,7 +188,7 @@ const PlaygroundMixin = (baseClass) => {
             return [
                 'activeDna',
                 'activeAgentPubKey',
-                'activeEntryHash',
+                'activeHash',
                 'conductors',
                 'conductorsUrls',
             ];
@@ -1305,7 +1305,7 @@ function shortenStrRec(object) {
     return object;
 }
 
-class HashContents extends PlaygroundElement {
+class EntryContents extends PlaygroundElement {
     static get styles() {
         return [
             sharedStyles,
@@ -1500,7 +1500,7 @@ class ConductorDetail extends PlaygroundElement {
     static get scopedElements() {
         return {
             'holochain-playground-dht-shard': DhtShard,
-            'holochain-playground-entry-detail': HashContents,
+            'holochain-playground-entry-detail': EntryContents,
             'mwc-tab': Tab,
             'mwc-tab-bar': TabBar,
             'mwc-card': Card,
@@ -49189,5 +49189,5 @@ __decorate([
     __metadata("design:type", HTMLElement)
 ], SourceChain.prototype, "graph", void 0);
 
-export { CallZomeFns, ConductorDetail, DhtCells, DhtShard, DhtStats, EntryGraph, HashContents, HolochainPlaygroundContainer, PlaygroundElement, PlaygroundMixin, SourceChain };
+export { CallZomeFns, ConductorDetail, DhtCells, DhtShard, DhtStats, EntryContents, EntryGraph, HolochainPlaygroundContainer, PlaygroundElement, PlaygroundMixin, SourceChain };
 //# sourceMappingURL=index.js.map

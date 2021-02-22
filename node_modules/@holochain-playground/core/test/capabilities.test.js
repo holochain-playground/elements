@@ -31,7 +31,7 @@ const dna = {
         },
         revoke_cap: {
           call: ({ delete_cap_grant }) => cap_grant_to_revoke => {
-            return delete_cap_grant({ header_hash: cap_grant_to_revoke });
+            return delete_cap_grant(cap_grant_to_revoke);
           },
           arguments: [],
         },

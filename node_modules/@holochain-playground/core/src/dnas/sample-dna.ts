@@ -35,11 +35,28 @@ export const sampleZome: SimulatedZome = {
         { name: 'tag', type: 'any' },
       ],
     },
-    /*     update_entry: ({ content, type, original_header_hash }) => [],
-    delete_entry: ({ deletes_address }) => [],
-    create_link: ({ base, target, tag }) => [],
-    delete_link: ({ link_add_address }) => [],
- */
+    update_entry: {
+      call: ({ update_entry }) => ({
+        original_header_address,
+        new_content,
+      }) => {
+        return update_entry({
+          original_header_address,
+          content: new_content,
+          entry_def_id: 'sample_entry',
+        });
+      },
+      arguments: [
+        { name: 'original_header_address', type: 'HeaderHash' },
+        { name: 'new_content', type: 'String' },
+      ],
+    },
+    delete_entry: {
+      call: ({ delete_entry }) => ({ deletes_address }) => {
+        return delete_entry(deletes_address);
+      },
+      arguments: [{ name: 'deletes_address', type: 'HeaderHash' }],
+    },
   },
 };
 

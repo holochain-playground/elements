@@ -1595,18 +1595,18 @@ async function common_delete(worskpace, header_hash) {
 }
 
 // Creates a new Create header and its entry in the source chain
-const delete_cap_grant = (worskpace) => async ({ deletes_header_hash }) => {
-    return common_delete(worskpace, deletes_header_hash);
+const delete_cap_grant = (worskpace) => async (deletes_address) => {
+    return common_delete(worskpace, deletes_address);
 };
 
 // Creates a new Create header and its entry in the source chain
-const delete_entry = (worskpace) => async ({ header_hash }) => {
-    return common_delete(worskpace, header_hash);
+const delete_entry = (worskpace) => async (deletes_address) => {
+    return common_delete(worskpace, deletes_address);
 };
 
 // Creates a new Create header and its entry in the source chain
-const delete_link = (worskpace) => async ({ header_hash }) => {
-    const elementToDelete = await worskpace.cascade.dht_get(header_hash, {
+const delete_link = (worskpace) => async (deletes_address) => {
+    const elementToDelete = await worskpace.cascade.dht_get(deletes_address, {
         strategy: GetStrategy.Contents,
     });
     if (!elementToDelete)
@@ -1615,7 +1615,7 @@ const delete_link = (worskpace) => async ({ header_hash }) => {
         .content.base_address;
     if (!baseAddress)
         throw new Error('Header for the given hash is not a CreateLink header');
-    const deleteHeader = buildDeleteLink(worskpace.state, baseAddress, header_hash);
+    const deleteHeader = buildDeleteLink(worskpace.state, baseAddress, deletes_address);
     const element = {
         signed_header: buildShh(deleteHeader),
         entry: undefined,
@@ -1625,17 +1625,17 @@ const delete_link = (worskpace) => async ({ header_hash }) => {
 };
 
 async function common_update(worskpace, original_header_hash, entry, entry_type) {
-    const elementToDelete = await worskpace.cascade.dht_get(original_header_hash, {
+    const elementToUpdate = await worskpace.cascade.dht_get(original_header_hash, {
         strategy: GetStrategy.Contents,
     });
-    if (!elementToDelete)
+    if (!elementToUpdate)
         throw new Error('Could not find element to be deleted');
-    const original_entry_hash = elementToDelete.signed_header.header
+    const original_entry_hash = elementToUpdate.signed_header.header
         .content.entry_hash;
-    const deleteHeader = buildUpdate(worskpace.state, entry, entry_type, original_entry_hash, original_header_hash);
+    const updateHeader = buildUpdate(worskpace.state, entry, entry_type, original_entry_hash, original_header_hash);
     const element = {
-        signed_header: buildShh(deleteHeader),
-        entry: undefined,
+        signed_header: buildShh(updateHeader),
+        entry,
     };
     putElement(element)(worskpace.state);
     return element.signed_header.header.hash;
@@ -2189,6 +2189,25 @@ const sampleZome = {
                 { name: 'target', type: 'EntryHash' },
                 { name: 'tag', type: 'any' },
             ],
+        },
+        update_entry: {
+            call: ({ update_entry }) => ({ original_header_address, new_content, }) => {
+                return update_entry({
+                    original_header_address,
+                    content: new_content,
+                    entry_def_id: 'sample_entry',
+                });
+            },
+            arguments: [
+                { name: 'original_header_address', type: 'HeaderHash' },
+                { name: 'new_content', type: 'String' },
+            ],
+        },
+        delete_entry: {
+            call: ({ delete_entry }) => ({ deletes_address }) => {
+                return delete_entry(deletes_address);
+            },
+            arguments: [{ name: 'deletes_address', type: 'HeaderHash' }],
         },
     },
 };

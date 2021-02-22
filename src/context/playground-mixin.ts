@@ -32,7 +32,7 @@ export const PlaygroundMixin = <T extends Constructor<HTMLElement>>(
       return [
         'activeDna',
         'activeAgentPubKey',
-        'activeEntryHash',
+        'activeHash',
         'conductors',
         'conductorsUrls',
       ];
