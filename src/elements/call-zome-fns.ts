@@ -72,7 +72,6 @@ export class CallZomeFns extends PlaygroundElement {
     if (this.selectedZomeFnName) {
       zomeFnName = this.selectedZomeFnName;
     }
-
     return {
       name: zomeFnName,
       fn: this.activeZome.zome_functions[zomeFnName],
@@ -388,8 +387,10 @@ export class CallZomeFns extends PlaygroundElement {
                       : html`
                           <mwc-tab-bar
                             .activeIndex=${this._selectedZomeIndex}
-                            @MDCTabBar:activated=${(e: CustomEvent) =>
-                              (this._selectedZomeIndex = e.detail.index)}
+                            @MDCTabBar:activated=${(e: CustomEvent) => {
+                              this.selectedZomeFnName = undefined;
+                              this._selectedZomeIndex = e.detail.index;
+                            }}
                           >
                             ${this.activeCell
                               .getSimulatedDna()
