@@ -46,6 +46,7 @@ export declare class CallZomeFns extends PlaygroundElement {
     callZomeFunction(fnName: string): Promise<void>;
     renderCallableFunction(fnName: string, zomeFunction: SimulatedZomeFunction): import("lit-element").TemplateResult;
     renderActiveZomeFns(): import("lit-element").TemplateResult;
+    renderResult(result: ZomeFunctionResult): import("lit-element").TemplateResult;
     renderResults(): import("lit-element").TemplateResult;
     render(): import("lit-element").TemplateResult;
     static get styles(): import("lit-element").CSSResult[];

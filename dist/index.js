@@ -1033,6 +1033,21 @@ class CallZomeFns extends PlaygroundElement {
       </mwc-drawer>
     `;
     }
+    renderResult(result) {
+        if (!result.result)
+            return html `<span class="placeholder">Executing...</span>`;
+        if (!result.result.payload || typeof result.result.payload === 'string')
+            return html `<span>${result.result.payload}</span>`;
+        else
+            return html `
+        <expandable-line>
+          <json-viewer
+            .object=${result.result.payload}
+            class="fill"
+          ></json-viewer>
+        </expandable-line>
+      `;
+    }
     renderResults() {
         const results = this.getActiveResults();
         const sortedTimestamps = Object.keys(results).sort();
@@ -1097,22 +1112,7 @@ class CallZomeFns extends PlaygroundElement {
                                     ${new Date(parseInt(timestamp)).toLocaleTimeString()}
                                   </span>
                                 </div>
-                                ${result.result
-                ? typeof result.result.payload === 'string'
-                    ? html `<span
-                                        >${result.result.payload}</span
-                                      >`
-                    : html `
-                                        <expandable-line>
-                                          <json-viewer
-                                            .object=${result.result.payload}
-                                            class="fill"
-                                          ></json-viewer>
-                                        </expandable-line>
-                                      `
-                : html `<span class="placeholder"
-                                      >Executing...</span
-                                    >`}
+                                ${this.renderResult(result)}
                               </div>
                             </div>
                             ${index < sortedResults.length - 1
@@ -1295,7 +1295,7 @@ __decorate([
 ], DhtShard.prototype, "cell", void 0);
 
 function shortenStrRec(object) {
-    if (object === undefined)
+    if (object === undefined || object === null)
         return object;
     else if (Array.isArray(object)) {
         return object.map(shortenStrRec);

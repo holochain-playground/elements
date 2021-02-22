@@ -39,7 +39,7 @@ export function getEntryTypeString(cell: Cell, entryType: EntryType): string {
 export function getDHTOpBasis(dhtOp: DHTOp): Hash {
   switch (dhtOp.type) {
     case DHTOpType.StoreElement:
-      return hash(dhtOp.header, HashType.DHTOP);
+      return dhtOp.header.header.hash;
     case DHTOpType.StoreEntry:
       return dhtOp.header.header.content.entry_hash;
     case DHTOpType.RegisterUpdatedContent:

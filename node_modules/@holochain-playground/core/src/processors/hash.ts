@@ -70,7 +70,7 @@ const hashLocationCache: Dictionary<number> = {};
 export function location(hash: string): number {
   if (hashLocationCache[hash]) return hashLocationCache[hash];
 
-  const hashable = new Uint8Array(str2ab(hash));
+  const hashable = new Uint8Array(str2ab(hash.slice(5)));
   const hash128: Uint8Array = blake.blake2b(hashable, null, 16);
 
   const out = [hash128[0], hash128[1], hash128[2], hash128[3]];
