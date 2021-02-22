@@ -1,5 +1,4 @@
 import { AgentPubKey, CapSecret } from '@holochain-open-dev/core-types';
-import { Cell } from '../../cell';
 import { HostFn, HostFnWorkspace } from '../host-fn';
 
 export type CallRemote = (args: {

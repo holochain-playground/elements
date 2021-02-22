@@ -26,8 +26,8 @@ export declare class CallZomeFns extends PlaygroundElement {
     hideResults: boolean;
     hideZomeSelector: boolean;
     hideAgentPubKey: boolean;
+    selectedZomeFnName: string | undefined;
     _selectedZomeIndex: number;
-    _selectedZomeFnName: string | undefined;
     _results: Dictionary<Dictionary<Dictionary<ZomeFunctionResult>>>;
     _arguments: Dictionary<Dictionary<Dictionary<Dictionary<Dictionary<any>>>>>;
     get activeCell(): Cell;

@@ -1,5 +1,5 @@
 import { Entry, Hash } from '@holochain-open-dev/core-types';
-import { Cell, hashEntry } from '../../cell';
+import { hashEntry } from '../../cell/utils';
 import { HostFn, HostFnWorkspace } from '../host-fn';
 
 export type HashEntry = (args: { content: any }) => Promise<Hash>;

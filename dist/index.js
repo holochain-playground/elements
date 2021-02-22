@@ -869,8 +869,8 @@ class CallZomeFns extends PlaygroundElement {
         this.hideResults = false;
         this.hideZomeSelector = false;
         this.hideAgentPubKey = false;
+        this.selectedZomeFnName = undefined;
         this._selectedZomeIndex = 0;
-        this._selectedZomeFnName = undefined;
         // Results segmented by dnaHash/agentPubKey/timestamp
         this._results = {};
         // Arguments segmented by dnaHash/agentPubKey/zome/fn_name/arg_name
@@ -884,8 +884,8 @@ class CallZomeFns extends PlaygroundElement {
     }
     get activeZomeFn() {
         let zomeFnName = Object.keys(this.activeZome.zome_functions)[0];
-        if (this._selectedZomeFnName) {
-            zomeFnName = this._selectedZomeFnName;
+        if (this.selectedZomeFnName) {
+            zomeFnName = this.selectedZomeFnName;
         }
         return {
             name: zomeFnName,
@@ -1015,7 +1015,7 @@ class CallZomeFns extends PlaygroundElement {
       <mwc-drawer style="--mdc-drawer-width: auto;">
         <mwc-list
           activatable
-          @selected=${(e) => (this._selectedZomeFnName = zomeFns[e.detail.index][0])}
+          @selected=${(e) => (this.selectedZomeFnName = zomeFns[e.detail.index][0])}
         >
           ${zomeFns.map(([name, fn]) => html `
               <mwc-list-item .activated=${this.activeZomeFn.name === name}
@@ -1228,13 +1228,13 @@ __decorate([
     __metadata("design:type", Object)
 ], CallZomeFns.prototype, "hideAgentPubKey", void 0);
 __decorate([
+    property$1({ type: String }),
+    __metadata("design:type", String)
+], CallZomeFns.prototype, "selectedZomeFnName", void 0);
+__decorate([
     property$1({ type: Number }),
     __metadata("design:type", Number)
 ], CallZomeFns.prototype, "_selectedZomeIndex", void 0);
-__decorate([
-    property$1({ type: String }),
-    __metadata("design:type", String)
-], CallZomeFns.prototype, "_selectedZomeFnName", void 0);
 __decorate([
     property$1({ type: Array }),
     __metadata("design:type", Object)

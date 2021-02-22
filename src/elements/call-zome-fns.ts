@@ -45,11 +45,11 @@ export class CallZomeFns extends PlaygroundElement {
 
   @property({ type: Boolean, attribute: 'hide-agent-pub-key' })
   hideAgentPubKey = false;
+  @property({ type: String })
+  selectedZomeFnName: string | undefined = undefined;
 
   @property({ type: Number })
   _selectedZomeIndex: number = 0;
-  @property({ type: String })
-  _selectedZomeFnName: string | undefined = undefined;
 
   @property({ type: Array })
   // Results segmented by dnaHash/agentPubKey/timestamp
@@ -70,8 +70,8 @@ export class CallZomeFns extends PlaygroundElement {
 
   get activeZomeFn(): { name: string; fn: SimulatedZomeFunction } {
     let zomeFnName = Object.keys(this.activeZome.zome_functions)[0];
-    if (this._selectedZomeFnName) {
-      zomeFnName = this._selectedZomeFnName;
+    if (this.selectedZomeFnName) {
+      zomeFnName = this.selectedZomeFnName;
     }
 
     return {
@@ -232,7 +232,7 @@ export class CallZomeFns extends PlaygroundElement {
         <mwc-list
           activatable
           @selected=${(e) =>
-            (this._selectedZomeFnName = zomeFns[e.detail.index][0])}
+            (this.selectedZomeFnName = zomeFns[e.detail.index][0])}
         >
           ${zomeFns.map(
             ([name, fn]) => html`

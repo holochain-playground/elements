@@ -1589,6 +1589,16 @@ const delete_cap_grant = (worskpace) => async ({ header_hash }) => {
 };
 
 // Creates a new Create header and its entry in the source chain
+const agent_info = (worskpace) => async () => {
+    const cellId = getCellId(worskpace.state);
+    const agentPubKey = cellId[1];
+    return {
+        agent_initial_pubkey: agentPubKey,
+        agent_latest_pubkey: agentPubKey,
+    };
+};
+
+// Creates a new Create header and its entry in the source chain
 const call_remote = (workspace) => async (args) => {
     return workspace.p2p.call_remote(args.agent, args.zome, args.fn_name, args.cap_secret, args.payload);
 };
@@ -1635,6 +1645,7 @@ function buildZomeFunctionContext(workspace, zome_index) {
         create_cap_grant: create_cap_grant(workspace),
         delete_cap_grant: delete_cap_grant(workspace),
         call_remote: call_remote(workspace),
+        agent_info: agent_info(workspace),
         path,
     };
 }
