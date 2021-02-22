@@ -4,7 +4,7 @@ import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { ProviderMixin, ConsumerMixin } from 'lit-element-context';
 import { LitElement, css as css$1, html, property as property$1, query } from 'lit-element';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
-import { sampleDnaTemplate, createConductors, isHoldingEntry, getDhtShard, WorkflowType, sleep, workflowPriority, Cell, location, NetworkRequestType, getEntryTypeString, getAllHeldEntries, getEntryDetails, getLinksForEntry, getAppEntryType } from '@holochain-playground/core';
+import { sampleDnaTemplate, createConductors, getHashType, HashType, isHoldingEntry, isHoldingElement, getDhtShard, WorkflowType, sleep, workflowPriority, Cell, location, NetworkRequestType, getEntryTypeString, getAllHeldEntries, getEntryDetails, getLinksForEntry, getAppEntryType } from '@holochain-playground/core';
 import { TextField } from 'scoped-material-components/mwc-textfield';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Icon } from 'scoped-material-components/mwc-icon';
@@ -395,7 +395,9 @@ function selectGlobalDHTOpsCount(cells) {
     return dhtOps;
 }
 function selectHoldingCells(hash, cells) {
-    return cells.filter((cell) => isHoldingEntry(cell.getState(), hash));
+    if (getHashType(hash) === HashType.ENTRY)
+        return cells.filter((cell) => isHoldingEntry(cell.getState(), hash));
+    return cells.filter((cell) => isHoldingElement(cell.getState(), hash));
 }
 function selectCell(dnaHash, agentPubKey, conductors) {
     for (const conductor of conductors) {
@@ -34345,10 +34347,10 @@ class DhtCells extends PlaygroundElement {
             }
         });
     }
-    highlightNodesWithEntry(entryHash) {
+    highlightNodesWithEntry() {
         const allCells = selectAllCells(this.activeDna, this.conductors);
         allCells.forEach((cell) => this._cy.getElementById(cell.agentPubKey).removeClass('highlighted'));
-        const holdingCells = selectHoldingCells(entryHash, allCells);
+        const holdingCells = selectHoldingCells(this.activeHash, allCells);
         for (const cell of holdingCells) {
             this._cy.getElementById(cell.agentPubKey).addClass('highlighted');
         }
@@ -34444,7 +34446,9 @@ class DhtCells extends PlaygroundElement {
         }
         this.observedCells().forEach((cell) => this._cy.getElementById(cell.agentPubKey).removeClass('selected'));
         this._cy.getElementById(this.activeAgentPubKey).addClass('selected');
-        this.highlightNodesWithEntry(this.activeHash);
+        if (changedValues.has('activeHash')) {
+            this.highlightNodesWithEntry();
+        }
         if (changedValues.has('_onPause')) {
             this._cy
                 .style()

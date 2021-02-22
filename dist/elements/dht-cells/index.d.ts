@@ -1,6 +1,5 @@
 import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
 import { Button } from 'scoped-material-components/mwc-button';
-import { Hash } from '@holochain-open-dev/core-types';
 import { Cell, NetworkRequestType, WorkflowType } from '@holochain-playground/core';
 import { Card } from 'scoped-material-components/mwc-card';
 import { Slider } from 'scoped-material-components/mwc-slider';
@@ -29,7 +28,7 @@ export declare class DhtCells extends PlaygroundElement {
     private _resumeObservable;
     private _onPause;
     firstUpdated(): Promise<void>;
-    highlightNodesWithEntry(entryHash: Hash): void;
+    highlightNodesWithEntry(): void;
     observedCells(): Cell[];
     onNewObservedCell(cell: Cell): import("@holochain-playground/core").MiddlewareSubscription[];
     onCellsChanged(): void;

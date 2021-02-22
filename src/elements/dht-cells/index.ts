@@ -113,13 +113,13 @@ export class DhtCells extends PlaygroundElement {
     });
   }
 
-  highlightNodesWithEntry(entryHash: Hash) {
+  highlightNodesWithEntry() {
     const allCells = selectAllCells(this.activeDna, this.conductors);
 
     allCells.forEach((cell) =>
       this._cy.getElementById(cell.agentPubKey).removeClass('highlighted')
     );
-    const holdingCells = selectHoldingCells(entryHash, allCells);
+    const holdingCells = selectHoldingCells(this.activeHash, allCells);
 
     for (const cell of holdingCells) {
       this._cy.getElementById(cell.agentPubKey).addClass('highlighted');
@@ -243,7 +243,9 @@ export class DhtCells extends PlaygroundElement {
     );
     this._cy.getElementById(this.activeAgentPubKey).addClass('selected');
 
-    this.highlightNodesWithEntry(this.activeHash);
+    if (changedValues.has('activeHash')) {
+      this.highlightNodesWithEntry();
+    }
 
     if (changedValues.has('_onPause')) {
       this._cy

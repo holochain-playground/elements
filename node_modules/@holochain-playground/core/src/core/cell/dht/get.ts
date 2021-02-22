@@ -148,6 +148,10 @@ export function isHoldingEntry(state: CellState, entryHash: Hash): boolean {
   return state.metadata.system_meta[entryHash] !== undefined;
 }
 
+export function isHoldingElement(state: CellState, headerHash: Hash): boolean {
+  return state.metadata.misc_meta[headerHash] === 'StoreElement';
+}
+
 export interface EntryDHTInfo {
   details: EntryDetails;
   links: LinkMetaVal[];

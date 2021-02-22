@@ -76,6 +76,9 @@ function getAllAuthoredEntries(state) {
 function isHoldingEntry(state, entryHash) {
     return state.metadata.system_meta[entryHash] !== undefined;
 }
+function isHoldingElement(state, headerHash) {
+    return state.metadata.misc_meta[headerHash] === 'StoreElement';
+}
 function getDhtShard(state) {
     const heldEntries = getAllHeldEntries(state);
     const dhtShard = {};
@@ -815,10 +818,10 @@ const putDhtOpMetadata = (dhtOp) => (state) => {
     else if (dhtOp.type === DHTOpType.StoreEntry) {
         const entryHash = dhtOp.header.header.content.entry_hash;
         if (dhtOp.header.header.content.type === HeaderType.Update) {
-            register_header_on_basis(headerHash, dhtOp.header.header.content)(state);
-            register_header_on_basis(entryHash, dhtOp.header.header.content)(state);
+            register_header_on_basis(headerHash, dhtOp.header.header.content, headerHash)(state);
+            register_header_on_basis(entryHash, dhtOp.header.header.content, headerHash)(state);
         }
-        register_header_on_basis(entryHash, dhtOp.header.header.content)(state);
+        register_header_on_basis(entryHash, dhtOp.header.header.content, headerHash)(state);
         update_entry_dht_status(entryHash)(state);
     }
     else if (dhtOp.type === DHTOpType.RegisterAgentActivity) {
@@ -831,14 +834,14 @@ const putDhtOpMetadata = (dhtOp) => (state) => {
     }
     else if (dhtOp.type === DHTOpType.RegisterUpdatedContent ||
         dhtOp.type === DHTOpType.RegisterUpdatedElement) {
-        register_header_on_basis(dhtOp.header.header.content.original_header_address, dhtOp.header.header.content)(state);
-        register_header_on_basis(dhtOp.header.header.content.original_entry_address, dhtOp.header.header.content)(state);
+        register_header_on_basis(dhtOp.header.header.content.original_header_address, dhtOp.header.header.content, headerHash)(state);
+        register_header_on_basis(dhtOp.header.header.content.original_entry_address, dhtOp.header.header.content, headerHash)(state);
         update_entry_dht_status(dhtOp.header.header.content.original_entry_address)(state);
     }
     else if (dhtOp.type === DHTOpType.RegisterDeletedBy ||
         dhtOp.type === DHTOpType.RegisterDeletedEntryHeader) {
-        register_header_on_basis(dhtOp.header.header.content.deletes_address, dhtOp.header.header.content)(state);
-        register_header_on_basis(dhtOp.header.header.content.deletes_entry_address, dhtOp.header.header.content)(state);
+        register_header_on_basis(dhtOp.header.header.content.deletes_address, dhtOp.header.header.content, headerHash)(state);
+        register_header_on_basis(dhtOp.header.header.content.deletes_entry_address, dhtOp.header.header.content, headerHash)(state);
         update_entry_dht_status(dhtOp.header.header.content.deletes_entry_address)(state);
     }
     else if (dhtOp.type === DHTOpType.RegisterAddLink) {
@@ -877,8 +880,7 @@ const update_entry_dht_status = (entryHash) => (state) => {
         EntryStatus: entryIsAlive ? EntryDhtStatus.Live : EntryDhtStatus.Dead,
     };
 };
-const register_header_on_basis = (basis, header) => (state) => {
-    const headerHash = hash(header, HashType.HEADER);
+const register_header_on_basis = (basis, header, headerHash) => (state) => {
     let value;
     if (header.type === HeaderType.Create) {
         value = { NewEntry: headerHash };
@@ -2262,5 +2264,5 @@ async function createConductors(conductorsToCreate, currentConductors, dnaTempla
     return allConductors;
 }
 
-export { AGENT_PREFIX, Cell, Conductor, DHTOP_PREFIX, DNA_PREFIX, DelayMiddleware, Discover, ENTRY_PREFIX, HEADER_PREFIX, HashType, index as Hdk, KitsuneP2p, MiddlewareExecutor, Network, NetworkRequestType, P2pCell, ValidationLimboStatus, ValidationStatus, WorkflowType, app_validation, app_validation_task, buildAgentValidationPkg, buildCreate, buildCreateLink, buildDelete, buildDeleteLink, buildDna, buildShh, buildUpdate, callZomeFn, call_zome_fn_workflow, createConductors, deleteValidationLimboValue, distance, genesis, genesis_task, getAllAuthoredEntries, getAllAuthoredHeaders, getAllHeldEntries, getAppEntryType, getAuthor, getCellId, getClosestNeighbors, getDHTOpBasis, getDhtShard, getDnaHash, getElement, getEntryDetails, getEntryDhtStatus, getEntryTypeString, getFarthestNeighbors, getHashType, getHeaderAt, getHeaderModifiers, getHeadersForEntry, getLinksForEntry, getNewHeaders, getNextHeaderSeq, getNonPublishedDhtOps, getTipOfChain, getValidationLimboDhtOps, hash, hashEntry, incoming_dht_ops, incoming_dht_ops_task, integrate_dht_ops, integrate_dht_ops_task, isHoldingEntry, location, locationDistance, produce_dht_ops, produce_dht_ops_task, publish_dht_ops, publish_dht_ops_task, pullAllIntegrationLimboDhtOps, putDhtOpData, putDhtOpMetadata, putDhtOpToIntegrated, putElement, putIntegrationLimboValue, putSystemMetadata, putValidationLimboValue, register_header_on_basis, sampleDnaTemplate, sampleZome, sleep, sys_validation, sys_validation_task, valid_cap_grant, workflowPriority, wrap };
+export { AGENT_PREFIX, Cell, Conductor, DHTOP_PREFIX, DNA_PREFIX, DelayMiddleware, Discover, ENTRY_PREFIX, HEADER_PREFIX, HashType, index as Hdk, KitsuneP2p, MiddlewareExecutor, Network, NetworkRequestType, P2pCell, ValidationLimboStatus, ValidationStatus, WorkflowType, app_validation, app_validation_task, buildAgentValidationPkg, buildCreate, buildCreateLink, buildDelete, buildDeleteLink, buildDna, buildShh, buildUpdate, callZomeFn, call_zome_fn_workflow, createConductors, deleteValidationLimboValue, distance, genesis, genesis_task, getAllAuthoredEntries, getAllAuthoredHeaders, getAllHeldEntries, getAppEntryType, getAuthor, getCellId, getClosestNeighbors, getDHTOpBasis, getDhtShard, getDnaHash, getElement, getEntryDetails, getEntryDhtStatus, getEntryTypeString, getFarthestNeighbors, getHashType, getHeaderAt, getHeaderModifiers, getHeadersForEntry, getLinksForEntry, getNewHeaders, getNextHeaderSeq, getNonPublishedDhtOps, getTipOfChain, getValidationLimboDhtOps, hash, hashEntry, incoming_dht_ops, incoming_dht_ops_task, integrate_dht_ops, integrate_dht_ops_task, isHoldingElement, isHoldingEntry, location, locationDistance, produce_dht_ops, produce_dht_ops_task, publish_dht_ops, publish_dht_ops_task, pullAllIntegrationLimboDhtOps, putDhtOpData, putDhtOpMetadata, putDhtOpToIntegrated, putElement, putIntegrationLimboValue, putSystemMetadata, putValidationLimboValue, register_header_on_basis, sampleDnaTemplate, sampleZome, sleep, sys_validation, sys_validation_task, valid_cap_grant, workflowPriority, wrap };
 //# sourceMappingURL=index.js.map

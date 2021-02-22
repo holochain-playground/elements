@@ -63,11 +63,23 @@ export const putDhtOpMetadata = (dhtOp: DHTOp) => (state: CellState) => {
     const entryHash = dhtOp.header.header.content.entry_hash;
 
     if (dhtOp.header.header.content.type === HeaderType.Update) {
-      register_header_on_basis(headerHash, dhtOp.header.header.content)(state);
-      register_header_on_basis(entryHash, dhtOp.header.header.content)(state);
+      register_header_on_basis(
+        headerHash,
+        dhtOp.header.header.content,
+        headerHash
+      )(state);
+      register_header_on_basis(
+        entryHash,
+        dhtOp.header.header.content,
+        headerHash
+      )(state);
     }
 
-    register_header_on_basis(entryHash, dhtOp.header.header.content)(state);
+    register_header_on_basis(
+      entryHash,
+      dhtOp.header.header.content,
+      headerHash
+    )(state);
     update_entry_dht_status(entryHash)(state);
   } else if (dhtOp.type === DHTOpType.RegisterAgentActivity) {
     state.metadata.misc_meta[headerHash] = {
@@ -83,11 +95,13 @@ export const putDhtOpMetadata = (dhtOp: DHTOp) => (state: CellState) => {
   ) {
     register_header_on_basis(
       dhtOp.header.header.content.original_header_address,
-      dhtOp.header.header.content
+      dhtOp.header.header.content,
+      headerHash
     )(state);
     register_header_on_basis(
       dhtOp.header.header.content.original_entry_address,
-      dhtOp.header.header.content
+      dhtOp.header.header.content,
+      headerHash
     )(state);
     update_entry_dht_status(dhtOp.header.header.content.original_entry_address)(
       state
@@ -98,11 +112,13 @@ export const putDhtOpMetadata = (dhtOp: DHTOp) => (state: CellState) => {
   ) {
     register_header_on_basis(
       dhtOp.header.header.content.deletes_address,
-      dhtOp.header.header.content
+      dhtOp.header.header.content,
+      headerHash
     )(state);
     register_header_on_basis(
       dhtOp.header.header.content.deletes_entry_address,
-      dhtOp.header.header.content
+      dhtOp.header.header.content,
+      headerHash
     )(state);
 
     update_entry_dht_status(dhtOp.header.header.content.deletes_entry_address)(
@@ -154,10 +170,11 @@ const update_entry_dht_status = (entryHash: Hash) => (state: CellState) => {
   };
 };
 
-export const register_header_on_basis = (basis: Hash, header: Header) => (
-  state: CellState
-) => {
-  const headerHash = hash(header, HashType.HEADER);
+export const register_header_on_basis = (
+  basis: Hash,
+  header: Header,
+  headerHash: Hash
+) => (state: CellState) => {
   let value: SysMetaVal | undefined;
   if (header.type === HeaderType.Create) {
     value = { NewEntry: headerHash };
