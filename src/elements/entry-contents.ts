@@ -7,7 +7,7 @@ import { PlaygroundElement } from '../context/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
 import { shortenStrRec } from './utils/hash';
 
-export class HashContents extends PlaygroundElement {
+export class EntryContents extends PlaygroundElement {
   static get styles() {
     return [
       sharedStyles,

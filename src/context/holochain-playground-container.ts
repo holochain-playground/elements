@@ -41,7 +41,7 @@ export class HolochainPlaygroundContainer extends (ProviderMixin(
   @property({ type: String })
   activeAgentPubKey: AgentPubKey | undefined;
   @property({ type: String })
-  activeEntryHash: Hash | undefined;
+  activeHash: Hash | undefined;
   @property({ type: Array })
   conductors: Conductor[] = [];
 
@@ -52,7 +52,7 @@ export class HolochainPlaygroundContainer extends (ProviderMixin(
     return [
       'activeDna',
       'activeAgentPubKey',
-      'activeEntryHash',
+      'activeHash',
       'conductors',
       'conductorsUrls',
     ];
@@ -83,7 +83,7 @@ export class HolochainPlaygroundContainer extends (ProviderMixin(
           detail: {
             activeDna: this.activeDna,
             activeAgentPubKey: this.activeAgentPubKey,
-            activeEntryHash: this.activeEntryHash,
+            activeHash: this.activeHash,
             conductors: this.conductors,
             conductorsUrls: this.conductorsUrls,
           },

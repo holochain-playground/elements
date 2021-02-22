@@ -3,7 +3,7 @@ import { sharedStyles } from './utils/shared-styles';
 
 import { PlaygroundElement } from '../context/playground-element';
 import { DhtShard } from './dht-shard';
-import { HashContents } from './hash-contents';
+import { EntryContents } from './entry-contents';
 import { Card } from 'scoped-material-components/mwc-card';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
@@ -151,7 +151,7 @@ export class ConductorDetail extends PlaygroundElement {
   static get scopedElements() {
     return {
       'holochain-playground-dht-shard': DhtShard,
-      'holochain-playground-entry-detail': HashContents,
+      'holochain-playground-entry-detail': EntryContents,
       'mwc-tab': Tab,
       'mwc-tab-bar': TabBar,
       'mwc-card': Card,

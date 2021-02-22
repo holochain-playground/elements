@@ -29,12 +29,11 @@ export function sourceChainNodes(cell: Cell) {
 
   const headersHashes = state.sourceChain;
   for (const headerHash of headersHashes) {
-    const strHeaderHash = headerHash;
-    const header: SignedHeaderHashed = state.CAS[strHeaderHash];
+    const header: SignedHeaderHashed = state.CAS[headerHash];
 
     nodes.push({
       data: {
-        id: strHeaderHash,
+        id: headerHash,
         data: header,
         label: header.header.content.type,
       },
@@ -42,13 +41,13 @@ export function sourceChainNodes(cell: Cell) {
     });
 
     if ((header.header.content as Create).prev_header) {
-      const strPreviousHeaderHash = (header.header.content as Create)
+      const previousHeaderHash = (header.header.content as Create)
         .prev_header;
       nodes.push({
         data: {
-          id: `${strHeaderHash}->${strPreviousHeaderHash}`,
-          source: strHeaderHash,
-          target: strPreviousHeaderHash,
+          id: `${headerHash}->${previousHeaderHash}`,
+          source: headerHash,
+          target: previousHeaderHash,
         },
       });
     }
@@ -60,10 +59,10 @@ export function sourceChainNodes(cell: Cell) {
 
     if ((header.header.content as NewEntryHeader).entry_hash) {
       const newEntryHeader = header.header.content as NewEntryHeader;
-      const strEntryHash = newEntryHeader.entry_hash;
-      const entryNodeId = `${strHeaderHash}:${strEntryHash}`;
+      const entryHash = newEntryHeader.entry_hash;
+      const entryNodeId = `${strHeaderHash}:${entryHash}`;
 
-      const entry: Entry = state.CAS[strEntryHash];
+      const entry: Entry = state.CAS[entryHash];
 
       const entryType: string = getEntryTypeString(
         cell,
