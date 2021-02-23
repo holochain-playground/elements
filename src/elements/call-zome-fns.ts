@@ -252,6 +252,22 @@ export class CallZomeFns extends PlaygroundElement {
     `;
   }
 
+  renderResult(result: ZomeFunctionResult) {
+    if (!result.result)
+      return html`<span class="placeholder">Executing...</span>`;
+    if (!result.result.payload || typeof result.result.payload === 'string')
+      return html`<span>${result.result.payload}</span>`;
+    else
+      return html`
+        <expandable-line>
+          <json-viewer
+            .object=${result.result.payload}
+            class="fill"
+          ></json-viewer>
+        </expandable-line>
+      `;
+  }
+
   renderResults() {
     const results = this.getActiveResults();
 
@@ -325,22 +341,7 @@ export class CallZomeFns extends PlaygroundElement {
                                     ).toLocaleTimeString()}
                                   </span>
                                 </div>
-                                ${result.result
-                                  ? typeof result.result.payload === 'string'
-                                    ? html`<span
-                                        >${result.result.payload}</span
-                                      >`
-                                    : html`
-                                        <expandable-line>
-                                          <json-viewer
-                                            .object=${result.result.payload}
-                                            class="fill"
-                                          ></json-viewer>
-                                        </expandable-line>
-                                      `
-                                  : html`<span class="placeholder"
-                                      >Executing...</span
-                                    >`}
+                                ${this.renderResult(result)}
                               </div>
                             </div>
                             ${index < sortedResults.length - 1

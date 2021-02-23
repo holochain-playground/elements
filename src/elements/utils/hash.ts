@@ -1,5 +1,5 @@
 export function shortenStrRec(object: any) {
-  if (object === undefined) return object;
+  if (object === undefined || object === null) return object;
   else if (Array.isArray(object)) {
     return object.map(shortenStrRec);
   } else if (typeof object === 'object') {

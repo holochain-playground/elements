@@ -18,6 +18,8 @@
         style="height: 350px; width: 100%"
         id="call-zome"
       ></call-zome-fns>
+      <source-chain style="height: 350px; width: 100%"></source-chain>
+      <entry-contents style="height: 350px; width: 100%"></entry-contents>
     </holochain-playground-container>
 
     <script type="module">
@@ -28,12 +30,13 @@
         SourceChain,
         DhtCells,
         EntryGraph,
+        EntryContents
       } from '../dist';
       import {
         GetStrategy,
         WorkflowType,
         NetworkRequestType,
-        sampleDnaTemplate,
+        demoDnaTemplate,
       } from '@holochain-playground/core';
 
       const dna = {
@@ -49,12 +52,15 @@
             zome_functions: {
               create_entry: {
                 call: ({ create_entry, hash_entry }) => async ({ content }) => {
-                  return create_entry({ content, entry_def_id: 'sample_entry' });
+                  return create_entry({
+                    content,
+                    entry_def_id: 'sample_entry',
+                  });
                 },
                 arguments: [{ name: 'content', type: 'String' }],
               },
               get: {
-                call: ({ get }) => (hash) => {
+                call: ({ get }) => ({hash}) => {
                   return get(hash, { strategy: GetStrategy.Latest });
                 },
                 arguments: [{ name: 'hash', type: 'Hash' }],
@@ -72,6 +78,7 @@
       customElements.define('call-zome-fns', CallZomeFns);
       customElements.define('source-chain', SourceChain);
       customElements.define('entry-graph', EntryGraph);
+      customElements.define('entry-contents', EntryContents);
 
       const container = document.getElementById('container');
       container.numberOfSimulatedConductors = 15;
