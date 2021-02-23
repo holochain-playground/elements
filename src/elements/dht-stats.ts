@@ -16,7 +16,7 @@ import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
 import { PlaygroundElement } from '../context/playground-element';
 import {
   createConductors,
-  sampleDnaTemplate,
+  demoDnaTemplate,
   Conductor,
 } from '@holochain-playground/core';
 
@@ -92,7 +92,7 @@ export class DhtStats extends PlaygroundElement {
       conductors = await createConductors(
         newNodesToCreate,
         conductors,
-        sampleDnaTemplate()
+        demoDnaTemplate()
       );
     } else if (newNodes < currentNodes) {
       const conductorsToRemove = currentNodes - newNodes;

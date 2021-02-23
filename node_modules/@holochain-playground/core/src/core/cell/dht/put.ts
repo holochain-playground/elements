@@ -11,6 +11,7 @@ import {
   EntryDhtStatus,
   Header,
   SignedHeaderHashed,
+  NewEntryHeader,
 } from '@holochain-open-dev/core-types';
 import { hash, HashType } from '../../../processors/hash';
 import {
@@ -50,8 +51,9 @@ export const putDhtOpData = (dhtOp: DHTOp) => async (state: CellState) => {
   const entry = getEntry(dhtOp);
 
   if (entry) {
-    const entryHash = hashEntry(entry);
-    state.CAS[entryHash] = entry;
+    state.CAS[
+      (dhtOp.header.header.content as NewEntryHeader).entry_hash
+    ] = entry;
   }
 };
 

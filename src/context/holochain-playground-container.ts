@@ -15,7 +15,7 @@ import { ScopedElementsMixin as Scoped } from '@open-wc/scoped-elements';
 import {
   Conductor,
   createConductors,
-  sampleDnaTemplate,
+  demoDnaTemplate,
   SimulatedDnaTemplate,
 } from '@holochain-playground/core';
 import { AgentPubKey, Hash } from '@holochain-open-dev/core-types';
@@ -27,7 +27,7 @@ export class HolochainPlaygroundContainer extends (ProviderMixin(
   numberOfSimulatedConductors: number = 10;
 
   @property({ type: Object })
-  simulatedDnaTemplate: SimulatedDnaTemplate = sampleDnaTemplate();
+  simulatedDnaTemplate: SimulatedDnaTemplate = demoDnaTemplate();
 
   @query('#snackbar')
   private snackbar: Snackbar;

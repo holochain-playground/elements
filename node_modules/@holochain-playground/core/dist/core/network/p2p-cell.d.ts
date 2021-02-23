@@ -1,7 +1,8 @@
 import { AgentPubKey, CapSecret, CellId, DHTOp, Dictionary, Element, Hash } from '@holochain-open-dev/core-types';
 import { MiddlewareExecutor } from '../../executor/middleware-executor';
-import { GetOptions } from '../../types';
+import { GetLinksOptions, GetOptions } from '../../types';
 import { Cell } from '../cell';
+import { GetLinksResponse } from '../cell/cascade/types';
 import { Network } from './network';
 import { NetworkRequestInfo } from './network-request';
 export declare type P2pCellState = {
@@ -25,6 +26,7 @@ export declare class P2pCell {
     leave(): Promise<void>;
     publish(dht_hash: Hash, ops: Dictionary<DHTOp>): Promise<void>;
     get(dht_hash: Hash, options: GetOptions): Promise<Element | undefined>;
+    get_links(base_address: Hash, options: GetLinksOptions): Promise<GetLinksResponse[]>;
     call_remote(agent: AgentPubKey, zome: string, fnName: string, cap: CapSecret | undefined, payload: any): Promise<any>;
     /** Neighbor handling */
     getNeighbors(): Array<AgentPubKey>;

@@ -9,7 +9,7 @@ export * from './core/conductor';
 export * as Hdk from './core/hdk/index';
 
 export * from './dnas/simulated-dna';
-export * from './dnas/sample-dna';
+export * from './dnas/demo-dna';
 
 export * from './executor/middleware-executor';
 export * from './executor/delay-middleware';

@@ -5,6 +5,9 @@ import {
   Create,
   Delete,
   Update,
+  CreateLink,
+  DeleteLink,
+  Hash,
 } from '@holochain-open-dev/core-types';
 import { ValidationStatus } from '..';
 
@@ -29,3 +32,14 @@ export interface GetElementFull {
 }
 
 export type GetResult = GetElementFull | GetEntryFull;
+
+export interface GetLinksResponse {
+  link_adds: SignedHeaderHashed<CreateLink>[];
+  link_removes: SignedHeaderHashed<DeleteLink>[];
+}
+
+export interface Link {
+  base: Hash;
+  target: Hash;
+  tag: any;
+}

@@ -1,4 +1,4 @@
-import { createConductors, sampleDnaTemplate } from '../dist';
+import { createConductors, demoDnaTemplate } from '../dist';
 import { expect } from '@esm-bundle/chai';
 import { sleep } from './utils';
 
@@ -6,7 +6,7 @@ describe('CRUD', () => {
   it('create, update and delete an entry', async function () {
     this.timeout(0);
 
-    const conductors = await createConductors(10, [], sampleDnaTemplate());
+    const conductors = await createConductors(10, [], demoDnaTemplate());
     await sleep(10000);
 
     const cell = conductors[0].getAllCells()[0];
@@ -16,7 +16,7 @@ describe('CRUD', () => {
       cap: null,
       fnName: 'create_entry',
       payload: { content: 'hi' },
-      zome: 'sample',
+      zome: 'demo_entries',
     });
 
     expect(hash).to.be.ok;
@@ -27,7 +27,7 @@ describe('CRUD', () => {
       cap: null,
       fnName: 'get',
       payload: { hash },
-      zome: 'sample',
+      zome: 'demo_entries',
     });
 
     expect(content).to.be.ok;
@@ -40,7 +40,7 @@ describe('CRUD', () => {
         original_header_address: hash,
         new_content: 'hi2',
       },
-      zome: 'sample',
+      zome: 'demo_entries',
     });
 
     expect(hash).to.be.ok;
@@ -52,7 +52,7 @@ describe('CRUD', () => {
       payload: {
         deletes_address: hash,
       },
-      zome: 'sample',
+      zome: 'demo_entries',
     });
 
     expect(hash).to.be.ok;

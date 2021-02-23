@@ -4,8 +4,8 @@ import { P2pCell } from '../network/p2p-cell';
 import { CellState } from './state';
 import { Workflow } from './workflows/workflows';
 import { MiddlewareExecutor } from '../../executor/middleware-executor';
-import { GetResult } from './cascade/types';
-import { GetOptions } from '../../types';
+import { GetLinksResponse, GetResult } from './cascade/types';
+import { GetLinksOptions, GetOptions } from '../../types';
 export declare type CellSignal = 'after-workflow-executed' | 'before-workflow-executed';
 export declare type CellSignalListener = (payload: any) => void;
 export declare class Cell {
@@ -35,6 +35,7 @@ export declare class Cell {
     handle_publish(from_agent: AgentPubKey, dht_hash: Hash, // The basis for the DHTOps
     ops: Dictionary<DHTOp>): Promise<void>;
     handle_get(dht_hash: Hash, options: GetOptions): Promise<GetResult | undefined>;
+    handle_get_links(base_address: Hash, options: GetLinksOptions): Promise<GetLinksResponse>;
     handle_call_remote(from_agent: AgentPubKey, zome_name: string, fn_name: string, cap: CapSecret | undefined, payload: any): Promise<any>;
     /** Workflow internal execution */
     triggerWorkflow(workflow: Workflow<any, any>): void;

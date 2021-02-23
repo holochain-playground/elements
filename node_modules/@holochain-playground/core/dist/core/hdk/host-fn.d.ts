@@ -1,7 +1,7 @@
 import { P2pCell } from '../..';
 import { SimulatedDna } from '../../dnas/simulated-dna';
 import { CellState } from '../cell';
-import { Cascade } from '../cell/cascade';
+import { Cascade } from '../cell/cascade/cascade';
 export declare type HostFn<Fn extends Function> = (hostFnWorkspace: HostFnWorkspace, zome_index: number) => Fn;
 export interface HostFnWorkspace {
     state: CellState;

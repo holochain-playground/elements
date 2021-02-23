@@ -4,7 +4,7 @@ import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { ProviderMixin, ConsumerMixin } from 'lit-element-context';
 import { LitElement, css as css$1, html, property as property$1, query } from 'lit-element';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
-import { sampleDnaTemplate, createConductors, getHashType, HashType, isHoldingEntry, isHoldingElement, getDhtShard, WorkflowType, sleep, workflowPriority, Cell, location, NetworkRequestType, getEntryTypeString, getAllHeldEntries, getEntryDetails, getLinksForEntry, getAppEntryType } from '@holochain-playground/core';
+import { demoDnaTemplate, createConductors, getHashType, HashType, isHoldingEntry, isHoldingElement, getDhtShard, WorkflowType, sleep, workflowPriority, Cell, location, NetworkRequestType, getEntryTypeString, getAllHeldEntries, getEntryDetails, getLinksForEntry, getAppEntryType, getLiveLinks } from '@holochain-playground/core';
 import { TextField } from 'scoped-material-components/mwc-textfield';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Icon } from 'scoped-material-components/mwc-icon';
@@ -58,7 +58,7 @@ class HolochainPlaygroundContainer extends ProviderMixin(ScopedElementsMixin(Lit
     constructor() {
         super(...arguments);
         this.numberOfSimulatedConductors = 10;
-        this.simulatedDnaTemplate = sampleDnaTemplate();
+        this.simulatedDnaTemplate = demoDnaTemplate();
         this.conductors = [];
     }
     static get provide() {
@@ -34788,7 +34788,7 @@ class DhtStats extends PlaygroundElement {
         let conductors = this.conductors;
         if (newNodes > currentNodes) {
             const newNodesToCreate = newNodes - currentNodes;
-            conductors = await createConductors(newNodesToCreate, conductors, sampleDnaTemplate());
+            conductors = await createConductors(newNodesToCreate, conductors, demoDnaTemplate());
         }
         else if (newNodes < currentNodes) {
             const conductorsToRemove = currentNodes - newNodes;
@@ -37634,8 +37634,7 @@ function sourceChainNodes(cell) {
             classes: ['header', header.header.content.type],
         });
         if (header.header.content.prev_header) {
-            const previousHeaderHash = header.header.content
-                .prev_header;
+            const previousHeaderHash = header.header.content.prev_header;
             nodes.push({
                 data: {
                     id: `${headerHash}->${previousHeaderHash}`,
@@ -37681,7 +37680,9 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
         const state = cell.getState();
         for (const entryHash of getAllHeldEntries(state)) {
             details[entryHash] = getEntryDetails(state, entryHash);
-            links[entryHash] = getLinksForEntry(state, entryHash);
+            if (!links[entryHash])
+                links[entryHash] = [];
+            links[entryHash].push(getLinksForEntry(state, entryHash));
             const firstEntryHeader = details[entryHash].headers[0];
             if (firstEntryHeader &&
                 firstEntryHeader.header.content.entry_type) {
@@ -37768,25 +37769,28 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
                 }
             }
             // Get the explicit links from the entry
-            const linksDetails = links[entryHash];
-            for (const linkVal of linksDetails) {
-                const tag = !linkVal.tag || typeof linkVal.tag === 'string'
-                    ? linkVal.tag
-                    : JSON.stringify(linkVal.tag);
-                const target = linkVal.target;
-                if (!excludedEntryTypes.includes(entryTypes[target])) {
-                    const edgeData = {
-                        data: {
-                            id: `${entryHash}->${target}`,
-                            source: entryHash,
-                            target,
-                        },
-                        classes: ['explicit'],
-                    };
-                    if (tag) {
-                        edgeData.data['label'] = tag;
+            const linksResponses = links[entryHash];
+            if (linksResponses) {
+                const links = getLiveLinks(linksResponses);
+                for (const link of links) {
+                    const tag = !link.tag || typeof link.tag === 'string'
+                        ? link.tag
+                        : JSON.stringify(link.tag);
+                    const target = link.target;
+                    if (!excludedEntryTypes.includes(entryTypes[target])) {
+                        const edgeData = {
+                            data: {
+                                id: `${entryHash}->${target}`,
+                                source: entryHash,
+                                target,
+                            },
+                            classes: ['explicit'],
+                        };
+                        if (tag) {
+                            edgeData.data['label'] = tag;
+                        }
+                        linksEdges.push(edgeData);
                     }
-                    linksEdges.push(edgeData);
                 }
             }
             // Get the updates edges for the entry

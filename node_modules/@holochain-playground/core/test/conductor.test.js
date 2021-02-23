@@ -1,4 +1,4 @@
-import { Conductor, createConductors, sampleDnaTemplate } from '../dist';
+import { Conductor, createConductors, demoDnaTemplate } from '../dist';
 import { expect } from '@esm-bundle/chai';
 import { sleep } from './utils';
 
@@ -6,7 +6,7 @@ describe('Conductor', () => {
   it('create conductors and call zome fn', async function () {
     this.timeout(0);
 
-    const conductors = await createConductors(10, [], sampleDnaTemplate());
+    const conductors = await createConductors(10, [], demoDnaTemplate());
     await sleep(10000);
 
     const cell = conductors[0].getAllCells()[0];
@@ -16,7 +16,7 @@ describe('Conductor', () => {
       cap: null,
       fnName: 'create_entry',
       payload: { content: 'hi' },
-      zome: 'sample',
+      zome: 'demo_entries',
     });
 
     expect(hash).to.be.ok;
@@ -32,7 +32,7 @@ describe('Conductor', () => {
       payload: {
         hash,
       },
-      zome: 'sample',
+      zome: 'demo_entries',
     });
 
     expect(getresult).to.be.ok;
@@ -44,7 +44,7 @@ describe('Conductor', () => {
       payload: {
         hash,
       },
-      zome: 'sample',
+      zome: 'demo_entries',
     });
 
     expect(getresult).to.be.ok;

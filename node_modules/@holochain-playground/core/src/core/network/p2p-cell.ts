@@ -8,9 +8,13 @@ import {
   Hash,
 } from '@holochain-open-dev/core-types';
 import { MiddlewareExecutor } from '../../executor/middleware-executor';
-import { GetOptions } from '../../types';
+import { GetLinksOptions, GetOptions } from '../../types';
 import { Cell } from '../cell';
-import { GetElementFull, GetEntryFull } from '../cell/cascade/types';
+import {
+  GetElementFull,
+  GetEntryFull,
+  GetLinksResponse,
+} from '../cell/cascade/types';
 import { Network } from './network';
 import {
   NetworkRequestInfo,
@@ -114,6 +118,25 @@ export class P2pCell {
         entry: (result as GetEntryFull).entry,
       };
     }
+  }
+
+  async get_links(
+    base_address: Hash,
+    options: GetLinksOptions
+  ): Promise<GetLinksResponse[]> {
+    return this.network.kitsune.rpc_multi(
+      this.cellId[0],
+      this.cellId[1],
+      base_address,
+      1, // TODO: what about this?
+      (cell: Cell) =>
+        this._executeNetworkRequest(
+          cell,
+          NetworkRequestType.GET_REQUEST,
+          { hash: base_address, options },
+          (cell: Cell) => cell.handle_get_links(base_address, options)
+        )
+    );
   }
 
   async call_remote(

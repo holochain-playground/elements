@@ -4,6 +4,8 @@ import {
   getAllHeldEntries,
   getAppEntryType,
   getEntryTypeString,
+  getCreateLinksForEntry,
+  getLiveLinks,
   getLinksForEntry,
 } from '@holochain-playground/core';
 import {
@@ -16,10 +18,10 @@ import {
   Update,
   Entry,
   LinkMetaVal,
-  timestampToMillis
+  timestampToMillis,
 } from '@holochain-open-dev/core-types';
 import { shortenStrRec } from '../elements/utils/hash';
-
+import { GetLinksResponse } from '@holochain-playground/core/dist/core/cell/cascade/types';
 
 export function sourceChainNodes(cell: Cell) {
   if (!cell) return [];
@@ -41,8 +43,7 @@ export function sourceChainNodes(cell: Cell) {
     });
 
     if ((header.header.content as Create).prev_header) {
-      const previousHeaderHash = (header.header.content as Create)
-        .prev_header;
+      const previousHeaderHash = (header.header.content as Create).prev_header;
       nodes.push({
         data: {
           id: `${headerHash}->${previousHeaderHash}`,
@@ -96,15 +97,15 @@ export function allEntries(
   excludedEntryTypes: string[]
 ) {
   const details: Dictionary<EntryDetails> = {};
-  const links: Dictionary<LinkMetaVal[]> = {};
+  const links: Dictionary<GetLinksResponse[]> = {};
   const entryTypes: Dictionary<string> = {};
 
   for (const cell of cells) {
     const state = cell.getState();
     for (const entryHash of getAllHeldEntries(state)) {
-
       details[entryHash] = getEntryDetails(state, entryHash);
-      links[entryHash] = getLinksForEntry(state, entryHash);
+      if (!links[entryHash]) links[entryHash] = [];
+      links[entryHash].push(getLinksForEntry(state, entryHash));
 
       const firstEntryHeader = details[entryHash].headers[0];
       if (
@@ -208,27 +209,32 @@ export function allEntries(
       }
 
       // Get the explicit links from the entry
-      const linksDetails = links[entryHash];
-      for (const linkVal of linksDetails) {
-        const tag =
-          !linkVal.tag || typeof linkVal.tag === 'string'
-            ? linkVal.tag
-            : JSON.stringify(linkVal.tag);
-        const target = linkVal.target;
+      const linksResponses = links[entryHash];
 
-        if (!excludedEntryTypes.includes(entryTypes[target])) {
-          const edgeData = {
-            data: {
-              id: `${entryHash}->${target}`,
-              source: entryHash,
-              target,
-            },
-            classes: ['explicit'],
-          };
-          if (tag) {
-            edgeData.data['label'] = tag;
+      if (linksResponses) {
+        const links = getLiveLinks(linksResponses);
+
+        for (const link of links) {
+          const tag =
+            !link.tag || typeof link.tag === 'string'
+              ? link.tag
+              : JSON.stringify(link.tag);
+          const target = link.target;
+
+          if (!excludedEntryTypes.includes(entryTypes[target])) {
+            const edgeData = {
+              data: {
+                id: `${entryHash}->${target}`,
+                source: entryHash,
+                target,
+              },
+              classes: ['explicit'],
+            };
+            if (tag) {
+              edgeData.data['label'] = tag;
+            }
+            linksEdges.push(edgeData);
           }
-          linksEdges.push(edgeData);
         }
       }
 

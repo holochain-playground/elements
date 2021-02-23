@@ -5,7 +5,7 @@ import { sleep } from './utils';
 const dna = {
   zomes: [
     {
-      name: 'sample',
+      name: 'demo_entries',
       entry_defs: [],
       zome_functions: {
         create_cap: {
@@ -18,7 +18,7 @@ const dna = {
                   assignees: [agentPubKeyToGrant],
                 },
               },
-              functions: [{ zome: 'sample', fn_name: 'sample_fn' }],
+              functions: [{ zome: 'demo_entries', fn_name: 'sample_fn' }],
             });
           },
           arguments: [],
@@ -39,7 +39,7 @@ const dna = {
           call: ({ call_remote }) => agentToCall => {
             return call_remote({
               agent: agentToCall,
-              zome: 'sample',
+              zome: 'demo_entries',
               fn_name: 'sample_fn',
               cap: null,
               payload: null,
@@ -73,7 +73,7 @@ describe('Capabilities', () => {
         cap: null,
         fnName: 'call_remote',
         payload: aliceAddress,
-        zome: 'sample',
+        zome: 'demo_entries',
       });
       expect(false).to.be.ok;
     } catch (e) {
@@ -86,7 +86,7 @@ describe('Capabilities', () => {
       cap: null,
       fnName: 'create_cap',
       payload: bobAddress,
-      zome: 'sample',
+      zome: 'demo_entries',
     });
 
     expect(capGrantAddress).to.be.ok;
@@ -96,7 +96,7 @@ describe('Capabilities', () => {
       cap: null,
       fnName: 'call_remote',
       payload: aliceAddress,
-      zome: 'sample',
+      zome: 'demo_entries',
     });
     expect(result).to.equal('Hello');
 
@@ -105,7 +105,7 @@ describe('Capabilities', () => {
       cap: null,
       fnName: 'revoke_cap',
       payload: capGrantAddress,
-      zome: 'sample',
+      zome: 'demo_entries',
     });
 
     expect(result).to.be.ok;
@@ -117,7 +117,7 @@ describe('Capabilities', () => {
         cap: null,
         fnName: 'call_remote',
         payload: aliceAddress,
-        zome: 'sample',
+        zome: 'demo_entries',
       });
       expect(false).to.be.ok;
     } catch (e) {

@@ -1,6 +1,7 @@
 export type GetOptions = {
   strategy: GetStrategy;
 };
+export type GetLinksOptions = {};
 
 export enum GetStrategy {
   Latest,

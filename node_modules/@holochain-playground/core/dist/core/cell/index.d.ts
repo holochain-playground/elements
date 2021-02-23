@@ -1,3 +1,6 @@
+export * from './cascade/cascade';
+export * from './cascade/authority';
+export * from './cascade/types';
 export * from './dht/get';
 export * from './dht/put';
 export * from './source-chain/get';

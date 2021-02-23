@@ -16,7 +16,7 @@ export const delete_link: HostFn<DeleteLinkFn> = (
   const elementToDelete = await worskpace.cascade.dht_get(deletes_address, {
     strategy: GetStrategy.Contents,
   });
-
+  
   if (!elementToDelete) throw new Error('Could not find element to be deleted');
 
   const baseAddress = (elementToDelete.signed_header.header
