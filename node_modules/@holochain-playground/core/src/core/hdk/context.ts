@@ -17,6 +17,7 @@ import { CallRemoteFn, call_remote } from './host-fn/call_remote';
 import { get, GetFn } from './host-fn/get';
 import { GetLinksFn, get_links } from './host-fn/get_links';
 import { HashEntryFn, hash_entry } from './host-fn/hash_entry';
+import { query, QueryFn } from './host-fn/query';
 import { path, Path } from './path';
 
 export interface SimulatedZomeFunctionContext {
@@ -32,6 +33,7 @@ export interface SimulatedZomeFunctionContext {
   delete_cap_grant: DeleteCapGrantFn;
   call_remote: CallRemoteFn;
   agent_info: AgentInfoFn;
+  query: QueryFn;
   path: Path;
 }
 
@@ -52,6 +54,7 @@ export function buildZomeFunctionContext(
     delete_cap_grant: delete_cap_grant(workspace, zome_index),
     call_remote: call_remote(workspace, zome_index),
     agent_info: agent_info(workspace, zome_index),
+    query: query(workspace, zome_index),
     path,
   };
 }

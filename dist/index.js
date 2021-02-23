@@ -37880,8 +37880,8 @@ const layoutConfig$1 = {
 class EntryGraph extends PlaygroundElement {
     constructor() {
         super(...arguments);
-        this.showFilter = true;
-        this.showEntryContents = true;
+        this.hideFilter = false;
+        this.showEntryContents = false;
         this.excludedEntryTypes = [];
         this.lastEntriesIds = [];
         this.ready = false;
@@ -38095,7 +38095,8 @@ class EntryGraph extends PlaygroundElement {
 
           <div id="entry-graph" class="fill"></div>
 
-          ${this.renderHelp()} ${this.showFilter ? this.renderFilter() : html ``}
+          ${this.renderHelp()}
+          ${!this.hideFilter ? this.renderFilter() : html ``}
         </div>
       </mwc-card>
     `;
@@ -38115,11 +38116,11 @@ class EntryGraph extends PlaygroundElement {
     }
 }
 __decorate([
-    property$1({ type: Boolean }),
+    property$1({ type: Boolean, attribute: 'hide-filter' }),
     __metadata("design:type", Boolean)
-], EntryGraph.prototype, "showFilter", void 0);
+], EntryGraph.prototype, "hideFilter", void 0);
 __decorate([
-    property$1({ type: Boolean }),
+    property$1({ type: Boolean, attribute: 'show-entry-contents' }),
     __metadata("design:type", Boolean)
 ], EntryGraph.prototype, "showEntryContents", void 0);
 __decorate([

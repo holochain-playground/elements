@@ -1771,6 +1771,22 @@ const hash_entry = (worskpace) => async (args) => {
     return hashEntry(entry);
 };
 
+// Creates a new Create header and its entry in the source chain
+const query = (workspace) => async (filter) => {
+    const authoredHeaders = getAllAuthoredHeaders(workspace.state);
+    return authoredHeaders.map(header => {
+        let entry = undefined;
+        if (header.header.content.entry_hash) {
+            entry =
+                workspace.state.CAS[header.header.content.entry_hash];
+        }
+        return {
+            signed_header: header,
+            entry,
+        };
+    });
+};
+
 async function ensure(path, hdk) {
     await hdk.create_entry({
         content: path,
@@ -1804,6 +1820,7 @@ function buildZomeFunctionContext(workspace, zome_index) {
         delete_cap_grant: delete_cap_grant(workspace),
         call_remote: call_remote(workspace),
         agent_info: agent_info(workspace),
+        query: query(workspace),
         path,
     };
 }

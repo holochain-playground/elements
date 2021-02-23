@@ -11,6 +11,7 @@ import { CallRemoteFn } from './host-fn/call_remote';
 import { GetFn } from './host-fn/get';
 import { GetLinksFn } from './host-fn/get_links';
 import { HashEntryFn } from './host-fn/hash_entry';
+import { QueryFn } from './host-fn/query';
 import { Path } from './path';
 export interface SimulatedZomeFunctionContext {
     create_entry: CreateEntryFn;
@@ -25,6 +26,7 @@ export interface SimulatedZomeFunctionContext {
     delete_cap_grant: DeleteCapGrantFn;
     call_remote: CallRemoteFn;
     agent_info: AgentInfoFn;
+    query: QueryFn;
     path: Path;
 }
 export declare function buildZomeFunctionContext(workspace: HostFnWorkspace, zome_index: number): SimulatedZomeFunctionContext;

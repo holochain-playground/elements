@@ -7,3 +7,5 @@ export enum GetStrategy {
   Latest,
   Contents,
 }
+
+export interface QueryFilter {}

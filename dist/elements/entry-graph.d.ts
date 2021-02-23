@@ -9,7 +9,7 @@ import { Button } from 'scoped-material-components/mwc-button';
 import { Icon } from 'scoped-material-components/mwc-icon';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 export declare class EntryGraph extends PlaygroundElement {
-    showFilter: boolean;
+    hideFilter: boolean;
     showEntryContents: boolean;
     excludedEntryTypes: string[];
     private entryGraph;
