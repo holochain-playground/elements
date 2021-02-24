@@ -248,20 +248,24 @@ export function allEntries(
         const strUpdateEntryHash = update.header.content.entry_hash;
         linksEdges.push({
           data: {
-            id: `${entryHash}-replaced-by-${strUpdateEntryHash}`,
+            id: `${entryHash}-updated-by-${strUpdateEntryHash}`,
             source: entryHash,
             target: strUpdateEntryHash,
-            label: 'replaced by',
+            label: 'updated by',
           },
           classes: ['update-edge'],
         });
       }
 
       // Add deleted class if is deleted
-      if (detail.entry_dht_status === EntryDhtStatus.Dead)
-        entryNodes
-          .find((node) => node.data.id === entryHash)
-          .classes.push('deleted');
+      const node = entryNodes.find((node) => node.data.id === entryHash);
+
+      if (detail.updates.length > 0) {
+        node.classes.push('updated');
+      }
+      if (detail.deletes.length > 0) {
+        node.classes.push('deleted');
+      }
     }
     entryTypeCount[entryType] += 1;
   }

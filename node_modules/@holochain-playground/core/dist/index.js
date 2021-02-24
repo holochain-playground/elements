@@ -1128,15 +1128,17 @@ const putDhtOpMetadata = (dhtOp) => (state) => {
         putSystemMetadata(dhtOp.header.header.content.link_add_address, val)(state);
     }
 };
+function is_header_alive(state, headerHash) {
+    const dhtHeaders = state.metadata.system_meta[headerHash];
+    if (dhtHeaders) {
+        const isHeaderDeleted = !!dhtHeaders.find(metaVal => metaVal.Delete);
+        return !isHeaderDeleted;
+    }
+    return true;
+}
 const update_entry_dht_status = (entryHash) => (state) => {
     const headers = getHeadersForEntry(state, entryHash);
-    const entryIsAlive = headers.some(header => {
-        const headerHash = header.header.hash;
-        const dhtHeaders = state.metadata.system_meta[headerHash];
-        return dhtHeaders
-            ? dhtHeaders.find(metaVal => metaVal.Delete)
-            : true;
-    });
+    const entryIsAlive = headers.some(header => is_header_alive(state, header.header.hash));
     state.metadata.misc_meta[entryHash] = {
         EntryStatus: entryIsAlive ? EntryDhtStatus.Live : EntryDhtStatus.Dead,
     };

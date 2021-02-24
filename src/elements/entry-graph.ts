@@ -134,7 +134,7 @@ export class EntryGraph extends PlaygroundElement {
                 opacity: 0.5;
               }
               .deleted {
-                opacity: 0.3;
+                opacity: 0.3 !important;
               }
             `,
     });

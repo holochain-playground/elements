@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>194/194</span>
+                <span class='fraction'>198/198</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">93.33% </span>
+                <span class="strong">91.11% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>42/45</span>
+                <span class='fraction'>41/45</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>9/9</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>194/194</span>
+                <span class='fraction'>198/198</span>
             </div>
         
             
@@ -251,7 +251,11 @@
 <a name='L192'></a><a href='#L192'>192</a>
 <a name='L193'></a><a href='#L193'>193</a>
 <a name='L194'></a><a href='#L194'>194</a>
-<a name='L195'></a><a href='#L195'>195</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">5x</span>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
@@ -388,21 +392,25 @@
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">744x</span>
 <span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">124x</span>
+<span class="cline-any cline-yes">124x</span>
+<span class="cline-any cline-yes">124x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">121x</span>
+<span class="cline-any cline-yes">121x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">124x</span>
 <span class="cline-any cline-yes">124x</span>
 <span class="cline-any cline-yes">124x</span>
-<span class="cline-any cline-yes">127x</span>
-<span class="cline-any cline-yes">127x</span>
-<span class="cline-any cline-yes">127x</span>
-<span class="cline-any cline-yes">127x</span>
-<span class="cline-any cline-yes">127x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">127x</span>
-<span class="cline-any cline-yes">127x</span>
+<span class="cline-any cline-yes">124x</span>
 <span class="cline-any cline-yes">124x</span>
 <span class="cline-any cline-yes">124x</span>
 <span class="cline-any cline-yes">124x</span>
@@ -433,8 +441,8 @@
 <span class="cline-any cline-yes">149x</span>
 <span class="cline-any cline-yes">149x</span>
 <span class="cline-any cline-yes">149x</span>
-<span class="cline-any cline-yes">118x</span>
-<span class="cline-any cline-yes">118x</span>
+<span class="cline-any cline-yes">117x</span>
+<span class="cline-any cline-yes">117x</span>
 <span class="cline-any cline-yes">149x</span>
 <span class="cline-any cline-yes">149x</span>
 <span class="cline-any cline-yes">149x</span>
@@ -582,25 +590,29 @@ export const putDhtOpMetadata = (dhtOp: DHTOp) =&gt; (state: CellState) =&gt; {
   }
 };
 &nbsp;
+function is_header_alive(state: CellState, headerHash: Hash): boolean {
+  const dhtHeaders = state.metadata.system_meta[headerHash];
+  if (dhtHeaders) {
+    const isHeaderDeleted = !!dhtHeaders.find(
+      metaVal =&gt;
+        (metaVal as {
+          Delete: Hash;
+        }).Delete
+    );
+    return !isHeaderDeleted;
+  }
+  return true;
+}
+&nbsp;
 const update_entry_dht_status = (entryHash: Hash) =&gt; (state: CellState) =&gt; {
   const headers = getHeadersForEntry(state, entryHash);
 &nbsp;
-  const entryIsAlive = headers.some(header =&gt; {
-    const headerHash = header.header.hash;
-&nbsp;
-    const dhtHeaders = state.metadata.system_meta[headerHash];
-    return dhtHeaders
-      ? dhtHeaders.find(
-          metaVal =&gt;
-            (metaVal as {
-              Delete: Hash;
-            }).Delete
-        )
-      : true;
-  });
+  const entryIsAlive = headers.some(header =&gt;
+    is_header_alive(state, header.header.hash)
+  );
 &nbsp;
   state.metadata.misc_meta[entryHash] = {
-    EntryStatus: entryIsAlive ? EntryDhtStatus.Live : EntryDhtStatus.Dead,
+    EntryStatus: entryIsAlive ? EntryDhtStatus.Live <span class="branch-0 cbranch-no" title="branch not covered" >: EntryDhtStatus.Dead,</span>
   };
 };
 &nbsp;
@@ -646,7 +658,7 @@ export const putDhtOpToIntegrated = (
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Wed Feb 24 2021 15:13:18 GMT+0100 (Hora estàndard del Centre d’Europa)
+                at Wed Feb 24 2021 15:37:04 GMT+0100 (Hora estàndard del Centre d’Europa)
             </div>
         </div>
         <script src="../../../../prettify.js"></script>

@@ -26,7 +26,7 @@ import { Subject } from 'rxjs';
 import { Menu } from 'scoped-material-components/mwc-menu';
 import { uniq, isEqual } from 'lodash-es';
 import { Checkbox } from 'scoped-material-components/mwc-checkbox';
-import { timestampToMillis, EntryDhtStatus } from '@holochain-open-dev/core-types';
+import { timestampToMillis } from '@holochain-open-dev/core-types';
 
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -34342,8 +34342,7 @@ class DhtCells extends PlaygroundElement {
         });
         this._cy.on('tap', 'node', (evt) => {
             this.updatePlayground({
-                activeAgentPubKey: evt.target.id(),
-                activeHash: null,
+                activeAgentPubKey: evt.target.id()
             });
         });
         let rendered = false;
@@ -35118,19 +35117,22 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
                 const strUpdateEntryHash = update.header.content.entry_hash;
                 linksEdges.push({
                     data: {
-                        id: `${entryHash}-replaced-by-${strUpdateEntryHash}`,
+                        id: `${entryHash}-updated-by-${strUpdateEntryHash}`,
                         source: entryHash,
                         target: strUpdateEntryHash,
-                        label: 'replaced by',
+                        label: 'updated by',
                     },
                     classes: ['update-edge'],
                 });
             }
             // Add deleted class if is deleted
-            if (detail.entry_dht_status === EntryDhtStatus.Dead)
-                entryNodes
-                    .find((node) => node.data.id === entryHash)
-                    .classes.push('deleted');
+            const node = entryNodes.find((node) => node.data.id === entryHash);
+            if (detail.updates.length > 0) {
+                node.classes.push('updated');
+            }
+            if (detail.deletes.length > 0) {
+                node.classes.push('deleted');
+            }
         }
         entryTypeCount[entryType] += 1;
     }
@@ -40468,7 +40470,7 @@ class EntryGraph extends PlaygroundElement {
                 opacity: 0.5;
               }
               .deleted {
-                opacity: 0.3;
+                opacity: 0.3 !important;
               }
             `,
         });

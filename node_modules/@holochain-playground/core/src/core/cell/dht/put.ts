@@ -135,22 +135,26 @@ export const putDhtOpMetadata = (dhtOp: DHTOp) => (state: CellState) => {
   }
 };
 
+function is_header_alive(state: CellState, headerHash: Hash): boolean {
+  const dhtHeaders = state.metadata.system_meta[headerHash];
+  if (dhtHeaders) {
+    const isHeaderDeleted = !!dhtHeaders.find(
+      metaVal =>
+        (metaVal as {
+          Delete: Hash;
+        }).Delete
+    );
+    return !isHeaderDeleted;
+  }
+  return true;
+}
+
 const update_entry_dht_status = (entryHash: Hash) => (state: CellState) => {
   const headers = getHeadersForEntry(state, entryHash);
 
-  const entryIsAlive = headers.some(header => {
-    const headerHash = header.header.hash;
-
-    const dhtHeaders = state.metadata.system_meta[headerHash];
-    return dhtHeaders
-      ? dhtHeaders.find(
-          metaVal =>
-            (metaVal as {
-              Delete: Hash;
-            }).Delete
-        )
-      : true;
-  });
+  const entryIsAlive = headers.some(header =>
+    is_header_alive(state, header.header.hash)
+  );
 
   state.metadata.misc_meta[entryHash] = {
     EntryStatus: entryIsAlive ? EntryDhtStatus.Live : EntryDhtStatus.Dead,
