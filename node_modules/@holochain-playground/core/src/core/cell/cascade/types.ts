@@ -11,7 +11,7 @@ import {
 } from '@holochain-open-dev/core-types';
 import { ValidationStatus } from '..';
 
-export interface GetEntryFull {
+export interface GetEntryResponse {
   entry: Entry;
   entry_type: EntryType;
   live_headers: SignedHeaderHashed<Create>[];
@@ -19,7 +19,7 @@ export interface GetEntryFull {
   updates: SignedHeaderHashed<Update>[];
 }
 
-export interface GetElementFull {
+export interface GetElementResponse {
   signed_header: SignedHeaderHashed;
   /// If there is an entry associated with this header it will be here
   maybe_entry: Entry | undefined;
@@ -31,7 +31,7 @@ export interface GetElementFull {
   updates: SignedHeaderHashed<Update>[];
 }
 
-export type GetResult = GetElementFull | GetEntryFull;
+export type GetResult = GetElementResponse | GetEntryResponse;
 
 export interface GetLinksResponse {
   link_adds: SignedHeaderHashed<CreateLink>[];

@@ -17,9 +17,14 @@ import {
   getLinksForEntry,
   getHeaderModifiers,
   getHeadersForEntry,
+  getEntryDetails,
 } from '../dht/get';
 import { CellState, ValidationStatus } from '../state';
-import { GetEntryFull, GetElementFull, GetLinksResponse } from './types';
+import {
+  GetEntryResponse,
+  GetElementResponse,
+  GetLinksResponse,
+} from './types';
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain_cascade/src/authority.rs
 export class Authority {
@@ -28,53 +33,34 @@ export class Authority {
   public async handle_get_entry(
     entry_hash: Hash,
     options: GetOptions
-  ): Promise<GetEntryFull | undefined> {
+  ): Promise<GetEntryResponse | undefined> {
     const entry = this.state.CAS[entry_hash];
     if (!entry) return undefined;
 
     const allHeaders = getHeadersForEntry(this.state, entry_hash);
 
+    const entryDetails = getEntryDetails(this.state, entry_hash);
+
+    const createHeader = allHeaders.find(
+      header => (header.header.content as Create).entry_type
+    );
     let entry_type: EntryType | undefined = undefined;
-    const live_headers: SignedHeaderHashed<Create>[] = [];
-    const updates: SignedHeaderHashed<Update>[] = [];
-    const deletes: SignedHeaderHashed<Delete>[] = [];
-
-    for (const header of allHeaders) {
-      const headerContent = (header as SignedHeaderHashed).header.content;
-
-      if (
-        (headerContent as Update).original_entry_address &&
-        (headerContent as Update).original_entry_address === entry_hash
-      ) {
-        updates.push(header as SignedHeaderHashed<Update>);
-      } else if (
-        (headerContent as Create).entry_hash &&
-        (headerContent as Create).entry_hash === entry_hash
-      ) {
-        live_headers.push(header as SignedHeaderHashed<Create>);
-        if (!entry_type) {
-          entry_type = (headerContent as Create).entry_type;
-        }
-      } else if (
-        (headerContent as Delete).deletes_entry_address === entry_hash
-      ) {
-        deletes.push(header as SignedHeaderHashed<Delete>);
-      }
-    }
+    if (createHeader)
+      entry_type = (createHeader.header.content as Create).entry_type;
 
     return {
       entry,
       entry_type: entry_type as EntryType,
-      live_headers,
-      updates,
-      deletes,
+      deletes: entryDetails.deletes as SignedHeaderHashed<Delete>[],
+      updates: entryDetails.updates as SignedHeaderHashed<Update>[],
+      live_headers: entryDetails.headers as SignedHeaderHashed<Create>[],
     };
   }
 
   public async handle_get_element(
     header_hash: Hash,
     options: GetOptions
-  ): Promise<GetElementFull | undefined> {
+  ): Promise<GetElementResponse | undefined> {
     if (this.state.metadata.misc_meta[header_hash] !== 'StoreElement') {
       return undefined;
     }

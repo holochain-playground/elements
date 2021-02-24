@@ -27,6 +27,12 @@ export const demoEntriesZome: SimulatedZome = {
       },
       arguments: [{ name: 'hash', type: 'AnyDhtHash' }],
     },
+    get_details: {
+      call: ({ get_details }) => ({ hash }) => {
+        return get_details(hash, { strategy: GetStrategy.Latest });
+      },
+      arguments: [{ name: 'hash', type: 'AnyDhtHash' }],
+    },
     update_entry: {
       call: ({ update_entry }) => ({
         original_header_address,

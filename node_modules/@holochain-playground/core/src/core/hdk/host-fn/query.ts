@@ -1,11 +1,6 @@
-import {
-  Entry,
-  Hash,
-  Element,
-  NewEntryHeader,
-} from '@holochain-open-dev/core-types';
+import { Element, NewEntryHeader } from '@holochain-open-dev/core-types';
 import { QueryFilter } from '../../../types';
-import { getAllAuthoredHeaders } from '../../cell';
+import { getAllAuthoredHeaders } from '../../cell/source-chain/get';
 import { HostFn, HostFnWorkspace } from '../host-fn';
 
 export type QueryFn = (filter: QueryFilter) => Promise<Array<Element>>;

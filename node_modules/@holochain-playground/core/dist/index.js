@@ -1,4 +1,4 @@
-import { serializeHash, getSysMetaValHeaderHash, DHTOpType, getEntry, HeaderType, EntryDhtStatus, ChainStatus, now, elementToDHTOps } from '@holochain-open-dev/core-types';
+import { serializeHash, getSysMetaValHeaderHash, DHTOpType, HeaderType, EntryDhtStatus, DetailsType, getEntry, ChainStatus, now, elementToDHTOps } from '@holochain-open-dev/core-types';
 import { uniq, isEqual, cloneDeep } from 'lodash-es';
 
 var ERROR_MSG_INPUT = 'Input must be an string, Buffer or Uint8Array';
@@ -702,14 +702,34 @@ function getEntryDhtStatus(state, entryHash) {
         ? meta.EntryStatus
         : undefined;
 }
-function getEntryDetails(state, entryHash) {
-    const entry = state.CAS[entryHash];
-    const headers = getHeadersForEntry(state, entryHash);
-    const dhtStatus = getEntryDhtStatus(state, entryHash);
+function getEntryDetails(state, entry_hash) {
+    const entry = state.CAS[entry_hash];
+    const allHeaders = getHeadersForEntry(state, entry_hash);
+    const dhtStatus = getEntryDhtStatus(state, entry_hash);
+    const live_headers = {};
+    const updates = {};
+    const deletes = {};
+    for (const header of allHeaders) {
+        const headerContent = header.header.content;
+        if (headerContent.original_entry_address &&
+            headerContent.original_entry_address === entry_hash) {
+            updates[header.header.hash] = header;
+        }
+        else if (headerContent.entry_hash &&
+            headerContent.entry_hash === entry_hash) {
+            live_headers[header.header.hash] = header;
+        }
+        else if (headerContent.deletes_entry_address === entry_hash) {
+            deletes[header.header.hash] = header;
+        }
+    }
     return {
         entry,
-        headers: headers,
+        headers: allHeaders,
         entry_dht_status: dhtStatus,
+        updates: Object.values(updates),
+        deletes: Object.values(deletes),
+        rejected_headers: [], // TODO: after validation is implemented
     };
 }
 function getHeaderModifiers(state, headerHash) {
@@ -822,6 +842,32 @@ function getLiveLinks(getLinksResponses) {
     }
     return resultingLinks;
 }
+function computeDhtStatus(allHeadersForEntry) {
+    const aliveHeaders = {};
+    const rejected_headers = [];
+    for (const header of allHeadersForEntry) {
+        if (header.header.content.type === HeaderType.Create) {
+            aliveHeaders[header.header.hash] = header;
+        }
+    }
+    for (const header of allHeadersForEntry) {
+        if (header.header.content.type === HeaderType.Update ||
+            header.header.content.type === HeaderType.Delete) {
+            if (aliveHeaders[header.header.hash])
+                rejected_headers.push(aliveHeaders[header.header.hash]);
+            aliveHeaders[header.header.hash] = undefined;
+        }
+    }
+    const isSomeHeaderAlive = Object.values(aliveHeaders).some(header => header !== undefined);
+    // TODO: add more cases
+    const entry_dht_status = isSomeHeaderAlive
+        ? EntryDhtStatus.Live
+        : EntryDhtStatus.Dead;
+    return {
+        entry_dht_status,
+        rejected_headers,
+    };
+}
 
 var ValidationStatus;
 (function (ValidationStatus) {
@@ -848,33 +894,17 @@ class Authority {
         if (!entry)
             return undefined;
         const allHeaders = getHeadersForEntry(this.state, entry_hash);
+        const entryDetails = getEntryDetails(this.state, entry_hash);
+        const createHeader = allHeaders.find(header => header.header.content.entry_type);
         let entry_type = undefined;
-        const live_headers = [];
-        const updates = [];
-        const deletes = [];
-        for (const header of allHeaders) {
-            const headerContent = header.header.content;
-            if (headerContent.original_entry_address &&
-                headerContent.original_entry_address === entry_hash) {
-                updates.push(header);
-            }
-            else if (headerContent.entry_hash &&
-                headerContent.entry_hash === entry_hash) {
-                live_headers.push(header);
-                if (!entry_type) {
-                    entry_type = headerContent.entry_type;
-                }
-            }
-            else if (headerContent.deletes_entry_address === entry_hash) {
-                deletes.push(header);
-            }
-        }
+        if (createHeader)
+            entry_type = createHeader.header.content.entry_type;
         return {
             entry,
             entry_type: entry_type,
-            live_headers,
-            updates,
-            deletes,
+            deletes: entryDetails.deletes,
+            updates: entryDetails.updates,
+            live_headers: entryDetails.headers,
         };
     }
     async handle_get_element(header_hash, options) {
@@ -908,6 +938,7 @@ class Authority {
     }
 }
 
+// From https://github.com/holochain/holochain/blob/develop/crates/holochain_cascade/src/lib.rs#L1523
 class Cascade {
     constructor(state, p2p) {
         this.state = state;
@@ -940,12 +971,86 @@ class Cascade {
                 };
             }
         }
-        return this.p2p.get(hash, options);
+        const result = await this.p2p.get(hash, options);
+        if (result.signed_header) {
+            return {
+                entry: result.maybe_entry,
+                signed_header: result.signed_header,
+            };
+        }
+        else {
+            return {
+                signed_header: result.live_headers[0],
+                entry: result.entry,
+            };
+        }
+    }
+    async dht_get_details(hash, options) {
+        if (getHashType(hash) === HashType.ENTRY) {
+            const entryDetails = await this.getEntryDetails(hash, options);
+            if (!entryDetails)
+                return undefined;
+            return {
+                type: DetailsType.Entry,
+                content: entryDetails,
+            };
+        }
+        else if (getHashType(hash) === HashType.HEADER) {
+            const elementDetails = await this.getHeaderDetails(hash, options);
+            if (!elementDetails)
+                return undefined;
+            return {
+                type: DetailsType.Element,
+                content: elementDetails,
+            };
+        }
+        return undefined;
     }
     async dht_get_links(base_address, options) {
         // TODO: check if we are an authority
         const linksResponses = await this.p2p.get_links(base_address, options);
         return getLiveLinks(linksResponses);
+    }
+    async getEntryDetails(entryHash, options) {
+        // TODO: check if we are an authority
+        const result = await this.p2p.get(entryHash, options);
+        if (!result)
+            return undefined;
+        if (result.live_headers === undefined)
+            throw new Error('Unreachable');
+        const getEntryFull = result;
+        const allHeaders = [
+            ...getEntryFull.deletes,
+            ...getEntryFull.updates,
+            ...getEntryFull.live_headers,
+        ];
+        const { rejected_headers, entry_dht_status } = computeDhtStatus(allHeaders);
+        return {
+            entry: getEntryFull.entry,
+            headers: getEntryFull.live_headers,
+            deletes: getEntryFull.deletes,
+            updates: getEntryFull.updates,
+            rejected_headers,
+            entry_dht_status,
+        };
+    }
+    async getHeaderDetails(entryHash, options) {
+        const result = await this.p2p.get(entryHash, options);
+        if (!result)
+            return undefined;
+        if (result.validation_status === undefined)
+            throw new Error('Unreachable');
+        const response = result;
+        const element = {
+            entry: response.maybe_entry,
+            signed_header: response.signed_header,
+        };
+        return {
+            element,
+            deletes: response.deletes,
+            updates: response.updates,
+            validation_status: response.validation_status,
+        };
     }
 }
 
@@ -1532,17 +1637,21 @@ function sys_validation_task() {
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/incoming_dht_ops_workflow.rs
 const incoming_dht_ops = (basis, dhtOps, from_agent) => async (worskpace) => {
     for (const dhtOpHash of Object.keys(dhtOps)) {
-        const dhtOp = dhtOps[dhtOpHash];
-        const validationLimboValue = {
-            basis,
-            from_agent,
-            last_try: undefined,
-            num_tries: 0,
-            op: dhtOp,
-            status: ValidationLimboStatus.Pending,
-            time_added: Date.now(),
-        };
-        putValidationLimboValue(dhtOpHash, validationLimboValue)(worskpace.state);
+        if (!worskpace.state.integratedDHTOps[dhtOpHash] &&
+            !worskpace.state.integrationLimbo[dhtOpHash] &&
+            !worskpace.state.validationLimbo[dhtOpHash]) {
+            const dhtOp = dhtOps[dhtOpHash];
+            const validationLimboValue = {
+                basis,
+                from_agent,
+                last_try: undefined,
+                num_tries: 0,
+                op: dhtOp,
+                status: ValidationLimboStatus.Pending,
+                time_added: Date.now(),
+            };
+            putValidationLimboValue(dhtOpHash, validationLimboValue)(worskpace.state);
+        }
     }
     return {
         result: undefined,
@@ -1758,6 +1867,14 @@ const get = (workspace) => async (hash, options) => {
 };
 
 // Creates a new Create header and its entry in the source chain
+const get_details = (workspace) => async (hash, options) => {
+    if (!hash)
+        throw new Error(`Cannot get with undefined hash`);
+    options = options || { strategy: GetStrategy.Contents };
+    return workspace.cascade.dht_get_details(hash, options);
+};
+
+// Creates a new Create header and its entry in the source chain
 const get_links = (workspace) => async (base_address, options) => {
     if (!base_address)
         throw new Error(`Cannot get with undefined hash`);
@@ -1813,6 +1930,7 @@ function buildZomeFunctionContext(workspace, zome_index) {
         update_entry: update_entry(workspace, zome_index),
         hash_entry: hash_entry(),
         get: get(workspace),
+        get_details: get_details(workspace),
         create_link: create_link(workspace, zome_index),
         delete_link: delete_link(workspace),
         get_links: get_links(workspace),
@@ -2002,21 +2120,7 @@ class P2pCell {
     async get(dht_hash, options) {
         const gets = await this.network.kitsune.rpc_multi(this.cellId[0], this.cellId[1], dht_hash, 1, // TODO: what about this?
         (cell) => this._executeNetworkRequest(cell, NetworkRequestType.GET_REQUEST, { hash: dht_hash, options }, (cell) => cell.handle_get(dht_hash, options)));
-        const result = gets.find(get => !!get);
-        if (result === undefined)
-            return undefined;
-        if (result.signed_header) {
-            return {
-                entry: result.maybe_entry,
-                signed_header: result.signed_header,
-            };
-        }
-        else {
-            return {
-                signed_header: result.live_headers[0],
-                entry: result.entry,
-            };
-        }
+        return gets.find(get => !!get);
     }
     async get_links(base_address, options) {
         return this.network.kitsune.rpc_multi(this.cellId[0], this.cellId[1], base_address, 1, // TODO: what about this?
@@ -2292,6 +2396,12 @@ const demoEntriesZome = {
             },
             arguments: [{ name: 'hash', type: 'AnyDhtHash' }],
         },
+        get_details: {
+            call: ({ get_details }) => ({ hash }) => {
+                return get_details(hash, { strategy: GetStrategy.Latest });
+            },
+            arguments: [{ name: 'hash', type: 'AnyDhtHash' }],
+        },
         update_entry: {
             call: ({ update_entry }) => ({ original_header_address, new_content, }) => {
                 return update_entry({
@@ -2392,5 +2502,5 @@ async function createConductors(conductorsToCreate, currentConductors, dnaTempla
     return allConductors;
 }
 
-export { AGENT_PREFIX, Authority, Cascade, Cell, Conductor, DHTOP_PREFIX, DNA_PREFIX, DelayMiddleware, Discover, ENTRY_PREFIX, GetStrategy, HEADER_PREFIX, HashType, index as Hdk, KitsuneP2p, MiddlewareExecutor, Network, NetworkRequestType, P2pCell, ValidationLimboStatus, ValidationStatus, WorkflowType, app_validation, app_validation_task, buildAgentValidationPkg, buildCreate, buildCreateLink, buildDelete, buildDeleteLink, buildDna, buildShh, buildUpdate, callZomeFn, call_zome_fn_workflow, createConductors, deleteValidationLimboValue, demoDnaTemplate, demoEntriesZome, demoLinksZome, distance, genesis, genesis_task, getAllAuthoredEntries, getAllAuthoredHeaders, getAllHeldEntries, getAppEntryType, getAuthor, getCellId, getClosestNeighbors, getCreateLinksForEntry, getDHTOpBasis, getDhtShard, getDnaHash, getElement, getEntryDetails, getEntryDhtStatus, getEntryTypeString, getFarthestNeighbors, getHashType, getHeaderAt, getHeaderModifiers, getHeadersForEntry, getLinksForEntry, getLiveLinks, getNewHeaders, getNextHeaderSeq, getNonPublishedDhtOps, getRemovesOnLinkAdd, getTipOfChain, getValidationLimboDhtOps, hash, hashEntry, incoming_dht_ops, incoming_dht_ops_task, integrate_dht_ops, integrate_dht_ops_task, isHoldingElement, isHoldingEntry, location, locationDistance, produce_dht_ops, produce_dht_ops_task, publish_dht_ops, publish_dht_ops_task, pullAllIntegrationLimboDhtOps, putDhtOpData, putDhtOpMetadata, putDhtOpToIntegrated, putElement, putIntegrationLimboValue, putSystemMetadata, putValidationLimboValue, register_header_on_basis, sleep, sys_validation, sys_validation_task, valid_cap_grant, workflowPriority, wrap };
+export { AGENT_PREFIX, Authority, Cascade, Cell, Conductor, DHTOP_PREFIX, DNA_PREFIX, DelayMiddleware, Discover, ENTRY_PREFIX, GetStrategy, HEADER_PREFIX, HashType, index as Hdk, KitsuneP2p, MiddlewareExecutor, Network, NetworkRequestType, P2pCell, ValidationLimboStatus, ValidationStatus, WorkflowType, app_validation, app_validation_task, buildAgentValidationPkg, buildCreate, buildCreateLink, buildDelete, buildDeleteLink, buildDna, buildShh, buildUpdate, callZomeFn, call_zome_fn_workflow, computeDhtStatus, createConductors, deleteValidationLimboValue, demoDnaTemplate, demoEntriesZome, demoLinksZome, distance, genesis, genesis_task, getAllAuthoredEntries, getAllAuthoredHeaders, getAllHeldEntries, getAppEntryType, getAuthor, getCellId, getClosestNeighbors, getCreateLinksForEntry, getDHTOpBasis, getDhtShard, getDnaHash, getElement, getEntryDetails, getEntryDhtStatus, getEntryTypeString, getFarthestNeighbors, getHashType, getHeaderAt, getHeaderModifiers, getHeadersForEntry, getLinksForEntry, getLiveLinks, getNewHeaders, getNextHeaderSeq, getNonPublishedDhtOps, getRemovesOnLinkAdd, getTipOfChain, getValidationLimboDhtOps, hash, hashEntry, incoming_dht_ops, incoming_dht_ops_task, integrate_dht_ops, integrate_dht_ops_task, isHoldingElement, isHoldingEntry, location, locationDistance, produce_dht_ops, produce_dht_ops_task, publish_dht_ops, publish_dht_ops_task, pullAllIntegrationLimboDhtOps, putDhtOpData, putDhtOpMetadata, putDhtOpToIntegrated, putElement, putIntegrationLimboValue, putSystemMetadata, putValidationLimboValue, register_header_on_basis, sleep, sys_validation, sys_validation_task, valid_cap_grant, workflowPriority, wrap };
 //# sourceMappingURL=index.js.map

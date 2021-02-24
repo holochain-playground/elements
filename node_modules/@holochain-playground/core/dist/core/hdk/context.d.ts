@@ -9,6 +9,7 @@ import { UpdateEntryFn } from './host-fn/actions/update_entry';
 import { AgentInfoFn } from './host-fn/agent_info';
 import { CallRemoteFn } from './host-fn/call_remote';
 import { GetFn } from './host-fn/get';
+import { GetDetailsFn } from './host-fn/get_detailts';
 import { GetLinksFn } from './host-fn/get_links';
 import { HashEntryFn } from './host-fn/hash_entry';
 import { QueryFn } from './host-fn/query';
@@ -18,6 +19,7 @@ export interface SimulatedZomeFunctionContext {
     delete_entry: DeleteEntryFn;
     update_entry: UpdateEntryFn;
     get: GetFn;
+    get_details: GetDetailsFn;
     hash_entry: HashEntryFn;
     create_link: CreateLinkFn;
     delete_link: DeleteLinkFn;

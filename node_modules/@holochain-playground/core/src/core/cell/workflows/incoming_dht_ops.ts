@@ -21,19 +21,25 @@ export const incoming_dht_ops = (
   from_agent: AgentPubKey | undefined
 ) => async (worskpace: Workspace): Promise<WorkflowReturn<void>> => {
   for (const dhtOpHash of Object.keys(dhtOps)) {
-    const dhtOp = dhtOps[dhtOpHash];
+    if (
+      !worskpace.state.integratedDHTOps[dhtOpHash] &&
+      !worskpace.state.integrationLimbo[dhtOpHash] &&
+      !worskpace.state.validationLimbo[dhtOpHash]
+    ) {
+      const dhtOp = dhtOps[dhtOpHash];
 
-    const validationLimboValue: ValidationLimboValue = {
-      basis,
-      from_agent,
-      last_try: undefined,
-      num_tries: 0,
-      op: dhtOp,
-      status: ValidationLimboStatus.Pending,
-      time_added: Date.now(),
-    };
+      const validationLimboValue: ValidationLimboValue = {
+        basis,
+        from_agent,
+        last_try: undefined,
+        num_tries: 0,
+        op: dhtOp,
+        status: ValidationLimboStatus.Pending,
+        time_added: Date.now(),
+      };
 
-    putValidationLimboValue(dhtOpHash, validationLimboValue)(worskpace.state);
+      putValidationLimboValue(dhtOpHash, validationLimboValue)(worskpace.state);
+    }
   }
 
   return {

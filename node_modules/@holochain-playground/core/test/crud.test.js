@@ -32,7 +32,7 @@ describe('CRUD', () => {
 
     expect(content).to.be.ok;
 
-    hash = await conductors[0].callZomeFn({
+    const updatehash = await conductors[0].callZomeFn({
       cellId: cell.cellId,
       cap: null,
       fnName: 'update_entry',
@@ -43,9 +43,9 @@ describe('CRUD', () => {
       zome: 'demo_entries',
     });
 
-    expect(hash).to.be.ok;
+    expect(updatehash).to.be.ok;
 
-    hash = await conductors[0].callZomeFn({
+    const deletehash = await conductors[0].callZomeFn({
       cellId: cell.cellId,
       cap: null,
       fnName: 'delete_entry',
@@ -55,6 +55,19 @@ describe('CRUD', () => {
       zome: 'demo_entries',
     });
 
-    expect(hash).to.be.ok;
+    expect(deletehash).to.be.ok;
+
+    await sleep(1000);
+
+    const getresult = await conductors[0].callZomeFn({
+      cellId: cell.cellId,
+      cap: null,
+      fnName: 'get_details',
+      payload: {
+        hash,
+      },
+      zome: 'demo_entries',
+    });
+    expect(getresult.content.updates.length).to.equal(1);
   });
 });

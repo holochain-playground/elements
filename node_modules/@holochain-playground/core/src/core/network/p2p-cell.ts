@@ -11,8 +11,8 @@ import { MiddlewareExecutor } from '../../executor/middleware-executor';
 import { GetLinksOptions, GetOptions } from '../../types';
 import { Cell } from '../cell';
 import {
-  GetElementFull,
-  GetEntryFull,
+  GetElementResponse,
+  GetEntryResponse,
   GetLinksResponse,
 } from '../cell/cascade/types';
 import { Network } from './network';
@@ -88,7 +88,10 @@ export class P2pCell {
     );
   }
 
-  async get(dht_hash: Hash, options: GetOptions): Promise<Element | undefined> {
+  async get(
+    dht_hash: Hash,
+    options: GetOptions
+  ): Promise<GetElementResponse | GetEntryResponse | undefined> {
     const gets = await this.network.kitsune.rpc_multi(
       this.cellId[0],
       this.cellId[1],
@@ -103,21 +106,7 @@ export class P2pCell {
         )
     );
 
-    const result = gets.find(get => !!get);
-
-    if (result === undefined) return undefined;
-
-    if ((result as GetElementFull).signed_header) {
-      return {
-        entry: (result as GetElementFull).maybe_entry,
-        signed_header: (result as GetElementFull).signed_header,
-      };
-    } else {
-      return {
-        signed_header: (result as GetEntryFull).live_headers[0],
-        entry: (result as GetEntryFull).entry,
-      };
-    }
+    return gets.find(get => !!get);
   }
 
   async get_links(

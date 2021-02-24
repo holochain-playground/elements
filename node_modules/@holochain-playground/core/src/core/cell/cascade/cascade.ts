@@ -1,7 +1,11 @@
 import {
   CreateLink,
+  Details,
+  DetailsType,
   Dictionary,
   Element,
+  ElementDetails,
+  EntryDetails,
   Hash,
   NewEntryHeader,
   SignedHeaderHashed,
@@ -10,10 +14,17 @@ import { getHashType, HashType } from '../../../processors/hash';
 import { GetLinksOptions, GetOptions, GetStrategy } from '../../../types';
 import { P2pCell } from '../../network/p2p-cell';
 import { Cell } from '../cell';
-import { getLiveLinks } from '../dht/get';
+import { computeDhtStatus, getEntryDhtStatus, getLiveLinks } from '../dht/get';
 import { CellState } from '../state';
 import { Authority } from './authority';
-import { GetLinksResponse, Link } from './types';
+import {
+  GetElementResponse,
+  GetEntryResponse,
+  GetLinksResponse,
+  Link,
+} from './types';
+
+// From https://github.com/holochain/holochain/blob/develop/crates/holochain_cascade/src/lib.rs#L1523
 
 export class Cascade {
   constructor(protected state: CellState, protected p2p: P2pCell) {}
@@ -59,7 +70,46 @@ export class Cascade {
       }
     }
 
-    return this.p2p.get(hash, options);
+    const result = await this.p2p.get(hash, options);
+
+    if ((result as GetElementResponse).signed_header) {
+      return {
+        entry: (result as GetElementResponse).maybe_entry,
+        signed_header: (result as GetElementResponse).signed_header,
+      };
+    } else {
+      return {
+        signed_header: (result as GetEntryResponse).live_headers[0],
+        entry: (result as GetEntryResponse).entry,
+      };
+    }
+  }
+
+  public async dht_get_details(
+    hash: Hash,
+    options: GetOptions
+  ): Promise<Details | undefined> {
+    if (getHashType(hash) === HashType.ENTRY) {
+      const entryDetails = await this.getEntryDetails(hash, options);
+
+      if (!entryDetails) return undefined;
+
+      return {
+        type: DetailsType.Entry,
+        content: entryDetails,
+      };
+    } else if (getHashType(hash) === HashType.HEADER) {
+      const elementDetails = await this.getHeaderDetails(hash, options);
+
+      if (!elementDetails) return undefined;
+
+      return {
+        type: DetailsType.Element,
+        content: elementDetails,
+      };
+    }
+
+    return undefined;
   }
 
   public async dht_get_links(
@@ -70,5 +120,61 @@ export class Cascade {
 
     const linksResponses = await this.p2p.get_links(base_address, options);
     return getLiveLinks(linksResponses);
+  }
+
+  async getEntryDetails(
+    entryHash: Hash,
+    options: GetOptions
+  ): Promise<EntryDetails | undefined> {
+    // TODO: check if we are an authority
+    const result = await this.p2p.get(entryHash, options);
+
+    if (!result) return undefined;
+    if ((result as GetEntryResponse).live_headers === undefined)
+      throw new Error('Unreachable');
+
+    const getEntryFull = result as GetEntryResponse;
+
+    const allHeaders = [
+      ...getEntryFull.deletes,
+      ...getEntryFull.updates,
+      ...getEntryFull.live_headers,
+    ];
+
+    const { rejected_headers, entry_dht_status } = computeDhtStatus(allHeaders);
+
+    return {
+      entry: getEntryFull.entry,
+      headers: getEntryFull.live_headers,
+      deletes: getEntryFull.deletes,
+      updates: getEntryFull.updates,
+      rejected_headers,
+      entry_dht_status,
+    };
+  }
+
+  async getHeaderDetails(
+    entryHash: Hash,
+    options: GetOptions
+  ): Promise<ElementDetails | undefined> {
+    const result = await this.p2p.get(entryHash, options);
+
+    if (!result) return undefined;
+    if ((result as GetElementResponse).validation_status === undefined)
+      throw new Error('Unreachable');
+
+    const response = result as GetElementResponse;
+
+    const element: Element = {
+      entry: response.maybe_entry,
+      signed_header: response.signed_header,
+    };
+
+    return {
+      element,
+      deletes: response.deletes,
+      updates: response.updates,
+      validation_status: response.validation_status,
+    };
   }
 }

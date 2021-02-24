@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>57/57</span>
+                <span class='fraction'>63/63</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>57/57</span>
+                <span class='fraction'>63/63</span>
             </div>
         
             
@@ -114,7 +114,13 @@
 <a name='L55'></a><a href='#L55'>55</a>
 <a name='L56'></a><a href='#L56'>56</a>
 <a name='L57'></a><a href='#L57'>57</a>
-<a name='L58'></a><a href='#L58'>58</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">5x</span>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
@@ -152,25 +158,31 @@
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { HostFnWorkspace } from './host-fn';
 import {
   CreateCapGrantFn,
@@ -188,8 +200,10 @@ import { UpdateEntryFn, update_entry } from './host-fn/actions/update_entry';
 import { AgentInfoFn, agent_info } from './host-fn/agent_info';
 import { CallRemoteFn, call_remote } from './host-fn/call_remote';
 import { get, GetFn } from './host-fn/get';
+import { GetDetailsFn, get_details } from './host-fn/get_detailts';
 import { GetLinksFn, get_links } from './host-fn/get_links';
 import { HashEntryFn, hash_entry } from './host-fn/hash_entry';
+import { query, QueryFn } from './host-fn/query';
 import { path, Path } from './path';
 &nbsp;
 export interface SimulatedZomeFunctionContext {
@@ -197,6 +211,7 @@ export interface SimulatedZomeFunctionContext {
   delete_entry: DeleteEntryFn;
   update_entry: UpdateEntryFn;
   get: GetFn;
+  get_details: GetDetailsFn;
   hash_entry: HashEntryFn;
   create_link: CreateLinkFn;
   delete_link: DeleteLinkFn;
@@ -205,6 +220,7 @@ export interface SimulatedZomeFunctionContext {
   delete_cap_grant: DeleteCapGrantFn;
   call_remote: CallRemoteFn;
   agent_info: AgentInfoFn;
+  query: QueryFn;
   path: Path;
 }
 &nbsp;
@@ -218,6 +234,7 @@ export function buildZomeFunctionContext(
     update_entry: update_entry(workspace, zome_index),
     hash_entry: hash_entry(workspace, zome_index),
     get: get(workspace, zome_index),
+    get_details: get_details(workspace, zome_index),
     create_link: create_link(workspace, zome_index),
     delete_link: delete_link(workspace, zome_index),
     get_links: get_links(workspace, zome_index),
@@ -225,6 +242,7 @@ export function buildZomeFunctionContext(
     delete_cap_grant: delete_cap_grant(workspace, zome_index),
     call_remote: call_remote(workspace, zome_index),
     agent_info: agent_info(workspace, zome_index),
+    query: query(workspace, zome_index),
     path,
   };
 }
@@ -235,7 +253,7 @@ export function buildZomeFunctionContext(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Tue Feb 23 2021 11:17:30 GMT+0100 (Hora estàndard del Centre d’Europa)
+                at Wed Feb 24 2021 15:13:18 GMT+0100 (Hora estàndard del Centre d’Europa)
             </div>
         </div>
         <script src="../../../prettify.js"></script>

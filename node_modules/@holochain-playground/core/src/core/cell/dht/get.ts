@@ -13,6 +13,8 @@ import {
   Delete,
   CreateLink,
   DeleteLink,
+  HeaderType,
+  Create,
 } from '@holochain-open-dev/core-types';
 import { isEqual, uniq } from 'lodash-es';
 import { GetLinksResponse, Link } from '../cascade/types';
@@ -83,16 +85,41 @@ export function getEntryDhtStatus(
 
 export function getEntryDetails(
   state: CellState,
-  entryHash: Hash
+  entry_hash: Hash
 ): EntryDetails {
-  const entry = state.CAS[entryHash];
-  const headers = getHeadersForEntry(state, entryHash);
-  const dhtStatus = getEntryDhtStatus(state, entryHash);
+  const entry = state.CAS[entry_hash];
+  const allHeaders = getHeadersForEntry(state, entry_hash);
+  const dhtStatus = getEntryDhtStatus(state, entry_hash);
+
+  const live_headers: Dictionary<SignedHeaderHashed<Create>> = {};
+  const updates: Dictionary<SignedHeaderHashed<Update>> = {};
+  const deletes: Dictionary<SignedHeaderHashed<Delete>> = {};
+
+  for (const header of allHeaders) {
+    const headerContent = (header as SignedHeaderHashed).header.content;
+
+    if (
+      (headerContent as Update).original_entry_address &&
+      (headerContent as Update).original_entry_address === entry_hash
+    ) {
+      updates[header.header.hash] = header as SignedHeaderHashed<Update>;
+    } else if (
+      (headerContent as Create).entry_hash &&
+      (headerContent as Create).entry_hash === entry_hash
+    ) {
+      live_headers[header.header.hash] = header as SignedHeaderHashed<Create>;
+    } else if ((headerContent as Delete).deletes_entry_address === entry_hash) {
+      deletes[header.header.hash] = header as SignedHeaderHashed<Delete>;
+    }
+  }
 
   return {
     entry,
-    headers: headers,
+    headers: allHeaders,
     entry_dht_status: dhtStatus as EntryDhtStatus,
+    updates: Object.values(updates),
+    deletes: Object.values(deletes),
+    rejected_headers: [], // TODO: after validation is implemented
   };
 }
 
@@ -261,4 +288,47 @@ export function getLiveLinks(
   }
 
   return resultingLinks;
+}
+
+export function computeDhtStatus(
+  allHeadersForEntry: SignedHeaderHashed[]
+): {
+  entry_dht_status: EntryDhtStatus;
+  rejected_headers: SignedHeaderHashed[];
+} {
+  const aliveHeaders: Dictionary<SignedHeaderHashed | undefined> = {};
+  const rejected_headers: SignedHeaderHashed[] = [];
+
+  for (const header of allHeadersForEntry) {
+    if (header.header.content.type === HeaderType.Create) {
+      aliveHeaders[header.header.hash] = header;
+    }
+  }
+
+  for (const header of allHeadersForEntry) {
+    if (
+      header.header.content.type === HeaderType.Update ||
+      header.header.content.type === HeaderType.Delete
+    ) {
+      if (aliveHeaders[header.header.hash])
+        rejected_headers.push(
+          aliveHeaders[header.header.hash] as SignedHeaderHashed
+        );
+      aliveHeaders[header.header.hash] = undefined;
+    }
+  }
+
+  const isSomeHeaderAlive = Object.values(aliveHeaders).some(
+    header => header !== undefined
+  );
+
+  // TODO: add more cases
+  const entry_dht_status = isSomeHeaderAlive
+    ? EntryDhtStatus.Live
+    : EntryDhtStatus.Dead;
+
+  return {
+    entry_dht_status,
+    rejected_headers,
+  };
 }
