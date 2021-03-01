@@ -1,6 +1,5 @@
 import { LitElement, query, html, property, css } from 'lit-element';
 import cytoscape from 'cytoscape';
-import klay from 'cytoscape-klay';
 
 import { Checkbox } from 'scoped-material-components/mwc-checkbox';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
@@ -17,11 +16,12 @@ import { Menu } from 'scoped-material-components/mwc-menu';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Icon } from 'scoped-material-components/mwc-icon';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
+import cola from 'cytoscape-cola';
 
-cytoscape.use(klay);
+cytoscape.use( cola );
 
 const layoutConfig = {
-  name: 'klay',
+  name: 'cola',
   animate: true,
   ready: (e) => {
     e.cy.fit();
@@ -30,11 +30,11 @@ const layoutConfig = {
 };
 
 export class EntryGraph extends PlaygroundElement {
-  @property({ type: Boolean })
-  showFilter: boolean = true;
+  @property({ type: Boolean, attribute: 'hide-filter' })
+  hideFilter: boolean = false;
 
-  @property({ type: Boolean })
-  showEntryContents: boolean = true;
+  @property({ type: Boolean, attribute: 'show-entry-contents' })
+  showEntryContents: boolean = false;
 
   @property({ type: Array })
   excludedEntryTypes: string[] = [];
@@ -134,7 +134,7 @@ export class EntryGraph extends PlaygroundElement {
                 opacity: 0.5;
               }
               .deleted {
-                opacity: 0.3;
+                opacity: 0.3 !important;
               }
             `,
     });
@@ -291,7 +291,8 @@ export class EntryGraph extends PlaygroundElement {
 
           <div id="entry-graph" class="fill"></div>
 
-          ${this.renderHelp()} ${this.showFilter ? this.renderFilter() : html``}
+          ${this.renderHelp()}
+          ${!this.hideFilter ? this.renderFilter() : html``}
         </div>
       </mwc-card>
     `;

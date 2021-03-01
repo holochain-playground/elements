@@ -93,8 +93,7 @@ export class DhtCells extends PlaygroundElement {
 
     this._cy.on('tap', 'node', (evt) => {
       this.updatePlayground({
-        activeAgentPubKey: evt.target.id(),
-        activeHash: null,
+        activeAgentPubKey: evt.target.id()
       });
     });
 
