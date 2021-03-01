@@ -15,10 +15,9 @@
     "test:watch": "concurrently --kill-others --names tsc,karma \"npm run tsc:watch\" \"karma start --auto-watch=true --single-run=false\"",
     "analyze": "wca analyze \"src/**/*.{js,ts}\" --features cssproperty member slot event --outFile custom-elements.json",
     "storybook": "start-storybook -p 6006",
-    "storybook:publish": "gh-pages -d static-storybook",
-    "publish-to-branch": "npm run build && gh-pages -d . -b build",
-    "build:publish": "npm run build && npm publish",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook",
+    "storybook-publish": "gh-pages -d static-storybook",
+    "publish-to-branch": "npm run build && gh-pages -d . -b build"
   },
   "dependencies": {
     "@holochain-open-dev/core-types": "git+https://github.com/holochain-open-dev/core-types.git#build",
