@@ -1,21 +1,25 @@
 import { property, html, PropertyValues, css, query } from 'lit-element';
 import { styleMap } from 'lit-html/directives/style-map';
-import { sourceChainNodes } from '../processors/graph';
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 
 import { isEqual } from 'lodash-es';
-
-import { sharedStyles } from './utils/shared-styles';
-
 import { Cell } from '@holochain-playground/core';
-import { selectCell } from './utils/selectors';
-import { PlaygroundElement } from '../context/playground-element';
+
+import { sourceChainNodes } from './processors';
+import { sharedStyles } from '../utils/shared-styles';
+
+import { HelpButton } from '../helpers/help-button';
+import { selectCell } from '../utils/selectors';
+import { PlaygroundElement } from '../../context/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
-import { HelpButton } from './helpers/help-button';
+import { graphStyles } from './graph';
 
 cytoscape.use(dagre); // register extension
 
+/**
+ * @element source-chain
+ */
 export class SourceChain extends PlaygroundElement {
   static get styles() {
     return [
@@ -56,59 +60,7 @@ export class SourceChain extends PlaygroundElement {
       autoungrabify: true,
       userZoomingEnabled: true,
       userPanningEnabled: true,
-      style: `
-        node {
-          width: 30px;
-          height: 30px;
-          font-size: 10px;
-          label: data(label);
-          background-color: grey;
-          text-halign: right;
-          text-valign: center;
-          text-margin-x: 4px;
-        }
-
-        .header {
-          text-margin-x: -5px;
-          text-halign: left;
-          shape: round-rectangle;
-        }
-
-        edge {
-          width: 4;
-          target-arrow-shape: triangle;
-          curve-style: bezier;
-          line-style: dotted;
-        }
-
-        .selected {
-          border-width: 4px;
-          border-color: black;
-          border-style: solid;
-        }
-
-        .Dna {
-          background-color: green;
-        }
-        .AgentValidationPkg {
-          background-color: lime;
-        }
-        .Create {
-          background-color: blue;
-        }
-        .Delete {
-          background-color: red;
-        }
-        .Update {
-          background-color: cyan;
-        }
-        .CreateLink {
-          background-color: purple;
-        }
-        .DeleteLink {
-          background-color: purple;
-        }
-      `,
+      style: graphStyles,
     });
     this.cy.on('tap', 'node', (event) => {
       // Node id is <HEADER_HASH>:<ENTRY_HASH>

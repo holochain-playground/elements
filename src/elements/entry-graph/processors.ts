@@ -1,96 +1,22 @@
 import {
-  Cell,
-  getEntryDetails,
-  getAllHeldEntries,
-  getAppEntryType,
-  getEntryTypeString,
-  getCreateLinksForEntry,
-  getLiveLinks,
-  getLinksForEntry,
-} from '@holochain-playground/core';
-import {
-  SignedHeaderHashed,
-  Create,
-  NewEntryHeader,
   Dictionary,
-  EntryDhtStatus,
   EntryDetails,
+  NewEntryHeader,
+  SignedHeaderHashed,
   Update,
-  Entry,
-  LinkMetaVal,
   timestampToMillis,
 } from '@holochain-open-dev/core-types';
-import { shortenStrRec } from '../elements/utils/hash';
-import { GetLinksResponse } from '@holochain-playground/core/dist/core/cell/cascade/types';
-
-export function sourceChainNodes(cell: Cell) {
-  if (!cell) return [];
-
-  const nodes = [];
-  const state = cell.getState();
-
-  const headersHashes = state.sourceChain;
-  for (const headerHash of headersHashes) {
-    const header: SignedHeaderHashed = state.CAS[headerHash];
-
-    nodes.push({
-      data: {
-        id: headerHash,
-        data: header,
-        label: header.header.content.type,
-      },
-      classes: ['header', header.header.content.type],
-    });
-
-    if ((header.header.content as Create).prev_header) {
-      const previousHeaderHash = (header.header.content as Create).prev_header;
-      nodes.push({
-        data: {
-          id: `${headerHash}->${previousHeaderHash}`,
-          source: headerHash,
-          target: previousHeaderHash,
-        },
-      });
-    }
-  }
-
-  for (const headerHash of headersHashes) {
-    const strHeaderHash = headerHash;
-    const header: SignedHeaderHashed = state.CAS[strHeaderHash];
-
-    if ((header.header.content as NewEntryHeader).entry_hash) {
-      const newEntryHeader = header.header.content as NewEntryHeader;
-      const entryHash = newEntryHeader.entry_hash;
-      const entryNodeId = `${strHeaderHash}:${entryHash}`;
-
-      const entry: Entry = state.CAS[entryHash];
-
-      const entryType: string = getEntryTypeString(
-        cell,
-        newEntryHeader.entry_type
-      );
-
-      nodes.push({
-        data: {
-          id: entryNodeId,
-          data: entry,
-          label: entryType,
-        },
-        classes: [entryType],
-      });
-      nodes.push({
-        data: {
-          id: `${strHeaderHash}->${entryNodeId}`,
-          source: strHeaderHash,
-          target: entryNodeId,
-        },
-      });
-    }
-  }
-
-  return nodes;
-}
-
+import {
+  Cell,
+  GetLinksResponse,
+  getAllHeldEntries,
+  getEntryDetails,
+  getLinksForEntry,
+  getEntryTypeString,
+  getAppEntryType,
+  getLiveLinks,
+} from '@holochain-playground/core';
+import { shortenStrRec } from '../utils/hash';
 export function allEntries(
   cells: Cell[],
   showEntryContents: boolean,

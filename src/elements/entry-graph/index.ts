@@ -6,19 +6,20 @@ import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Formfield } from 'scoped-material-components/mwc-formfield';
 import { Card } from 'scoped-material-components/mwc-card';
 
-import { allEntries } from '../processors/graph';
-import { selectAllCells } from './utils/selectors';
-import { sharedStyles } from './utils/shared-styles';
-import { PlaygroundElement } from '../context/playground-element';
+import { allEntries } from './processors';
+import { selectAllCells } from '../utils/selectors';
+import { sharedStyles } from '../utils/shared-styles';
+import { PlaygroundElement } from '../../context/playground-element';
 import { isEqual } from 'lodash-es';
-import { HelpButton } from './helpers/help-button';
+import { HelpButton } from '../helpers/help-button';
 import { Menu } from 'scoped-material-components/mwc-menu';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Icon } from 'scoped-material-components/mwc-icon';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import cola from 'cytoscape-cola';
+import { graphStyles } from './graph';
 
-cytoscape.use( cola );
+cytoscape.use(cola);
 
 const layoutConfig = {
   name: 'cola',
@@ -29,6 +30,9 @@ const layoutConfig = {
   },
 };
 
+/**
+ * @element entry-graph
+ */
 export class EntryGraph extends PlaygroundElement {
   @property({ type: Boolean, attribute: 'hide-filter' })
   hideFilter: boolean = false;
@@ -66,77 +70,7 @@ export class EntryGraph extends PlaygroundElement {
       userZoomingEnabled: true,
       userPanningEnabled: true,
       layout: layoutConfig,
-      style: `
-              node {
-                background-color: grey;
-                font-size: 10px;
-                width: 16px;
-                label: data(label);
-                height: 16px;
-                shape: round-rectangle;
-              }
-
-              node > node {
-                height: 1px;
-              }
-      
-              edge {
-                width: 2;
-                target-arrow-shape: triangle;
-                curve-style: bezier;
-              }
-              
-              edge[label] {
-                label: data(label);
-                font-size: 7px;
-                text-rotation: autorotate;
-                text-margin-x: 0px;
-                text-margin-y: -5px;
-                text-valign: top;
-                text-halign: center;        
-              }
-      
-              .selected {
-                border-width: 1px;
-                border-color: black;
-                border-style: solid;
-              }
-      
-              .AgentId {
-                background-color: lime;
-              }
-              .Create {
-                background-color: blue;
-              }
-              .Delete {
-                background-color: red;
-              }
-              .Update {
-                background-color: cyan;
-              }
-              .CreateLink {
-                background-color: purple;
-              }
-              .DeleteLink {
-                background-color: purple;
-              }
-      
-              .implicit {
-                width: 1;
-                line-style: dotted;
-              }
-
-              .update-edge {
-                width: 1;
-                line-style: dashed;
-              }
-              .updated {
-                opacity: 0.5;
-              }
-              .deleted {
-                opacity: 0.3 !important;
-              }
-            `,
+      style: graphStyles,
     });
 
     this.cy.on('tap', 'node', (event) => {

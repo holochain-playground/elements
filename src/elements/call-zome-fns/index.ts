@@ -6,14 +6,14 @@ import {
   SimulatedZomeFunction,
   Cell,
 } from '@holochain-playground/core';
-import { sharedStyles } from './utils/shared-styles';
+import { sharedStyles } from '../utils/shared-styles';
 import { TextField } from 'scoped-material-components/mwc-textfield';
-import { PlaygroundElement } from '../context/playground-element';
+import { PlaygroundElement } from '../../context/playground-element';
 import { Button } from 'scoped-material-components/mwc-button';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 import { Icon } from 'scoped-material-components/mwc-icon';
 import { styleMap } from 'lit-html/directives/style-map';
-import { selectCell } from './utils/selectors';
+import { selectCell } from '../utils/selectors';
 import { Tab } from 'scoped-material-components/mwc-tab';
 import { TabBar } from 'scoped-material-components/mwc-tab-bar';
 import { Card } from 'scoped-material-components/mwc-card';
@@ -21,7 +21,7 @@ import { JsonViewer } from '@power-elements/json-viewer';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { List } from 'scoped-material-components/mwc-list';
 import { Drawer } from 'scoped-material-components/mwc-drawer';
-import { ExpandableLine } from './helpers/expandable-line';
+import { ExpandableLine } from '../helpers/expandable-line';
 
 export interface ZomeFunctionResult {
   cellId: CellId;
@@ -35,6 +35,9 @@ export interface ZomeFunctionResult {
       };
 }
 
+/**
+ * @element call-zome-fns
+ */
 export class CallZomeFns extends PlaygroundElement {
   @property({ type: Boolean, attribute: 'hide-results' })
   hideResults = false;

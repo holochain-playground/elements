@@ -1,12 +1,15 @@
 import { html, css } from 'lit-element';
 import { JsonViewer } from '@power-elements/json-viewer';
 
-import { sharedStyles } from './utils/shared-styles';
-import { selectAllCells, selectFromCAS } from './utils/selectors';
-import { PlaygroundElement } from '../context/playground-element';
+import { sharedStyles } from '../utils/shared-styles';
+import { selectAllCells, selectFromCAS } from '../utils/selectors';
+import { PlaygroundElement } from '../../context/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
-import { shortenStrRec } from './utils/hash';
+import { shortenStrRec } from '../utils/hash';
 
+/**
+ * @element entry-contents
+ */
 export class EntryContents extends PlaygroundElement {
   static get styles() {
     return [

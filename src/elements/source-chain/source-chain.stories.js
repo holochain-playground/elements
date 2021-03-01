@@ -1,11 +1,8 @@
-import { HolochainPlaygroundContainer } from '@holochain-playground/container';
-import { HolochainPlaygroundSourceChain } from '../src/elements/holochain-playground-source-chain';
-
 import { html } from 'lit-element';
 
 export default {
   title: 'Source Chain',
-  component: 'holochain-playground-source-chain',
+  component: 'source-chain',
 };
 
 export const Simple = () => {
@@ -15,22 +12,24 @@ export const Simple = () => {
       @ready=${(e) => {
         const conductor = e.detail.conductors[0];
 
-        const cellId = conductor.cells[0].id;
+        const cellId = conductor.getAllCells()[0].cellId;
         conductor.callZomeFn({
           cellId,
-          zome: 'sample',
+          zome: 'demo_entries',
           fnName: 'create_entry',
           payload: {
-            content: { myman: 'mygirl' },
+            content: { test: 'bon dia pel matí!' },
             entry_type: 'haha',
           },
           cap: null,
         });
+
+        e.target.activeAgentPubKey = cellId[1];
       }}
     >
-      <holochain-playground-source-chain
-        style="height: 100vh"
-      ></holochain-playground-source-chain>
+      <source-chain
+        style="flex: 1; min-height: 400px;"
+      ></source-chain>
     </holochain-playground-container>
   `;
 };
