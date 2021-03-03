@@ -6,6 +6,22 @@ import replace from '@rollup/plugin-replace';
 
 const pkg = require('./package.json');
 
+export const plugins = [
+  replace({
+    'customElements.define(JsonViewer.is, JsonViewer);': '',
+  }),
+  json(),
+  typescript(),
+  resolve({
+    preferBuiltins: false,
+    browser: true,
+    mainFields: ['browser', 'module', 'main'],
+  }),
+  commonjs({
+    include: /node_modules/,
+  }),
+];
+
 export default {
   input: `src/index.ts`,
   output: { dir: 'dist', format: 'es', sourcemap: true },
@@ -17,19 +33,5 @@ export default {
     /lit-html/,
     'lodash-es',
   ],
-  plugins: [
-    replace({
-      'customElements.define(JsonViewer.is, JsonViewer);': '',
-    }),
-    json(),
-    typescript(),
-    resolve({
-      preferBuiltins: false,
-      browser: true,
-      mainFields: ['browser', 'module', 'main'],
-    }),
-    commonjs({
-      include: /node_modules/,
-    }),
-  ],
+  plugins,
 };

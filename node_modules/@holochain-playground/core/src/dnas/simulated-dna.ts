@@ -21,6 +21,7 @@ export interface SimulatedZome {
   name: string;
   entry_defs: Array<EntryDef>;
   zome_functions: Dictionary<SimulatedZomeFunction>;
+  blocklyCode?: string;
 }
 
 export type SimulatedDnaTemplate = {

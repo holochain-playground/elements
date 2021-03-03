@@ -33,6 +33,9 @@ import { uniq } from 'lodash-es';
 const MIN_ANIMATION_DELAY = 1000;
 const MAX_ANIMATION_DELAY = 7000;
 
+/**
+ * @element dht-cells
+ */
 export class DhtCells extends PlaygroundElement {
   @property({ type: Number })
   animationDelay: number = 2000;

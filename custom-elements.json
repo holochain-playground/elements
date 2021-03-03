@@ -2,350 +2,137 @@
   "version": "experimental",
   "tags": [
     {
-      "name": "holochain-playground-provider",
-      "path": "./dist/context-97eb5dfe.js",
-      "properties": [
+      "name": "json-viewer",
+      "path": "./dist/index.js",
+      "description": "Custom Element that shows a JavaScript object's properties as syntax-highlighted JSON.\n\nThe element will respect `prefers-color-scheme` by default, but if you use the\nCSS Custom Properties listed below, you should customize both light and dark themes.\n\n❤️ Proudly uses [open-wc](https://open-wc.org) tools and recommendations.",
+      "attributes": [
         {
-          "name": "contextValue",
-          "type": "{ activeDna: any; activeAgentPubKey: any; activeEntryHash: any; conductors: any[]; conductorsUrls: any; }"
+          "name": "object",
+          "description": "JavaScript Object to display\nSetting this property will override `<script type=\"application/json\">` children",
+          "type": "string|object"
         },
         {
-          "name": "numberOfSimulatedConductors",
+          "name": "allowlist",
+          "description": "User-defined allowlist of top-level keys for the object.\nOptional for plain objects,\nRequired when setting `object` to a non-serializable object (e.g. an HTMLElement)\nProperty is an Array of strings\nAttribute is a comma-separated string",
+          "type": "string[]"
+        }
+      ],
+      "properties": [
+        {
+          "name": "object",
+          "attribute": "object",
+          "description": "JavaScript Object to display\nSetting this property will override `<script type=\"application/json\">` children",
+          "type": "string|object"
+        },
+        {
+          "name": "allowlist",
+          "attribute": "allowlist",
+          "description": "User-defined allowlist of top-level keys for the object.\nOptional for plain objects,\nRequired when setting `object` to a non-serializable object (e.g. an HTMLElement)\nProperty is an Array of strings\nAttribute is a comma-separated string",
+          "type": "string[]"
+        },
+        {
+          "name": "error",
+          "description": "JSON.parse error",
+          "type": "Error"
+        },
+        {
+          "name": "floatingLabelFoundation",
+          "type": "MDCFloatingLabelFoundation | undefined"
+        },
+        {
+          "name": "lineRippleFoundation",
+          "type": "MDCLineRippleFoundation | undefined"
+        }
+      ],
+      "events": [
+        {
+          "name": "json-parse-error",
+          "description": "when JSON parse fails"
+        }
+      ],
+      "slots": [
+        {
+          "name": "",
+          "description": "JSON scripts or JSON strings appended as text nodes will be parsed and displayed"
+        }
+      ],
+      "cssProperties": [
+        {
+          "name": "--json-viewer-color",
+          "description": "Color for generic text. Light white, Dark #212121"
+        },
+        {
+          "name": "--json-viewer-background",
+          "description": "Color for generic text. Light #212121, Dark white"
+        },
+        {
+          "name": "--json-viewer-key-color",
+          "description": "Color for keys. Light #f76707, Dark #ff922b"
+        },
+        {
+          "name": "--json-viewer-boolean-color",
+          "description": "Color for booleans. Light #f76707, Dark #22b8cf"
+        },
+        {
+          "name": "--json-viewer-number-color",
+          "description": "Color for numbers. Light #0ca678, Dark #51cf66"
+        },
+        {
+          "name": "--json-viewer-null-color",
+          "description": "Color for nulls. Light #e03131, Dark #ff6b6b"
+        },
+        {
+          "name": "--json-viewer-string-color",
+          "description": "Color for strings. Light #0c8599, Dark #22b8cf"
+        }
+      ]
+    },
+    {
+      "name": "dht-cells",
+      "path": "./src/elements/dht-cells/index.ts",
+      "attributes": [
+        {
+          "name": "animationDelay",
           "type": "number",
-          "default": "10"
+          "default": "2000"
+        },
+        {
+          "name": "workflowsToDisplay",
+          "type": "WorkflowType[]",
+          "default": "[\"Call Zome Function\",\"App Validation\"]"
+        },
+        {
+          "name": "networkRequestsToDisplay",
+          "type": "NetworkRequestType[]",
+          "default": "[\"Publish Request\",\"Call Remote\"]"
+        },
+        {
+          "name": "hide-time-controller",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "step-by-step",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "activeDna",
+          "description": "Context variables",
+          "type": "string | undefined"
+        },
+        {
+          "name": "activeAgentPubKey",
+          "type": "string | undefined"
+        },
+        {
+          "name": "activeHash",
+          "type": "string | undefined"
         },
         {
           "name": "conductors",
-          "type": "never[]",
+          "type": "Conductor[]",
           "default": "[]"
-        },
-        {
-          "name": "context",
-          "type": "Context"
-        },
-        {
-          "name": "value",
-          "type": "object"
-        }
-      ],
-      "events": [
-        {
-          "name": "ready"
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-conductor-detail",
-      "path": "./dist/elements/holochain-playground-conductor-detail.js",
-      "properties": [
-        {
-          "name": "selectedTabIndex",
-          "type": "number",
-          "default": "0"
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-connect-to-nodes",
-      "path": "./dist/elements/holochain-playground-connect-to-nodes.js",
-      "properties": [
-        {
-          "name": "conductorsUrls",
-          "type": "string[]",
-          "default": "[\"ws://localhost:8888\"]"
-        },
-        {
-          "name": "open",
-          "type": "boolean",
-          "default": "false"
-        },
-        {
-          "name": "urlsState",
-          "type": "object",
-          "default": "{}"
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-create-entries",
-      "path": "./dist/elements/holochain-playground-create-entries.js",
-      "properties": [
-        {
-          "name": "allCells",
-          "type": "Cell[]"
-        },
-        {
-          "name": "activeCell",
-          "type": "Cell"
-        },
-        {
-          "name": "selectedEntryType",
-          "type": "number",
-          "default": "0"
-        },
-        {
-          "name": "zome",
-          "type": "object",
-          "default": "\"sampleZome\""
-        },
-        {
-          "name": "zomeFnToCall",
-          "default": "\"undefined\""
-        },
-        {
-          "name": "dhtOpsToCreate",
-          "default": "\"undefined\""
-        }
-      ],
-      "events": [
-        {
-          "name": "element-created"
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-dht-graph",
-      "path": "./dist/elements/holochain-playground-dht-graph.js",
-      "properties": [
-        {
-          "name": "lastNodes",
-          "type": "never[]",
-          "default": "[]"
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-dht-shard",
-      "path": "./dist/elements/holochain-playground-dht-shard.js",
-      "properties": [
-        {
-          "name": "activeCell",
-          "type": "Cell"
-        },
-        {
-          "name": "cell",
-          "default": "\"undefined\""
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-dht-stats",
-      "path": "./dist/elements/holochain-playground-dht-stats.js",
-      "properties": [
-        {
-          "name": "activeCell",
-          "type": "Cell"
-        },
-        {
-          "name": "allCells",
-          "type": "Cell[]"
-        },
-        {
-          "name": "processing",
-          "type": "boolean",
-          "default": "false"
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-entry-detail",
-      "path": "./dist/elements/holochain-playground-entry-detail.js",
-      "properties": [
-        {
-          "name": "activeEntry"
-        },
-        {
-          "name": "activeEntryDetails",
-          "type": "EntryDetails | undefined"
-        },
-        {
-          "name": "withMetadata",
-          "type": "boolean",
-          "default": "false"
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-entry-graph",
-      "path": "./dist/elements/holochain-playground-entry-graph.js",
-      "properties": [
-        {
-          "name": "showAgentsIds",
-          "type": "boolean",
-          "default": "true"
-        },
-        {
-          "name": "lastEntriesIds",
-          "type": "never[]",
-          "default": "[]"
-        },
-        {
-          "name": "ready",
-          "type": "boolean",
-          "default": "false"
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-import-export",
-      "path": "./dist/elements/holochain-playground-import-export.js"
-    },
-    {
-      "name": "holochain-playground-select-dna",
-      "path": "./dist/elements/holochain-playground-select-dna.js"
-    },
-    {
-      "name": "holochain-playground-source-chain",
-      "path": "./dist/elements/holochain-playground-source-chain.js",
-      "properties": [
-        {
-          "name": "activeCell",
-          "type": "Cell"
-        },
-        {
-          "name": "nodes",
-          "type": "never[]",
-          "default": "[]"
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-conductor-detail",
-      "path": "./src/elements/holochain-playground-conductor-detail.ts",
-      "attributes": [
-        {
-          "name": "selectedTabIndex",
-          "type": "number",
-          "default": "0"
-        }
-      ],
-      "properties": [
-        {
-          "name": "selectedTabIndex",
-          "attribute": "selectedTabIndex",
-          "type": "number",
-          "default": "0"
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-connect-to-nodes",
-      "path": "./src/elements/holochain-playground-connect-to-nodes.ts"
-    },
-    {
-      "name": "holochain-playground-create-entries",
-      "path": "./src/elements/holochain-playground-create-entries.ts",
-      "properties": [
-        {
-          "name": "zome",
-          "type": "SimulatedZome",
-          "default": "{}"
-        },
-        {
-          "name": "allCells",
-          "type": "Cell[]"
-        },
-        {
-          "name": "activeCell",
-          "type": "Cell"
-        }
-      ],
-      "events": [
-        {
-          "name": "element-created"
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-dht-graph",
-      "path": "./src/elements/holochain-playground-dht-graph.ts"
-    },
-    {
-      "name": "holochain-playground-dht-shard",
-      "path": "./src/elements/holochain-playground-dht-shard.ts",
-      "attributes": [
-        {
-          "name": "cell",
-          "type": "{ dna: string; agentId: string; }",
-          "default": "\"undefined\""
-        }
-      ],
-      "properties": [
-        {
-          "name": "cell",
-          "attribute": "cell",
-          "type": "{ dna: string; agentId: string; }",
-          "default": "\"undefined\""
-        },
-        {
-          "name": "activeCell",
-          "type": "Cell"
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-dht-stats",
-      "path": "./src/elements/holochain-playground-dht-stats.ts",
-      "properties": [
-        {
-          "name": "activeCell",
-          "type": "Cell"
-        },
-        {
-          "name": "allCells",
-          "type": "Cell[]"
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-entry-detail",
-      "path": "./src/elements/holochain-playground-entry-detail.ts",
-      "attributes": [
-        {
-          "name": "withMetadata",
-          "type": "boolean",
-          "default": "false"
-        }
-      ],
-      "properties": [
-        {
-          "name": "withMetadata",
-          "attribute": "withMetadata",
-          "type": "boolean",
-          "default": "false"
-        },
-        {
-          "name": "activeEntry"
-        },
-        {
-          "name": "activeEntryDetails",
-          "type": "EntryDetails | undefined"
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-entry-graph",
-      "path": "./src/elements/holochain-playground-entry-graph.ts",
-      "properties": [
-        {
-          "name": "showAgentsIds",
-          "type": "boolean",
-          "default": "true"
-        }
-      ]
-    },
-    {
-      "name": "holochain-playground-import-export",
-      "path": "./src/elements/holochain-playground-import-export.ts"
-    },
-    {
-      "name": "holochain-playground-provider",
-      "path": "./src/elements/holochain-playground-provider.ts",
-      "attributes": [
-        {
-          "name": "numberOfSimulatedConductors",
-          "type": "number",
-          "default": "10"
         },
         {
           "name": "conductorsUrls",
@@ -354,46 +141,130 @@
       ],
       "properties": [
         {
-          "name": "numberOfSimulatedConductors",
-          "attribute": "numberOfSimulatedConductors",
+          "name": "animationDelay",
+          "attribute": "animationDelay",
           "type": "number",
-          "default": "10"
+          "default": "2000"
+        },
+        {
+          "name": "workflowsToDisplay",
+          "attribute": "workflowsToDisplay",
+          "type": "WorkflowType[]",
+          "default": "[\"Call Zome Function\",\"App Validation\"]"
+        },
+        {
+          "name": "networkRequestsToDisplay",
+          "attribute": "networkRequestsToDisplay",
+          "type": "NetworkRequestType[]",
+          "default": "[\"Publish Request\",\"Call Remote\"]"
+        },
+        {
+          "name": "hideTimeController",
+          "attribute": "hide-time-controller",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "stepByStep",
+          "attribute": "step-by-step",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "activeDna",
+          "attribute": "activeDna",
+          "description": "Context variables",
+          "type": "string | undefined"
+        },
+        {
+          "name": "activeAgentPubKey",
+          "attribute": "activeAgentPubKey",
+          "type": "string | undefined"
+        },
+        {
+          "name": "activeHash",
+          "attribute": "activeHash",
+          "type": "string | undefined"
+        },
+        {
+          "name": "conductors",
+          "attribute": "conductors",
+          "type": "Conductor[]",
+          "default": "[]"
         },
         {
           "name": "conductorsUrls",
           "attribute": "conductorsUrls",
           "type": "string[] | undefined"
-        },
-        {
-          "name": "contextValue",
-          "type": "{ activeDna: string | undefined; activeAgentPubKey: string | undefined; activeEntryHash: string | undefined; conductors: Conductor[]; conductorsUrls: string[] | undefined; }"
-        },
-        {
-          "name": "context",
-          "type": "Context"
-        },
-        {
-          "name": "value",
-          "type": "object"
         }
       ],
       "events": [
         {
-          "name": "ready"
+          "name": "show-message"
+        },
+        {
+          "name": "update-context"
         }
       ]
     },
     {
-      "name": "holochain-playground-select-dna",
-      "path": "./src/elements/holochain-playground-select-dna.ts"
-    },
-    {
-      "name": "holochain-playground-source-chain",
-      "path": "./src/elements/holochain-playground-source-chain.ts",
+      "name": "holochain-playground-container",
+      "path": "./stories/dht-graph.stories.js",
       "properties": [
         {
-          "name": "activeCell",
-          "type": "Cell"
+          "name": "numberOfSimulatedConductors",
+          "type": "number"
+        },
+        {
+          "name": "simulatedDnaTemplate",
+          "type": "SimulatedDnaTemplate"
+        },
+        {
+          "name": "activeDna",
+          "description": "Context variables",
+          "type": "string | undefined"
+        },
+        {
+          "name": "activeAgentPubKey",
+          "type": "string | undefined"
+        },
+        {
+          "name": "activeHash",
+          "type": "string | undefined"
+        },
+        {
+          "name": "conductors",
+          "type": "Conductor[]"
+        },
+        {
+          "name": "conductorsUrls",
+          "type": "string[] | undefined"
+        }
+      ]
+    },
+    {
+      "name": "dht-cells",
+      "path": "./stories/dht-graph.stories.js",
+      "properties": [
+        {
+          "name": "animationDelay",
+          "type": "number"
+        },
+        {
+          "name": "workflowsToDisplay",
+          "type": "WorkflowType[]"
+        },
+        {
+          "name": "networkRequestsToDisplay",
+          "type": "NetworkRequestType[]"
+        },
+        {
+          "name": "hideTimeController",
+          "type": "boolean"
+        },
+        {
+          "name": "stepByStep",
+          "type": "boolean"
         }
       ]
     }

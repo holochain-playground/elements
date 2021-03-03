@@ -12,6 +12,9 @@ import { Formfield } from 'scoped-material-components/mwc-formfield';
 import { Icon } from 'scoped-material-components/mwc-icon';
 import { Menu } from 'scoped-material-components/mwc-menu';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
+/**
+ * @element dht-cells
+ */
 export declare class DhtCells extends PlaygroundElement {
     animationDelay: number;
     workflowsToDisplay: WorkflowType[];
