@@ -20,7 +20,7 @@ export declare class Conductor {
     getState(): ConductorState;
     getAllCells(): Cell[];
     getCells(dnaHash: Hash): Cell[];
-    getCell(dnaHash: Hash, agentPubKey: AgentPubKey): Cell;
+    getCell(dnaHash: Hash, agentPubKey: AgentPubKey): Cell | undefined;
     registerDna(dna_template: SimulatedDnaTemplate): Promise<Hash>;
     installApp(dna_hash: Hash, membrane_proof: any, properties: any, uuid: string): Promise<Cell>;
     callZomeFn(args: {

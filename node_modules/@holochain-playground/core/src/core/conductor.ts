@@ -87,11 +87,12 @@ export class Conductor {
   }
 
   getCells(dnaHash: Hash): Cell[] {
-    return Object.values(this.cells[dnaHash]);
+    const dnaCells = this.cells[dnaHash];
+    return dnaCells ? Object.values(dnaCells) : [];
   }
 
-  getCell(dnaHash: Hash, agentPubKey: AgentPubKey): Cell {
-    return this.cells[dnaHash][agentPubKey];
+  getCell(dnaHash: Hash, agentPubKey: AgentPubKey): Cell | undefined {
+    return this.cells[dnaHash] ? this.cells[dnaHash][agentPubKey] : undefined;
   }
 
   async registerDna(dna_template: SimulatedDnaTemplate): Promise<Hash> {

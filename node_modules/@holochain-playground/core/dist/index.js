@@ -2325,10 +2325,11 @@ class Conductor {
         return [].concat(...nestedCells);
     }
     getCells(dnaHash) {
-        return Object.values(this.cells[dnaHash]);
+        const dnaCells = this.cells[dnaHash];
+        return dnaCells ? Object.values(dnaCells) : [];
     }
     getCell(dnaHash, agentPubKey) {
-        return this.cells[dnaHash][agentPubKey];
+        return this.cells[dnaHash] ? this.cells[dnaHash][agentPubKey] : undefined;
     }
     async registerDna(dna_template) {
         const templateHash = hash(dna_template, HashType.DNA);
