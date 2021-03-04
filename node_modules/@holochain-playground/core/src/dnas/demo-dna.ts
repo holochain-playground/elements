@@ -38,8 +38,7 @@ export const demoEntriesZome: SimulatedZome = {
         original_header_address,
         new_content,
       }) => {
-        return update_entry({
-          original_header_address,
+        return update_entry(original_header_address, {
           content: new_content,
           entry_def_id: 'demo_entry',
         });

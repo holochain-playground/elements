@@ -10,7 +10,6 @@
     "start": "concurrently -k \"npm:build-watch\" \"wds -c web-dev-server.config.mjs\"",
     "build": "rimraf dist && rollup -c rollup.config.js",
     "build-watch": "rimraf dist && rollup -w -c rollup.config.js",
-    "dev": "rimraf dist && tsc -w",
     "test": "karma start --coverage",
     "test:watch": "concurrently --kill-others --names tsc,karma \"npm run tsc:watch\" \"karma start --auto-watch=true --single-run=false\"",
     "analyze": "wca analyze \"src/**/*.{js,ts}\" --features cssproperty member slot event --outFile custom-elements.json",
@@ -35,7 +34,7 @@
     "lit-element-context": "^0.1.1",
     "lodash-es": "^4.17.21",
     "rxjs": "^6.6.3",
-    "scoped-material-components": "^0.1.0"
+    "scoped-material-components": "^0.1.2"
   },
   "devDependencies": {
     "@babel/core": "^7.13.8",

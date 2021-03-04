@@ -11,14 +11,15 @@
   </head>
   <body>
     <holochain-playground-container id="container">
-      <dht-cells id="cells" style="height: 600px; width: 100%"></dht-cells>
+      <select-active-dna style="height: 200px; width: 100%;"></select-active-dna>
+      <dht-cells id="cells" style="height: 600px; width: 100%;"></dht-cells>
       <call-zome-fns
         hide-agent-pub-key
-        style="height: 350px; width: 100%"
+        style="height: 350px; width: 100%;"
         id="call-zome"
       ></call-zome-fns>
-      <entry-graph style="height: 600px; width: 100%"></entry-graph>
-      <entry-contents style="height: 350px; width: 100%"></entry-contents>
+      <entry-graph style="height: 600px; width: 100%;"></entry-graph>
+      <entry-contents style="height: 350px; width: 100%;"></entry-contents>
     </holochain-playground-container>
 
     <script type="module">
@@ -27,6 +28,7 @@
         HolochainPlaygroundContainer,
         CallZomeFns,
         SourceChain,
+        SelectActiveDna,
         DhtCells,
         EntryGraph,
         EntryContents,
@@ -43,6 +45,7 @@
         HolochainPlaygroundContainer
       );
       customElements.define('dht-cells', DhtCells);
+      customElements.define('select-active-dna', SelectActiveDna);
       customElements.define('call-zome-fns', CallZomeFns);
       customElements.define('source-chain', SourceChain);
       customElements.define('entry-graph', EntryGraph);

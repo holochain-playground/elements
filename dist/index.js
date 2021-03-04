@@ -27,6 +27,7 @@ import { Menu } from 'scoped-material-components/mwc-menu';
 import { uniq, isEqual } from 'lodash-es';
 import { Checkbox } from 'scoped-material-components/mwc-checkbox';
 import { timestampToMillis } from '@holochain-open-dev/core-types';
+import { Select } from 'scoped-material-components/mwc-select';
 
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -437,6 +438,15 @@ function selectMedianHoldingDHTOps(cells) {
     holdingDHTOps.sort();
     const medianIndex = Math.floor(holdingDHTOps.length / 2);
     return holdingDHTOps.sort((a, b) => a - b)[medianIndex];
+}
+function selectAllDNAs(conductors) {
+    const dnas = {};
+    for (const conductor of conductors) {
+        for (const cell of conductor.getAllCells()) {
+            dnas[cell.dnaHash] = true;
+        }
+    }
+    return Object.keys(dnas);
 }
 function selectRedundancyFactor(cell) {
     return cell.p2p.redundancyFactor;
@@ -51731,5 +51741,56 @@ __decorate([
     __metadata("design:type", HTMLElement)
 ], SourceChain.prototype, "graph", void 0);
 
-export { CallZomeFns, ConductorDetail, DhtCells, DhtShard, DhtStats, EntryContents, EntryGraph, HolochainPlaygroundContainer, PlaygroundElement, PlaygroundMixin, SourceChain };
+class SelectActiveDna extends PlaygroundElement {
+    selectDNA(dna) {
+        this.updatePlayground({
+            activeAgentPubKey: null,
+            activeHash: null,
+            activeDna: dna,
+        });
+    }
+    render() {
+        const dnas = selectAllDNAs(this.conductors);
+        return html `
+      <mwc-card class="block-card">
+        <div class="column" style="margin: 16px;">
+          <span class="block-title" style="margin-bottom: 16px;">Select Active Dna</span>
+          <mwc-select
+            outlined
+            fullwidth
+            @selected=${(e) => this.selectDNA(dnas[e.detail.index])}
+          >
+            ${dnas.map((dna) => html `
+                  <mwc-list-item
+                    ?selected=${this.activeDna === dna}
+                    .value=${dna}
+                    >${dna}</mwc-list-item
+                  >
+                `)}
+          </mwc-select>
+        </div>
+      </mwc-card>
+    `;
+    }
+    static get styles() {
+        return [
+            css$1 `
+        :host {
+          display: flex;
+          flex: 1;
+        }
+      `,
+            sharedStyles,
+        ];
+    }
+    static get scopedElements() {
+        return {
+            'mwc-list-item': ListItem,
+            'mwc-select': Select,
+            'mwc-card': Card,
+        };
+    }
+}
+
+export { CallZomeFns, ConductorDetail, DhtCells, DhtShard, DhtStats, EntryContents, EntryGraph, HolochainPlaygroundContainer, PlaygroundElement, PlaygroundMixin, SelectActiveDna, SourceChain };
 //# sourceMappingURL=index.js.map

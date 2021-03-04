@@ -1829,11 +1829,11 @@ async function common_update(worskpace, original_header_hash, entry, entry_type)
 }
 
 // Creates a new Create header and its entry in the source chain
-const update_entry = (workspace, zome_index) => async (args) => {
-    const entry = { entry_type: 'App', content: args.content };
-    const entryDefIndex = workspace.dna.zomes[zome_index].entry_defs.findIndex(entry_def => entry_def.id === args.entry_def_id);
+const update_entry = (workspace, zome_index) => async (original_header_address, newEntry) => {
+    const entry = { entry_type: 'App', content: newEntry.content };
+    const entryDefIndex = workspace.dna.zomes[zome_index].entry_defs.findIndex(entry_def => entry_def.id === newEntry.entry_def_id);
     if (entryDefIndex < 0) {
-        throw new Error(`Given entry def id ${args.entry_def_id} does not exist in this zome`);
+        throw new Error(`Given entry def id ${newEntry.entry_def_id} does not exist in this zome`);
     }
     const entry_type = {
         App: {
@@ -1842,7 +1842,7 @@ const update_entry = (workspace, zome_index) => async (args) => {
             visibility: workspace.dna.zomes[zome_index].entry_defs[entryDefIndex].visibility,
         },
     };
-    return common_update(workspace, args.original_header_address, entry, entry_type);
+    return common_update(workspace, original_header_address, entry, entry_type);
 };
 
 // Creates a new Create header and its entry in the source chain
@@ -2407,8 +2407,7 @@ const demoEntriesZome = {
         },
         update_entry: {
             call: ({ update_entry }) => ({ original_header_address, new_content, }) => {
-                return update_entry({
-                    original_header_address,
+                return update_entry(original_header_address, {
                     content: new_content,
                     entry_def_id: 'demo_entry',
                 });
