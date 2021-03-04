@@ -51775,7 +51775,6 @@ class SelectActiveDna extends PlaygroundElement {
             css$1 `
         :host {
           display: flex;
-          flex: 1;
         }
       `,
             sharedStyles,
