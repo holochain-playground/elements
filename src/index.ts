@@ -11,3 +11,4 @@ export * from './elements/dht-stats';
 export * from './elements/entry-contents';
 export * from './elements/entry-graph';
 export * from './elements/source-chain';
+export * from './elements/select-active-dna';
