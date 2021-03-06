@@ -9,6 +9,7 @@ const pkg = require('./package.json');
 export const plugins = [
   replace({
     'customElements.define(JsonViewer.is, JsonViewer);': '',
+    delimiters: ['', ''],
   }),
   json(),
   typescript(),
@@ -27,7 +28,10 @@ export default {
   output: { dir: 'dist', format: 'es', sourcemap: true },
   external: [
     ...Object.keys(pkg.dependencies).filter(
-      (key) => !key.includes('cytoscape') && !key.includes('json-viewer')
+      (key) =>
+        !key.includes('cytoscape') &&
+        !key.includes('json-viewer') &&
+        !key.includes('3d')
     ),
     /scoped-material-components/,
     /lit-html/,

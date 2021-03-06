@@ -11,8 +11,13 @@
   </head>
   <body>
     <holochain-playground-container id="container">
-      <select-active-dna style="height: 200px; width: 100%;"></select-active-dna>
-      <dht-cells id="cells" style="height: 600px; width: 100%;"></dht-cells>
+      <select-active-dna
+        style="height: 200px; width: 100%;"
+      ></select-active-dna>
+      <cells-ecosystem
+        id="cells"
+        style="height: 600px; width: 100%;"
+      ></cells-ecosystem>
       <call-zome-fns
         hide-agent-pub-key
         style="height: 350px; width: 100%;"
@@ -27,6 +32,7 @@
       import {
         HolochainPlaygroundContainer,
         CallZomeFns,
+        CellsEcosystem,
         SourceChain,
         SelectActiveDna,
         DhtCells,
@@ -44,6 +50,7 @@
         'holochain-playground-container',
         HolochainPlaygroundContainer
       );
+      customElements.define('cells-ecosystem', CellsEcosystem);
       customElements.define('dht-cells', DhtCells);
       customElements.define('select-active-dna', SelectActiveDna);
       customElements.define('call-zome-fns', CallZomeFns);
@@ -52,7 +59,7 @@
       customElements.define('entry-contents', EntryContents);
 
       const container = document.getElementById('container');
-      container.numberOfSimulatedConductors = 1;
+      container.numberOfSimulatedConductors = 10;
 
       container.addEventListener('ready', (e) => {
         const conductor = e.detail.conductors[0];
@@ -60,6 +67,40 @@
         const cellId = conductor.getAllCells()[0].cellId;
 
         container.activeDna = cellId[0];
+
+        for (const conductor of e.detail.conductors.slice(0, 3)) {
+          const dnaTemplateHash = Object.keys(conductor.registeredTemplates)[0];
+          conductor.installApp(
+            dnaTemplateHash,
+            null,
+            {
+              hi: 'hi',
+            },
+            ''
+          );
+        }
+        for (const conductor of e.detail.conductors.slice(4, 9)) {
+          const dnaTemplateHash = Object.keys(conductor.registeredTemplates)[0];
+          conductor.installApp(
+            dnaTemplateHash,
+            null,
+            {
+              hi2: 'hi2',
+            },
+            ''
+          );
+        }
+        for (const conductor of e.detail.conductors.slice(2, 6)) {
+          const dnaTemplateHash = Object.keys(conductor.registeredTemplates)[0];
+          conductor.installApp(
+            dnaTemplateHash,
+            null,
+            {
+              hi3: 'hi3',
+            },
+            ''
+          );
+        }
       });
     </script>
   </body>
