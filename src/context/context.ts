@@ -1,5 +1,6 @@
 import { Conductor } from '@holochain-playground/core';
-import { Hash } from '@holochain-open-dev/core-types';
+import { Dictionary, Hash } from '@holochain-open-dev/core-types';
+import { ZomeFunctionResult } from '../elements/zome-fns-results/types';
 
 export interface PlaygroundContext {
   activeDna: Hash;

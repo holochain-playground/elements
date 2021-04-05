@@ -11,7 +11,7 @@ export declare class MiddlewareExecutor<P> {
     _errorMiddlewares: Array<ErrorMiddleware<P>>;
     execute<T>(task: Task<T>, payload: P): Promise<T>;
     before(callback: Middleware<P>): MiddlewareSubscription;
-    success(callback: Middleware<P>): MiddlewareSubscription;
+    success(callback: SuccessMiddleware<P>): MiddlewareSubscription;
     error(callback: ErrorMiddleware<P>): MiddlewareSubscription;
     private _addListener;
 }

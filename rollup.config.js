@@ -9,7 +9,6 @@ const pkg = require('./package.json');
 export const plugins = [
   replace({
     'customElements.define(JsonViewer.is, JsonViewer);': '',
-    delimiters: ['', ''],
   }),
   json(),
   typescript(),

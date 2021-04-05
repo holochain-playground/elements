@@ -18,7 +18,8 @@ import {
   demoDnaTemplate,
   SimulatedDnaTemplate,
 } from '@holochain-playground/core';
-import { AgentPubKey, Hash } from '@holochain-open-dev/core-types';
+import { AgentPubKey, Dictionary, Hash } from '@holochain-open-dev/core-types';
+import { ZomeFunctionResult } from '../elements/zome-fns-results/types';
 
 export class HolochainPlaygroundContainer extends (ProviderMixin(
   Scoped(LitElement)

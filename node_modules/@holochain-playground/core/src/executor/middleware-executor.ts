@@ -35,7 +35,7 @@ export class MiddlewareExecutor<P> {
   before(callback: Middleware<P>): MiddlewareSubscription {
     return this._addListener(callback, this._beforeMiddlewares);
   }
-  success(callback: Middleware<P>): MiddlewareSubscription {
+  success(callback: SuccessMiddleware<P>): MiddlewareSubscription {
     return this._addListener(callback, this._successMiddlewares);
   }
 
