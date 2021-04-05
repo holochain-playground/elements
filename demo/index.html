@@ -15,7 +15,7 @@
       <zome-fns-results style="height: 350px; width: 100%;"></zome-fns-results>
       <dht-cells
         id="cells"
-        style="height: 600px; width: 100%;"
+        style="height: 600px; width: 800px;"
         step-by-step
       ></dht-cells>
       <call-zome-fns
@@ -61,7 +61,7 @@
       customElements.define('entry-contents', EntryContents);
 
       const container = document.getElementById('container');
-      container.numberOfSimulatedConductors = 1;
+      container.numberOfSimulatedConductors = 2;
 
       container.addEventListener('ready', (e) => {
         const conductor = e.detail.conductors[0];

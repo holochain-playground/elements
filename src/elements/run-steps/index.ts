@@ -52,6 +52,7 @@ export class RunSteps extends PlaygroundElement {
                   ${this.steps.map(
                     (step, index) =>
                       html`<mwc-list-item
+                        noninteractive
                         class=${classMap({
                           future: this._runningStepIndex < index,
                         })}

@@ -1107,6 +1107,7 @@ class ZomeFnsResults extends PlaygroundElement {
         this.hideAgentPubKey = false;
         // Results segmented by dnaHash/agentPubKey/timestamp
         this._results = {};
+        this.agentName = undefined;
     }
     get activeCell() {
         return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors);
@@ -1178,20 +1179,22 @@ class ZomeFnsResults extends PlaygroundElement {
         </expandable-line>
       `;
     }
+    renderAgent() {
+        if (this.agentName)
+            return `, for ${this.agentName}`;
+        if (!this.hideAgentPubKey && this.activeAgentPubKey)
+            return `, for agent ${this.activeAgentPubKey}`;
+    }
     render() {
         const results = this.getActiveResults();
         return html `
       <mwc-card class="block-card">
         <div class="column" style="flex: 1; margin: 16px">
-          <span class="title" style="margin: 16px; margin-bottom: 0;"
-            >Zome Fns
-            Results${this.hideAgentPubKey || !this.activeAgentPubKey
-            ? html ``
-            : html `,
-                  <span class="placeholder"
-                    >for agent ${this.activeAgentPubKey}</span
-                  > `}</span
-          >
+          <span class="title"
+            >Zome Fns Results<span class="placeholder"
+              >${this.renderAgent()}</span
+            >
+          </span>
           ${results.length === 0
             ? html `
                 <div class="row fill center-content">
@@ -1305,6 +1308,10 @@ __decorate([
     property$1({ type: Array }),
     __metadata("design:type", Object)
 ], ZomeFnsResults.prototype, "_results", void 0);
+__decorate([
+    property$1({ type: String, attribute: 'agent-name' }),
+    __metadata("design:type", String)
+], ZomeFnsResults.prototype, "agentName", void 0);
 
 class DhtShard extends PlaygroundElement {
     constructor() {
@@ -35032,6 +35039,7 @@ class RunSteps extends PlaygroundElement {
             ? html `
                 <mwc-list activatable>
                   ${this.steps.map((step, index) => html `<mwc-list-item
+                        noninteractive
                         class=${classMap({
                 future: this._runningStepIndex < index,
             })}

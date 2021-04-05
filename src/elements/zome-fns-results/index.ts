@@ -26,6 +26,9 @@ export class ZomeFnsResults extends PlaygroundElement {
   // Results segmented by dnaHash/agentPubKey/timestamp
   _results: Dictionary<Dictionary<Dictionary<ZomeFunctionResult>>> = {};
 
+  @property({ type: String, attribute: 'agent-name' })
+  agentName: String | undefined = undefined;
+
   get activeCell(): Cell {
     return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors);
   }
@@ -113,20 +116,22 @@ export class ZomeFnsResults extends PlaygroundElement {
       `;
   }
 
+  renderAgent() {
+    if (this.agentName) return `, for ${this.agentName}`;
+    if (!this.hideAgentPubKey && this.activeAgentPubKey)
+      return `, for agent ${this.activeAgentPubKey}`;
+  }
+
   render() {
     const results = this.getActiveResults();
     return html`
       <mwc-card class="block-card">
         <div class="column" style="flex: 1; margin: 16px">
-          <span class="title" style="margin: 16px; margin-bottom: 0;"
-            >Zome Fns
-            Results${this.hideAgentPubKey || !this.activeAgentPubKey
-              ? html``
-              : html`,
-                  <span class="placeholder"
-                    >for agent ${this.activeAgentPubKey}</span
-                  > `}</span
-          >
+          <span class="title"
+            >Zome Fns Results<span class="placeholder"
+              >${this.renderAgent()}</span
+            >
+          </span>
           ${results.length === 0
             ? html`
                 <div class="row fill center-content">

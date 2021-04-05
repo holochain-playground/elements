@@ -12,11 +12,13 @@ import { Icon } from 'scoped-material-components/mwc-icon';
 export declare class ZomeFnsResults extends PlaygroundElement {
     hideAgentPubKey: boolean;
     _results: Dictionary<Dictionary<Dictionary<ZomeFunctionResult>>>;
+    agentName: String | undefined;
     get activeCell(): Cell;
     observedCells(): Cell[];
     onNewObservedCell(cell: Cell): import("@holochain-playground/core").MiddlewareSubscription[];
     getActiveResults(): Array<[string, ZomeFunctionResult]>;
     renderResult(result: ZomeFunctionResult): import("lit-element").TemplateResult;
+    renderAgent(): string;
     render(): import("lit-element").TemplateResult;
     static get styles(): import("lit-element").CSSResult[];
     static get scopedElements(): {
