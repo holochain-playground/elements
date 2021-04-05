@@ -74,7 +74,7 @@ export class ZomeFnsResults extends PlaygroundElement {
         ) {
           this._results[cell.dnaHash][cell.agentPubKey][
             (workflowInfo as any).timestamp
-          ].result = { success: false, payload: error };
+          ].result = { success: false, payload: error.message };
           this.requestUpdate();
         }
       }),

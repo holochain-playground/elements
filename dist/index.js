@@ -1145,7 +1145,7 @@ class ZomeFnsResults extends PlaygroundElement {
             cell.workflowExecutor.error(async (workflowInfo, error) => {
                 if (workflowInfo.type === WorkflowType.CALL_ZOME &&
                     workflowInfo.timestamp) {
-                    this._results[cell.dnaHash][cell.agentPubKey][workflowInfo.timestamp].result = { success: false, payload: error };
+                    this._results[cell.dnaHash][cell.agentPubKey][workflowInfo.timestamp].result = { success: false, payload: error.message };
                     this.requestUpdate();
                 }
             }),
