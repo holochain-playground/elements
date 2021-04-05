@@ -1108,11 +1108,14 @@ class ZomeFnsResults extends PlaygroundElement {
         // Results segmented by dnaHash/agentPubKey/timestamp
         this._results = {};
         this.agentName = undefined;
+        this.forAgent = undefined;
     }
     get activeCell() {
-        return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors);
+        return selectCell(this.activeDna, this.forAgent ? this.forAgent : this.activeAgentPubKey, this.conductors);
     }
     observedCells() {
+        if (this.forAgent)
+            return [selectCell(this.activeDna, this.forAgent, this.conductors)];
         return selectAllCells(this.activeDna, this.conductors);
     }
     onNewObservedCell(cell) {
@@ -1182,8 +1185,8 @@ class ZomeFnsResults extends PlaygroundElement {
     renderAgent() {
         if (this.agentName)
             return `, for ${this.agentName}`;
-        if (!this.hideAgentPubKey && this.activeAgentPubKey)
-            return `, for agent ${this.activeAgentPubKey}`;
+        if (!this.hideAgentPubKey && this.activeCell.agentPubKey)
+            return `, for agent ${this.activeCell.agentPubKey}`;
     }
     render() {
         const results = this.getActiveResults();
@@ -1312,6 +1315,10 @@ __decorate([
     property$1({ type: String, attribute: 'agent-name' }),
     __metadata("design:type", String)
 ], ZomeFnsResults.prototype, "agentName", void 0);
+__decorate([
+    property$1({ type: String, attribute: 'for-agent' }),
+    __metadata("design:type", String)
+], ZomeFnsResults.prototype, "forAgent", void 0);
 
 class DhtShard extends PlaygroundElement {
     constructor() {

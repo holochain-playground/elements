@@ -12,7 +12,7 @@ import {
   Cell,
   WorkflowType,
 } from '@holochain-playground/core';
-import { Dictionary } from '@holochain-open-dev/core-types';
+import { AgentPubKey, Dictionary } from '@holochain-open-dev/core-types';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 import { ExpandableLine } from '../helpers/expandable-line';
 import { JsonViewer } from '@power-elements/json-viewer';
@@ -29,11 +29,20 @@ export class ZomeFnsResults extends PlaygroundElement {
   @property({ type: String, attribute: 'agent-name' })
   agentName: String | undefined = undefined;
 
+  @property({ type: String, attribute: 'for-agent' })
+  forAgent: AgentPubKey | undefined = undefined;
+
   get activeCell(): Cell {
-    return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors);
+    return selectCell(
+      this.activeDna,
+      this.forAgent ? this.forAgent : this.activeAgentPubKey,
+      this.conductors
+    );
   }
 
   observedCells() {
+    if (this.forAgent)
+      return [selectCell(this.activeDna, this.forAgent, this.conductors)];
     return selectAllCells(this.activeDna, this.conductors);
   }
 
@@ -118,8 +127,8 @@ export class ZomeFnsResults extends PlaygroundElement {
 
   renderAgent() {
     if (this.agentName) return `, for ${this.agentName}`;
-    if (!this.hideAgentPubKey && this.activeAgentPubKey)
-      return `, for agent ${this.activeAgentPubKey}`;
+    if (!this.hideAgentPubKey && this.activeCell.agentPubKey)
+      return `, for agent ${this.activeCell.agentPubKey}`;
   }
 
   render() {
