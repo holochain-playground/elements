@@ -58,6 +58,9 @@ export class DhtCells extends PlaygroundElement {
   @property({ type: Boolean, attribute: 'step-by-step' })
   stepByStep = false;
 
+  @property({ type: Boolean, attribute: 'show-zome-fn-success' })
+  showZomeFnSuccess = false;
+
   @query('#graph')
   private _graph: any;
 
@@ -369,6 +372,7 @@ export class DhtCells extends PlaygroundElement {
           'z-index': '3',
         })}
         .stepByStep=${this.stepByStep}
+        .showZomeFnSuccess=${this.showZomeFnSuccess}
         ._onPause=${this._onPause}
         ._resumeObservable=${this._resumeObservable}
         @execution-paused=${(e) => (this._onPause = e.detail.paused)}

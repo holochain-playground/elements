@@ -12,7 +12,7 @@ import {
   Cell,
   WorkflowType,
 } from '@holochain-playground/core';
-import { Dictionary } from '@holochain-open-dev/core-types';
+import { AgentPubKey, Dictionary } from '@holochain-open-dev/core-types';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 import { ExpandableLine } from '../helpers/expandable-line';
 import { JsonViewer } from '@power-elements/json-viewer';
@@ -26,11 +26,23 @@ export class ZomeFnsResults extends PlaygroundElement {
   // Results segmented by dnaHash/agentPubKey/timestamp
   _results: Dictionary<Dictionary<Dictionary<ZomeFunctionResult>>> = {};
 
+  @property({ type: String, attribute: 'agent-name' })
+  agentName: String | undefined = undefined;
+
+  @property({ type: String, attribute: 'for-agent' })
+  forAgent: AgentPubKey | undefined = undefined;
+
   get activeCell(): Cell {
-    return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors);
+    return selectCell(
+      this.activeDna,
+      this.forAgent ? this.forAgent : this.activeAgentPubKey,
+      this.conductors
+    );
   }
 
   observedCells() {
+    if (this.forAgent)
+      return [selectCell(this.activeDna, this.forAgent, this.conductors)];
     return selectAllCells(this.activeDna, this.conductors);
   }
 
@@ -74,7 +86,7 @@ export class ZomeFnsResults extends PlaygroundElement {
         ) {
           this._results[cell.dnaHash][cell.agentPubKey][
             (workflowInfo as any).timestamp
-          ].result = { success: false, payload: error };
+          ].result = { success: false, payload: error.message };
           this.requestUpdate();
         }
       }),
@@ -113,20 +125,22 @@ export class ZomeFnsResults extends PlaygroundElement {
       `;
   }
 
+  renderAgent() {
+    if (this.agentName) return `, for ${this.agentName}`;
+    if (!this.hideAgentPubKey && this.activeCell)
+      return `, for agent ${this.activeCell.agentPubKey}`;
+  }
+
   render() {
     const results = this.getActiveResults();
     return html`
       <mwc-card class="block-card">
         <div class="column" style="flex: 1; margin: 16px">
-          <span class="title" style="margin: 16px; margin-bottom: 0;"
-            >Zome Fns
-            Results${this.hideAgentPubKey || !this.activeAgentPubKey
-              ? html``
-              : html`,
-                  <span class="placeholder"
-                    >for agent ${this.activeAgentPubKey}</span
-                  > `}</span
-          >
+          <span class="title"
+            >Zome Fns Results<span class="placeholder"
+              >${this.renderAgent()}</span
+            >
+          </span>
           ${results.length === 0
             ? html`
                 <div class="row fill center-content">

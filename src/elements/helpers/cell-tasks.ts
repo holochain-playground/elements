@@ -41,6 +41,9 @@ export class CellTasks extends PlaygroundElement {
   @property({ type: Boolean, attribute: 'hide-errors' })
   hideErrors = false;
 
+  @property({ type: Boolean, attribute: 'show-zome-fn-success' })
+  showZomeFnSuccess = false;
+
   @property({ type: Boolean })
   stepByStep: boolean = false;
 
@@ -53,6 +56,9 @@ export class CellTasks extends PlaygroundElement {
   private _callZomeTasks: Array<CallZomeFnWorkflow> = [];
   @property({ type: Object })
   private _runningTasks: Dictionary<number> = {};
+
+  @property({ type: Object })
+  private _successes: Array<{ task: CallZomeFnWorkflow; payload: any }> = [];
 
   @property({ type: Object })
   private _errors: Array<{ task: Workflow<any, any>; error: any }> = [];
@@ -98,9 +104,39 @@ export class CellTasks extends PlaygroundElement {
           await sleep(this.workflowDelay);
         }
       }),
-      cell.workflowExecutor.success(async (task) => {
+      cell.workflowExecutor.success(async (task, payload) => {
         if (task.type === WorkflowType.CALL_ZOME) {
           this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
+
+          if (this.showZomeFnSuccess) {
+            const successInfo = { task, payload };
+            this._successes.push(successInfo);
+            this.requestUpdate();
+
+            if (this.stepByStep) {
+              this.dispatchEvent(
+                new CustomEvent('execution-paused', {
+                  detail: { paused: true },
+                  composed: true,
+                  bubbles: true,
+                })
+              );
+              await new Promise((resolve) =>
+                this._resumeObservable.subscribe(() => resolve(null))
+              );
+              this.dispatchEvent(
+                new CustomEvent('execution-paused', {
+                  detail: { paused: false },
+                  composed: true,
+                  bubbles: true,
+                })
+              );
+            } else {
+              await sleep(this.workflowDelay);
+            }
+            const index = this._successes.findIndex((e) => e === successInfo);
+            this._successes.splice(index, 1);
+          }
         } else if (this._runningTasks[task.type]) {
           this._runningTasks[task.type] -= 1;
           if (this._runningTasks[task.type] === 0)
@@ -109,15 +145,15 @@ export class CellTasks extends PlaygroundElement {
         this.requestUpdate();
       }),
       cell.workflowExecutor.error(async (task, error) => {
-          if (task.type === WorkflowType.CALL_ZOME) {
-            this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
-          } else if (this._runningTasks[task.type]) {
-            this._runningTasks[task.type] -= 1;
-            if (this._runningTasks[task.type] === 0)
-              delete this._runningTasks[task.type];
-          }
+        if (task.type === WorkflowType.CALL_ZOME) {
+          this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
+        } else if (this._runningTasks[task.type]) {
+          this._runningTasks[task.type] -= 1;
+          if (this._runningTasks[task.type] === 0)
+            delete this._runningTasks[task.type];
+        }
 
-          if (!this.hideErrors) {
+        if (!this.hideErrors) {
           const errorInfo = {
             task,
             error,
@@ -168,6 +204,7 @@ export class CellTasks extends PlaygroundElement {
     return (
       Object.keys(this._runningTasks).length !== 0 ||
       this._errors.length !== 0 ||
+      this._successes.length !== 0 ||
       this._callZomeTasks.length !== 0
     );
   }
@@ -189,7 +226,7 @@ export class CellTasks extends PlaygroundElement {
                   >call_made</mwc-icon
                 >
                 <span>${callZome.details.fnName}</span>
-                <span slot="secondary">Zome: ${callZome.details.zome}</span>
+                <span slot="secondary">${callZome.details.zome} zome</span>
               </mwc-list-item>
             `
           )}
@@ -213,6 +250,21 @@ export class CellTasks extends PlaygroundElement {
                       }`
                     : errorInfo.task.type}</span
                 >
+              </mwc-list-item>
+            `
+          )}
+          ${this._successes.map(
+            ({ task, payload }) => html`
+              <mwc-list-item
+                twoline
+                graphic="icon"
+                style="--mdc-list-item-graphic-margin: 4px;"
+              >
+                <mwc-icon slot="graphic" style="color: green"
+                  >check_circle_outline</mwc-icon
+                >
+                <span> ${task.details.fnName}</span>
+                <span slot="secondary">Success</span>
               </mwc-list-item>
             `
           )}

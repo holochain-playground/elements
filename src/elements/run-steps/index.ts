@@ -10,7 +10,7 @@ import { Button } from 'scoped-material-components/mwc-button';
 
 export interface Step {
   title: string;
-  run: (context: PlaygroundContext) => Promise<void>;
+  run: (context: PlaygroundElement) => Promise<void>;
 }
 
 export class RunSteps extends PlaygroundElement {
@@ -52,10 +52,12 @@ export class RunSteps extends PlaygroundElement {
                   ${this.steps.map(
                     (step, index) =>
                       html`<mwc-list-item
+                        noninteractive
                         class=${classMap({
                           future: this._runningStepIndex < index,
                         })}
-                        .activated=${this._running && this._runningStepIndex === index}
+                        .activated=${this._running &&
+                        this._runningStepIndex === index}
                         >${index + 1}. ${step.title}</mwc-list-item
                       >`
                   )}
