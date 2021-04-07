@@ -1185,7 +1185,7 @@ class ZomeFnsResults extends PlaygroundElement {
     renderAgent() {
         if (this.agentName)
             return `, for ${this.agentName}`;
-        if (!this.hideAgentPubKey && this.activeCell.agentPubKey)
+        if (!this.hideAgentPubKey && this.activeCell)
             return `, for agent ${this.activeCell.agentPubKey}`;
     }
     render() {
@@ -34034,11 +34034,13 @@ class CellTasks extends PlaygroundElement {
         ];
         this.workflowDelay = 1000;
         this.hideErrors = false;
+        this.showZomeFnSuccess = false;
         this.stepByStep = false;
         this._onPause = false;
         /** Private properties */
         this._callZomeTasks = [];
         this._runningTasks = {};
+        this._successes = [];
         this._errors = [];
     }
     observedCells() {
@@ -34075,9 +34077,32 @@ class CellTasks extends PlaygroundElement {
                     await sleep(this.workflowDelay);
                 }
             }),
-            cell.workflowExecutor.success(async (task) => {
+            cell.workflowExecutor.success(async (task, payload) => {
                 if (task.type === WorkflowType.CALL_ZOME) {
                     this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
+                    if (this.showZomeFnSuccess) {
+                        const successInfo = { task, payload };
+                        this._successes.push(successInfo);
+                        this.requestUpdate();
+                        if (this.stepByStep) {
+                            this.dispatchEvent(new CustomEvent('execution-paused', {
+                                detail: { paused: true },
+                                composed: true,
+                                bubbles: true,
+                            }));
+                            await new Promise((resolve) => this._resumeObservable.subscribe(() => resolve(null)));
+                            this.dispatchEvent(new CustomEvent('execution-paused', {
+                                detail: { paused: false },
+                                composed: true,
+                                bubbles: true,
+                            }));
+                        }
+                        else {
+                            await sleep(this.workflowDelay);
+                        }
+                        const index = this._successes.findIndex((e) => e === successInfo);
+                        this._successes.splice(index, 1);
+                    }
                 }
                 else if (this._runningTasks[task.type]) {
                     this._runningTasks[task.type] -= 1;
@@ -34132,6 +34157,7 @@ class CellTasks extends PlaygroundElement {
     showTasks() {
         return (Object.keys(this._runningTasks).length !== 0 ||
             this._errors.length !== 0 ||
+            this._successes.length !== 0 ||
             this._callZomeTasks.length !== 0);
     }
     render() {
@@ -34151,7 +34177,7 @@ class CellTasks extends PlaygroundElement {
                   >call_made</mwc-icon
                 >
                 <span>${callZome.details.fnName}</span>
-                <span slot="secondary">Zome: ${callZome.details.zome}</span>
+                <span slot="secondary">${callZome.details.zome} zome</span>
               </mwc-list-item>
             `)}
           ${this._errors.map((errorInfo) => html$1 `
@@ -34169,6 +34195,19 @@ class CellTasks extends PlaygroundElement {
             ? `${errorInfo.task.details.fnName} in ${errorInfo.task.details.zome}`
             : errorInfo.task.type}</span
                 >
+              </mwc-list-item>
+            `)}
+          ${this._successes.map(({ task, payload }) => html$1 `
+              <mwc-list-item
+                twoline
+                graphic="icon"
+                style="--mdc-list-item-graphic-margin: 4px;"
+              >
+                <mwc-icon slot="graphic" style="color: green"
+                  >check_circle_outline</mwc-icon
+                >
+                <span> ${task.details.fnName}</span>
+                <span slot="secondary">Success</span>
               </mwc-list-item>
             `)}
           ${orderedTasks.map(([taskName, taskNumber]) => html$1 `
@@ -34228,6 +34267,10 @@ __decorate([
     __metadata("design:type", Object)
 ], CellTasks.prototype, "hideErrors", void 0);
 __decorate([
+    property$1({ type: Boolean, attribute: 'show-zome-fn-success' }),
+    __metadata("design:type", Object)
+], CellTasks.prototype, "showZomeFnSuccess", void 0);
+__decorate([
     property$1({ type: Boolean }),
     __metadata("design:type", Boolean)
 ], CellTasks.prototype, "stepByStep", void 0);
@@ -34239,6 +34282,10 @@ __decorate([
     property$1({ type: Object }),
     __metadata("design:type", Object)
 ], CellTasks.prototype, "_runningTasks", void 0);
+__decorate([
+    property$1({ type: Object }),
+    __metadata("design:type", Array)
+], CellTasks.prototype, "_successes", void 0);
 __decorate([
     property$1({ type: Object }),
     __metadata("design:type", Array)
@@ -34403,6 +34450,7 @@ class DhtCells extends PlaygroundElement {
         ];
         this.hideTimeController = false;
         this.stepByStep = false;
+        this.showZomeFnSuccess = false;
         this._resumeObservable = new Subject();
         this._onPause = false;
         this._neighborEdges = [];
@@ -34652,6 +34700,7 @@ class DhtCells extends PlaygroundElement {
                 'z-index': '3',
             })}
         .stepByStep=${this.stepByStep}
+        .showZomeFnSuccess=${this.showZomeFnSuccess}
         ._onPause=${this._onPause}
         ._resumeObservable=${this._resumeObservable}
         @execution-paused=${(e) => (this._onPause = e.detail.paused)}
@@ -34800,6 +34849,10 @@ __decorate([
     property$1({ type: Boolean, attribute: 'step-by-step' }),
     __metadata("design:type", Object)
 ], DhtCells.prototype, "stepByStep", void 0);
+__decorate([
+    property$1({ type: Boolean, attribute: 'show-zome-fn-success' }),
+    __metadata("design:type", Object)
+], DhtCells.prototype, "showZomeFnSuccess", void 0);
 __decorate([
     query('#graph'),
     __metadata("design:type", Object)

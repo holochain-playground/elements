@@ -12,12 +12,14 @@ export declare class CellTasks extends PlaygroundElement {
     workflowsToDisplay: WorkflowType[];
     workflowDelay: number;
     hideErrors: boolean;
+    showZomeFnSuccess: boolean;
     stepByStep: boolean;
     _onPause: boolean;
     _resumeObservable: Subject<any>;
     /** Private properties */
     private _callZomeTasks;
     private _runningTasks;
+    private _successes;
     private _errors;
     observedCells(): Cell[];
     onNewObservedCell(cell: Cell): import("@holochain-playground/core").MiddlewareSubscription[];

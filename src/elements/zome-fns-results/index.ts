@@ -127,7 +127,7 @@ export class ZomeFnsResults extends PlaygroundElement {
 
   renderAgent() {
     if (this.agentName) return `, for ${this.agentName}`;
-    if (!this.hideAgentPubKey && this.activeCell.agentPubKey)
+    if (!this.hideAgentPubKey && this.activeCell)
       return `, for agent ${this.activeCell.agentPubKey}`;
   }
 

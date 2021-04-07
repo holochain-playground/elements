@@ -11,20 +11,21 @@
   </head>
   <body>
     <holochain-playground-container id="container">
-      <run-steps id="steps" style="height: 300px; width: 100%;"></run-steps>
-      <zome-fns-results style="height: 350px; width: 100%;"></zome-fns-results>
+      <run-steps id="steps" style="height: 300px; width: 100%"></run-steps>
       <dht-cells
         id="cells"
-        style="height: 600px; width: 800px;"
+        style="height: 600px; width: 800px"
         step-by-step
+        show-zome-fn-success
       ></dht-cells>
+      <zome-fns-results style="height: 350px; width: 100%"></zome-fns-results>
       <call-zome-fns
         hide-agent-pub-key
-        style="height: 350px; width: 100%;"
+        style="height: 350px; width: 100%"
         id="call-zome"
       ></call-zome-fns>
-      <entry-graph style="height: 600px; width: 100%;"></entry-graph>
-      <entry-contents style="height: 350px; width: 100%;"></entry-contents>
+      <entry-graph style="height: 600px; width: 100%"></entry-graph>
+      <entry-contents style="height: 350px; width: 100%"></entry-contents>
     </holochain-playground-container>
 
     <script type="module">

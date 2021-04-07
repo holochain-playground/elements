@@ -21,6 +21,7 @@ export declare class DhtCells extends PlaygroundElement {
     networkRequestsToDisplay: NetworkRequestType[];
     hideTimeController: boolean;
     stepByStep: boolean;
+    showZomeFnSuccess: boolean;
     private _graph;
     private _activeWorkflowsButton;
     private _activeWorkflowsMenu;
