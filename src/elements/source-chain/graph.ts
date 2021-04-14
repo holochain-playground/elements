@@ -1,4 +1,7 @@
+import { commonGraphStyles } from "../utils/common-graph-styles";
+
 export const graphStyles = `
+${commonGraphStyles}
 node {
   width: 30px;
   height: 30px;
@@ -13,14 +16,6 @@ node {
 .header {
   text-margin-x: -5px;
   text-halign: left;
-  shape: round-rectangle;
-}
-
-edge {
-  width: 4;
-  target-arrow-shape: triangle;
-  curve-style: bezier;
-  line-style: dotted;
 }
 
 .selected {
@@ -29,25 +24,4 @@ edge {
   border-style: solid;
 }
 
-.Dna {
-  background-color: green;
-}
-.AgentValidationPkg {
-  background-color: lime;
-}
-.Create {
-  background-color: blue;
-}
-.Delete {
-  background-color: red;
-}
-.Update {
-  background-color: cyan;
-}
-.CreateLink {
-  background-color: purple;
-}
-.DeleteLink {
-  background-color: purple;
-}
 `;

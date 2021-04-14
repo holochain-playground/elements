@@ -24,9 +24,17 @@ cytoscape.use(cola);
 const layoutConfig = {
   name: 'cola',
   animate: true,
-  ready: (e) => {
+/*   flow: {
+    axis: 'x',
+    minSeparation: 40,
+  },
+ */  ready: (e) => {
     e.cy.fit();
     e.cy.center();
+  },
+  nodeSpacing: function( node ){ return 20; }, 
+  edgeLength: (edge) => {
+    return edge.data().headerReference ? 50 : undefined;
   },
 };
 
@@ -39,6 +47,8 @@ export class EntryGraph extends PlaygroundElement {
 
   @property({ type: Boolean, attribute: 'show-entry-contents' })
   showEntryContents: boolean = false;
+  @property({ type: Boolean, attribute: 'show-headers' })
+  showHeaders: boolean = false;
 
   @property({ type: Array })
   excludedEntryTypes: string[] = [];
@@ -107,6 +117,7 @@ export class EntryGraph extends PlaygroundElement {
     const { entries, entryTypes } = allEntries(
       cells,
       this.showEntryContents,
+      this.showHeaders,
       this.excludedEntryTypes
     );
 
@@ -171,8 +182,15 @@ export class EntryGraph extends PlaygroundElement {
     >
       <mwc-formfield label="Show Entry Contents" style="margin-right: 16px">
         <mwc-checkbox
-          checked
+          .checked=${this.showEntryContents}
           @change=${(e) => (this.showEntryContents = e.target.checked)}
+        ></mwc-checkbox
+      ></mwc-formfield>
+
+      <mwc-formfield label="Show Headers" style="margin-right: 16px">
+        <mwc-checkbox
+          .checked=${this.showHeaders}
+          @change=${(e) => (this.showHeaders = e.target.checked)}
         ></mwc-checkbox
       ></mwc-formfield>
 
