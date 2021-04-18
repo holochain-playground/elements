@@ -641,7 +641,7 @@ class CallZomeFns extends PlaygroundElement {
                   Fns${this.hideAgentPubKey
                 ? html ``
                 : html `,
-                        <span class="placeholder"
+                        <span class="placeholder row"
                           >for agent
                           <copyable-hash
                             .hash=${this.activeAgentPubKey}
