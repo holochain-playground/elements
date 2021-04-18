@@ -636,18 +636,17 @@ class CallZomeFns extends PlaygroundElement {
         ${this.activeCell
             ? html `
               <div class="column" style="flex: 1">
-                <span class="title" style="margin: 16px; margin-bottom: 0;"
+                <span class="title row" style="margin: 16px; margin-bottom: 0;"
                   >Call Zome
                   Fns${this.hideAgentPubKey
                 ? html ``
-                : html `,
-                        <span class="placeholder row"
-                          >for agent
-                          <copyable-hash
-                            .hash=${this.activeAgentPubKey}
-                            style="margin-left: 8px;"
-                          ></copyable-hash
-                        ></span> `}</span
+                : html `<span class="placeholder row"
+                        >, for agent
+                        <copyable-hash
+                          .hash=${this.activeAgentPubKey}
+                          style="margin-left: 8px;"
+                        ></copyable-hash
+                      ></span> `}</span
                 >
                 ${this.hideZomeSelector
                 ? html ` <span class="horizontal-divider"></span> `
