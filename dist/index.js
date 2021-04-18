@@ -605,23 +605,29 @@ class CallZomeFns extends PlaygroundElement {
         >
       </div> `;
         return html `
-      <mwc-drawer style="--mdc-drawer-width: auto;">
-        <mwc-list
-          activatable
-          @selected=${(e) => (this.selectedZomeFnName = zomeFns[e.detail.index][0])}
-        >
-          ${zomeFns.map(([name, fn]) => html `
-              <mwc-list-item .activated=${this.activeZomeFn.name === name}
-                >${name}
-              </mwc-list-item>
-            `)}
-        </mwc-list>
-        <div slot="appContent" class="column" style="height: 100%;">
-          <div class="column" style="flex: 1;">
-            ${this.renderCallableFunction(this.activeZomeFn.name, this.activeZomeFn.fn)}
+      <div class="flex-scrollable-parent">
+        <div class="flex-scrollable-container">
+          <div class="flex-scrollable-y" style="height: 100%">
+            <mwc-drawer style="--mdc-drawer-width: auto;">
+              <mwc-list
+                activatable
+                @selected=${(e) => (this.selectedZomeFnName = zomeFns[e.detail.index][0])}
+              >
+                ${zomeFns.map(([name, fn]) => html `
+                    <mwc-list-item .activated=${this.activeZomeFn.name === name}
+                      >${name}
+                    </mwc-list-item>
+                  `)}
+              </mwc-list>
+              <div slot="appContent" class="column" style="height: 100%;">
+                <div class="column" style="flex: 1;">
+                  ${this.renderCallableFunction(this.activeZomeFn.name, this.activeZomeFn.fn)}
+                </div>
+              </div>
+            </mwc-drawer>
           </div>
         </div>
-      </mwc-drawer>
+      </div>
     `;
     }
     render() {
