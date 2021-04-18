@@ -464,7 +464,7 @@ class CopyableHash extends ScopedElementsMixin(LitElement) {
         labelText="Hash copied to clipboard"
       ></mwc-snackbar>
       <div class="row center-content">
-        <span style="font-family: monospace;">${this.hash.substring(0, 15)}...</span>
+        <span style="font-family: monospace;">${this.hash.substring(0, 8)}...</span>
         <mwc-icon-button
           style="--mdc-icon-button-size	: 24px; --mdc-icon-size: 20px;"
           icon="content_copy"
