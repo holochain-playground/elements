@@ -95,7 +95,7 @@ export async function sys_validate_element(
 
   const entry_type = (element.signed_header.header.content as NewEntryHeader)
     .entry_type;
-    
+
   if (
     element.entry &&
     (entry_type as {

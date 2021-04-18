@@ -163,6 +163,16 @@ export function getAllHeldEntries(state: CellState): Hash[] {
   return uniq(allEntryHashes);
 }
 
+export function getAllHeldHeaders(state: CellState): Hash[] {
+  const headers = Object.values(state.integratedDHTOps)
+    .filter(dhtOpValue => dhtOpValue.op.type === DHTOpType.StoreElement)
+    .map(dhtOpValue => dhtOpValue.op.header);
+
+  const allHeaderHashes = headers.map(h => h.header.hash);
+
+  return uniq(allHeaderHashes);
+}
+
 export function getAllAuthoredEntries(state: CellState): Hash[] {
   const allHeaders = Object.values(state.authoredDHTOps).map(
     dhtOpValue => dhtOpValue.op.header

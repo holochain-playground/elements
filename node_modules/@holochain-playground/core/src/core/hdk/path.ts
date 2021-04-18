@@ -1,9 +1,6 @@
-import { SimulatedZomeFunctionContext } from './context';
+import { Hdk } from './context';
 
-async function ensure(
-  path: string,
-  hdk: SimulatedZomeFunctionContext
-): Promise<void> {
+export const ensure = (hdk: Hdk) => async (path: string): Promise<void> => {
   const headerHash = await hdk.create_entry({
     content: path,
     entry_def_id: 'path',
@@ -15,19 +12,15 @@ async function ensure(
     components.splice(components.length - 1, 1);
     const parent = components.join('.');
 
-    await ensure(parent, hdk);
+    await ensure(hdk)(parent);
 
     const pathHash = await hdk.hash_entry({ content: path });
     const parentHash = await hdk.hash_entry({ content: parent });
 
     await hdk.create_link({ base: parentHash, target: pathHash, tag: path });
   }
-}
+};
 
 export interface Path {
-  ensure: (path: string, hdk: SimulatedZomeFunctionContext) => Promise<void>;
+  ensure: (path: string) => Promise<void>;
 }
-
-export const path = {
-  ensure,
-};

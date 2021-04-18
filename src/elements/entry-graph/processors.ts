@@ -16,7 +16,9 @@ import {
   getLinksForEntry,
   getEntryTypeString,
   getAppEntryType,
+  getAllHeldHeaders,
   getLiveLinks,
+  getHeaderModifiers,
 } from '@holochain-playground/core';
 import { shortenStrRec } from '../utils/hash';
 export function allEntries(
@@ -44,6 +46,34 @@ export function allEntries(
         entryTypes[entryHash] = getEntryTypeString(
           cell,
           (firstEntryHeader.header.content as NewEntryHeader).entry_type
+        );
+      }
+    }
+  }
+
+  for (const cell of cells) {
+    const state = cell.getState();
+
+    for (const headerHash of getAllHeldHeaders(state)) {
+      const header: SignedHeaderHashed = state.CAS[headerHash];
+      const entryHash =
+        header && (header.header.content as NewEntryHeader).entry_hash;
+      if (entryHash && !details[entryHash]) {
+        const { updates, deletes } = getHeaderModifiers(state, headerHash);
+        details[entryHash] = {
+          deletes,
+          updates,
+          entry: state.CAS[entryHash],
+          entry_dht_status:
+            updates.length === 0 && deletes.length === 0
+              ? EntryDhtStatus.Live
+              : EntryDhtStatus.Dead,
+          headers: [header],
+          rejected_headers: [],
+        };
+        entryTypes[entryHash] = getEntryTypeString(
+          cell,
+          (header.header.content as NewEntryHeader).entry_type
         );
       }
     }

@@ -8,10 +8,6 @@ export const demoEntriesZome: SimulatedZome = {
       id: 'demo_entry',
       visibility: 'Public',
     },
-    {
-      id: 'path',
-      visibility: 'Public',
-    },
   ],
   zome_functions: {
     create_entry: {
@@ -90,9 +86,26 @@ export const demoLinksZome: SimulatedZome = {
     },
   },
 };
+export const demoPathsZome: SimulatedZome = {
+  name: 'demo_paths',
+  entry_defs: [
+    {
+      id: 'path',
+      visibility: 'Public',
+    },
+  ],
+  zome_functions: {
+    ensure_path: {
+      call: hdk => ({ path }) => {
+        return hdk.path.ensure(path);
+      },
+      arguments: [{ name: 'path', type: 'String' }],
+    },
+  },
+};
 
 export function demoDnaTemplate(): SimulatedDnaTemplate {
-  const zomes = [demoEntriesZome, demoLinksZome];
+  const zomes = [demoEntriesZome, demoLinksZome, demoPathsZome];
   return {
     zomes,
   };

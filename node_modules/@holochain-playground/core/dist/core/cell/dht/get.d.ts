@@ -11,6 +11,7 @@ export declare function getHeaderModifiers(state: CellState, headerHash: Hash): 
     deletes: SignedHeaderHashed<Delete>[];
 };
 export declare function getAllHeldEntries(state: CellState): Hash[];
+export declare function getAllHeldHeaders(state: CellState): Hash[];
 export declare function getAllAuthoredEntries(state: CellState): Hash[];
 export declare function isHoldingEntry(state: CellState, entryHash: Hash): boolean;
 export declare function isHoldingElement(state: CellState, headerHash: Hash): boolean;

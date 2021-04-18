@@ -1,9 +1,5 @@
-import { SimulatedZomeFunctionContext } from './context';
-declare function ensure(path: string, hdk: SimulatedZomeFunctionContext): Promise<void>;
+import { Hdk } from './context';
+export declare const ensure: (hdk: Hdk) => (path: string) => Promise<void>;
 export interface Path {
-    ensure: (path: string, hdk: SimulatedZomeFunctionContext) => Promise<void>;
+    ensure: (path: string) => Promise<void>;
 }
-export declare const path: {
-    ensure: typeof ensure;
-};
-export {};

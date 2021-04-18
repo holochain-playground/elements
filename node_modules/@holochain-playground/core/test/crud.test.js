@@ -43,7 +43,7 @@ describe('CRUD', () => {
     });
 
     expect(entryHash).to.be.ok;
- 
+
     try {
       await conductors[0].callZomeFn({
         cellId: cell.cellId,
@@ -85,14 +85,26 @@ describe('CRUD', () => {
 
     expect(deletehash).to.be.ok;
 
-    await sleep(1000);
+    await sleep(2000);
 
-    const getresult = await conductors[0].callZomeFn({
+    let getresult = await conductors[0].callZomeFn({
       cellId: cell.cellId,
       cap: null,
       fnName: 'get_details',
       payload: {
         hash: headerHash,
+      },
+      zome: 'demo_entries',
+    });
+    expect(getresult.content.deletes.length).to.equal(1);
+    expect(getresult.content.updates.length).to.equal(1);
+
+    getresult = await conductors[0].callZomeFn({
+      cellId: cell.cellId,
+      cap: null,
+      fnName: 'get_details',
+      payload: {
+        hash: entryHash,
       },
       zome: 'demo_entries',
     });

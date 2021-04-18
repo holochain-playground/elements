@@ -49,7 +49,7 @@ export class Cascade {
 
     const result = await this.p2p.get(hash, options);
 
-    if ((result as GetElementResponse).signed_header) {
+    if (result && (result as GetElementResponse).signed_header) {
       return (result as GetElementResponse).signed_header;
     } else return undefined;
   }

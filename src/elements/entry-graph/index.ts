@@ -7,7 +7,7 @@ import { Formfield } from 'scoped-material-components/mwc-formfield';
 import { Card } from 'scoped-material-components/mwc-card';
 
 import { allEntries } from './processors';
-import { selectAllCells } from '../utils/selectors';
+import { selectAllCells, selectCell } from '../utils/selectors';
 import { sharedStyles } from '../utils/shared-styles';
 import { PlaygroundElement } from '../../context/playground-element';
 import { isEqual } from 'lodash-es';
@@ -24,15 +24,17 @@ cytoscape.use(cola);
 const layoutConfig = {
   name: 'cola',
   animate: true,
-/*   flow: {
+  /*   flow: {
     axis: 'x',
     minSeparation: 40,
   },
- */  ready: (e) => {
+ */ ready: (e) => {
     e.cy.fit();
     e.cy.center();
   },
-  nodeSpacing: function( node ){ return 20; }, 
+  nodeSpacing: function (node) {
+    return 20;
+  },
   edgeLength: (edge) => {
     return edge.data().headerReference ? 50 : undefined;
   },
@@ -49,6 +51,8 @@ export class EntryGraph extends PlaygroundElement {
   showEntryContents: boolean = false;
   @property({ type: Boolean, attribute: 'show-headers' })
   showHeaders: boolean = false;
+  @property({ type: Boolean, attribute: 'show-only-active-agents-shard' })
+  showOnlyActiveAgentsShard: boolean = false;
 
   @property({ type: Array })
   excludedEntryTypes: string[] = [];
@@ -112,7 +116,10 @@ export class EntryGraph extends PlaygroundElement {
       return null;
     }
 
-    const cells = selectAllCells(this.activeDna, this.conductors);
+    const cells =
+      this.showOnlyActiveAgentsShard && this.activeAgentPubKey
+        ? [selectCell(this.activeDna, this.activeAgentPubKey, this.conductors)]
+        : selectAllCells(this.activeDna, this.conductors);
 
     const { entries, entryTypes } = allEntries(
       cells,
@@ -193,6 +200,17 @@ export class EntryGraph extends PlaygroundElement {
           @change=${(e) => (this.showHeaders = e.target.checked)}
         ></mwc-checkbox
       ></mwc-formfield>
+      <!-- 
+  Uncomment when update bug is fixed
+      <mwc-formfield
+        label="Show Only Active Agent's Shard"
+        style="margin-right: 16px"
+      >
+        <mwc-checkbox
+          .checked=${this.showOnlyActiveAgentsShard}
+          @change=${(e) => (this.showOnlyActiveAgentsShard = e.target.checked)}
+        ></mwc-checkbox
+      ></mwc-formfield> -->
 
       <span class="vertical-divider"></span>
 

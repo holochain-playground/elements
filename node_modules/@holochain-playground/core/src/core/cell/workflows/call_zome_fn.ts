@@ -74,8 +74,15 @@ export const callZomeFn = (
         signed_header,
       };
 
-      const depsMissing = await sys_validate_element(element, worskpace, worskpace.p2p);
-      if (depsMissing) throw new Error(`Could not validate a new element due to missing dependencies`);
+      const depsMissing = await sys_validate_element(
+        element,
+        { ...worskpace, state: contextState },
+        worskpace.p2p
+      );
+      if (depsMissing)
+        throw new Error(
+          `Could not validate a new element due to missing dependencies`
+        );
 
       i++;
     }

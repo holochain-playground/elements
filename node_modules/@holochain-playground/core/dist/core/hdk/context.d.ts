@@ -14,7 +14,7 @@ import { GetLinksFn } from './host-fn/get_links';
 import { HashEntryFn } from './host-fn/hash_entry';
 import { QueryFn } from './host-fn/query';
 import { Path } from './path';
-export interface SimulatedZomeFunctionContext {
+export interface Hdk {
     create_entry: CreateEntryFn;
     delete_entry: DeleteEntryFn;
     update_entry: UpdateEntryFn;
@@ -29,6 +29,8 @@ export interface SimulatedZomeFunctionContext {
     call_remote: CallRemoteFn;
     agent_info: AgentInfoFn;
     query: QueryFn;
+}
+export interface SimulatedZomeFunctionContext extends Hdk {
     path: Path;
 }
 export declare function buildZomeFunctionContext(workspace: HostFnWorkspace, zome_index: number): SimulatedZomeFunctionContext;

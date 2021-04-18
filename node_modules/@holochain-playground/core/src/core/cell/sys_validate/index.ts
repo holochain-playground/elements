@@ -63,7 +63,7 @@ export function check_prev_timestamp(
   header: Header,
   prev_header: Header
 ): void {
-  if (header.timestamp <= prev_header.timestamp)
+  if (header.timestamp < prev_header.timestamp)
     throw new Error(
       `New header must have a greater timestamp than any previous one`
     );

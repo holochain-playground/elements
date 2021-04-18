@@ -4,7 +4,7 @@ import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { ProviderMixin, ConsumerMixin } from 'lit-element-context';
 import { LitElement, css as css$1, html, property as property$1, query } from 'lit-element';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
-import { demoDnaTemplate, createConductors, getHashType, HashType, isHoldingEntry, isHoldingElement, WorkflowType, getDhtShard, sleep, workflowPriority, Cell, location, NetworkRequestType, getAllHeldEntries, getEntryDetails, getLinksForEntry, getEntryTypeString, getAppEntryType, getLiveLinks } from '@holochain-playground/core';
+import { demoDnaTemplate, createConductors, getHashType, HashType, isHoldingEntry, isHoldingElement, WorkflowType, getDhtShard, sleep, workflowPriority, Cell, location, NetworkRequestType, getAllHeldEntries, getEntryDetails, getLinksForEntry, getEntryTypeString, getAllHeldHeaders, getHeaderModifiers, getAppEntryType, getLiveLinks } from '@holochain-playground/core';
 import { TextField } from 'scoped-material-components/mwc-textfield';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Icon } from 'scoped-material-components/mwc-icon';
@@ -27,7 +27,7 @@ import { Menu } from 'scoped-material-components/mwc-menu';
 import { uniq, isEqual } from 'lodash-es';
 import { classMap } from 'lit-html/directives/class-map';
 import { Checkbox } from 'scoped-material-components/mwc-checkbox';
-import { timestampToMillis, EntryDhtStatus } from '@holochain-open-dev/core-types';
+import { EntryDhtStatus, timestampToMillis } from '@holochain-open-dev/core-types';
 import { Select } from 'scoped-material-components/mwc-select';
 
 /*! *****************************************************************************
@@ -35239,6 +35239,27 @@ function allEntries(cells, showEntryContents, showHeaders, excludedEntryTypes) {
             }
         }
     }
+    for (const cell of cells) {
+        const state = cell.getState();
+        for (const headerHash of getAllHeldHeaders(state)) {
+            const header = state.CAS[headerHash];
+            const entryHash = header && header.header.content.entry_hash;
+            if (entryHash && !details[entryHash]) {
+                const { updates, deletes } = getHeaderModifiers(state, headerHash);
+                details[entryHash] = {
+                    deletes,
+                    updates,
+                    entry: state.CAS[entryHash],
+                    entry_dht_status: updates.length === 0 && deletes.length === 0
+                        ? EntryDhtStatus.Live
+                        : EntryDhtStatus.Dead,
+                    headers: [header],
+                    rejected_headers: [],
+                };
+                entryTypes[entryHash] = getEntryTypeString(cell, header.header.content.entry_type);
+            }
+        }
+    }
     const sortedEntries = sortEntries(Object.keys(details), details);
     const linksEdges = [];
     const entryNodes = [];
@@ -40761,14 +40782,16 @@ const layoutConfig = {
     name: 'cola',
     animate: true,
     /*   flow: {
-        axis: 'x',
-        minSeparation: 40,
-      },
-     */ ready: (e) => {
+      axis: 'x',
+      minSeparation: 40,
+    },
+   */ ready: (e) => {
         e.cy.fit();
         e.cy.center();
     },
-    nodeSpacing: function (node) { return 20; },
+    nodeSpacing: function (node) {
+        return 20;
+    },
     edgeLength: (edge) => {
         return edge.data().headerReference ? 50 : undefined;
     },
@@ -40782,6 +40805,7 @@ class EntryGraph extends PlaygroundElement {
         this.hideFilter = false;
         this.showEntryContents = false;
         this.showHeaders = false;
+        this.showOnlyActiveAgentsShard = false;
         this.excludedEntryTypes = [];
         this.lastEntriesIds = [];
         this.ready = false;
@@ -40824,7 +40848,9 @@ class EntryGraph extends PlaygroundElement {
         if (this.entryGraph.getBoundingClientRect().width === 0 || !this.ready) {
             return null;
         }
-        const cells = selectAllCells(this.activeDna, this.conductors);
+        const cells = this.showOnlyActiveAgentsShard && this.activeAgentPubKey
+            ? [selectCell(this.activeDna, this.activeAgentPubKey, this.conductors)]
+            : selectAllCells(this.activeDna, this.conductors);
         const { entries, entryTypes } = allEntries(cells, this.showEntryContents, this.showHeaders, this.excludedEntryTypes);
         if (!isEqual(this.lastEntriesIds, entries.map((e) => e.data.id))) {
             if (this.layout)
@@ -40887,6 +40913,17 @@ class EntryGraph extends PlaygroundElement {
           @change=${(e) => (this.showHeaders = e.target.checked)}
         ></mwc-checkbox
       ></mwc-formfield>
+      <!-- 
+  Uncomment when update bug is fixed
+      <mwc-formfield
+        label="Show Only Active Agent's Shard"
+        style="margin-right: 16px"
+      >
+        <mwc-checkbox
+          .checked=${this.showOnlyActiveAgentsShard}
+          @change=${(e) => (this.showOnlyActiveAgentsShard = e.target.checked)}
+        ></mwc-checkbox
+      ></mwc-formfield> -->
 
       <span class="vertical-divider"></span>
 
@@ -40964,6 +41001,10 @@ __decorate([
     property$1({ type: Boolean, attribute: 'show-headers' }),
     __metadata("design:type", Boolean)
 ], EntryGraph.prototype, "showHeaders", void 0);
+__decorate([
+    property$1({ type: Boolean, attribute: 'show-only-active-agents-shard' }),
+    __metadata("design:type", Boolean)
+], EntryGraph.prototype, "showOnlyActiveAgentsShard", void 0);
 __decorate([
     property$1({ type: Array }),
     __metadata("design:type", Array)

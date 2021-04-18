@@ -19,9 +19,9 @@ import { GetDetailsFn, get_details } from './host-fn/get_detailts';
 import { GetLinksFn, get_links } from './host-fn/get_links';
 import { HashEntryFn, hash_entry } from './host-fn/hash_entry';
 import { query, QueryFn } from './host-fn/query';
-import { path, Path } from './path';
+import { ensure, Path } from './path';
 
-export interface SimulatedZomeFunctionContext {
+export interface Hdk {
   create_entry: CreateEntryFn;
   delete_entry: DeleteEntryFn;
   update_entry: UpdateEntryFn;
@@ -36,6 +36,9 @@ export interface SimulatedZomeFunctionContext {
   call_remote: CallRemoteFn;
   agent_info: AgentInfoFn;
   query: QueryFn;
+}
+
+export interface SimulatedZomeFunctionContext extends Hdk{
   path: Path;
 }
 
@@ -43,7 +46,7 @@ export function buildZomeFunctionContext(
   workspace: HostFnWorkspace,
   zome_index: number
 ): SimulatedZomeFunctionContext {
-  return {
+  const hdk: Hdk = {
     create_entry: create_entry(workspace, zome_index),
     delete_entry: delete_entry(workspace, zome_index),
     update_entry: update_entry(workspace, zome_index),
@@ -58,6 +61,12 @@ export function buildZomeFunctionContext(
     call_remote: call_remote(workspace, zome_index),
     agent_info: agent_info(workspace, zome_index),
     query: query(workspace, zome_index),
-    path,
   };
+  
+  return {
+    ...hdk,
+    path: {
+      ensure: ensure(hdk)
+    }
+  }
 }

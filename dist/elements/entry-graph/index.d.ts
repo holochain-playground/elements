@@ -15,6 +15,7 @@ export declare class EntryGraph extends PlaygroundElement {
     hideFilter: boolean;
     showEntryContents: boolean;
     showHeaders: boolean;
+    showOnlyActiveAgentsShard: boolean;
     excludedEntryTypes: string[];
     private entryGraph;
     private lastEntriesIds;
