@@ -14,6 +14,7 @@ import { ListItem } from 'scoped-material-components/mwc-list-item';
 export declare class EntryGraph extends PlaygroundElement {
     hideFilter: boolean;
     showEntryContents: boolean;
+    showHeaders: boolean;
     excludedEntryTypes: string[];
     private entryGraph;
     private lastEntriesIds;

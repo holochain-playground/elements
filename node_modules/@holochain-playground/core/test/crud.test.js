@@ -11,7 +11,7 @@ describe('CRUD', () => {
 
     const cell = conductors[0].getAllCells()[0];
 
-    let hash = await conductors[0].callZomeFn({
+    let headerHash = await conductors[0].callZomeFn({
       cellId: cell.cellId,
       cap: null,
       fnName: 'create_entry',
@@ -19,25 +19,53 @@ describe('CRUD', () => {
       zome: 'demo_entries',
     });
 
-    expect(hash).to.be.ok;
+    expect(headerHash).to.be.ok;
     await sleep(4000);
 
     const content = await conductors[0].callZomeFn({
       cellId: cell.cellId,
       cap: null,
       fnName: 'get',
-      payload: { hash },
+      payload: { hash: headerHash },
       zome: 'demo_entries',
     });
 
     expect(content).to.be.ok;
+
+    const entryHash = await conductors[0].callZomeFn({
+      cellId: cell.cellId,
+      cap: null,
+      fnName: 'hash_entry',
+      payload: {
+        entry: content.entry,
+      },
+      zome: 'demo_entries',
+    });
+
+    expect(entryHash).to.be.ok;
+ 
+    try {
+      await conductors[0].callZomeFn({
+        cellId: cell.cellId,
+        cap: null,
+        fnName: 'update_entry',
+        payload: {
+          original_header_address: entryHash,
+          new_content: 'hi2',
+        },
+        zome: 'demo_entries',
+      });
+      expect(false).to.be.ok;
+    } catch (e) {
+      expect(true).to.be.ok;
+    }
 
     const updatehash = await conductors[0].callZomeFn({
       cellId: cell.cellId,
       cap: null,
       fnName: 'update_entry',
       payload: {
-        original_header_address: hash,
+        original_header_address: headerHash,
         new_content: 'hi2',
       },
       zome: 'demo_entries',
@@ -50,7 +78,7 @@ describe('CRUD', () => {
       cap: null,
       fnName: 'delete_entry',
       payload: {
-        deletes_address: hash,
+        deletes_address: headerHash,
       },
       zome: 'demo_entries',
     });
@@ -64,7 +92,7 @@ describe('CRUD', () => {
       cap: null,
       fnName: 'get_details',
       payload: {
-        hash,
+        hash: headerHash,
       },
       zome: 'demo_entries',
     });

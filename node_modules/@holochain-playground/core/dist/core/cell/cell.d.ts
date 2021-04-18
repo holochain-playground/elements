@@ -20,7 +20,6 @@ export declare class Cell {
     get dnaHash(): Hash;
     getState(): CellState;
     getSimulatedDna(): import("../..").SimulatedDna;
-    private getCascade;
     static create(conductor: Conductor, cellId: CellId, membrane_proof: any): Promise<Cell>;
     /** Workflows */
     callZomeFn(args: {

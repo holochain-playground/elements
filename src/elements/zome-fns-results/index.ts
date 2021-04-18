@@ -17,6 +17,7 @@ import { CircularProgress } from 'scoped-material-components/mwc-circular-progre
 import { ExpandableLine } from '../helpers/expandable-line';
 import { JsonViewer } from '@power-elements/json-viewer';
 import { Icon } from 'scoped-material-components/mwc-icon';
+import { CopyableHash } from '../helpers/copyable-hash';
 
 export class ZomeFnsResults extends PlaygroundElement {
   @property({ type: Boolean, attribute: 'hide-agent-pub-key' })
@@ -126,9 +127,13 @@ export class ZomeFnsResults extends PlaygroundElement {
   }
 
   renderAgent() {
-    if (this.agentName) return `, for ${this.agentName}`;
+    if (this.agentName) return html`, for ${this.agentName}`;
     if (!this.hideAgentPubKey && this.activeCell)
-      return `, for agent ${this.activeCell.agentPubKey}`;
+      return html`, for agent
+        <copyable-hash
+          .hash=${this.activeCell.agentPubKey}
+          style="margin-left: 8px;"
+        ></copyable-hash>`;
   }
 
   render() {
@@ -250,6 +255,7 @@ export class ZomeFnsResults extends PlaygroundElement {
       'mwc-card': Card,
       'json-viewer': JsonViewer,
       'expandable-line': ExpandableLine,
+      'copyable-hash': CopyableHash,
     };
   }
 }

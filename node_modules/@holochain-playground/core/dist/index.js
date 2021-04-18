@@ -939,10 +939,28 @@ class Authority {
 }
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain_cascade/src/lib.rs#L1523
+// TODO: refactor Cascade when sqlite gets merged
 class Cascade {
     constructor(state, p2p) {
         this.state = state;
         this.p2p = p2p;
+    }
+    // TODO refactor when sqlite gets merged
+    async retrieve_header(hash, options) {
+        if (getHashType(hash) !== HashType.HEADER)
+            throw new Error(`Trying to retrieve a header with an entry hash`);
+        const isPresent = this.state.CAS[hash];
+        // TODO only return local if GetOptions::content() is given
+        if (isPresent && options.strategy === GetStrategy.Contents) {
+            const signed_header = this.state.CAS[hash];
+            return signed_header;
+        }
+        const result = await this.p2p.get(hash, options);
+        if (result.signed_header) {
+            return result.signed_header;
+        }
+        else
+            return undefined;
     }
     async dht_get(hash, options) {
         // TODO rrDHT arcs
@@ -1231,11 +1249,11 @@ const putElement = (element) => (state) => {
         const entryHash = hashEntry(element.entry);
         state.CAS[entryHash] = element.entry;
     }
-    state.sourceChain.unshift(headerHash);
+    state.sourceChain.push(headerHash);
 };
 
 function getTipOfChain(cellState) {
-    return cellState.sourceChain[0];
+    return cellState.sourceChain[cellState.sourceChain.length - 1];
 }
 function getAuthor(cellState) {
     return getHeaderAt(cellState, 0).header.content.author;
@@ -1485,238 +1503,6 @@ function app_validation_task() {
     };
 }
 
-// From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/publish_dht_ops_workflow.rs
-const publish_dht_ops = async (workspace) => {
-    const dhtOps = getNonPublishedDhtOps(workspace.state);
-    const dhtOpsByBasis = {};
-    for (const dhtOpHash of Object.keys(dhtOps)) {
-        const dhtOp = dhtOps[dhtOpHash];
-        const basis = getDHTOpBasis(dhtOp);
-        if (!dhtOpsByBasis[basis])
-            dhtOpsByBasis[basis] = {};
-        dhtOpsByBasis[basis][dhtOpHash] = dhtOp;
-    }
-    const promises = Object.entries(dhtOpsByBasis).map(async ([basis, dhtOps]) => {
-        // Publish the operations
-        await workspace.p2p.publish(basis, dhtOps);
-        for (const dhtOpHash of Object.keys(dhtOps)) {
-            workspace.state.authoredDHTOps[dhtOpHash].last_publish_time = Date.now();
-        }
-    });
-    await Promise.all(promises);
-    return {
-        result: undefined,
-        triggers: [],
-    };
-};
-function publish_dht_ops_task() {
-    return {
-        type: WorkflowType.PUBLISH_DHT_OPS,
-        details: undefined,
-        task: worskpace => publish_dht_ops(worskpace),
-    };
-}
-
-// From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/produce_dht_ops_workflow.rs
-const produce_dht_ops = async (worskpace) => {
-    const newHeaderHashes = getNewHeaders(worskpace.state);
-    for (const newHeaderHash of newHeaderHashes) {
-        const element = getElement(worskpace.state, newHeaderHash);
-        const dhtOps = elementToDHTOps(element);
-        for (const dhtOp of dhtOps) {
-            const dhtOpHash = hash(dhtOp, HashType.DHTOP);
-            const dhtOpValue = {
-                op: dhtOp,
-                last_publish_time: undefined,
-                receipt_count: 0,
-            };
-            worskpace.state.authoredDHTOps[dhtOpHash] = dhtOpValue;
-        }
-    }
-    return {
-        result: undefined,
-        triggers: [publish_dht_ops_task()],
-    };
-};
-function produce_dht_ops_task() {
-    return {
-        type: WorkflowType.PRODUCE_DHT_OPS,
-        details: undefined,
-        task: worskpace => produce_dht_ops(worskpace),
-    };
-}
-
-/**
- * Calls the zome function of the cell DNA
- * This can only be called in the simulated mode: we can assume that cell.simulatedDna exists
- */
-const callZomeFn = (zomeName, fnName, payload, provenance, cap) => async (worskpace) => {
-    if (!valid_cap_grant(worskpace.state, zomeName, fnName, provenance, cap))
-        throw new Error('Unauthorized Zome Call');
-    const currentHeader = getTipOfChain(worskpace.state);
-    const zomeIndex = worskpace.dna.zomes.findIndex(zome => zome.name === zomeName);
-    if (zomeIndex < 0)
-        throw new Error(`There is no zome with the name ${zomeName} in this DNA`);
-    if (!worskpace.dna.zomes[zomeIndex].zome_functions[fnName])
-        throw new Error(`There isn't a function with the name ${fnName} in this zome with the name ${zomeName}`);
-    if (!worskpace.zomeFnContext)
-        throw new Error(`Internal error: no zome function context was provided`);
-    const result = await worskpace.dna.zomes[zomeIndex].zome_functions[fnName].call(worskpace.zomeFnContext)(payload);
-    let triggers = [];
-    if (getTipOfChain(worskpace.state) != currentHeader) {
-        // Do validation
-        triggers.push(produce_dht_ops_task());
-    }
-    return {
-        result: cloneDeep(result),
-        triggers,
-    };
-};
-function call_zome_fn_workflow(zome, fnName, payload, provenance) {
-    return {
-        type: WorkflowType.CALL_ZOME,
-        details: {
-            fnName,
-            payload,
-            zome,
-        },
-        task: worskpace => callZomeFn(zome, fnName, payload, provenance, '')(worskpace),
-    };
-}
-
-const genesis = (agentId, dnaHash, membrane_proof) => async (worskpace) => {
-    const dna = buildDna(dnaHash, agentId);
-    putElement({ signed_header: buildShh(dna), entry: undefined })(worskpace.state);
-    const pkg = buildAgentValidationPkg(worskpace.state, membrane_proof);
-    putElement({ signed_header: buildShh(pkg), entry: undefined })(worskpace.state);
-    const entry = {
-        content: agentId,
-        entry_type: 'Agent',
-    };
-    const create_agent_pub_key_entry = buildCreate(worskpace.state, entry, 'Agent');
-    putElement({
-        signed_header: buildShh(create_agent_pub_key_entry),
-        entry: entry,
-    })(worskpace.state);
-    return {
-        result: undefined,
-        triggers: [produce_dht_ops_task()],
-    };
-};
-function genesis_task(cellId, membrane_proof) {
-    return {
-        type: WorkflowType.GENESIS,
-        details: {
-            cellId,
-            membrane_proof,
-        },
-        task: worskpace => genesis(cellId[1], cellId[0], membrane_proof)(worskpace),
-    };
-}
-
-// From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/sys_validation_workflow.rs
-const sys_validation = async (worskpace) => {
-    const pendingDhtOps = getValidationLimboDhtOps(worskpace.state, ValidationLimboStatus.Pending);
-    // TODO: actually validate
-    for (const dhtOpHash of Object.keys(pendingDhtOps)) {
-        const limboValue = pendingDhtOps[dhtOpHash];
-        limboValue.status = ValidationLimboStatus.SysValidated;
-        putValidationLimboValue(dhtOpHash, limboValue)(worskpace.state);
-    }
-    return {
-        result: undefined,
-        triggers: [app_validation_task()],
-    };
-};
-function sys_validation_task() {
-    return {
-        type: WorkflowType.SYS_VALIDATION,
-        details: undefined,
-        task: worskpace => sys_validation(worskpace),
-    };
-}
-
-// From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/incoming_dht_ops_workflow.rs
-const incoming_dht_ops = (basis, dhtOps, from_agent) => async (worskpace) => {
-    for (const dhtOpHash of Object.keys(dhtOps)) {
-        if (!worskpace.state.integratedDHTOps[dhtOpHash] &&
-            !worskpace.state.integrationLimbo[dhtOpHash] &&
-            !worskpace.state.validationLimbo[dhtOpHash]) {
-            const dhtOp = dhtOps[dhtOpHash];
-            const validationLimboValue = {
-                basis,
-                from_agent,
-                last_try: undefined,
-                num_tries: 0,
-                op: dhtOp,
-                status: ValidationLimboStatus.Pending,
-                time_added: Date.now(),
-            };
-            putValidationLimboValue(dhtOpHash, validationLimboValue)(worskpace.state);
-        }
-    }
-    return {
-        result: undefined,
-        triggers: [sys_validation_task()],
-    };
-};
-function incoming_dht_ops_task(from_agent, dht_hash, // The basis for the DHTOps
-ops) {
-    return {
-        type: WorkflowType.INCOMING_DHT_OPS,
-        details: {
-            from_agent,
-            dht_hash,
-            ops,
-        },
-        task: worskpace => incoming_dht_ops(dht_hash, ops, from_agent)(worskpace),
-    };
-}
-
-class MiddlewareExecutor {
-    constructor() {
-        this._beforeMiddlewares = [];
-        this._successMiddlewares = [];
-        this._errorMiddlewares = [];
-    }
-    async execute(task, payload) {
-        for (const middleware of this._beforeMiddlewares) {
-            await middleware(payload);
-        }
-        try {
-            const result = await task();
-            for (const middleware of this._successMiddlewares) {
-                await middleware(payload, result);
-            }
-            return result;
-        }
-        catch (e) {
-            for (const middleware of this._errorMiddlewares) {
-                await middleware(payload, e);
-            }
-            throw e;
-        }
-    }
-    before(callback) {
-        return this._addListener(callback, this._beforeMiddlewares);
-    }
-    success(callback) {
-        return this._addListener(callback, this._successMiddlewares);
-    }
-    error(callback) {
-        return this._addListener(callback, this._errorMiddlewares);
-    }
-    _addListener(callback, middlewareList) {
-        middlewareList.unshift(callback);
-        return {
-            unsubscribe: () => {
-                const index = middlewareList.findIndex(c => c === callback);
-                middlewareList.splice(index, 1);
-            },
-        };
-    }
-}
-
 function common_create(worskpace, entry, entry_type) {
     const create = buildCreate(worskpace.state, entry, entry_type);
     const element = {
@@ -1726,6 +1512,15 @@ function common_create(worskpace, entry, entry_type) {
     putElement(element)(worskpace.state);
     return element.signed_header.header.hash;
 }
+
+// Creates a new Create header and its entry in the source chain
+const create_cap_grant = (worskpace) => async (cap_grant) => {
+    if (cap_grant.access.Assigned.assignees.find(a => !!a && typeof a !== 'string')) {
+        throw new Error('Tried to assign a capability to an invalid agent');
+    }
+    const entry = { entry_type: 'CapGrant', content: cap_grant };
+    return common_create(worskpace, entry, 'CapGrant');
+};
 
 // Creates a new Create header and its entry in the source chain
 const create_entry = (workspace, zome_index) => async (args) => {
@@ -1742,15 +1537,6 @@ const create_entry = (workspace, zome_index) => async (args) => {
         },
     };
     return common_create(workspace, entry, entry_type);
-};
-
-// Creates a new Create header and its entry in the source chain
-const create_cap_grant = (worskpace) => async (cap_grant) => {
-    if (cap_grant.access.Assigned.assignees.find(a => !!a && typeof a !== 'string')) {
-        throw new Error('Tried to assign a capability to an invalid agent');
-    }
-    const entry = { entry_type: 'CapGrant', content: cap_grant };
-    return common_create(worskpace, entry, 'CapGrant');
 };
 
 // Creates a new CreateLink header in the source chain
@@ -1945,11 +1731,410 @@ function buildZomeFunctionContext(workspace, zome_index) {
     };
 }
 
-var index = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  create_entry: create_entry,
-  buildZomeFunctionContext: buildZomeFunctionContext
-});
+// From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/publish_dht_ops_workflow.rs
+const publish_dht_ops = async (workspace) => {
+    const dhtOps = getNonPublishedDhtOps(workspace.state);
+    const dhtOpsByBasis = {};
+    for (const dhtOpHash of Object.keys(dhtOps)) {
+        const dhtOp = dhtOps[dhtOpHash];
+        const basis = getDHTOpBasis(dhtOp);
+        if (!dhtOpsByBasis[basis])
+            dhtOpsByBasis[basis] = {};
+        dhtOpsByBasis[basis][dhtOpHash] = dhtOp;
+    }
+    const promises = Object.entries(dhtOpsByBasis).map(async ([basis, dhtOps]) => {
+        // Publish the operations
+        await workspace.p2p.publish(basis, dhtOps);
+        for (const dhtOpHash of Object.keys(dhtOps)) {
+            workspace.state.authoredDHTOps[dhtOpHash].last_publish_time = Date.now();
+        }
+    });
+    await Promise.all(promises);
+    return {
+        result: undefined,
+        triggers: [],
+    };
+};
+function publish_dht_ops_task() {
+    return {
+        type: WorkflowType.PUBLISH_DHT_OPS,
+        details: undefined,
+        task: worskpace => publish_dht_ops(worskpace),
+    };
+}
+
+// From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/produce_dht_ops_workflow.rs
+const produce_dht_ops = async (worskpace) => {
+    const newHeaderHashes = getNewHeaders(worskpace.state);
+    for (const newHeaderHash of newHeaderHashes) {
+        const element = getElement(worskpace.state, newHeaderHash);
+        const dhtOps = elementToDHTOps(element);
+        for (const dhtOp of dhtOps) {
+            const dhtOpHash = hash(dhtOp, HashType.DHTOP);
+            const dhtOpValue = {
+                op: dhtOp,
+                last_publish_time: undefined,
+                receipt_count: 0,
+            };
+            worskpace.state.authoredDHTOps[dhtOpHash] = dhtOpValue;
+        }
+    }
+    return {
+        result: undefined,
+        triggers: [publish_dht_ops_task()],
+    };
+};
+function produce_dht_ops_task() {
+    return {
+        type: WorkflowType.PRODUCE_DHT_OPS,
+        details: undefined,
+        task: worskpace => produce_dht_ops(worskpace),
+    };
+}
+
+// From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/sys_validate.rs
+/// Verify the signature for this header
+async function verify_header_signature(sig, header) {
+    return true; // TODO: actually implement signatures
+}
+/// Verify the author key was valid at the time
+/// of signing with dpki
+/// TODO: This is just a stub until we have dpki.
+async function author_key_is_valid(author) {
+    return true;
+}
+function check_prev_header(header) {
+    if (header.type === HeaderType.Dna)
+        return;
+    if (header.header_seq <= 0)
+        throw new Error(`Non-Dna Header contains a 0 or less header_seq`);
+    if (!header.prev_header)
+        throw new Error(`Non-Dna Header doesn't contain a reference to the previous header`);
+}
+function check_prev_timestamp(header, prev_header) {
+    if (header.timestamp <= prev_header.timestamp)
+        throw new Error(`New header must have a greater timestamp than any previous one`);
+}
+function check_prev_seq(header, prev_header) {
+    const prev_seq = prev_header.header_seq
+        ? prev_header.header_seq
+        : 0;
+    if (!(header.header_seq > 0 &&
+        header.header_seq === prev_seq + 1))
+        throw new Error(`Immediate following header must have as header_seq the previous one +1`);
+}
+function check_entry_type(entry_type, entry) {
+    if (entry_type === 'Agent' && entry.entry_type === 'Agent')
+        return;
+    if (entry_type === 'CapClaim' && entry.entry_type === 'CapClaim')
+        return;
+    if (entry_type === 'CapGrant' && entry.entry_type === 'CapGrant')
+        return;
+    if (entry_type.App && entry.entry_type === 'App')
+        return;
+    throw new Error(`Entry types don't match`);
+}
+function check_app_entry_type(entry_type, simulated_dna) {
+    const zome_index = entry_type.zome_id;
+    const entry_index = entry_type.id;
+    const zome = simulated_dna.zomes[zome_index];
+    if (!zome)
+        throw new Error(`Trying to validate an entry for a non existent zome`);
+    const entry_def = zome.entry_defs[entry_index];
+    if (!entry_def)
+        throw new Error(`Trying to validate an entry which does not have any entry definition`);
+    if (entry_def.visibility !== entry_type.visibility)
+        throw new Error(`Trying to validate an entry with visibility not matching its definition`);
+    return entry_def;
+}
+function check_not_private(entry_def) {
+    if (entry_def.visibility === 'Private')
+        throw new Error(`Trying to validate as public a private entry type`);
+}
+function check_entry_hash(hash, entry) {
+    if (hashEntry(entry) !== hash)
+        throw new Error(`Entry hash is invalid`);
+}
+function check_new_entry_header(header) {
+    if (!(header.type === HeaderType.Create || header.type === HeaderType.Update))
+        throw new Error(`A header refering a new entry is not of type Create or Update`);
+}
+const MAX_ENTRY_SIZE = 16 * 1000 * 1000;
+function check_entry_size(entry) {
+    if (JSON.stringify(entry.content).length > MAX_ENTRY_SIZE)
+        throw new Error(`Entry size exceeds the MAX_ENTRY_SIZE`);
+}
+function check_update_reference(update, original_entry_header) {
+    if (JSON.stringify(update.entry_type) !==
+        JSON.stringify(original_entry_header.entry_type))
+        throw new Error(`An entry must be updated to the same entry type`);
+}
+
+// From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/sys_validation_workflow.rs
+const sys_validation = async (worskpace) => {
+    const pendingDhtOps = getValidationLimboDhtOps(worskpace.state, ValidationLimboStatus.Pending);
+    // TODO: actually validate
+    for (const dhtOpHash of Object.keys(pendingDhtOps)) {
+        const limboValue = pendingDhtOps[dhtOpHash];
+        limboValue.status = ValidationLimboStatus.SysValidated;
+        putValidationLimboValue(dhtOpHash, limboValue)(worskpace.state);
+    }
+    return {
+        result: undefined,
+        triggers: [app_validation_task()],
+    };
+};
+function sys_validation_task() {
+    return {
+        type: WorkflowType.SYS_VALIDATION,
+        details: undefined,
+        task: worskpace => sys_validation(worskpace),
+    };
+}
+async function sys_validate_element(element, workspace, network) {
+    try {
+        const isNotCounterfeit = await counterfeit_check(element.signed_header.signature, element.signed_header.header.content);
+        if (!isNotCounterfeit)
+            throw new Error(`Trying to validate counterfeited element`);
+    }
+    catch (e) {
+        throw new Error(`Trying to validate counterfeited element`);
+    }
+    let maybeDepsMissing = await store_element(element.signed_header.header.content, workspace);
+    if (maybeDepsMissing)
+        return maybeDepsMissing;
+    const entry_type = element.signed_header.header.content
+        .entry_type;
+    if (element.entry &&
+        entry_type.App &&
+        entry_type.App.visibility === 'Public') {
+        maybeDepsMissing = await store_entry(element.signed_header.header.content, element.entry, workspace);
+        if (maybeDepsMissing)
+            return maybeDepsMissing;
+    }
+    // TODO: implement register_* when cache is in place
+}
+/// Check if the op has valid signature and author.
+/// Ops that fail this check should be dropped.
+async function counterfeit_check(signature, header) {
+    return ((await verify_header_signature()) &&
+        (await author_key_is_valid(header.author)));
+}
+async function store_element(header, workspace, network) {
+    check_prev_header(header);
+    const prev_header_hash = header.prev_header;
+    if (prev_header_hash) {
+        const prev_header = await new Cascade(workspace.state, workspace.p2p).retrieve_header(prev_header_hash, {
+            strategy: GetStrategy.Contents,
+        });
+        if (!prev_header)
+            return {
+                depsHashes: [prev_header_hash],
+            };
+        check_prev_timestamp(header, prev_header.header.content);
+        check_prev_seq(header, prev_header.header.content);
+    }
+}
+async function store_entry(header, entry, workspace, network) {
+    check_entry_type(header.entry_type, entry);
+    const appEntryType = header.entry_type.App;
+    if (appEntryType) {
+        const entry_def = check_app_entry_type(appEntryType, workspace.dna);
+        check_not_private(entry_def);
+    }
+    check_entry_hash(header.entry_hash, entry);
+    check_entry_size(entry);
+    if (header.type === HeaderType.Update) {
+        const signed_header = await new Cascade(workspace.state, workspace.p2p).retrieve_header(header.original_header_address, {
+            strategy: GetStrategy.Contents,
+        });
+        if (!signed_header) {
+            return {
+                depsHashes: [header.original_header_address],
+            };
+        }
+        update_check(header, signed_header.header.content);
+    }
+}
+function update_check(entry_update, original_header) {
+    check_new_entry_header(original_header);
+    if (!original_header.entry_type)
+        throw new Error(`Trying to update a header that didn't create any entry`);
+    check_update_reference(entry_update, original_header);
+}
+
+/**
+ * Calls the zome function of the cell DNA
+ * This can only be called in the simulated mode: we can assume that cell.simulatedDna exists
+ */
+const callZomeFn = (zomeName, fnName, payload, provenance, cap) => async (worskpace) => {
+    if (!valid_cap_grant(worskpace.state, zomeName, fnName, provenance, cap))
+        throw new Error('Unauthorized Zome Call');
+    const currentHeader = getTipOfChain(worskpace.state);
+    const chain_head_start_len = worskpace.state.sourceChain.length;
+    const zomeIndex = worskpace.dna.zomes.findIndex(zome => zome.name === zomeName);
+    if (zomeIndex < 0)
+        throw new Error(`There is no zome with the name ${zomeName} in this DNA`);
+    if (!worskpace.dna.zomes[zomeIndex].zome_functions[fnName])
+        throw new Error(`There isn't a function with the name ${fnName} in this zome with the name ${zomeName}`);
+    const contextState = cloneDeep(worskpace.state);
+    const hostFnWorkspace = {
+        cascade: new Cascade(worskpace.state, worskpace.p2p),
+        state: contextState,
+        dna: worskpace.dna,
+        p2p: worskpace.p2p,
+    };
+    const zomeFnContext = buildZomeFunctionContext(hostFnWorkspace, zomeIndex);
+    const result = await worskpace.dna.zomes[zomeIndex].zome_functions[fnName].call(zomeFnContext)(payload);
+    let triggers = [];
+    if (getTipOfChain(contextState) !== currentHeader) {
+        // Do validation
+        let i = chain_head_start_len;
+        while (i < contextState.sourceChain.length) {
+            const headerHash = contextState.sourceChain[i];
+            const signed_header = contextState.CAS[headerHash];
+            const entry_hash = signed_header.header.content
+                .entry_hash;
+            const element = {
+                entry: entry_hash ? contextState.CAS[entry_hash] : undefined,
+                signed_header,
+            };
+            const depsMissing = await sys_validate_element(element, worskpace, worskpace.p2p);
+            if (depsMissing)
+                throw new Error(`Could not validate a new element due to missing dependencies`);
+            i++;
+        }
+        triggers.push(produce_dht_ops_task());
+    }
+    worskpace.state.CAS = contextState.CAS;
+    worskpace.state.sourceChain = contextState.sourceChain;
+    return {
+        result: cloneDeep(result),
+        triggers,
+    };
+};
+function call_zome_fn_workflow(zome, fnName, payload, provenance) {
+    return {
+        type: WorkflowType.CALL_ZOME,
+        details: {
+            fnName,
+            payload,
+            zome,
+        },
+        task: worskpace => callZomeFn(zome, fnName, payload, provenance, '')(worskpace),
+    };
+}
+
+const genesis = (agentId, dnaHash, membrane_proof) => async (worskpace) => {
+    const dna = buildDna(dnaHash, agentId);
+    putElement({ signed_header: buildShh(dna), entry: undefined })(worskpace.state);
+    const pkg = buildAgentValidationPkg(worskpace.state, membrane_proof);
+    putElement({ signed_header: buildShh(pkg), entry: undefined })(worskpace.state);
+    const entry = {
+        content: agentId,
+        entry_type: 'Agent',
+    };
+    const create_agent_pub_key_entry = buildCreate(worskpace.state, entry, 'Agent');
+    putElement({
+        signed_header: buildShh(create_agent_pub_key_entry),
+        entry: entry,
+    })(worskpace.state);
+    return {
+        result: undefined,
+        triggers: [produce_dht_ops_task()],
+    };
+};
+function genesis_task(cellId, membrane_proof) {
+    return {
+        type: WorkflowType.GENESIS,
+        details: {
+            cellId,
+            membrane_proof,
+        },
+        task: worskpace => genesis(cellId[1], cellId[0], membrane_proof)(worskpace),
+    };
+}
+
+// From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/incoming_dht_ops_workflow.rs
+const incoming_dht_ops = (basis, dhtOps, from_agent) => async (worskpace) => {
+    for (const dhtOpHash of Object.keys(dhtOps)) {
+        if (!worskpace.state.integratedDHTOps[dhtOpHash] &&
+            !worskpace.state.integrationLimbo[dhtOpHash] &&
+            !worskpace.state.validationLimbo[dhtOpHash]) {
+            const dhtOp = dhtOps[dhtOpHash];
+            const validationLimboValue = {
+                basis,
+                from_agent,
+                last_try: undefined,
+                num_tries: 0,
+                op: dhtOp,
+                status: ValidationLimboStatus.Pending,
+                time_added: Date.now(),
+            };
+            putValidationLimboValue(dhtOpHash, validationLimboValue)(worskpace.state);
+        }
+    }
+    return {
+        result: undefined,
+        triggers: [sys_validation_task()],
+    };
+};
+function incoming_dht_ops_task(from_agent, dht_hash, // The basis for the DHTOps
+ops) {
+    return {
+        type: WorkflowType.INCOMING_DHT_OPS,
+        details: {
+            from_agent,
+            dht_hash,
+            ops,
+        },
+        task: worskpace => incoming_dht_ops(dht_hash, ops, from_agent)(worskpace),
+    };
+}
+
+class MiddlewareExecutor {
+    constructor() {
+        this._beforeMiddlewares = [];
+        this._successMiddlewares = [];
+        this._errorMiddlewares = [];
+    }
+    async execute(task, payload) {
+        for (const middleware of this._beforeMiddlewares) {
+            await middleware(payload);
+        }
+        try {
+            const result = await task();
+            for (const middleware of this._successMiddlewares) {
+                await middleware(payload, result);
+            }
+            return result;
+        }
+        catch (e) {
+            for (const middleware of this._errorMiddlewares) {
+                await middleware(payload, e);
+            }
+            throw e;
+        }
+    }
+    before(callback) {
+        return this._addListener(callback, this._beforeMiddlewares);
+    }
+    success(callback) {
+        return this._addListener(callback, this._successMiddlewares);
+    }
+    error(callback) {
+        return this._addListener(callback, this._errorMiddlewares);
+    }
+    _addListener(callback, middlewareList) {
+        middlewareList.unshift(callback);
+        return {
+            unsubscribe: () => {
+                const index = middlewareList.findIndex(c => c === callback);
+                middlewareList.splice(index, 1);
+            },
+        };
+    }
+}
 
 class Cell {
     constructor(_state, conductor, p2p) {
@@ -1977,9 +2162,6 @@ class Cell {
     }
     getSimulatedDna() {
         return this.conductor.registeredDnas[this.dnaHash];
-    }
-    getCascade() {
-        return new Cascade(this._state, this.p2p);
     }
     static async create(conductor, cellId, membrane_proof) {
         const newCellState = {
@@ -2051,34 +2233,20 @@ class Cell {
         await Promise.all(promises);
     }
     async _runWorkflow(workflow) {
-        let zomeIndex = undefined;
         if (workflow.type === WorkflowType.CALL_ZOME) {
             const zomeName = workflow.details.zome;
-            const i = this.getSimulatedDna().zomes.findIndex(zome => zome.name === zomeName);
-            if (i >= 0)
-                zomeIndex = i;
+            this.getSimulatedDna().zomes.findIndex(zome => zome.name === zomeName);
         }
-        const result = await this.workflowExecutor.execute(() => workflow.task(this.buildWorkspace(zomeIndex)), workflow);
+        const result = await this.workflowExecutor.execute(() => workflow.task(this.buildWorkspace()), workflow);
         result.triggers.forEach(triggeredWorkflow => this.triggerWorkflow(triggeredWorkflow));
         return result.result;
     }
     /** Private helpers */
-    buildWorkspace(zomeIndex) {
-        let zomeFnContext = undefined;
-        if (zomeIndex !== undefined) {
-            const hostFnWorkspace = {
-                cascade: this.getCascade(),
-                state: this._state,
-                dna: this.getSimulatedDna(),
-                p2p: this.p2p,
-            };
-            zomeFnContext = buildZomeFunctionContext(hostFnWorkspace, zomeIndex);
-        }
+    buildWorkspace() {
         return {
             state: this._state,
             p2p: this.p2p,
             dna: this.getSimulatedDna(),
-            zomeFnContext,
         };
     }
 }
@@ -2373,6 +2541,12 @@ class Conductor {
     }
 }
 
+var index = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  create_entry: create_entry,
+  buildZomeFunctionContext: buildZomeFunctionContext
+});
+
 const demoEntriesZome = {
     name: 'demo_entries',
     entry_defs: [
@@ -2387,11 +2561,16 @@ const demoEntriesZome = {
     ],
     zome_functions: {
         create_entry: {
-            call: ({ hash_entry, create_entry }) => async ({ content }) => {
-                await create_entry({ content, entry_def_id: 'demo_entry' });
-                return hash_entry({ content });
+            call: ({ create_entry }) => async ({ content }) => {
+                return create_entry({ content, entry_def_id: 'demo_entry' });
             },
             arguments: [{ name: 'content', type: 'any' }],
+        },
+        hash_entry: {
+            call: ({ hash_entry }) => async ({ entry }) => {
+                return hash_entry(entry);
+            },
+            arguments: [{ name: 'entry', type: 'any' }],
         },
         get: {
             call: ({ get }) => ({ hash }) => {
@@ -2504,5 +2683,5 @@ async function createConductors(conductorsToCreate, currentConductors, dnaTempla
     return allConductors;
 }
 
-export { AGENT_PREFIX, Authority, Cascade, Cell, Conductor, DHTOP_PREFIX, DNA_PREFIX, DelayMiddleware, Discover, ENTRY_PREFIX, GetStrategy, HEADER_PREFIX, HashType, index as Hdk, KitsuneP2p, MiddlewareExecutor, Network, NetworkRequestType, P2pCell, ValidationLimboStatus, ValidationStatus, WorkflowType, app_validation, app_validation_task, buildAgentValidationPkg, buildCreate, buildCreateLink, buildDelete, buildDeleteLink, buildDna, buildShh, buildUpdate, callZomeFn, call_zome_fn_workflow, computeDhtStatus, createConductors, deleteValidationLimboValue, demoDnaTemplate, demoEntriesZome, demoLinksZome, distance, genesis, genesis_task, getAllAuthoredEntries, getAllAuthoredHeaders, getAllHeldEntries, getAppEntryType, getAuthor, getCellId, getClosestNeighbors, getCreateLinksForEntry, getDHTOpBasis, getDhtShard, getDnaHash, getElement, getEntryDetails, getEntryDhtStatus, getEntryTypeString, getFarthestNeighbors, getHashType, getHeaderAt, getHeaderModifiers, getHeadersForEntry, getLinksForEntry, getLiveLinks, getNewHeaders, getNextHeaderSeq, getNonPublishedDhtOps, getRemovesOnLinkAdd, getTipOfChain, getValidationLimboDhtOps, hash, hashEntry, incoming_dht_ops, incoming_dht_ops_task, integrate_dht_ops, integrate_dht_ops_task, isHoldingElement, isHoldingEntry, location, locationDistance, produce_dht_ops, produce_dht_ops_task, publish_dht_ops, publish_dht_ops_task, pullAllIntegrationLimboDhtOps, putDhtOpData, putDhtOpMetadata, putDhtOpToIntegrated, putElement, putIntegrationLimboValue, putSystemMetadata, putValidationLimboValue, register_header_on_basis, sleep, sys_validation, sys_validation_task, valid_cap_grant, workflowPriority, wrap };
+export { AGENT_PREFIX, Authority, Cascade, Cell, Conductor, DHTOP_PREFIX, DNA_PREFIX, DelayMiddleware, Discover, ENTRY_PREFIX, GetStrategy, HEADER_PREFIX, HashType, index as Hdk, KitsuneP2p, MiddlewareExecutor, Network, NetworkRequestType, P2pCell, ValidationLimboStatus, ValidationStatus, WorkflowType, app_validation, app_validation_task, buildAgentValidationPkg, buildCreate, buildCreateLink, buildDelete, buildDeleteLink, buildDna, buildShh, buildUpdate, callZomeFn, call_zome_fn_workflow, computeDhtStatus, counterfeit_check, createConductors, deleteValidationLimboValue, demoDnaTemplate, demoEntriesZome, demoLinksZome, distance, genesis, genesis_task, getAllAuthoredEntries, getAllAuthoredHeaders, getAllHeldEntries, getAppEntryType, getAuthor, getCellId, getClosestNeighbors, getCreateLinksForEntry, getDHTOpBasis, getDhtShard, getDnaHash, getElement, getEntryDetails, getEntryDhtStatus, getEntryTypeString, getFarthestNeighbors, getHashType, getHeaderAt, getHeaderModifiers, getHeadersForEntry, getLinksForEntry, getLiveLinks, getNewHeaders, getNextHeaderSeq, getNonPublishedDhtOps, getRemovesOnLinkAdd, getTipOfChain, getValidationLimboDhtOps, hash, hashEntry, incoming_dht_ops, incoming_dht_ops_task, integrate_dht_ops, integrate_dht_ops_task, isHoldingElement, isHoldingEntry, location, locationDistance, produce_dht_ops, produce_dht_ops_task, publish_dht_ops, publish_dht_ops_task, pullAllIntegrationLimboDhtOps, putDhtOpData, putDhtOpMetadata, putDhtOpToIntegrated, putElement, putIntegrationLimboValue, putSystemMetadata, putValidationLimboValue, register_header_on_basis, sleep, store_element, store_entry, sys_validate_element, sys_validation, sys_validation_task, valid_cap_grant, workflowPriority, wrap };
 //# sourceMappingURL=index.js.map

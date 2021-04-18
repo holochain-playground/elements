@@ -28,7 +28,7 @@ export const sharedStyles = css`
   }
 
   .placeholder {
-    opacity: 0.6;
+    color: rgba(0, 0, 0, 0.6);
   }
 
   .flex-scrollable-parent {
@@ -85,9 +85,8 @@ export const sharedStyles = css`
   .vertical-divider {
     background-color: grey;
     width: 1px;
-    height: 60%; 
+    height: 60%;
     opacity: 0.3;
     margin-bottom: 0;
   }
-  
 `;

@@ -19,7 +19,7 @@ import { CellState } from '../state';
 import { getAllAuthoredHeaders } from './get';
 
 export function getTipOfChain(cellState: CellState): Hash {
-  return cellState.sourceChain[0];
+  return cellState.sourceChain[cellState.sourceChain.length - 1];
 }
 
 export function getAuthor(cellState: CellState): AgentPubKey {

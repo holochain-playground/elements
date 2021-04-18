@@ -15,11 +15,16 @@ export const demoEntriesZome: SimulatedZome = {
   ],
   zome_functions: {
     create_entry: {
-      call: ({ hash_entry, create_entry }) => async ({ content }) => {
-        await create_entry({ content, entry_def_id: 'demo_entry' });
-        return hash_entry({ content });
+      call: ({ create_entry }) => async ({ content }) => {
+        return create_entry({ content, entry_def_id: 'demo_entry' });
       },
       arguments: [{ name: 'content', type: 'any' }],
+    },
+    hash_entry: {
+      call: ({ hash_entry }) => async ({ entry }) => {
+        return hash_entry(entry);
+      },
+      arguments: [{ name: 'entry', type: 'any' }],
     },
     get: {
       call: ({ get }) => ({ hash }) => {

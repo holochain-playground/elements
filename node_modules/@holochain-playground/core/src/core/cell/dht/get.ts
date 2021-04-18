@@ -15,6 +15,7 @@ import {
   DeleteLink,
   HeaderType,
   Create,
+  Metadata,
 } from '@holochain-open-dev/core-types';
 import { isEqual, uniq } from 'lodash-es';
 import { GetLinksResponse, Link } from '../cascade/types';

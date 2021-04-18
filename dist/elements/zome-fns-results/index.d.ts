@@ -9,6 +9,7 @@ import { CircularProgress } from 'scoped-material-components/mwc-circular-progre
 import { ExpandableLine } from '../helpers/expandable-line';
 import { JsonViewer } from '@power-elements/json-viewer';
 import { Icon } from 'scoped-material-components/mwc-icon';
+import { CopyableHash } from '../helpers/copyable-hash';
 export declare class ZomeFnsResults extends PlaygroundElement {
     hideAgentPubKey: boolean;
     _results: Dictionary<Dictionary<Dictionary<ZomeFunctionResult>>>;
@@ -19,7 +20,7 @@ export declare class ZomeFnsResults extends PlaygroundElement {
     onNewObservedCell(cell: Cell): import("@holochain-playground/core").MiddlewareSubscription[];
     getActiveResults(): Array<[string, ZomeFunctionResult]>;
     renderResult(result: ZomeFunctionResult): import("lit-element").TemplateResult;
-    renderAgent(): string;
+    renderAgent(): import("lit-element").TemplateResult;
     render(): import("lit-element").TemplateResult;
     static get styles(): import("lit-element").CSSResult[];
     static get scopedElements(): {
@@ -30,5 +31,6 @@ export declare class ZomeFnsResults extends PlaygroundElement {
         'mwc-card': typeof Card;
         'json-viewer': typeof JsonViewer;
         'expandable-line': typeof ExpandableLine;
+        'copyable-hash': typeof CopyableHash;
     };
 }

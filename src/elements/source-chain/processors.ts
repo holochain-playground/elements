@@ -33,6 +33,7 @@ export function sourceChainNodes(cell: Cell) {
           source: headerHash,
           target: previousHeaderHash,
         },
+        classes: ['embedded-reference'],
       });
     }
   }
@@ -59,7 +60,7 @@ export function sourceChainNodes(cell: Cell) {
           data: entry,
           label: entryType,
         },
-        classes: [entryType],
+        classes: [entryType, 'entry'],
       });
       nodes.push({
         data: {
@@ -67,6 +68,7 @@ export function sourceChainNodes(cell: Cell) {
           source: strHeaderHash,
           target: entryNodeId,
         },
+        classes: ['embedded-reference'],
       });
     }
   }

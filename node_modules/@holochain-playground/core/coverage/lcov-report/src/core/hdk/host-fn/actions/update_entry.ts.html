@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">91.3% </span>
+                <span class="strong">91.11% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>42/46</span>
+                <span class='fraction'>41/45</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">91.3% </span>
+                <span class="strong">91.11% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>42/46</span>
+                <span class='fraction'>41/45</span>
             </div>
         
             
@@ -102,8 +102,9 @@
 <a name='L43'></a><a href='#L43'>43</a>
 <a name='L44'></a><a href='#L44'>44</a>
 <a name='L45'></a><a href='#L45'>45</a>
-<a name='L46'></a><a href='#L46'>46</a>
-<a name='L47'></a><a href='#L47'>47</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">5x</span>
+<a name='L46'></a><a href='#L46'>46</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
@@ -118,64 +119,65 @@
 <span class="cline-any cline-yes">21x</span>
 <span class="cline-any cline-yes">21x</span>
 <span class="cline-any cline-yes">21x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Entry, Hash } from '@holochain-open-dev/core-types';
 import { HostFn, HostFnWorkspace } from '../../host-fn';
 import { common_update } from './common/update';
 &nbsp;
-export type UpdateEntryFn = (args: {
-  original_header_address: Hash;
-  content: any;
-  entry_def_id: string;
-}) =&gt; Promise&lt;Hash&gt;;
+export type UpdateEntryFn = (
+  original_header_address: Hash,
+  newEntry: {
+    content: any;
+    entry_def_id: string;
+  }
+) =&gt; Promise&lt;Hash&gt;;
 &nbsp;
 // Creates a new Create header and its entry in the source chain
 export const update_entry: HostFn&lt;UpdateEntryFn&gt; = (
   workspace: HostFnWorkspace,
   zome_index: number
-): UpdateEntryFn =&gt; async (args: {
-  original_header_address: Hash;
-  content: any;
-  entry_def_id: string;
-}): Promise&lt;Hash&gt; =&gt; {
-  const entry: Entry = { entry_type: 'App', content: args.content };
+): UpdateEntryFn =&gt; async (
+  original_header_address: Hash,
+  newEntry: {
+    content: any;
+    entry_def_id: string;
+  }
+): Promise&lt;Hash&gt; =&gt; {
+  const entry: Entry = { entry_type: 'App', content: newEntry.content };
 &nbsp;
   const entryDefIndex = workspace.dna.zomes[zome_index].entry_defs.findIndex(
-    entry_def =&gt; entry_def.id === args.entry_def_id
+    entry_def =&gt; entry_def.id === newEntry.entry_def_id
   );
   if (entryDefIndex &lt; 0) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >    throw new Error(</span>
-<span class="cstat-no" title="statement not covered" >      `Given entry def id ${args.entry_def_id} does not exist in this zome`</span>
+<span class="cstat-no" title="statement not covered" >      `Given entry def id ${newEntry.entry_def_id} does not exist in this zome`</span>
 <span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
@@ -188,12 +190,7 @@ export const update_entry: HostFn&lt;UpdateEntryFn&gt; = (
     },
   };
 &nbsp;
-  return common_update(
-    workspace,
-    args.original_header_address,
-    entry,
-    entry_type
-  );
+  return common_update(workspace, original_header_address, entry, entry_type);
 };
 &nbsp;</pre></td></tr></table></pre>
 
@@ -202,7 +199,7 @@ export const update_entry: HostFn&lt;UpdateEntryFn&gt; = (
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Wed Feb 24 2021 15:48:41 GMT+0100 (Hora estàndard del Centre d’Europa)
+                at Sun Apr 18 2021 12:43:43 GMT+0200 (Hora d’estiu del Centre d’Europa)
             </div>
         </div>
         <script src="../../../../../prettify.js"></script>

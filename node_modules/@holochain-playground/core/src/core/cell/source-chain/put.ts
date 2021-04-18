@@ -13,5 +13,5 @@ export const putElement = (element: Element) => (state: CellState): void => {
     state.CAS[entryHash] = element.entry;
   }
 
-  state.sourceChain.unshift(headerHash);
+  state.sourceChain.push(headerHash);
 };

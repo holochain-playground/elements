@@ -23,6 +23,6 @@ export function common_create(
     entry,
   };
   putElement(element)(worskpace.state);
-
+  
   return element.signed_header.header.hash;
 }

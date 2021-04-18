@@ -13,14 +13,12 @@ import {
   SignedHeaderHashed,
   NewEntryHeader,
 } from '@holochain-open-dev/core-types';
-import { hash, HashType } from '../../../processors/hash';
 import {
   ValidationLimboValue,
   CellState,
   IntegrationLimboValue,
   IntegratedDhtOpsValue,
 } from '../state';
-import { hashEntry } from '../utils';
 
 import { getHeadersForEntry } from './get';
 

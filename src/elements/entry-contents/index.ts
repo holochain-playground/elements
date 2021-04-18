@@ -6,6 +6,7 @@ import { selectAllCells, selectFromCAS } from '../utils/selectors';
 import { PlaygroundElement } from '../../context/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
 import { shortenStrRec } from '../utils/hash';
+import { CopyableHash } from '../helpers/copyable-hash';
 
 /**
  * @element entry-contents
@@ -31,19 +32,23 @@ export class EntryContents extends PlaygroundElement {
     return html`
       <mwc-card style="width: auto; min-height: 200px;" class="fill">
         <div class="column fill" style="padding: 16px;">
-          <span class="title">
+          <span class="title row" style="margin-bottom: 8px;">
             ${this.activeHashedContent && this.activeHashedContent.header
               ? 'Header'
               : 'Entry'}
-            Contents</span
+            Contents${this.activeHash
+              ? html`<span class="row placeholder">
+                  , with hash
+                  <copyable-hash
+                    .hash=${this.activeHash}
+                    style="margin-left: 8px;"
+                  ></copyable-hash
+                ></span>`
+              : html``}</span
           >
           ${this.activeHashedContent
             ? html`
                 <div class="column fill">
-                  <span style="margin-bottom: 16px;">
-                    ${this.activeHashedContent.header ? 'Header' : 'Entry'}
-                    Hash: ${this.activeHash}
-                  </span>
                   <div class="fill flex-scrollable-parent">
                     <div class="flex-scrollable-container">
                       <div class="flex-scrollable-y" style="height: 100%;">
@@ -70,6 +75,7 @@ export class EntryContents extends PlaygroundElement {
     return {
       'json-viewer': JsonViewer,
       'mwc-card': Card,
+      'copyable-hash': CopyableHash,
     };
   }
 }

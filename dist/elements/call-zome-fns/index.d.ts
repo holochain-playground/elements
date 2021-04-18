@@ -11,6 +11,7 @@ import { Card } from 'scoped-material-components/mwc-card';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { List } from 'scoped-material-components/mwc-list';
 import { Drawer } from 'scoped-material-components/mwc-drawer';
+import { CopyableHash } from '../helpers/copyable-hash';
 /**
  * @element call-zome-fns
  */
@@ -46,5 +47,6 @@ export declare class CallZomeFns extends PlaygroundElement {
         'mwc-list-item': typeof ListItem;
         'mwc-tab-bar': typeof TabBar;
         'mwc-card': typeof Card;
+        'copyable-hash': typeof CopyableHash;
     };
 }

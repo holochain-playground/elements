@@ -27,7 +27,7 @@ import { Menu } from 'scoped-material-components/mwc-menu';
 import { uniq, isEqual } from 'lodash-es';
 import { classMap } from 'lit-html/directives/class-map';
 import { Checkbox } from 'scoped-material-components/mwc-checkbox';
-import { timestampToMillis } from '@holochain-open-dev/core-types';
+import { timestampToMillis, EntryDhtStatus } from '@holochain-open-dev/core-types';
 import { Select } from 'scoped-material-components/mwc-select';
 
 /*! *****************************************************************************
@@ -318,7 +318,7 @@ const sharedStyles = css$1 `
   }
 
   .placeholder {
-    opacity: 0.6;
+    color: rgba(0, 0, 0, 0.6);
   }
 
   .flex-scrollable-parent {
@@ -375,11 +375,10 @@ const sharedStyles = css$1 `
   .vertical-divider {
     background-color: grey;
     width: 1px;
-    height: 60%; 
+    height: 60%;
     opacity: 0.3;
     margin-bottom: 0;
   }
-  
 `;
 
 function selectCells(dna, conductor) {
@@ -452,6 +451,46 @@ function selectAllDNAs(conductors) {
 function selectRedundancyFactor(cell) {
     return cell.p2p.redundancyFactor;
 }
+
+class CopyableHash extends ScopedElementsMixin(LitElement) {
+    async copyHash() {
+        await navigator.clipboard.writeText(this.hash);
+        this._copyNotification.show();
+    }
+    render() {
+        return html `
+      <mwc-snackbar
+        id="copy-notification"
+        labelText="Hash copied to clipboard"
+      ></mwc-snackbar>
+      <div class="row center-content">
+        <span style="font-family: monospace;">${this.hash.substring(0, 15)}...</span>
+        <mwc-icon-button
+          style="--mdc-icon-button-size	: 24px; --mdc-icon-size: 20px;"
+          icon="content_copy"
+          @click=${() => this.copyHash()}
+        ></mwc-icon-button>
+      </div>
+    `;
+    }
+    static get styles() {
+        return sharedStyles;
+    }
+    static get scopedElements() {
+        return {
+            'mwc-icon-button': IconButton,
+            'mwc-snackbar': Snackbar,
+        };
+    }
+}
+__decorate([
+    property$1({ type: String }),
+    __metadata("design:type", String)
+], CopyableHash.prototype, "hash", void 0);
+__decorate([
+    query('#copy-notification'),
+    __metadata("design:type", Snackbar)
+], CopyableHash.prototype, "_copyNotification", void 0);
 
 /**
  * @element call-zome-fns
@@ -597,8 +636,12 @@ class CallZomeFns extends PlaygroundElement {
                 ? html ``
                 : html `,
                         <span class="placeholder"
-                          >for agent ${this.activeAgentPubKey}</span
-                        > `}</span
+                          >for agent
+                          <copyable-hash
+                            .hash=${this.activeAgentPubKey}
+                            style="margin-left: 8px;"
+                          ></copyable-hash
+                        ></span> `}</span
                 >
                 ${this.hideZomeSelector
                 ? html ` <span class="horizontal-divider"></span> `
@@ -658,6 +701,7 @@ class CallZomeFns extends PlaygroundElement {
             'mwc-list-item': ListItem,
             'mwc-tab-bar': TabBar,
             'mwc-card': Card,
+            'copyable-hash': CopyableHash,
         };
     }
 }
@@ -1184,9 +1228,13 @@ class ZomeFnsResults extends PlaygroundElement {
     }
     renderAgent() {
         if (this.agentName)
-            return `, for ${this.agentName}`;
+            return html `, for ${this.agentName}`;
         if (!this.hideAgentPubKey && this.activeCell)
-            return `, for agent ${this.activeCell.agentPubKey}`;
+            return html `, for agent
+        <copyable-hash
+          .hash=${this.activeCell.agentPubKey}
+          style="margin-left: 8px;"
+        ></copyable-hash>`;
     }
     render() {
         const results = this.getActiveResults();
@@ -1300,6 +1348,7 @@ class ZomeFnsResults extends PlaygroundElement {
             'mwc-card': Card,
             'json-viewer': JsonViewer,
             'expandable-line': ExpandableLine,
+            'copyable-hash': CopyableHash,
         };
     }
 }
@@ -1409,19 +1458,23 @@ class EntryContents extends PlaygroundElement {
         return html `
       <mwc-card style="width: auto; min-height: 200px;" class="fill">
         <div class="column fill" style="padding: 16px;">
-          <span class="title">
+          <span class="title row" style="margin-bottom: 8px;">
             ${this.activeHashedContent && this.activeHashedContent.header
             ? 'Header'
             : 'Entry'}
-            Contents</span
+            Contents${this.activeHash
+            ? html `<span class="row placeholder">
+                  , with hash
+                  <copyable-hash
+                    .hash=${this.activeHash}
+                    style="margin-left: 8px;"
+                  ></copyable-hash
+                ></span>`
+            : html ``}</span
           >
           ${this.activeHashedContent
             ? html `
                 <div class="column fill">
-                  <span style="margin-bottom: 16px;">
-                    ${this.activeHashedContent.header ? 'Header' : 'Entry'}
-                    Hash: ${this.activeHash}
-                  </span>
                   <div class="fill flex-scrollable-parent">
                     <div class="flex-scrollable-container">
                       <div class="flex-scrollable-y" style="height: 100%;">
@@ -1447,6 +1500,7 @@ class EntryContents extends PlaygroundElement {
         return {
             'json-viewer': JsonViewer,
             'mwc-card': Card,
+            'copyable-hash': CopyableHash,
         };
     }
 }
@@ -2469,7 +2523,7 @@ function _nonIterableRest() {
 
 var window$1 = typeof window === 'undefined' ? null : window; // eslint-disable-line no-undef
 
-var navigator = window$1 ? window$1.navigator : null;
+var navigator$1 = window$1 ? window$1.navigator : null;
 window$1 ? window$1.document : null;
 
 var typeofstr = _typeof('');
@@ -2554,7 +2608,7 @@ var promise = function promise(obj) {
   return object(obj) && fn(obj.then);
 };
 var ms = function ms() {
-  return navigator && navigator.userAgent.match(/msie|trident|edge/i);
+  return navigator$1 && navigator$1.userAgent.match(/msie|trident|edge/i);
 }; // probably a better way to detect this...
 
 var memoize$1 = function memoize(fn, keyFn) {
@@ -3259,12 +3313,12 @@ var defaults$1 = function defaults(_defaults) {
     return filledOpts;
   };
 };
-var removeFromArray = function removeFromArray(arr, ele, manyCopies) {
-  for (var i = arr.length; i >= 0; i--) {
+var removeFromArray = function removeFromArray(arr, ele, oneCopy) {
+  for (var i = arr.length - 1; i >= 0; i--) {
     if (arr[i] === ele) {
       arr.splice(i, 1);
 
-      if (!manyCopies) {
+      if (oneCopy) {
         break;
       }
     }
@@ -4084,6 +4138,7 @@ var elesfn$3 = {
           gScore[wid] = tempScore;
           fScore[wid] = tempScore + heuristic(w);
           cameFrom[wid] = cMin;
+          cameFromEdge[wid] = e;
         }
       } // End of neighbors update
 
@@ -33980,7 +34035,7 @@ sheetfn.appendToStyle = function (style) {
   return style;
 };
 
-var version$2 = "3.18.1";
+var version$2 = "3.18.2";
 
 var cytoscape$1 = function cytoscape(options) {
   // if no options specified, use default
@@ -35152,7 +35207,7 @@ __decorate([
     __metadata("design:type", Object)
 ], RunSteps.prototype, "_running", void 0);
 
-function allEntries(cells, showEntryContents, excludedEntryTypes) {
+function allEntries(cells, showEntryContents, showHeaders, excludedEntryTypes) {
     const details = {};
     const links = {};
     const entryTypes = {};
@@ -35170,7 +35225,6 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
             }
         }
     }
-    //  const agentPubKeys = Object.keys(entries).filter(entryHash => details[entryHash].headers.includes(h=> (h as Agent)));
     const sortedEntries = sortEntries(Object.keys(details), details);
     const linksEdges = [];
     const entryNodes = [];
@@ -35191,8 +35245,54 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
                     data: entry,
                     label: `${entryType}${entryTypeCount[entryType]}`,
                 },
-                classes: [entryType],
+                classes: [entryType, 'entry'],
             });
+            if (showHeaders) {
+                // NewEntryHeaders
+                for (const header of detail.headers.filter((h) => h.header.content.entry_hash === entryHash)) {
+                    entryNodes.push({
+                        data: {
+                            id: header.header.hash,
+                            data: header,
+                            label: header.header.content.type,
+                        },
+                        classes: [header.header.content.type, 'header'],
+                    });
+                    linksEdges.push({
+                        data: {
+                            id: `${header.header.hash}->${entryHash}`,
+                            source: header.header.hash,
+                            target: entryHash,
+                            label: 'creates',
+                            headerReference: true,
+                        },
+                        classes: ['embedded-reference', 'header-reference'],
+                    });
+                }
+                // Delete headers
+                for (const deleteHeader of detail.deletes) {
+                    const deletedHeader = deleteHeader.header.content
+                        .deletes_address;
+                    entryNodes.push({
+                        data: {
+                            id: deleteHeader.header.hash,
+                            data: deleteHeader,
+                            label: deleteHeader.header.content.type,
+                        },
+                        classes: [deleteHeader.header.content.type, 'header'],
+                    });
+                    linksEdges.push({
+                        data: {
+                            id: `${deleteHeader.header.hash}->${deletedHeader}`,
+                            source: deleteHeader.header.hash,
+                            target: deletedHeader,
+                            label: 'deletes',
+                            headerReference: true,
+                        },
+                        classes: ['embedded-reference', 'header-reference'],
+                    });
+                }
+            }
             if (showEntryContents) {
                 const content = shortenStrRec(entry.content);
                 if (typeof content === 'object') {
@@ -35243,7 +35343,7 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
                                 target: implicitLink.target,
                                 label: implicitLink.label,
                             },
-                            classes: ['implicit'],
+                            classes: ['embedded-reference'],
                         });
                     }
                 }
@@ -35264,7 +35364,7 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
                                 source: entryHash,
                                 target,
                             },
-                            classes: ['explicit'],
+                            classes: ['explicit-link'],
                         };
                         if (tag) {
                             edgeData.data['label'] = tag;
@@ -35278,23 +35378,26 @@ function allEntries(cells, showEntryContents, excludedEntryTypes) {
                 h.header.content.original_entry_address === entryHash);
             for (const update of updateHeaders) {
                 const strUpdateEntryHash = update.header.content.entry_hash;
+                let source = strUpdateEntryHash;
+                let target = entryHash;
+                if (showHeaders) {
+                    source = update.header.hash;
+                    target = update.header.content.original_header_address;
+                }
                 linksEdges.push({
                     data: {
-                        id: `${entryHash}-updated-by-${strUpdateEntryHash}`,
-                        source: entryHash,
-                        target: strUpdateEntryHash,
-                        label: 'updated by',
+                        id: `${entryHash}-updates-${strUpdateEntryHash}`,
+                        source,
+                        target,
+                        label: 'updates',
                     },
-                    classes: ['update-edge'],
+                    classes: ['embedded-reference'],
                 });
             }
             // Add deleted class if is deleted
             const node = entryNodes.find((node) => node.data.id === entryHash);
-            if (detail.updates.length > 0) {
+            if (detail.entry_dht_status === EntryDhtStatus.Dead) {
                 node.classes.push('updated');
-            }
-            if (detail.deletes.length > 0) {
-                node.classes.push('deleted');
             }
         }
         entryTypeCount[entryType] += 1;
@@ -40535,43 +40638,18 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_5__;
 });
 });
 
-const graphStyles$1 = `
-node {
-  background-color: grey;
-  font-size: 10px;
-  width: 16px;
-  label: data(label);
-  height: 16px;
+const commonGraphStyles = `
+.header {
+}
+
+.entry {
   shape: round-rectangle;
 }
 
-node > node {
-  height: 1px;
+.Dna {
+  background-color: green;
 }
-
-edge {
-  width: 2;
-  target-arrow-shape: triangle;
-  curve-style: bezier;
-}
-
-edge[label] {
-  label: data(label);
-  font-size: 7px;
-  text-rotation: autorotate;
-  text-margin-x: 0px;
-  text-margin-y: -5px;
-  text-valign: top;
-  text-halign: center;        
-}
-
-.selected {
-  border-width: 1px;
-  border-color: black;
-  border-style: solid;
-}
-
-.AgentId {
+.AgentValidationPkg {
   background-color: lime;
 }
 .Create {
@@ -40590,9 +40668,66 @@ edge[label] {
   background-color: purple;
 }
 
-.implicit {
-  width: 1;
-  line-style: dotted;
+.embedded-reference {
+  width: 4;
+  target-arrow-shape: triangle;
+  curve-style: bezier;
+  line-style: dotted;  
+}
+.embedded-reference[label] {
+  label: data(label);
+  font-size: 7px;
+  text-rotation: autorotate;
+  text-margin-x: 0px;
+  text-margin-y: -5px;
+  text-valign: top;
+  text-halign: center;        
+}
+
+.explicit-link {
+  width: 2;
+  target-arrow-shape: triangle;
+  curve-style: bezier;
+}
+
+.explicit-link[label] {
+  label: data(label);
+  font-size: 7px;
+  text-rotation: autorotate;
+  text-margin-x: 0px;
+  text-margin-y: -5px;
+  text-valign: top;
+  text-halign: center;        
+}
+
+`;
+
+const graphStyles$1 = `
+${commonGraphStyles}
+
+node {
+  font-size: 10px;
+  width: 16px;
+  label: data(label);
+  height: 16px;
+}
+
+.entry {
+  background-color: grey;
+}
+
+.header {
+  opacity: 0.6;
+}
+
+node > node {
+  height: 1px;
+}
+
+.selected {
+  border-width: 1px;
+  border-color: black;
+  border-style: solid;
 }
 
 .update-edge {
@@ -40611,9 +40746,17 @@ cytoscape_cjs.use(cytoscapeCola);
 const layoutConfig = {
     name: 'cola',
     animate: true,
-    ready: (e) => {
+    /*   flow: {
+        axis: 'x',
+        minSeparation: 40,
+      },
+     */ ready: (e) => {
         e.cy.fit();
         e.cy.center();
+    },
+    nodeSpacing: function (node) { return 20; },
+    edgeLength: (edge) => {
+        return edge.data().headerReference ? 50 : undefined;
     },
 };
 /**
@@ -40624,6 +40767,7 @@ class EntryGraph extends PlaygroundElement {
         super(...arguments);
         this.hideFilter = false;
         this.showEntryContents = false;
+        this.showHeaders = false;
         this.excludedEntryTypes = [];
         this.lastEntriesIds = [];
         this.ready = false;
@@ -40667,7 +40811,7 @@ class EntryGraph extends PlaygroundElement {
             return null;
         }
         const cells = selectAllCells(this.activeDna, this.conductors);
-        const { entries, entryTypes } = allEntries(cells, this.showEntryContents, this.excludedEntryTypes);
+        const { entries, entryTypes } = allEntries(cells, this.showEntryContents, this.showHeaders, this.excludedEntryTypes);
         if (!isEqual(this.lastEntriesIds, entries.map((e) => e.data.id))) {
             if (this.layout)
                 this.layout.stop();
@@ -40718,8 +40862,15 @@ class EntryGraph extends PlaygroundElement {
     >
       <mwc-formfield label="Show Entry Contents" style="margin-right: 16px">
         <mwc-checkbox
-          checked
+          .checked=${this.showEntryContents}
           @change=${(e) => (this.showEntryContents = e.target.checked)}
+        ></mwc-checkbox
+      ></mwc-formfield>
+
+      <mwc-formfield label="Show Headers" style="margin-right: 16px">
+        <mwc-checkbox
+          .checked=${this.showHeaders}
+          @change=${(e) => (this.showHeaders = e.target.checked)}
         ></mwc-checkbox
       ></mwc-formfield>
 
@@ -40795,6 +40946,10 @@ __decorate([
     property$1({ type: Boolean, attribute: 'show-entry-contents' }),
     __metadata("design:type", Boolean)
 ], EntryGraph.prototype, "showEntryContents", void 0);
+__decorate([
+    property$1({ type: Boolean, attribute: 'show-headers' }),
+    __metadata("design:type", Boolean)
+], EntryGraph.prototype, "showHeaders", void 0);
 __decorate([
     property$1({ type: Array }),
     __metadata("design:type", Array)
@@ -51704,6 +51859,7 @@ function sourceChainNodes(cell) {
                     source: headerHash,
                     target: previousHeaderHash,
                 },
+                classes: ['embedded-reference'],
             });
         }
     }
@@ -51722,7 +51878,7 @@ function sourceChainNodes(cell) {
                     data: entry,
                     label: entryType,
                 },
-                classes: [entryType],
+                classes: [entryType, 'entry'],
             });
             nodes.push({
                 data: {
@@ -51730,6 +51886,7 @@ function sourceChainNodes(cell) {
                     source: strHeaderHash,
                     target: entryNodeId,
                 },
+                classes: ['embedded-reference'],
             });
         }
     }
@@ -51737,6 +51894,7 @@ function sourceChainNodes(cell) {
 }
 
 const graphStyles = `
+${commonGraphStyles}
 node {
   width: 30px;
   height: 30px;
@@ -51751,14 +51909,6 @@ node {
 .header {
   text-margin-x: -5px;
   text-halign: left;
-  shape: round-rectangle;
-}
-
-edge {
-  width: 4;
-  target-arrow-shape: triangle;
-  curve-style: bezier;
-  line-style: dotted;
 }
 
 .selected {
@@ -51767,27 +51917,6 @@ edge {
   border-style: solid;
 }
 
-.Dna {
-  background-color: green;
-}
-.AgentValidationPkg {
-  background-color: lime;
-}
-.Create {
-  background-color: blue;
-}
-.Delete {
-  background-color: red;
-}
-.Update {
-  background-color: cyan;
-}
-.CreateLink {
-  background-color: purple;
-}
-.DeleteLink {
-  background-color: purple;
-}
 `;
 
 cytoscape_cjs.use(cytoscapeDagre); // register extension

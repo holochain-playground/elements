@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">79.11% </span>
+                <span class="strong">78.62% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>125/158</span>
+                <span class='fraction'>125/159</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">79.11% </span>
+                <span class="strong">78.62% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>125/158</span>
+                <span class='fraction'>125/159</span>
             </div>
         
             
@@ -215,7 +215,8 @@
 <a name='L156'></a><a href='#L156'>156</a>
 <a name='L157'></a><a href='#L157'>157</a>
 <a name='L158'></a><a href='#L158'>158</a>
-<a name='L159'></a><a href='#L159'>159</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">5x</span>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
@@ -306,6 +307,7 @@
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -351,27 +353,27 @@
 <span class="cline-any cline-yes">32x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
-<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import {
   AgentPubKey,
@@ -462,11 +464,12 @@ export class Conductor {
   }
 &nbsp;
 <span class="fstat-no" title="function not covered" >  getCells(dnaHash: Hash): Cell[] {</span>
-<span class="cstat-no" title="statement not covered" >    return Object.values(this.cells[dnaHash]);</span>
+<span class="cstat-no" title="statement not covered" >    const dnaCells = this.cells[dnaHash];</span>
+<span class="cstat-no" title="statement not covered" >    return dnaCells ? Object.values(dnaCells) : [];</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
-<span class="fstat-no" title="function not covered" >  getCell(dnaHash: Hash, agentPubKey: AgentPubKey): Cell {</span>
-<span class="cstat-no" title="statement not covered" >    return this.cells[dnaHash][agentPubKey];</span>
+<span class="fstat-no" title="function not covered" >  getCell(dnaHash: Hash, agentPubKey: AgentPubKey): Cell | undefined {</span>
+<span class="cstat-no" title="statement not covered" >    return this.cells[dnaHash] ? this.cells[dnaHash][agentPubKey] : undefined;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
   async registerDna(dna_template: SimulatedDnaTemplate): Promise&lt;Hash&gt; {
@@ -538,7 +541,7 @@ export class Conductor {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Wed Feb 24 2021 15:48:41 GMT+0100 (Hora estàndard del Centre d’Europa)
+                at Sun Apr 18 2021 12:43:43 GMT+0200 (Hora d’estiu del Centre d’Europa)
             </div>
         </div>
         <script src="../../prettify.js"></script>

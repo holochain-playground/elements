@@ -5,6 +5,8 @@ import {
   SignedHeaderHashed,
   Update,
   timestampToMillis,
+  Delete,
+  EntryDhtStatus,
 } from '@holochain-open-dev/core-types';
 import {
   Cell,
@@ -20,6 +22,7 @@ import { shortenStrRec } from '../utils/hash';
 export function allEntries(
   cells: Cell[],
   showEntryContents: boolean,
+  showHeaders: boolean,
   excludedEntryTypes: string[]
 ) {
   const details: Dictionary<EntryDetails> = {};
@@ -46,8 +49,6 @@ export function allEntries(
     }
   }
 
-  //  const agentPubKeys = Object.keys(entries).filter(entryHash => details[entryHash].headers.includes(h=> (h as Agent)));
-
   const sortedEntries = sortEntries(Object.keys(details), details);
 
   const linksEdges = [];
@@ -61,6 +62,7 @@ export function allEntries(
     // Get base nodes and edges
     const newEntryHeader: SignedHeaderHashed<NewEntryHeader> = detail
       .headers[0] as SignedHeaderHashed<NewEntryHeader>;
+
     const entryType = entryTypes[entryHash];
     if (!entryTypeCount[entryType]) entryTypeCount[entryType] = 0;
     if (!excludedEntryTypes.includes(entryType)) {
@@ -70,8 +72,57 @@ export function allEntries(
           data: entry,
           label: `${entryType}${entryTypeCount[entryType]}`,
         },
-        classes: [entryType] as string[],
+        classes: [entryType, 'entry'],
       });
+
+      if (showHeaders) {
+        // NewEntryHeaders
+        for (const header of detail.headers.filter(
+          (h) => (h.header.content as NewEntryHeader).entry_hash === entryHash
+        )) {
+          entryNodes.push({
+            data: {
+              id: header.header.hash,
+              data: header,
+              label: header.header.content.type,
+            },
+            classes: [header.header.content.type, 'header'],
+          });
+          linksEdges.push({
+            data: {
+              id: `${header.header.hash}->${entryHash}`,
+              source: header.header.hash,
+              target: entryHash,
+              label: 'creates',
+              headerReference: true,
+            },
+            classes: ['embedded-reference', 'header-reference'],
+          });
+        }
+        // Delete headers
+        for (const deleteHeader of detail.deletes) {
+          const deletedHeader = (deleteHeader.header.content as Delete)
+            .deletes_address;
+          entryNodes.push({
+            data: {
+              id: deleteHeader.header.hash,
+              data: deleteHeader,
+              label: deleteHeader.header.content.type,
+            },
+            classes: [deleteHeader.header.content.type, 'header'],
+          });
+          linksEdges.push({
+            data: {
+              id: `${deleteHeader.header.hash}->${deletedHeader}`,
+              source: deleteHeader.header.hash,
+              target: deletedHeader,
+              label: 'deletes',
+              headerReference: true,
+            },
+            classes: ['embedded-reference', 'header-reference'],
+          });
+        }
+      }
 
       if (showEntryContents) {
         const content = shortenStrRec(entry.content);
@@ -128,7 +179,7 @@ export function allEntries(
                 target: implicitLink.target,
                 label: implicitLink.label,
               },
-              classes: ['implicit'],
+              classes: ['embedded-reference'],
             });
           }
         }
@@ -154,7 +205,7 @@ export function allEntries(
                 source: entryHash,
                 target,
               },
-              classes: ['explicit'],
+              classes: ['explicit-link'],
             };
             if (tag) {
               edgeData.data['label'] = tag;
@@ -172,25 +223,31 @@ export function allEntries(
       ) as SignedHeaderHashed<Update>[];
       for (const update of updateHeaders) {
         const strUpdateEntryHash = update.header.content.entry_hash;
+
+        let source = strUpdateEntryHash;
+        let target = entryHash;
+
+        if (showHeaders) {
+          source = update.header.hash;
+          target = update.header.content.original_header_address;
+        }
+
         linksEdges.push({
           data: {
-            id: `${entryHash}-updated-by-${strUpdateEntryHash}`,
-            source: entryHash,
-            target: strUpdateEntryHash,
-            label: 'updated by',
+            id: `${entryHash}-updates-${strUpdateEntryHash}`,
+            source,
+            target,
+            label: 'updates',
           },
-          classes: ['update-edge'],
+          classes: ['embedded-reference'],
         });
       }
 
       // Add deleted class if is deleted
       const node = entryNodes.find((node) => node.data.id === entryHash);
 
-      if (detail.updates.length > 0) {
+      if (detail.entry_dht_status === EntryDhtStatus.Dead) {
         node.classes.push('updated');
-      }
-      if (detail.deletes.length > 0) {
-        node.classes.push('deleted');
       }
     }
     entryTypeCount[entryType] += 1;

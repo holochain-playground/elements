@@ -1,5 +1,5 @@
 import { Cell } from '@holochain-playground/core';
-export declare function allEntries(cells: Cell[], showEntryContents: boolean, excludedEntryTypes: string[]): {
+export declare function allEntries(cells: Cell[], showEntryContents: boolean, showHeaders: boolean, excludedEntryTypes: string[]): {
     entries: any[];
     entryTypes: string[];
 };

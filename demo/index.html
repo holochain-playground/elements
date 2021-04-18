@@ -11,21 +11,36 @@
   </head>
   <body>
     <holochain-playground-container id="container">
-      <run-steps id="steps" style="height: 300px; width: 100%"></run-steps>
-      <dht-cells
-        id="cells"
-        style="height: 600px; width: 800px"
-        step-by-step
-        show-zome-fn-success
-      ></dht-cells>
-      <zome-fns-results style="height: 350px; width: 100%"></zome-fns-results>
-      <call-zome-fns
-        hide-agent-pub-key
-        style="height: 350px; width: 100%"
-        id="call-zome"
-      ></call-zome-fns>
-      <entry-graph style="height: 600px; width: 100%"></entry-graph>
-      <entry-contents style="height: 350px; width: 100%"></entry-contents>
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          align-items: start;
+          margin-bottom: 20px;
+        "
+      >
+        <entry-graph style="height: 600px; width: 100%"></entry-graph>
+        <dht-cells
+          id="cells"
+          style="height: 600px; width: 800px"
+          show-zome-fn-success
+        ></dht-cells>
+      </div>
+      <div
+        style="
+          display: flex;
+          height: 400px;
+          flex-direction: row;
+          align-items: start;
+          margin-bottom: 20px;
+        "
+      >
+        <call-zome-fns
+          style="height: 350px; width: 100%"
+          id="call-zome"
+        ></call-zome-fns>
+        <entry-contents style="height: 350px; width: 100%"></entry-contents>
+      </div>
     </holochain-playground-container>
 
     <script type="module">
@@ -71,53 +86,6 @@
 
         container.activeDna = cellId[0];
       });
-
-      const steps = [
-        {
-          title: 'ahoy',
-          run: async (context) => {
-            const conductor = context.conductors[0];
-            const cellId = conductor.getAllCells()[0].cellId;
-            await conductor.callZomeFn({
-              cellId: cellId,
-              zome: 'demo_entries',
-              payload: { content: 'asdf' },
-              fnName: 'create_entry',
-              cap: null,
-            });
-          },
-        },
-        {
-          title: 'ahoy2',
-          run: async (context) => {
-            const conductor = context.conductors[0];
-            const cellId = conductor.getAllCells()[0].cellId;
-            await conductor.callZomeFn({
-              cellId: cellId,
-              zome: 'demo_entries',
-              payload: { content: 'asdf' },
-              fnName: 'create_entry',
-              cap: null,
-            });
-          },
-        },
-        {
-          title: 'ahoy3',
-          run: async (context) => {
-            const conductor = context.conductors[0];
-            const cellId = conductor.getAllCells()[0].cellId;
-            await conductor.callZomeFn({
-              cellId: cellId,
-              zome: 'demo_entries',
-              payload: { content: 'asdf' },
-              fnName: 'create_entry',
-              cap: null,
-            });
-          },
-        },
-      ];
-
-      document.getElementById('steps').steps = steps;
     </script>
   </body>
 </html>

@@ -1,13 +1,12 @@
 import { SimulatedDna } from '../../../dnas/simulated-dna';
-import { SimulatedZomeFunctionContext } from '../../hdk';
 import { P2pCell } from '../../network/p2p-cell';
+import { Cascade } from '../cascade/cascade';
 import { CellState } from '../state';
 
 export interface Workspace {
   state: CellState;
   p2p: P2pCell;
   dna: SimulatedDna;
-  zomeFnContext?: SimulatedZomeFunctionContext;
 }
 
 export interface Workflow<D, R> {

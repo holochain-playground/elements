@@ -26,8 +26,33 @@ import {
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain_cascade/src/lib.rs#L1523
 
+// TODO: refactor Cascade when sqlite gets merged
+
 export class Cascade {
   constructor(protected state: CellState, protected p2p: P2pCell) {}
+
+  // TODO refactor when sqlite gets merged
+  public async retrieve_header(
+    hash: Hash,
+    options: GetOptions
+  ): Promise<SignedHeaderHashed | undefined> {
+    if (getHashType(hash) !== HashType.HEADER)
+      throw new Error(`Trying to retrieve a header with an entry hash`);
+
+    const isPresent = this.state.CAS[hash];
+
+    // TODO only return local if GetOptions::content() is given
+    if (isPresent && options.strategy === GetStrategy.Contents) {
+      const signed_header = this.state.CAS[hash];
+      return signed_header;
+    }
+
+    const result = await this.p2p.get(hash, options);
+
+    if ((result as GetElementResponse).signed_header) {
+      return (result as GetElementResponse).signed_header;
+    } else return undefined;
+  }
 
   public async dht_get(
     hash: Hash,

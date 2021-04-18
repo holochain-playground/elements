@@ -23,6 +23,7 @@ import { List } from 'scoped-material-components/mwc-list';
 import { Drawer } from 'scoped-material-components/mwc-drawer';
 import { ExpandableLine } from '../helpers/expandable-line';
 import { ZomeFunctionResult } from '../zome-fns-results/types';
+import { CopyableHash } from '../helpers/copyable-hash';
 
 /**
  * @element call-zome-fns
@@ -209,8 +210,12 @@ export class CallZomeFns extends PlaygroundElement {
                     ? html``
                     : html`,
                         <span class="placeholder"
-                          >for agent ${this.activeAgentPubKey}</span
-                        > `}</span
+                          >for agent
+                          <copyable-hash
+                            .hash=${this.activeAgentPubKey}
+                            style="margin-left: 8px;"
+                          ></copyable-hash
+                        ></span> `}</span
                 >
                 ${this.hideZomeSelector
                   ? html` <span class="horizontal-divider"></span> `
@@ -275,6 +280,7 @@ export class CallZomeFns extends PlaygroundElement {
       'mwc-list-item': ListItem,
       'mwc-tab-bar': TabBar,
       'mwc-card': Card,
+      'copyable-hash': CopyableHash,
     };
   }
 }
