@@ -55,6 +55,9 @@ export class DhtCells extends PlaygroundElement {
   @property({ type: Boolean, attribute: 'hide-time-controller' })
   hideTimeController: boolean = false;
 
+  @property({ type: Boolean, attribute: 'hide-filter' })
+  hideFilter: boolean = false;
+
   @property({ type: Boolean, attribute: 'step-by-step' })
   stepByStep = false;
 
@@ -99,7 +102,7 @@ export class DhtCells extends PlaygroundElement {
 
     this._cy.on('tap', 'node', (evt) => {
       this.updatePlayground({
-        activeAgentPubKey: evt.target.id()
+        activeAgentPubKey: evt.target.id(),
       });
     });
 
@@ -413,85 +416,89 @@ export class DhtCells extends PlaygroundElement {
     const networkRequestNames = Object.values(NetworkRequestType);
     return html`
       <div class="row center-content" style="margin: 16px; position: relative;">
-        <mwc-button
-          label="Visible Worfklows"
-          style="--mdc-theme-primary: rgba(0,0,0,0.7);"
-          icon="arrow_drop_down"
-          id="active-workflows-button"
-          trailingIcon
-          @click=${() => this._activeWorkflowsMenu.show()}
-        ></mwc-button>
-        <mwc-menu
-          corner="BOTTOM_END"
-          multi
-          activatable
-          id="active-workflows-menu"
-          .anchor=${this._activeWorkflowsButton}
-          @selected=${(e) =>
-            (this.workflowsToDisplay = [...e.detail.index].map(
-              (index) => workflowsNames[index]
-            ))}
-        >
-          ${workflowsNames.map(
-            (type) => html`
-              <mwc-list-item
-                graphic="icon"
-                .selected=${this.workflowsToDisplay.includes(
-                  type as WorkflowType
-                )}
-                .activated=${this.workflowsToDisplay.includes(
-                  type as WorkflowType
-                )}
+        ${this.hideFilter
+          ? html``
+          : html`
+              <mwc-button
+                label="Visible Worfklows"
+                style="--mdc-theme-primary: rgba(0,0,0,0.7);"
+                icon="arrow_drop_down"
+                id="active-workflows-button"
+                trailingIcon
+                @click=${() => this._activeWorkflowsMenu.show()}
+              ></mwc-button>
+              <mwc-menu
+                corner="BOTTOM_END"
+                multi
+                activatable
+                id="active-workflows-menu"
+                .anchor=${this._activeWorkflowsButton}
+                @selected=${(e) =>
+                  (this.workflowsToDisplay = [...e.detail.index].map(
+                    (index) => workflowsNames[index]
+                  ))}
               >
-                ${this.workflowsToDisplay.includes(type as WorkflowType)
-                  ? html` <mwc-icon slot="graphic">check</mwc-icon> `
-                  : html``}
-                ${type}
-              </mwc-list-item>
-            `
-          )}
-        </mwc-menu>
+                ${workflowsNames.map(
+                  (type) => html`
+                    <mwc-list-item
+                      graphic="icon"
+                      .selected=${this.workflowsToDisplay.includes(
+                        type as WorkflowType
+                      )}
+                      .activated=${this.workflowsToDisplay.includes(
+                        type as WorkflowType
+                      )}
+                    >
+                      ${this.workflowsToDisplay.includes(type as WorkflowType)
+                        ? html` <mwc-icon slot="graphic">check</mwc-icon> `
+                        : html``}
+                      ${type}
+                    </mwc-list-item>
+                  `
+                )}
+              </mwc-menu>
 
-        <mwc-button
-          label="Visible Network Requests"
-          style="--mdc-theme-primary: rgba(0,0,0,0.7);"
-          icon="arrow_drop_down"
-          id="network-requests-button"
-          trailingIcon
-          @click=${() => this._networkRequestsMenu.show()}
-        ></mwc-button>
-        <mwc-menu
-          corner="BOTTOM_END"
-          multi
-          activatable
-          id="network-requests-menu"
-          .anchor=${this._networkRequestsButton}
-          @selected=${(e) =>
-            (this.networkRequestsToDisplay = [...e.detail.index].map(
-              (index) => networkRequestNames[index]
-            ))}
-        >
-          ${networkRequestNames.map(
-            (type) => html`
-              <mwc-list-item
-                graphic="icon"
-                .selected=${this.networkRequestsToDisplay.includes(
-                  type as NetworkRequestType
-                )}
-                .activated=${this.networkRequestsToDisplay.includes(
-                  type as NetworkRequestType
-                )}
+              <mwc-button
+                label="Visible Network Requests"
+                style="--mdc-theme-primary: rgba(0,0,0,0.7);"
+                icon="arrow_drop_down"
+                id="network-requests-button"
+                trailingIcon
+                @click=${() => this._networkRequestsMenu.show()}
+              ></mwc-button>
+              <mwc-menu
+                corner="BOTTOM_END"
+                multi
+                activatable
+                id="network-requests-menu"
+                .anchor=${this._networkRequestsButton}
+                @selected=${(e) =>
+                  (this.networkRequestsToDisplay = [...e.detail.index].map(
+                    (index) => networkRequestNames[index]
+                  ))}
               >
-                ${this.networkRequestsToDisplay.includes(
-                  type as NetworkRequestType
-                )
-                  ? html` <mwc-icon slot="graphic">check</mwc-icon> `
-                  : html``}
-                ${type}
-              </mwc-list-item>
-            `
-          )}
-        </mwc-menu>
+                ${networkRequestNames.map(
+                  (type) => html`
+                    <mwc-list-item
+                      graphic="icon"
+                      .selected=${this.networkRequestsToDisplay.includes(
+                        type as NetworkRequestType
+                      )}
+                      .activated=${this.networkRequestsToDisplay.includes(
+                        type as NetworkRequestType
+                      )}
+                    >
+                      ${this.networkRequestsToDisplay.includes(
+                        type as NetworkRequestType
+                      )
+                        ? html` <mwc-icon slot="graphic">check</mwc-icon> `
+                        : html``}
+                      ${type}
+                    </mwc-list-item>
+                  `
+                )}
+              </mwc-menu>
+            `}
 
         <span style="flex: 1;"></span>
 
