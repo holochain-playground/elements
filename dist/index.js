@@ -51955,7 +51955,6 @@ node {
   height: 30px;
   font-size: 10px;
   label: data(label);
-  background-color: grey;
   text-halign: right;
   text-valign: center;
   text-margin-x: 4px;
