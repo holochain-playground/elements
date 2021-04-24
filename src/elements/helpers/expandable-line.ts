@@ -1,6 +1,6 @@
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 import { html, LitElement } from 'lit';
-import { styleMap } from 'lit-html/directives/style-map';
+import { styleMap } from 'lit/directives/style-map.js';
 import { property } from 'lit/decorators.js';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { sharedStyles } from '../utils/shared-styles';
