@@ -1,4 +1,6 @@
-import { LitElement, query, html, property, css } from 'lit-element';
+import { html, css } from 'lit';
+import { state, property, query } from 'lit/decorators.js';
+
 import cytoscape from 'cytoscape';
 
 import { Checkbox } from 'scoped-material-components/mwc-checkbox';
@@ -9,7 +11,6 @@ import { Card } from 'scoped-material-components/mwc-card';
 import { allEntries } from './processors';
 import { selectAllCells, selectCell } from '../utils/selectors';
 import { sharedStyles } from '../utils/shared-styles';
-import { PlaygroundElement } from '../../context/playground-element';
 import { isEqual } from 'lodash-es';
 import { HelpButton } from '../helpers/help-button';
 import { Menu } from 'scoped-material-components/mwc-menu';
@@ -18,6 +19,9 @@ import { Icon } from 'scoped-material-components/mwc-icon';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import cola from 'cytoscape-cola';
 import { graphStyles } from './graph';
+import { PlaygroundElement } from '../../base/playground-element';
+import { CellObserver } from '../../base/cell-observer';
+import { CellsController } from '../../base/cells-controller';
 
 cytoscape.use(cola);
 
@@ -43,7 +47,7 @@ const layoutConfig = {
 /**
  * @element entry-graph
  */
-export class EntryGraph extends PlaygroundElement {
+export class EntryGraph extends PlaygroundElement implements CellObserver {
   @property({ type: Boolean, attribute: 'hide-filter' })
   hideFilter: boolean = false;
 
@@ -65,13 +69,19 @@ export class EntryGraph extends PlaygroundElement {
   private layout;
   private ready = false;
 
-  @property({ type: Array })
+  @state()
   private _entryTypes = [];
 
   @query('#visible-entries-button')
   private _visibleEntriesButton: Button;
   @query('#visible-entries-menu')
   private _visibleEntriesMenu: Menu;
+  
+  _cellsController = new CellsController(this);
+
+  observedCells() {
+    return selectAllCells(this.activeDna, this.conductors);
+  }
 
   firstUpdated() {
     window.addEventListener('scroll', () => {
@@ -107,9 +117,6 @@ export class EntryGraph extends PlaygroundElement {
     this.updatedGraph();
   }
 
-  observedCells() {
-    return selectAllCells(this.activeDna, this.conductors);
-  }
 
   updatedGraph() {
     if (this.entryGraph.getBoundingClientRect().width === 0 || !this.ready) {
@@ -268,17 +275,15 @@ export class EntryGraph extends PlaygroundElement {
     `;
   }
 
-  static get scopedElements() {
-    return {
-      'mwc-checkbox': Checkbox,
-      'mwc-formfield': Formfield,
-      'mwc-icon-button': IconButton,
-      'mwc-card': Card,
-      'mwc-menu': Menu,
-      'mwc-icon': Icon,
-      'mwc-list-item': ListItem,
-      'mwc-button': Button,
-      'holochain-playground-help-button': HelpButton,
-    };
-  }
+  static elementDefinitions = {
+    'mwc-checkbox': Checkbox,
+    'mwc-formfield': Formfield,
+    'mwc-icon-button': IconButton,
+    'mwc-card': Card,
+    'mwc-menu': Menu,
+    'mwc-icon': Icon,
+    'mwc-list-item': ListItem,
+    'mwc-button': Button,
+    'holochain-playground-help-button': HelpButton,
+  };
 }

@@ -1,12 +1,12 @@
-import { html, css } from 'lit-element';
+import { html, css } from 'lit';
 import { JsonViewer } from '@power-elements/json-viewer';
 
 import { sharedStyles } from '../utils/shared-styles';
 import { selectAllCells, selectFromCAS } from '../utils/selectors';
-import { PlaygroundElement } from '../../context/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
 import { shortenStrRec } from '../utils/hash';
 import { CopyableHash } from '../helpers/copyable-hash';
+import { PlaygroundElement } from '../../base/playground-element';
 
 /**
  * @element entry-contents
@@ -71,11 +71,9 @@ export class EntryContents extends PlaygroundElement {
     `;
   }
 
-  static get scopedElements() {
-    return {
-      'json-viewer': JsonViewer,
-      'mwc-card': Card,
-      'copyable-hash': CopyableHash,
-    };
-  }
+  static elementDefinitions = {
+    'json-viewer': JsonViewer,
+    'mwc-card': Card,
+    'copyable-hash': CopyableHash,
+  };
 }

@@ -8,6 +8,7 @@
         font-family: Arial, Helvetica, sans-serif;
       }
     </style>
+
   </head>
   <body>
     <holochain-playground-container id="container">
@@ -44,7 +45,8 @@
     </holochain-playground-container>
 
     <script type="module">
-      import { html, render } from 'lit-html';
+      import '@webcomponents/scoped-custom-element-registry';
+      import { html, render } from 'lit';
       import {
         HolochainPlaygroundContainer,
         CallZomeFns,

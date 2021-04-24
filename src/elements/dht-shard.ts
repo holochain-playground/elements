@@ -1,10 +1,12 @@
-import { LitElement, property, PropertyValues, html, query } from 'lit-element';
+import { html } from 'lit';
+import { property } from 'lit/decorators.js';
+
 import { sharedStyles } from './utils/shared-styles';
 import { selectAllCells, selectCell } from './utils/selectors';
 import { getDhtShard } from '@holochain-playground/core';
 
 import { JsonViewer } from '@power-elements/json-viewer';
-import { PlaygroundElement } from '../context/playground-element';
+import { PlaygroundElement } from '../base/playground-element';
 
 export class DhtShard extends PlaygroundElement {
   @property({ type: Object })
@@ -34,7 +36,9 @@ export class DhtShard extends PlaygroundElement {
               <json-viewer
                 id="dht-shard"
                 style="margin-top: 16px;"
-                .object=${JSON.stringify(getDhtShard(this.activeCell.getState()))}
+                .object=${JSON.stringify(
+                  getDhtShard(this.activeCell.getState())
+                )}
               >
               </json-viewer>
             `
@@ -47,9 +51,7 @@ export class DhtShard extends PlaygroundElement {
     `;
   }
 
-  static get scopedElements() {
-    return {
-      'json-viewer': JsonViewer,
-    };
-  }
+  static elementDefinitions = {
+    'json-viewer': JsonViewer,
+  };
 }

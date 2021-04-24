@@ -1,5 +1,5 @@
-import { LitElement, html, property, css } from 'lit-element';
-import { PlaygroundElement } from '../../context/playground-element';
+import { html, css } from 'lit';
+import { PlaygroundElement } from '../../base/playground-element';
 import { selectAllDNAs } from '../utils/selectors';
 import { Select } from 'scoped-material-components/mwc-select';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
@@ -20,7 +20,9 @@ export class SelectActiveDna extends PlaygroundElement {
     return html`
       <mwc-card class="block-card">
         <div class="column" style="margin: 16px;">
-          <span class="block-title" style="margin-bottom: 16px;">Select Active Dna</span>
+          <span class="block-title" style="margin-bottom: 16px;"
+            >Select Active Dna</span
+          >
           <mwc-select
             outlined
             fullwidth
@@ -54,11 +56,9 @@ export class SelectActiveDna extends PlaygroundElement {
     ];
   }
 
-  static get scopedElements() {
-    return {
-      'mwc-list-item': ListItem,
-      'mwc-select': Select,
-      'mwc-card': Card,
-    };
-  }
+  static elementDefinitions = {
+    'mwc-list-item': ListItem,
+    'mwc-select': Select,
+    'mwc-card': Card,
+  };
 }

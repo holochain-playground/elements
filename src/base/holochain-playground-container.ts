@@ -3,15 +3,8 @@ import { CircularProgress } from 'scoped-material-components/mwc-circular-progre
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { ProviderMixin, ConsumerMixin } from 'lit-element-context';
 
-import {
-  LitElement,
-  html,
-  css,
-  query,
-  property,
-  Constructor,
-} from 'lit-element';
-import { ScopedElementsMixin as Scoped } from '@open-wc/scoped-elements';
+import { LitElement, html, css } from 'lit';
+import { property, query } from 'lit/decorators.js';
 import {
   Conductor,
   createConductors,
@@ -19,11 +12,11 @@ import {
   SimulatedDnaTemplate,
 } from '@holochain-playground/core';
 import { AgentPubKey, Dictionary, Hash } from '@holochain-open-dev/core-types';
-import { ZomeFunctionResult } from '../elements/zome-fns-results/types';
+import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 
-export class HolochainPlaygroundContainer extends (ProviderMixin(
-  Scoped(LitElement)
-) as Constructor<LitElement>) {
+export class HolochainPlaygroundContainer extends ScopedRegistryHost(
+  ProviderMixin(LitElement) as new () => LitElement
+) {
   @property({ type: Number })
   numberOfSimulatedConductors: number = 10;
 
@@ -137,11 +130,9 @@ export class HolochainPlaygroundContainer extends (ProviderMixin(
     `;
   }
 
-  static get scopedElements() {
-    return {
-      'mwc-circular-progress': CircularProgress,
-      'mwc-snackbar': Snackbar,
-      'mwc-icon-button': IconButton,
-    };
-  }
+  static elementDefinitions = {
+    'mwc-circular-progress': CircularProgress,
+    'mwc-snackbar': Snackbar,
+    'mwc-icon-button': IconButton,
+  };
 }

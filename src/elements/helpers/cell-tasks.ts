@@ -7,18 +7,21 @@ import {
   workflowPriority,
   CallZomeFnWorkflow,
 } from '@holochain-playground/core';
-import { css, property, PropertyValues } from 'lit-element';
-import { html } from 'lit-html';
+import { css, html } from 'lit';
+import { property, state } from 'lit/decorators.js';
+
 import { Subject } from 'rxjs';
 import { Card } from 'scoped-material-components/mwc-card';
 import { Icon } from 'scoped-material-components/mwc-icon';
 import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
 import { List } from 'scoped-material-components/mwc-list';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
-import { PlaygroundElement } from '../../context/playground-element';
+import { CellObserver } from '../../base/cell-observer';
+import { CellsController } from '../../base/cells-controller';
+import { PlaygroundElement } from '../../base/playground-element';
 import { sharedStyles } from '../utils/shared-styles';
 
-export class CellTasks extends PlaygroundElement {
+export class CellTasks extends PlaygroundElement implements CellObserver {
   /** Public properties */
 
   @property({ type: Object })
@@ -52,34 +55,65 @@ export class CellTasks extends PlaygroundElement {
 
   /** Private properties */
 
-  @property({ type: Array })
+  @state()
   private _callZomeTasks: Array<CallZomeFnWorkflow> = [];
-  @property({ type: Object })
+  @state()
   private _runningTasks: Dictionary<number> = {};
 
-  @property({ type: Object })
+  @state()
   private _successes: Array<{ task: CallZomeFnWorkflow; payload: any }> = [];
 
-  @property({ type: Object })
+  @state()
   private _errors: Array<{ task: Workflow<any, any>; error: any }> = [];
+
+  private _cellsController = new CellsController(this);
 
   observedCells() {
     return [this.cell];
   }
 
-  onNewObservedCell(cell: Cell) {
-    return [
-      cell.workflowExecutor.before(async (task) => {
-        if (!this.workflowsToDisplay.includes(task.type as WorkflowType))
-          return;
+  async beforeWorkflow(cell: Cell, task: Workflow<any, any>) {
+    if (!this.workflowsToDisplay.includes(task.type as WorkflowType)) return;
 
-        if (task.type === WorkflowType.CALL_ZOME) {
-          this._callZomeTasks.push(task);
-        } else {
-          if (!this._runningTasks[task.type]) this._runningTasks[task.type] = 0;
+    if (task.type === WorkflowType.CALL_ZOME) {
+      this._callZomeTasks.push(task);
+    } else {
+      if (!this._runningTasks[task.type]) this._runningTasks[task.type] = 0;
 
-          this._runningTasks[task.type] += 1;
-        }
+      this._runningTasks[task.type] += 1;
+    }
+    this.requestUpdate();
+
+    if (this.stepByStep) {
+      this.dispatchEvent(
+        new CustomEvent('execution-paused', {
+          detail: { paused: true },
+          composed: true,
+          bubbles: true,
+        })
+      );
+      await new Promise((resolve) =>
+        this._resumeObservable.subscribe(() => resolve(null))
+      );
+      this.dispatchEvent(
+        new CustomEvent('execution-paused', {
+          detail: { paused: false },
+          composed: true,
+          bubbles: true,
+        })
+      );
+    } else {
+      await sleep(this.workflowDelay);
+    }
+  }
+
+  async workflowSuccess(cell: Cell, task: Workflow<any, any>, result: any) {
+    if (task.type === WorkflowType.CALL_ZOME) {
+      this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
+
+      if (this.showZomeFnSuccess) {
+        const successInfo = { task, payload: result };
+        this._successes.push(successInfo);
         this.requestUpdate();
 
         if (this.stepByStep) {
@@ -103,93 +137,61 @@ export class CellTasks extends PlaygroundElement {
         } else {
           await sleep(this.workflowDelay);
         }
-      }),
-      cell.workflowExecutor.success(async (task, payload) => {
-        if (task.type === WorkflowType.CALL_ZOME) {
-          this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
+        const index = this._successes.findIndex((e) => e === successInfo);
+        this._successes.splice(index, 1);
+      }
+    } else if (this._runningTasks[task.type]) {
+      this._runningTasks[task.type] -= 1;
+      if (this._runningTasks[task.type] === 0)
+        delete this._runningTasks[task.type];
+    }
+    this.requestUpdate();
+  }
 
-          if (this.showZomeFnSuccess) {
-            const successInfo = { task, payload };
-            this._successes.push(successInfo);
-            this.requestUpdate();
+  async workflowError(cell: Cell, task: Workflow<any, any>, error: any) {
+    if (task.type === WorkflowType.CALL_ZOME) {
+      this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
+    } else if (this._runningTasks[task.type]) {
+      this._runningTasks[task.type] -= 1;
+      if (this._runningTasks[task.type] === 0)
+        delete this._runningTasks[task.type];
+    }
 
-            if (this.stepByStep) {
-              this.dispatchEvent(
-                new CustomEvent('execution-paused', {
-                  detail: { paused: true },
-                  composed: true,
-                  bubbles: true,
-                })
-              );
-              await new Promise((resolve) =>
-                this._resumeObservable.subscribe(() => resolve(null))
-              );
-              this.dispatchEvent(
-                new CustomEvent('execution-paused', {
-                  detail: { paused: false },
-                  composed: true,
-                  bubbles: true,
-                })
-              );
-            } else {
-              await sleep(this.workflowDelay);
-            }
-            const index = this._successes.findIndex((e) => e === successInfo);
-            this._successes.splice(index, 1);
-          }
-        } else if (this._runningTasks[task.type]) {
-          this._runningTasks[task.type] -= 1;
-          if (this._runningTasks[task.type] === 0)
-            delete this._runningTasks[task.type];
-        }
-        this.requestUpdate();
-      }),
-      cell.workflowExecutor.error(async (task, error) => {
-        if (task.type === WorkflowType.CALL_ZOME) {
-          this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
-        } else if (this._runningTasks[task.type]) {
-          this._runningTasks[task.type] -= 1;
-          if (this._runningTasks[task.type] === 0)
-            delete this._runningTasks[task.type];
-        }
+    if (!this.hideErrors) {
+      const errorInfo = {
+        task,
+        error,
+      };
+      this._errors.push(errorInfo);
 
-        if (!this.hideErrors) {
-          const errorInfo = {
-            task,
-            error,
-          };
-          this._errors.push(errorInfo);
+      this.requestUpdate();
 
-          this.requestUpdate();
+      if (this.stepByStep) {
+        this.dispatchEvent(
+          new CustomEvent('execution-paused', {
+            detail: { paused: true },
+            composed: true,
+            bubbles: true,
+          })
+        );
+        await new Promise((resolve) =>
+          this._resumeObservable.subscribe(() => resolve(null))
+        );
+        this.dispatchEvent(
+          new CustomEvent('execution-paused', {
+            detail: { paused: false },
+            composed: true,
+            bubbles: true,
+          })
+        );
+      } else {
+        await sleep(this.workflowDelay);
+      }
 
-          if (this.stepByStep) {
-            this.dispatchEvent(
-              new CustomEvent('execution-paused', {
-                detail: { paused: true },
-                composed: true,
-                bubbles: true,
-              })
-            );
-            await new Promise((resolve) =>
-              this._resumeObservable.subscribe(() => resolve(null))
-            );
-            this.dispatchEvent(
-              new CustomEvent('execution-paused', {
-                detail: { paused: false },
-                composed: true,
-                bubbles: true,
-              })
-            );
-          } else {
-            await sleep(this.workflowDelay);
-          }
-
-          const index = this._errors.findIndex((e) => e === errorInfo);
-          this._errors.splice(index, 1);
-        }
-        this.requestUpdate();
-      }),
-    ];
+      const index = this._errors.findIndex((e) => e === errorInfo);
+      this._errors.splice(index, 1);
+    }
+    this.requestUpdate();
   }
 
   sortTasks(tasks: Array<[string, number]>) {
@@ -302,13 +304,11 @@ export class CellTasks extends PlaygroundElement {
     ];
   }
 
-  static get scopedElements() {
-    return {
-      'mwc-card': Card,
-      'mwc-list': List,
-      'mwc-icon': Icon,
-      'mwc-list-item': ListItem,
-      'mwc-linear-progress': LinearProgress,
-    };
-  }
+  static elementDefinitions = {
+    'mwc-card': Card,
+    'mwc-list': List,
+    'mwc-icon': Icon,
+    'mwc-list-item': ListItem,
+    'mwc-linear-progress': LinearProgress,
+  };
 }

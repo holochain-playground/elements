@@ -1,6 +1,7 @@
-import { LitElement, html, property, css } from 'lit-element';
-import { styleMap } from 'lit-html/directives/style-map';
-import { PlaygroundElement } from '../../context/playground-element';
+import { html, css } from 'lit';
+import { property } from 'lit/decorators.js';
+import { styleMap } from 'lit/directives/style-map.js';
+
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { Card } from 'scoped-material-components/mwc-card';
 import { sharedStyles } from '../utils/shared-styles';
@@ -10,6 +11,7 @@ import { selectAllCells, selectCell } from '../utils/selectors';
 import {
   CallZomeFnWorkflow,
   Cell,
+  Workflow,
   WorkflowType,
 } from '@holochain-playground/core';
 import { AgentPubKey, Dictionary } from '@holochain-open-dev/core-types';
@@ -18,20 +20,24 @@ import { ExpandableLine } from '../helpers/expandable-line';
 import { JsonViewer } from '@power-elements/json-viewer';
 import { Icon } from 'scoped-material-components/mwc-icon';
 import { CopyableHash } from '../helpers/copyable-hash';
+import { CellObserver } from '../../base/cell-observer';
+import { PlaygroundElement } from '../../base/playground-element';
+import { CellsController } from '../../base/cells-controller';
 
-export class ZomeFnsResults extends PlaygroundElement {
+export class ZomeFnsResults extends PlaygroundElement implements CellObserver {
   @property({ type: Boolean, attribute: 'hide-agent-pub-key' })
   hideAgentPubKey = false;
-
-  @property({ type: Array })
-  // Results segmented by dnaHash/agentPubKey/timestamp
-  _results: Dictionary<Dictionary<Dictionary<ZomeFunctionResult>>> = {};
 
   @property({ type: String, attribute: 'agent-name' })
   agentName: String | undefined = undefined;
 
   @property({ type: String, attribute: 'for-agent' })
   forAgent: AgentPubKey | undefined = undefined;
+
+  // Results segmented by dnaHash/agentPubKey/timestamp
+  private _results: Dictionary<Dictionary<Dictionary<ZomeFunctionResult>>> = {};
+
+  _cellsController = new CellsController(this);
 
   get activeCell(): Cell {
     return selectCell(
@@ -47,51 +53,57 @@ export class ZomeFnsResults extends PlaygroundElement {
     return selectAllCells(this.activeDna, this.conductors);
   }
 
-  onNewObservedCell(cell: Cell) {
-    return [
-      cell.workflowExecutor.before(async (workflowInfo) => {
-        if (workflowInfo.type === WorkflowType.CALL_ZOME) {
-          const timestamp = Date.now().toString();
-          const callZomeWorkflow = workflowInfo as CallZomeFnWorkflow;
+  async beforeWorkflow(cell: Cell, workflowInfo: Workflow<any, any>) {
+    if (workflowInfo.type === WorkflowType.CALL_ZOME) {
+      const timestamp = Date.now().toString();
+      const callZomeWorkflow = workflowInfo as CallZomeFnWorkflow;
 
-          if (!this._results[cell.dnaHash]) this._results[cell.dnaHash] = {};
-          if (!this._results[cell.dnaHash][cell.agentPubKey])
-            this._results[cell.dnaHash][cell.agentPubKey] = {};
+      if (!this._results[cell.dnaHash]) this._results[cell.dnaHash] = {};
+      if (!this._results[cell.dnaHash][cell.agentPubKey])
+        this._results[cell.dnaHash][cell.agentPubKey] = {};
 
-          this._results[cell.dnaHash][cell.agentPubKey][timestamp] = {
-            cellId: cell.cellId,
-            fnName: callZomeWorkflow.details.fnName,
-            payload: callZomeWorkflow.details.payload,
-            zome: callZomeWorkflow.details.zome,
-            result: undefined,
-          };
-          (workflowInfo as any).timestamp = timestamp;
-          this.requestUpdate();
-        }
-      }),
-      cell.workflowExecutor.success(async (workflowInfo, result) => {
-        if (
-          workflowInfo.type === WorkflowType.CALL_ZOME &&
-          (workflowInfo as any).timestamp
-        ) {
-          this._results[cell.dnaHash][cell.agentPubKey][
-            (workflowInfo as any).timestamp
-          ].result = { success: true, payload: result.result };
-          this.requestUpdate();
-        }
-      }),
-      cell.workflowExecutor.error(async (workflowInfo, error) => {
-        if (
-          workflowInfo.type === WorkflowType.CALL_ZOME &&
-          (workflowInfo as any).timestamp
-        ) {
-          this._results[cell.dnaHash][cell.agentPubKey][
-            (workflowInfo as any).timestamp
-          ].result = { success: false, payload: error.message };
-          this.requestUpdate();
-        }
-      }),
-    ];
+      this._results[cell.dnaHash][cell.agentPubKey][timestamp] = {
+        cellId: cell.cellId,
+        fnName: callZomeWorkflow.details.fnName,
+        payload: callZomeWorkflow.details.payload,
+        zome: callZomeWorkflow.details.zome,
+        result: undefined,
+      };
+      (workflowInfo as any).timestamp = timestamp;
+      this.requestUpdate();
+    }
+  }
+
+  async workflowSuccess(
+    cell: Cell,
+    workflowInfo: Workflow<any, any>,
+    result: any
+  ) {
+    if (
+      workflowInfo.type === WorkflowType.CALL_ZOME &&
+      (workflowInfo as any).timestamp
+    ) {
+      this._results[cell.dnaHash][cell.agentPubKey][
+        (workflowInfo as any).timestamp
+      ].result = { success: true, payload: result.result };
+      this.requestUpdate();
+    }
+  }
+
+  async workflowError(
+    cell: Cell,
+    workflowInfo: Workflow<any, any>,
+    error: any
+  ) {
+    if (
+      workflowInfo.type === WorkflowType.CALL_ZOME &&
+      (workflowInfo as any).timestamp
+    ) {
+      this._results[cell.dnaHash][cell.agentPubKey][
+        (workflowInfo as any).timestamp
+      ].result = { success: false, payload: error.message };
+      this.requestUpdate();
+    }
   }
 
   getActiveResults(): Array<[string, ZomeFunctionResult]> {
@@ -246,16 +258,14 @@ export class ZomeFnsResults extends PlaygroundElement {
     ];
   }
 
-  static get scopedElements() {
-    return {
-      'mwc-list-item': ListItem,
-      'mwc-icon': Icon,
-      'mwc-circular-progress': CircularProgress,
-      'mwc-button': Button,
-      'mwc-card': Card,
-      'json-viewer': JsonViewer,
-      'expandable-line': ExpandableLine,
-      'copyable-hash': CopyableHash,
-    };
-  }
+  static elementDefinitions = {
+    'mwc-list-item': ListItem,
+    'mwc-icon': Icon,
+    'mwc-circular-progress': CircularProgress,
+    'mwc-button': Button,
+    'mwc-card': Card,
+    'json-viewer': JsonViewer,
+    'expandable-line': ExpandableLine,
+    'copyable-hash': CopyableHash,
+  };
 }

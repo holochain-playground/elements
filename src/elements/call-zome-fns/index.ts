@@ -1,6 +1,7 @@
-import { html, css, property } from 'lit-element';
+import { html, css } from 'lit';
+import { state, property } from 'lit/decorators.js';
 
-import { CellId, Dictionary } from '@holochain-open-dev/core-types';
+import { Dictionary } from '@holochain-open-dev/core-types';
 import {
   SimulatedZome,
   SimulatedZomeFunction,
@@ -8,42 +9,41 @@ import {
 } from '@holochain-playground/core';
 import { sharedStyles } from '../utils/shared-styles';
 import { TextField } from 'scoped-material-components/mwc-textfield';
-import { PlaygroundElement } from '../../context/playground-element';
 import { Button } from 'scoped-material-components/mwc-button';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 import { Icon } from 'scoped-material-components/mwc-icon';
-import { styleMap } from 'lit-html/directives/style-map';
 import { selectCell } from '../utils/selectors';
 import { Tab } from 'scoped-material-components/mwc-tab';
 import { TabBar } from 'scoped-material-components/mwc-tab-bar';
 import { Card } from 'scoped-material-components/mwc-card';
-import { JsonViewer } from '@power-elements/json-viewer';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { List } from 'scoped-material-components/mwc-list';
 import { Drawer } from 'scoped-material-components/mwc-drawer';
-import { ExpandableLine } from '../helpers/expandable-line';
-import { ZomeFunctionResult } from '../zome-fns-results/types';
 import { CopyableHash } from '../helpers/copyable-hash';
+import { PlaygroundElement } from '../../base/playground-element';
+import { CellsController } from '../../base/cells-controller';
+import { CellObserver } from '../../base/cell-observer';
 
 /**
  * @element call-zome-fns
  */
-export class CallZomeFns extends PlaygroundElement {
+export class CallZomeFns extends PlaygroundElement implements CellObserver {
   @property({ type: Boolean, attribute: 'hide-zome-selector' })
   hideZomeSelector = false;
-
   @property({ type: Boolean, attribute: 'hide-agent-pub-key' })
   hideAgentPubKey = false;
   @property({ type: String })
   selectedZomeFnName: string | undefined = undefined;
 
-  @property({ type: Number })
-  _selectedZomeIndex: number = 0;
+  @state()
+  private _selectedZomeIndex: number = 0;
 
   // Arguments segmented by dnaHash/agentPubKey/zome/fn_name/arg_name
   _arguments: Dictionary<
     Dictionary<Dictionary<Dictionary<Dictionary<any>>>>
   > = {};
+
+  _cellsController = new CellsController(this);
 
   get activeCell(): Cell {
     return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors);
@@ -273,19 +273,17 @@ export class CallZomeFns extends PlaygroundElement {
     ];
   }
 
-  static get scopedElements() {
-    return {
-      'mwc-button': Button,
-      'mwc-textfield': TextField,
-      'mwc-circular-progress': CircularProgress,
-      'mwc-icon': Icon,
-      'mwc-tab': Tab,
-      'mwc-list': List,
-      'mwc-drawer': Drawer,
-      'mwc-list-item': ListItem,
-      'mwc-tab-bar': TabBar,
-      'mwc-card': Card,
-      'copyable-hash': CopyableHash,
-    };
-  }
+  static elementDefinitions = {
+    'mwc-button': Button,
+    'mwc-textfield': TextField,
+    'mwc-circular-progress': CircularProgress,
+    'mwc-icon': Icon,
+    'mwc-tab': Tab,
+    'mwc-list': List,
+    'mwc-drawer': Drawer,
+    'mwc-list-item': ListItem,
+    'mwc-tab-bar': TabBar,
+    'mwc-card': Card,
+    'copyable-hash': CopyableHash,
+  };
 }

@@ -1,4 +1,6 @@
-import { LitElement, html, query, property } from 'lit-element';
+import { html } from 'lit';
+import { query, state } from 'lit/decorators.js';
+
 import {
   selectGlobalDHTOpsCount,
   selectUniqueDHTOpsCount,
@@ -13,12 +15,12 @@ import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { TextField } from 'scoped-material-components/mwc-textfield';
 import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
-import { PlaygroundElement } from '../context/playground-element';
 import {
   createConductors,
   demoDnaTemplate,
   Conductor,
 } from '@holochain-playground/core';
+import { PlaygroundElement } from '../base/playground-element';
 
 export class DhtStats extends PlaygroundElement {
   @query('#stats-help')
@@ -29,7 +31,7 @@ export class DhtStats extends PlaygroundElement {
   private rFactor: TextField;
 
   private timeout;
-  @property({ type: Boolean })
+  @state()
   private processing: boolean = false;
 
   static get styles() {
@@ -216,12 +218,10 @@ TODO: handle gossip at the core layer
     `;
   }
 
-  static get scopedElements() {
-    return {
-      'mwc-linear-progress': LinearProgress,
-      'mwc-textfield': TextField,
-      'mwc-icon-button': IconButton,
-      'mwc-dialog': Dialog,
-    };
-  }
+  static elementDefinitions = {
+    'mwc-linear-progress': LinearProgress,
+    'mwc-textfield': TextField,
+    'mwc-icon-button': IconButton,
+    'mwc-dialog': Dialog,
+  };
 }

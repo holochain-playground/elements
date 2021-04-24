@@ -1,9 +1,9 @@
-import { property, query } from 'lit-element';
-import { html } from 'lit-html';
+import { property, query } from 'lit/decorators.js';
+import { html } from 'lit';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { PlaygroundElement } from '../../context/playground-element';
+import { PlaygroundElement } from '../../base/playground-element';
 
 export class HelpButton extends PlaygroundElement {
   @property({ type: String })
@@ -33,11 +33,9 @@ export class HelpButton extends PlaygroundElement {
     `;
   }
 
-  static get scopedElements() {
-    return {
-      'mwc-icon-button': IconButton,
-      'mwc-button': Button,
-      'mwc-dialog': Dialog,
-    };
-  }
+  static elementDefinitions = {
+    'mwc-icon-button': IconButton,
+    'mwc-button': Button,
+    'mwc-dialog': Dialog,
+  };
 }

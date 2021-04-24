@@ -31,6 +31,8 @@ export default {
     ),
     /scoped-material-components/,
     /lit-html/,
+    "lit/directives/style-map.js",
+    "lit/directives/class-map.js",
     'lodash-es',
   ],
   plugins,
