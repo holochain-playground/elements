@@ -33,7 +33,6 @@ import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { uniq } from 'lodash-es';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CellObserver } from '../../base/cell-observer';
-import { PlaygroundBlock } from '../helpers/playground-block';
 
 const MIN_ANIMATION_DELAY = 1000;
 const MAX_ANIMATION_DELAY = 7000;
@@ -319,11 +318,7 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
 
   renderHelp() {
     return html`
-      <holochain-playground-help-button
-        slot="actionItem"
-        heading="DHT Cells"
-        class="block-help"
-      >
+      <holochain-playground-help-button heading="DHT Cells" class="block-help">
         <span>
           This is a visual interactive representation of a holochain
           <a
@@ -388,6 +383,33 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
       >
       </holochain-playground-cell-tasks>`;
     })}`;
+  }
+
+  renderCopyButton() {
+    //if (!this.activeAgentPubKey)
+    return html``;
+
+    const el = this._cy.getElementById(this.activeAgentPubKey);
+    const pos = el.renderedPosition();
+    return html`<mwc-icon-button
+      style=${styleMap({
+        position: 'absolute',
+        top: `${pos.y - 2}px`,
+        left: `${pos.x + 63}px`,
+        'z-index': '10',
+      })}
+      icon="content_copy"
+      @click=${() => {
+        navigator.clipboard.writeText(this.activeAgentPubKey);
+        this.dispatchEvent(
+          new CustomEvent('show-message', {
+            detail: { message: 'AgentPubKey copied to the clipboard' },
+            bubbles: true,
+            composed: true,
+          })
+        );
+      }}
+    ></mwc-icon-button>`;
   }
 
   renderBottomToolbar() {
@@ -488,9 +510,11 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
 
   render() {
     return html`
-      <playground-block title="DHT Cells">
+      <mwc-card class="block-card" style="position: relative;">
         ${this.renderHelp()} ${this.renderTasksTooltips()}
+        ${this.renderCopyButton()}
         <div class="column fill">
+          <span class="block-title" style="margin: 16px;">DHT Cells</span>
           <div
             id="graph"
             class="fill ${classMap({
@@ -499,7 +523,7 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
           ></div>
           ${this.renderBottomToolbar()}
         </div>
-      </playground-block>
+      </mwc-card>
     `;
   }
 
@@ -529,7 +553,6 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
     'mwc-switch': Switch,
     'mwc-formfield': Formfield,
     'mwc-icon-button': IconButton,
-    'playground-block': PlaygroundBlock,
     'holochain-playground-help-button': HelpButton,
     'holochain-playground-cell-tasks': CellTasks,
   };
