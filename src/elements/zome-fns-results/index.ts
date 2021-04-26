@@ -28,9 +28,6 @@ export class ZomeFnsResults extends PlaygroundElement implements CellObserver {
   @property({ type: Boolean, attribute: 'hide-agent-pub-key' })
   hideAgentPubKey = false;
 
-  @property({ type: String, attribute: 'agent-name' })
-  agentName: String | undefined = undefined;
-
   @property({ type: String, attribute: 'for-agent' })
   forAgent: AgentPubKey | undefined = undefined;
 
@@ -139,7 +136,6 @@ export class ZomeFnsResults extends PlaygroundElement implements CellObserver {
   }
 
   renderAgent() {
-    if (this.agentName) return html`, for ${this.agentName}`;
     if (!this.hideAgentPubKey && this.activeCell)
       return html`, for agent
         <copyable-hash

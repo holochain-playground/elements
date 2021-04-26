@@ -35,7 +35,7 @@
     "lit-element-context": "^0.1.1",
     "lodash-es": "^4.17.21",
     "rxjs": "^6.6.3",
-    "scoped-material-components": "^0.1.5"
+    "scoped-material-components": "^0.1.6"
   },
   "devDependencies": {
     "@babel/core": "^7.13.8",
