@@ -1,4 +1,3 @@
-import '@webcomponents/scoped-custom-element-registry';
 import { Snackbar } from 'scoped-material-components/mwc-snackbar';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
