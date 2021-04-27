@@ -8,7 +8,6 @@
         font-family: Arial, Helvetica, sans-serif;
       }
     </style>
-
   </head>
   <body>
     <holochain-playground-container id="container">
@@ -20,7 +19,7 @@
           margin-bottom: 20px;
         "
       >
-        <entry-graph style="height: 600px; width: 100%"></entry-graph>
+        <conductor-admin style="height: 600px; width: 100%"></conductor-admin>
         <dht-cells
           id="cells"
           style="height: 600px; width: 800px"
@@ -52,6 +51,7 @@
         CallZomeFns,
         SourceChain,
         SelectActiveDna,
+        ConductorAdmin,
         DhtCells,
         ZomeFnsResults,
         EntryGraph,
@@ -59,10 +59,9 @@
         RunSteps,
       } from '../dist';
       import {
-        GetStrategy, 
+        GetStrategy,
         WorkflowType,
         NetworkRequestType,
-        demoDnaTemplate,
       } from '@holochain-playground/core';
 
       customElements.define(
@@ -77,6 +76,7 @@
       customElements.define('entry-graph', EntryGraph);
       customElements.define('zome-fns-results', ZomeFnsResults);
       customElements.define('entry-contents', EntryContents);
+      customElements.define('conductor-admin', ConductorAdmin);
 
       const container = document.getElementById('container');
       container.numberOfSimulatedConductors = 6;

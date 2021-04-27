@@ -1,15 +1,15 @@
 import { Snackbar } from 'scoped-material-components/mwc-snackbar';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { ProviderMixin, ConsumerMixin } from 'lit-element-context';
+import { ProviderMixin } from 'lit-element-context';
 
 import { LitElement, html, css } from 'lit';
 import { property, query } from 'lit/decorators.js';
 import {
   Conductor,
   createConductors,
-  demoDnaTemplate,
-  SimulatedDnaTemplate,
+  demoHapp,
+  SimulatedHappBundle,
 } from '@holochain-playground/core';
 import { AgentPubKey, Dictionary, Hash } from '@holochain-open-dev/core-types';
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
@@ -21,7 +21,7 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
   numberOfSimulatedConductors: number = 10;
 
   @property({ type: Object })
-  simulatedDnaTemplate: SimulatedDnaTemplate = demoDnaTemplate();
+  simulatedHapp: SimulatedHappBundle = demoHapp();
 
   @query('#snackbar')
   private snackbar: Snackbar;
@@ -65,7 +65,7 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
       this.conductors = await createConductors(
         this.numberOfSimulatedConductors,
         [],
-        this.simulatedDnaTemplate
+        this.simulatedHapp
       );
 
       this.activeDna = this.conductors[0].getAllCells()[0].dnaHash;

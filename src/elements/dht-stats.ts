@@ -17,8 +17,8 @@ import { TextField } from 'scoped-material-components/mwc-textfield';
 import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
 import {
   createConductors,
-  demoDnaTemplate,
   Conductor,
+  demoHapp,
 } from '@holochain-playground/core';
 import { PlaygroundElement } from '../base/playground-element';
 
@@ -94,7 +94,7 @@ export class DhtStats extends PlaygroundElement {
       conductors = await createConductors(
         newNodesToCreate,
         conductors,
-        demoDnaTemplate()
+        demoHapp()
       );
     } else if (newNodes < currentNodes) {
       const conductorsToRemove = currentNodes - newNodes;
