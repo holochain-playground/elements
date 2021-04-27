@@ -1,15 +1,16 @@
-import { LitElement, html, property, css } from 'lit-element';
-import { PlaygroundElement } from '../../context/playground-element';
-import { classMap } from 'lit-html/directives/class-map';
+import { html, css } from 'lit';
+import { state, property } from 'lit/decorators.js';
+import { classMap } from 'lit/directives/class-map.js';
+
+import { PlaygroundElement } from '../../base/playground-element';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { Card } from 'scoped-material-components/mwc-card';
 import { sharedStyles } from '../utils/shared-styles';
-import { PlaygroundContext } from '../../context/context';
 import { List } from 'scoped-material-components/mwc-list';
 import { Button } from 'scoped-material-components/mwc-button';
 
 export interface Step {
-  title: string;
+  title: (context: PlaygroundElement) => string;
   run: (context: PlaygroundElement) => Promise<void>;
 }
 
@@ -17,10 +18,10 @@ export class RunSteps extends PlaygroundElement {
   @property({ type: Array })
   steps!: Array<Step>;
 
-  @property({ type: Number })
+  @state()
   _runningStepIndex: number | undefined = undefined;
 
-  @property({ type: Boolean })
+  @state()
   _running = false;
 
   async runSteps() {
@@ -58,7 +59,7 @@ export class RunSteps extends PlaygroundElement {
                         })}
                         .activated=${this._running &&
                         this._runningStepIndex === index}
-                        >${index + 1}. ${step.title}</mwc-list-item
+                        >${index + 1}. ${step.title(this)}</mwc-list-item
                       >`
                   )}
                 </mwc-list>
@@ -86,12 +87,10 @@ export class RunSteps extends PlaygroundElement {
     ];
   }
 
-  static get scopedElements() {
-    return {
-      'mwc-list-item': ListItem,
-      'mwc-list': List,
-      'mwc-button': Button,
-      'mwc-card': Card,
-    };
-  }
+  static elementDefinitions = {
+    'mwc-list-item': ListItem,
+    'mwc-list': List,
+    'mwc-button': Button,
+    'mwc-card': Card,
+  };
 }

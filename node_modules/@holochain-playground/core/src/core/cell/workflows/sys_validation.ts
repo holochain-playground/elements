@@ -38,10 +38,10 @@ import { Cascade } from '../cascade/cascade';
 export const sys_validation = async (
   worskpace: Workspace
 ): Promise<WorkflowReturn<void>> => {
-  const pendingDhtOps = getValidationLimboDhtOps(
-    worskpace.state,
-    ValidationLimboStatus.Pending
-  );
+  const pendingDhtOps = getValidationLimboDhtOps(worskpace.state, [
+    ValidationLimboStatus.Pending,
+    ValidationLimboStatus.AwaitingSysDeps,
+  ]);
 
   // TODO: actually validate
   for (const dhtOpHash of Object.keys(pendingDhtOps)) {

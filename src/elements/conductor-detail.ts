@@ -1,7 +1,8 @@
-import { LitElement, property, html, css, query } from 'lit-element';
+import { LitElement, html, css } from 'lit';
+import { property, query } from 'lit/decorators.js';
+
 import { sharedStyles } from './utils/shared-styles';
 
-import { PlaygroundElement } from '../context/playground-element';
 import { DhtShard } from './dht-shard';
 import { EntryContents } from './entry-contents';
 import { Card } from 'scoped-material-components/mwc-card';
@@ -9,6 +10,7 @@ import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { Tab } from 'scoped-material-components/mwc-tab';
 import { TabBar } from 'scoped-material-components/mwc-tab-bar';
+import { PlaygroundElement } from '../base/playground-element';
 
 export class ConductorDetail extends PlaygroundElement {
   @property({ type: Number })
@@ -148,15 +150,13 @@ export class ConductorDetail extends PlaygroundElement {
     `;
   }
 
-  static get scopedElements() {
-    return {
-      'holochain-playground-dht-shard': DhtShard,
-      'holochain-playground-entry-detail': EntryContents,
-      'mwc-tab': Tab,
-      'mwc-tab-bar': TabBar,
-      'mwc-card': Card,
-      'mwc-icon-button': IconButton,
-      'mwc-dialog': Dialog,
-    };
-  }
+  static elementDefinitions = {
+    'holochain-playground-dht-shard': DhtShard,
+    'holochain-playground-entry-detail': EntryContents,
+    'mwc-tab': Tab,
+    'mwc-tab-bar': TabBar,
+    'mwc-card': Card,
+    'mwc-icon-button': IconButton,
+    'mwc-dialog': Dialog,
+  };
 }

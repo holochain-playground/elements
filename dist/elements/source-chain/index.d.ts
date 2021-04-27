@@ -1,25 +1,28 @@
-import { PropertyValues } from 'lit-element';
+import { PropertyValues } from 'lit';
 import { Cell } from '@holochain-playground/core';
 import { HelpButton } from '../helpers/help-button';
-import { PlaygroundElement } from '../../context/playground-element';
+import { PlaygroundElement } from '../../base/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
+import { CellObserver } from '../../base/cell-observer';
+import { CellsController } from '../../base/cells-controller';
 /**
  * @element source-chain
  */
-export declare class SourceChain extends PlaygroundElement {
-    static get styles(): import("lit-element").CSSResult[];
+export declare class SourceChain extends PlaygroundElement implements CellObserver {
+    private graph;
     private cy;
     private nodes;
+    _cellsController: CellsController;
     get activeCell(): Cell | undefined;
-    private graph;
-    firstUpdated(): void;
     observedCells(): Cell[];
+    firstUpdated(): void;
     setupGraph(): void;
     updated(changedValues: PropertyValues): void;
-    renderHelp(): import("lit-element").TemplateResult;
-    render(): import("lit-element").TemplateResult;
-    static get scopedElements(): {
+    renderHelp(): import("lit-html").TemplateResult<1>;
+    render(): import("lit-html").TemplateResult<1>;
+    static get styles(): import("lit").CSSResultGroup[];
+    static elementDefinitions: {
         'mwc-card': typeof Card;
-        'holochain-playground-help-button': typeof HelpButton;
+        'help-button': typeof HelpButton;
     };
 }

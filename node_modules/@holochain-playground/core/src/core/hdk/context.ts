@@ -21,25 +21,39 @@ import { HashEntryFn, hash_entry } from './host-fn/hash_entry';
 import { query, QueryFn } from './host-fn/query';
 import { ensure, Path } from './path';
 
-export interface Hdk {
-  create_entry: CreateEntryFn;
-  delete_entry: DeleteEntryFn;
-  update_entry: UpdateEntryFn;
+export interface SimulatedValidateFunctionContext {
   get: GetFn;
   get_details: GetDetailsFn;
   hash_entry: HashEntryFn;
-  create_link: CreateLinkFn;
-  delete_link: DeleteLinkFn;
   get_links: GetLinksFn;
+}
+export interface Hdk extends SimulatedValidateFunctionContext {
+  create_entry: CreateEntryFn;
+  delete_entry: DeleteEntryFn;
+  update_entry: UpdateEntryFn;
+  create_link: CreateLinkFn;
   create_cap_grant: CreateCapGrantFn;
   delete_cap_grant: DeleteCapGrantFn;
+  delete_link: DeleteLinkFn;
   call_remote: CallRemoteFn;
   agent_info: AgentInfoFn;
   query: QueryFn;
 }
 
-export interface SimulatedZomeFunctionContext extends Hdk{
+export interface SimulatedZomeFunctionContext extends Hdk {
   path: Path;
+}
+
+export function buildValidationFunctionContext(
+  workspace: HostFnWorkspace,
+  zome_index: number
+): SimulatedValidateFunctionContext {
+  return {
+    hash_entry: hash_entry(workspace, zome_index),
+    get: get(workspace, zome_index),
+    get_details: get_details(workspace, zome_index),
+    get_links: get_links(workspace, zome_index),
+  };
 }
 
 export function buildZomeFunctionContext(
@@ -47,26 +61,23 @@ export function buildZomeFunctionContext(
   zome_index: number
 ): SimulatedZomeFunctionContext {
   const hdk: Hdk = {
+    ...buildValidationFunctionContext(workspace, zome_index),
     create_entry: create_entry(workspace, zome_index),
     delete_entry: delete_entry(workspace, zome_index),
     update_entry: update_entry(workspace, zome_index),
-    hash_entry: hash_entry(workspace, zome_index),
-    get: get(workspace, zome_index),
-    get_details: get_details(workspace, zome_index),
     create_link: create_link(workspace, zome_index),
     delete_link: delete_link(workspace, zome_index),
-    get_links: get_links(workspace, zome_index),
     create_cap_grant: create_cap_grant(workspace, zome_index),
     delete_cap_grant: delete_cap_grant(workspace, zome_index),
     call_remote: call_remote(workspace, zome_index),
     agent_info: agent_info(workspace, zome_index),
     query: query(workspace, zome_index),
   };
-  
+
   return {
     ...hdk,
     path: {
-      ensure: ensure(hdk)
-    }
-  }
+      ensure: ensure(hdk),
+    },
+  };
 }

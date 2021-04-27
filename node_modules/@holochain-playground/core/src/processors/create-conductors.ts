@@ -1,6 +1,11 @@
 import { BootstrapService } from '../bootstrap/bootstrap-service';
 import { Conductor } from '../core/conductor';
 import { SimulatedDnaTemplate } from '../dnas/simulated-dna';
+import { uniqueNamesGenerator, Config, names } from 'unique-names-generator';
+
+const config: Config = {
+  dictionaries: [names],
+};
 
 export async function createConductors(
   conductorsToCreate: number,
@@ -14,7 +19,8 @@ export async function createConductors(
 
   const newConductorsPromises: Promise<Conductor>[] = [];
   for (let i = 0; i < conductorsToCreate; i++) {
-    const conductor = Conductor.create(bootstrapService);
+    const characterName: string = uniqueNamesGenerator(config);
+    const conductor = Conductor.create(bootstrapService, characterName);
     newConductorsPromises.push(conductor);
   }
 

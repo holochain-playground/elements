@@ -8,6 +8,7 @@
         font-family: Arial, Helvetica, sans-serif;
       }
     </style>
+
   </head>
   <body>
     <holochain-playground-container id="container">
@@ -44,7 +45,8 @@
     </holochain-playground-container>
 
     <script type="module">
-      import { html, render } from 'lit-html';
+      import '@webcomponents/scoped-custom-element-registry';
+      import { html, render } from 'lit';
       import {
         HolochainPlaygroundContainer,
         CallZomeFns,
@@ -57,7 +59,7 @@
         RunSteps,
       } from '../dist';
       import {
-        GetStrategy,
+        GetStrategy, 
         WorkflowType,
         NetworkRequestType,
         demoDnaTemplate,
@@ -77,7 +79,7 @@
       customElements.define('entry-contents', EntryContents);
 
       const container = document.getElementById('container');
-      container.numberOfSimulatedConductors = 8;
+      container.numberOfSimulatedConductors = 6;
 
       container.addEventListener('ready', (e) => {
         const conductor = e.detail.conductors[0];

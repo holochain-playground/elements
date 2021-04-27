@@ -1,5 +1,5 @@
 import { Cell, Workflow } from '../../cell';
-import { CellState, IntegratedDhtOpsValue } from '../state';
+import { CellState, IntegratedDhtOpsValue, ValidationStatus } from '../state';
 import { pullAllIntegrationLimboDhtOps } from '../dht/get';
 import {
   putDhtOpData,
@@ -19,8 +19,10 @@ export const integrate_dht_ops = async (
 
     const dhtOp = integrationLimboValue.op;
 
-    await putDhtOpData(dhtOp)(worskpace.state);
-    putDhtOpMetadata(dhtOp)(worskpace.state);
+    if (integrationLimboValue.validation_status === ValidationStatus.Valid) {
+      await putDhtOpData(dhtOp)(worskpace.state);
+      putDhtOpMetadata(dhtOp)(worskpace.state);
+    }
 
     const value: IntegratedDhtOpsValue = {
       op: dhtOp,
@@ -38,11 +40,10 @@ export const integrate_dht_ops = async (
 
 export type IntegrateDhtOpsWorkflow = Workflow<void, void>;
 
-export function integrate_dht_ops_task(
-): IntegrateDhtOpsWorkflow {
+export function integrate_dht_ops_task(): IntegrateDhtOpsWorkflow {
   return {
     type: WorkflowType.INTEGRATE_DHT_OPS,
     details: undefined,
-    task: (worskpace) => integrate_dht_ops(worskpace),
+    task: worskpace => integrate_dht_ops(worskpace),
   };
 }

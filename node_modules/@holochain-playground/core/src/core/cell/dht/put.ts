@@ -13,6 +13,7 @@ import {
   SignedHeaderHashed,
   NewEntryHeader,
 } from '@holochain-open-dev/core-types';
+import { isEqual } from 'lodash-es';
 import {
   ValidationLimboValue,
   CellState,
@@ -185,7 +186,9 @@ export const putSystemMetadata = (basis: Hash, value: SysMetaVal) => (
     state.metadata.system_meta[basis] = [];
   }
 
-  state.metadata.system_meta[basis].push(value);
+  if (!state.metadata.system_meta[basis].find(v => isEqual(v, value))) {
+    state.metadata.system_meta[basis].push(value);
+  }
 };
 
 export const putDhtOpToIntegrated = (

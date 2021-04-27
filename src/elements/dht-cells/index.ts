@@ -1,34 +1,38 @@
-import { LitElement, html, query, css, property } from 'lit-element';
+import { html, css } from 'lit';
+import { state, query, property } from 'lit/decorators.js';
+import { styleMap } from 'lit/directives/style-map.js';
+import { classMap } from 'lit/directives/class-map.js';
+
 import cytoscape from 'cytoscape';
 import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
 import { Button } from 'scoped-material-components/mwc-button';
-import { Hash, DHTOp, Dictionary } from '@holochain-open-dev/core-types';
+import { DHTOp, Dictionary } from '@holochain-open-dev/core-types';
 import {
-  Cell,
   sleep,
-  location,
   NetworkRequestType,
   WorkflowType,
   PublishRequestInfo,
+  NetworkRequestInfo,
 } from '@holochain-playground/core';
 import { Card } from 'scoped-material-components/mwc-card';
 import { Slider } from 'scoped-material-components/mwc-slider';
 import { Switch } from 'scoped-material-components/mwc-switch';
 import { CellTasks } from '../helpers/cell-tasks';
 import { HelpButton } from '../helpers/help-button';
-import { PlaygroundElement } from '../../context/playground-element';
+import { CellsController } from '../../base/cells-controller';
 import { selectAllCells, selectHoldingCells } from '../utils/selectors';
 import { sharedStyles } from '../utils/shared-styles';
 import { dhtCellsNodes, neighborsEdges } from './processors';
 import { graphStyles, layoutConfig } from './graph';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { styleMap } from 'lit-html/directives/style-map';
 import { Formfield } from 'scoped-material-components/mwc-formfield';
 import { Icon } from 'scoped-material-components/mwc-icon';
 import { Subject } from 'rxjs';
 import { Menu } from 'scoped-material-components/mwc-menu';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { uniq } from 'lodash-es';
+import { PlaygroundElement } from '../../base/playground-element';
+import { CellObserver } from '../../base/cell-observer';
 
 const MIN_ANIMATION_DELAY = 1000;
 const MAX_ANIMATION_DELAY = 7000;
@@ -36,7 +40,7 @@ const MAX_ANIMATION_DELAY = 7000;
 /**
  * @element dht-cells
  */
-export class DhtCells extends PlaygroundElement {
+export class DhtCells extends PlaygroundElement implements CellObserver {
   @property({ type: Number })
   animationDelay: number = 2000;
 
@@ -81,8 +85,14 @@ export class DhtCells extends PlaygroundElement {
   private _layout;
   private _resumeObservable = new Subject();
 
-  @property({ type: Boolean })
+  @state()
   private _onPause = false;
+
+  private cellsController = new CellsController(this);
+
+  observedCells() {
+    return selectAllCells(this.activeDna, this.conductors);
+  }
 
   async firstUpdated() {
     window.addEventListener('scroll', () => {
@@ -137,83 +147,74 @@ export class DhtCells extends PlaygroundElement {
     }
   }
 
-  observedCells() {
-    return selectAllCells(this.activeDna, this.conductors);
-  }
+  async beforeNetworkRequest(networkRequest: NetworkRequestInfo<any, any>) {
+    this.requestUpdate();
 
-  onNewObservedCell(cell: Cell) {
-    return [
-      cell.p2p.networkRequestsExecutor.before(async (networkRequest) => {
-        this.requestUpdate();
+    if (!this.networkRequestsToDisplay.includes(networkRequest.type)) return;
+    if (networkRequest.toAgent === networkRequest.fromAgent) return;
 
-        if (!this.networkRequestsToDisplay.includes(networkRequest.type))
-          return;
-        if (networkRequest.toAgent === networkRequest.fromAgent) return;
+    const fromNode = this._cy.getElementById(networkRequest.fromAgent);
+    if (!fromNode.position()) return;
+    const toNode = this._cy.getElementById(networkRequest.toAgent);
 
-        const fromNode = this._cy.getElementById(networkRequest.fromAgent);
-        if (!fromNode.position()) return;
-        const toNode = this._cy.getElementById(networkRequest.toAgent);
+    const fromPosition = fromNode.position();
+    const toPosition = toNode.position();
 
-        const fromPosition = fromNode.position();
-        const toPosition = toNode.position();
+    let label = networkRequest.type;
+    if (networkRequest.type === NetworkRequestType.PUBLISH_REQUEST) {
+      const dhtOps: Dictionary<DHTOp> = (networkRequest as PublishRequestInfo)
+        .details.dhtOps;
 
-        let label = networkRequest.type;
-        if (networkRequest.type === NetworkRequestType.PUBLISH_REQUEST) {
-          const dhtOps: Dictionary<DHTOp> = (networkRequest as PublishRequestInfo)
-            .details.dhtOps;
+      const types = Object.values(dhtOps).map((dhtOp) => dhtOp.type);
 
-          const types = Object.values(dhtOps).map((dhtOp) => dhtOp.type);
+      label = `Publish: ${uniq(types).join(', ')}`;
+    }
 
-          label = `Publish: ${uniq(types).join(', ')}`;
-        }
+    const el = this._cy.add([
+      {
+        group: 'nodes',
+        data: {
+          networkRequest,
+          label,
+        },
+        position: { x: fromPosition.x + 1, y: fromPosition.y + 1 },
+        classes: ['network-request'],
+      },
+    ]);
 
-        const el = this._cy.add([
-          {
-            group: 'nodes',
-            data: {
-              networkRequest,
-              label,
-            },
-            position: { x: fromPosition.x + 1, y: fromPosition.y + 1 },
-            classes: ['network-request'],
-          },
-        ]);
+    if (this.stepByStep) {
+      const halfPosition = {
+        x: (toPosition.x - fromPosition.x) / 2 + fromPosition.x,
+        y: (toPosition.y - fromPosition.y) / 2 + fromPosition.y,
+      };
+      el.animate({
+        position: halfPosition,
+        duration: this.animationDelay / 2,
+      });
 
-        if (this.stepByStep) {
-          const halfPosition = {
-            x: (toPosition.x - fromPosition.x) / 2 + fromPosition.x,
-            y: (toPosition.y - fromPosition.y) / 2 + fromPosition.y,
-          };
-          el.animate({
-            position: halfPosition,
-            duration: this.animationDelay / 2,
-          });
+      await sleep(this.animationDelay / 2);
 
-          await sleep(this.animationDelay / 2);
+      this._onPause = true;
+      await new Promise((resolve) =>
+        this._resumeObservable.subscribe(() => resolve(null))
+      );
+      this._onPause = false;
 
-          this._onPause = true;
-          await new Promise((resolve) =>
-            this._resumeObservable.subscribe(() => resolve(null))
-          );
-          this._onPause = false;
+      el.animate({
+        position: toPosition,
+        duration: this.animationDelay / 2,
+      });
 
-          el.animate({
-            position: toPosition,
-            duration: this.animationDelay / 2,
-          });
+      await sleep(this.animationDelay / 2);
+    } else {
+      el.animate({
+        position: toNode.position(),
+        duration: this.animationDelay,
+      });
 
-          await sleep(this.animationDelay / 2);
-        } else {
-          el.animate({
-            position: toNode.position(),
-            duration: this.animationDelay,
-          });
-
-          await sleep(this.animationDelay);
-        }
-        this._cy.remove(el);
-      }),
-    ];
+      await sleep(this.animationDelay);
+    }
+    this._cy.remove(el);
   }
 
   onCellsChanged() {
@@ -221,14 +222,14 @@ export class DhtCells extends PlaygroundElement {
   }
 
   setupGraphNodes() {
-    const nodes = dhtCellsNodes(this._observedCells);
+    const nodes = dhtCellsNodes(this.cellsController.observedCells);
 
     if (this._layout) this._layout.stop();
     this._cy.remove('node');
     this._cy.remove('edge');
 
     this._cy.add(nodes);
-    const neighbors = neighborsEdges(this._observedCells);
+    const neighbors = neighborsEdges(this.cellsController.observedCells);
     this._cy.add(neighbors);
 
     this._layout = this._cy.elements().makeLayout(layoutConfig);
@@ -243,13 +244,13 @@ export class DhtCells extends PlaygroundElement {
   updated(changedValues) {
     super.updated(changedValues);
 
-    const neighbors = neighborsEdges(this._observedCells);
+    const neighbors = neighborsEdges(this.cellsController.observedCells);
     if (this._neighborEdges.length != neighbors.length) {
       this._neighborEdges = neighbors;
       this._cy.add(neighbors);
     }
 
-    this.observedCells().forEach((cell) =>
+    this.cellsController.observedCells.forEach((cell) =>
       this._cy.getElementById(cell.agentPubKey).removeClass('selected')
     );
     this._cy.getElementById(this.activeAgentPubKey).addClass('selected');
@@ -345,12 +346,12 @@ export class DhtCells extends PlaygroundElement {
   }
 
   renderTasksTooltips() {
-    if (!this._cy || !this._observedCells) return html``;
+    if (!this._cy || !this.cellsController.observedCells) return html``;
 
     const nodes = this._cy.nodes();
     const cellsWithPosition = nodes.map((node) => {
       const agentPubKey = node.id();
-      const cell = this._observedCells.find(
+      const cell = this.cellsController.observedCells.find(
         (cell) => cell.agentPubKey === agentPubKey
       );
 
@@ -516,10 +517,9 @@ export class DhtCells extends PlaygroundElement {
           <span class="block-title" style="margin: 16px;">DHT Cells</span>
           <div
             id="graph"
-            class="fill"
-            style=${styleMap({
-              'background-color': this._onPause ? '#dbdbdba0' : 'white',
-            })}
+            class="fill ${classMap({
+              paused: this._onPause,
+            })}"
           ></div>
           ${this.renderBottomToolbar()}
         </div>
@@ -534,24 +534,26 @@ export class DhtCells extends PlaygroundElement {
         :host {
           display: flex;
         }
+
+        .paused {
+          background-color: #dbdbdba0;
+        }
       `,
     ];
   }
 
-  static get scopedElements() {
-    return {
-      'mwc-card': Card,
-      'mwc-menu-surface': MenuSurface,
-      'mwc-button': Button,
-      'mwc-icon': Icon,
-      'mwc-menu': Menu,
-      'mwc-list-item': ListItem,
-      'mwc-slider': Slider,
-      'mwc-switch': Switch,
-      'mwc-formfield': Formfield,
-      'mwc-icon-button': IconButton,
-      'holochain-playground-help-button': HelpButton,
-      'holochain-playground-cell-tasks': CellTasks,
-    };
-  }
+  static elementDefinitions = {
+    'mwc-card': Card,
+    'mwc-menu-surface': MenuSurface,
+    'mwc-button': Button,
+    'mwc-icon': Icon,
+    'mwc-menu': Menu,
+    'mwc-list-item': ListItem,
+    'mwc-slider': Slider,
+    'mwc-switch': Switch,
+    'mwc-formfield': Formfield,
+    'mwc-icon-button': IconButton,
+    'holochain-playground-help-button': HelpButton,
+    'holochain-playground-cell-tasks': CellTasks,
+  };
 }

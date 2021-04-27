@@ -28,14 +28,14 @@ import {
 
 export function getValidationLimboDhtOps(
   state: CellState,
-  status: ValidationLimboStatus
+  statuses: ValidationLimboStatus[]
 ): Dictionary<ValidationLimboValue> {
   const pendingDhtOps: Dictionary<ValidationLimboValue> = {};
 
   for (const dhtOpHash of Object.keys(state.validationLimbo)) {
     const limboValue = state.validationLimbo[dhtOpHash];
 
-    if (limboValue.status === status) {
+    if (statuses.includes(limboValue.status)) {
       pendingDhtOps[dhtOpHash] = limboValue;
     }
   }

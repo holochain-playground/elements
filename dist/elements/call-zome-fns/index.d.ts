@@ -1,7 +1,6 @@
 import { Dictionary } from '@holochain-open-dev/core-types';
 import { SimulatedZome, SimulatedZomeFunction, Cell } from '@holochain-playground/core';
 import { TextField } from 'scoped-material-components/mwc-textfield';
-import { PlaygroundElement } from '../../context/playground-element';
 import { Button } from 'scoped-material-components/mwc-button';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 import { Icon } from 'scoped-material-components/mwc-icon';
@@ -12,15 +11,19 @@ import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { List } from 'scoped-material-components/mwc-list';
 import { Drawer } from 'scoped-material-components/mwc-drawer';
 import { CopyableHash } from '../helpers/copyable-hash';
+import { PlaygroundElement } from '../../base/playground-element';
+import { CellsController } from '../../base/cells-controller';
+import { CellObserver } from '../../base/cell-observer';
 /**
  * @element call-zome-fns
  */
-export declare class CallZomeFns extends PlaygroundElement {
+export declare class CallZomeFns extends PlaygroundElement implements CellObserver {
     hideZomeSelector: boolean;
     hideAgentPubKey: boolean;
     selectedZomeFnName: string | undefined;
-    _selectedZomeIndex: number;
+    private _selectedZomeIndex;
     _arguments: Dictionary<Dictionary<Dictionary<Dictionary<Dictionary<any>>>>>;
+    _cellsController: CellsController;
     get activeCell(): Cell;
     get activeZome(): SimulatedZome;
     get activeZomeFn(): {
@@ -32,11 +35,11 @@ export declare class CallZomeFns extends PlaygroundElement {
     getFunctionArguments(fnName: string): Dictionary<any>;
     getFunctionArgument(fnName: string, argName: string): any;
     callZomeFunction(fnName: string): Promise<void>;
-    renderCallableFunction(fnName: string, zomeFunction: SimulatedZomeFunction): import("lit-element").TemplateResult;
-    renderActiveZomeFns(): import("lit-element").TemplateResult;
-    render(): import("lit-element").TemplateResult;
-    static get styles(): import("lit-element").CSSResult[];
-    static get scopedElements(): {
+    renderCallableFunction(fnName: string, zomeFunction: SimulatedZomeFunction): import("lit-html").TemplateResult<1>;
+    renderActiveZomeFns(): import("lit-html").TemplateResult<1>;
+    render(): import("lit-html").TemplateResult<1>;
+    static get styles(): import("lit").CSSResultGroup[];
+    static elementDefinitions: {
         'mwc-button': typeof Button;
         'mwc-textfield': typeof TextField;
         'mwc-circular-progress': typeof CircularProgress;

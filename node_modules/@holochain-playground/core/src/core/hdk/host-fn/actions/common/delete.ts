@@ -11,14 +11,17 @@ export async function common_delete(
   worskpace: HostFnWorkspace,
   header_hash: Hash
 ): Promise<Hash> {
-  const elementToDelete = await worskpace.cascade.dht_get(header_hash, {
+  const headerToDelete = await worskpace.cascade.retrieve_header(header_hash, {
     strategy: GetStrategy.Contents,
   });
 
-  if (!elementToDelete) throw new Error('Could not find element to be deleted');
+  if (!headerToDelete) throw new Error('Could not find element to be deleted');
 
-  const deletesEntryAddress = (elementToDelete.signed_header.header
-    .content as NewEntryHeader).entry_hash;
+  const deletesEntryAddress = (headerToDelete.header.content as NewEntryHeader)
+    .entry_hash;
+
+  if (!deletesEntryAddress)
+    throw new Error(`Trying to delete an element with no entry`);
 
   const deleteHeader = buildDelete(
     worskpace.state,

@@ -14,18 +14,20 @@ import { GetLinksFn } from './host-fn/get_links';
 import { HashEntryFn } from './host-fn/hash_entry';
 import { QueryFn } from './host-fn/query';
 import { Path } from './path';
-export interface Hdk {
-    create_entry: CreateEntryFn;
-    delete_entry: DeleteEntryFn;
-    update_entry: UpdateEntryFn;
+export interface SimulatedValidateFunctionContext {
     get: GetFn;
     get_details: GetDetailsFn;
     hash_entry: HashEntryFn;
-    create_link: CreateLinkFn;
-    delete_link: DeleteLinkFn;
     get_links: GetLinksFn;
+}
+export interface Hdk extends SimulatedValidateFunctionContext {
+    create_entry: CreateEntryFn;
+    delete_entry: DeleteEntryFn;
+    update_entry: UpdateEntryFn;
+    create_link: CreateLinkFn;
     create_cap_grant: CreateCapGrantFn;
     delete_cap_grant: DeleteCapGrantFn;
+    delete_link: DeleteLinkFn;
     call_remote: CallRemoteFn;
     agent_info: AgentInfoFn;
     query: QueryFn;
@@ -33,4 +35,5 @@ export interface Hdk {
 export interface SimulatedZomeFunctionContext extends Hdk {
     path: Path;
 }
+export declare function buildValidationFunctionContext(workspace: HostFnWorkspace, zome_index: number): SimulatedValidateFunctionContext;
 export declare function buildZomeFunctionContext(workspace: HostFnWorkspace, zome_index: number): SimulatedZomeFunctionContext;

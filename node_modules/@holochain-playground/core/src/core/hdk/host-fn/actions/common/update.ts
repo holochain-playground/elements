@@ -20,17 +20,19 @@ export async function common_update(
   entry: Entry,
   entry_type: EntryType
 ): Promise<Hash> {
-  const elementToUpdate = await worskpace.cascade.dht_get(
+  const headerToUpdate = await worskpace.cascade.retrieve_header(
     original_header_hash,
     {
       strategy: GetStrategy.Contents,
     }
   );
 
-  if (!elementToUpdate) throw new Error('Could not find element to be deleted');
+  if (!headerToUpdate) throw new Error('Could not find element to be deleted');
 
-  const original_entry_hash = (elementToUpdate.signed_header.header
-    .content as NewEntryHeader).entry_hash;
+  const original_entry_hash = (headerToUpdate.header.content as NewEntryHeader)
+    .entry_hash;
+  if (!original_entry_hash)
+    throw new Error(`Trying to update an element with no entry`);
 
   const updateHeader = buildUpdate(
     worskpace.state,

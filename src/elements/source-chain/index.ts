@@ -1,5 +1,7 @@
-import { property, html, PropertyValues, css, query } from 'lit-element';
-import { styleMap } from 'lit-html/directives/style-map';
+import { html, PropertyValues, css } from 'lit';
+import { styleMap } from 'lit/directives/style-map.js';
+import { query } from 'lit/decorators.js';
+
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 
@@ -11,41 +13,34 @@ import { sharedStyles } from '../utils/shared-styles';
 
 import { HelpButton } from '../helpers/help-button';
 import { selectCell } from '../utils/selectors';
-import { PlaygroundElement } from '../../context/playground-element';
+import { PlaygroundElement } from '../../base/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
 import { graphStyles } from './graph';
+import { CellObserver } from '../../base/cell-observer';
+import { CellsController } from '../../base/cells-controller';
 
 cytoscape.use(dagre); // register extension
 
 /**
  * @element source-chain
  */
-export class SourceChain extends PlaygroundElement {
-  static get styles() {
-    return [
-      sharedStyles,
-      css`
-        :host {
-          display: flex;
-        }
-        #source-chain-graph {
-          width: 100%;
-          height: 100%;
-        }
-      `,
-    ];
-  }
+export class SourceChain extends PlaygroundElement implements CellObserver {
+  @query('#source-chain-graph')
+  private graph: HTMLElement;
 
   private cy: cytoscape.Core;
 
   private nodes: any[] = [];
 
+  _cellsController = new CellsController(this);
+
   get activeCell(): Cell | undefined {
     return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors);
   }
 
-  @query('#source-chain-graph')
-  private graph: HTMLElement;
+  observedCells() {
+    return [this.activeCell];
+  }
 
   firstUpdated() {
     window.addEventListener('scroll', () => {
@@ -90,10 +85,6 @@ export class SourceChain extends PlaygroundElement {
     this.requestUpdate();
   }
 
-  observedCells() {
-    return [this.activeCell];
-  }
-
   setupGraph() {
     this.cy.remove('node');
     this.cy.add(this.nodes);
@@ -135,10 +126,7 @@ export class SourceChain extends PlaygroundElement {
   }
 
   renderHelp() {
-    return html` <holochain-playground-help-button
-      heading="Source-Chain"
-      class="block-help"
-    >
+    return html` <help-button heading="Source-Chain" class="block-help">
       <span>
         This graph displays the source chain of the selected cell. On the
         top-left sequence, you can see the hash-chain of headers. On the
@@ -149,7 +137,7 @@ export class SourceChain extends PlaygroundElement {
         Dashed relationships are embedded references: the headers contain the
         hash of the last header, and also the entry hash if they have an entry.
       </span>
-    </holochain-playground-help-button>`;
+    </help-button>`;
   }
 
   render() {
@@ -178,10 +166,23 @@ export class SourceChain extends PlaygroundElement {
     `;
   }
 
-  static get scopedElements() {
-    return {
-      'mwc-card': Card,
-      'holochain-playground-help-button': HelpButton,
-    };
+  static get styles() {
+    return [
+      sharedStyles,
+      css`
+        :host {
+          display: flex;
+        }
+        #source-chain-graph {
+          width: 100%;
+          height: 100%;
+        }
+      `,
+    ];
   }
+
+  static elementDefinitions = {
+    'mwc-card': Card,
+    'help-button': HelpButton,
+  };
 }

@@ -56,6 +56,7 @@ export const demoEntriesZome: SimulatedZome = {
       arguments: [{ name: 'deletes_address', type: 'HeaderHash' }],
     },
   },
+  validation_functions: {},
 };
 
 export const demoLinksZome: SimulatedZome = {
@@ -85,6 +86,7 @@ export const demoLinksZome: SimulatedZome = {
       arguments: [{ name: 'add_link_header', type: 'HeaderHash' }],
     },
   },
+  validation_functions: {},
 };
 export const demoPathsZome: SimulatedZome = {
   name: 'demo_paths',
@@ -102,6 +104,7 @@ export const demoPathsZome: SimulatedZome = {
       arguments: [{ name: 'path', type: 'String' }],
     },
   },
+  validation_functions: {},
 };
 
 export function demoDnaTemplate(): SimulatedDnaTemplate {

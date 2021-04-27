@@ -1,15 +1,24 @@
 import {
   AgentPubKey,
   Element,
+  HeaderType,
   NewEntryHeader,
   SignedHeaderHashed,
 } from '@holochain-open-dev/core-types';
 import { cloneDeep } from 'lodash-es';
-import { Cell } from '../../cell';
+import { SimulatedZome } from '../../../dnas/simulated-dna';
+import { GetStrategy } from '../../../types';
+import { Cell, run_create_link_validation_callback } from '../../cell';
 import { buildZomeFunctionContext } from '../../hdk/context';
 import { HostFnWorkspace } from '../../hdk/host-fn';
 import { Cascade } from '../cascade/cascade';
 import { getTipOfChain, valid_cap_grant } from '../source-chain/utils';
+import { CellState } from '../state';
+import { ValidationOutcome } from '../sys_validate/types';
+import {
+  run_delete_link_validation_callback,
+  run_validation_callback_direct,
+} from './app_validation';
 import { produce_dht_ops_task } from './produce_dht_ops';
 import { sys_validate_element } from './sys_validation';
 import { Workflow, WorkflowType, Workspace } from './workflows';
@@ -25,43 +34,44 @@ export const callZomeFn = (
   provenance: AgentPubKey,
   cap: string
 ) => async (
-  worskpace: Workspace
+  workspace: Workspace
 ): Promise<{ result: any; triggers: Array<Workflow<any, any>> }> => {
-  if (!valid_cap_grant(worskpace.state, zomeName, fnName, provenance, cap))
+  if (!valid_cap_grant(workspace.state, zomeName, fnName, provenance, cap))
     throw new Error('Unauthorized Zome Call');
 
-  const currentHeader = getTipOfChain(worskpace.state);
-  const chain_head_start_len = worskpace.state.sourceChain.length;
+  const currentHeader = getTipOfChain(workspace.state);
+  const chain_head_start_len = workspace.state.sourceChain.length;
 
-  const zomeIndex = worskpace.dna.zomes.findIndex(
+  const zomeIndex = workspace.dna.zomes.findIndex(
     zome => zome.name === zomeName
   );
   if (zomeIndex < 0)
     throw new Error(`There is no zome with the name ${zomeName} in this DNA`);
 
-  if (!worskpace.dna.zomes[zomeIndex].zome_functions[fnName])
+  const zome = workspace.dna.zomes[zomeIndex];
+  if (!zome.zome_functions[fnName])
     throw new Error(
       `There isn't a function with the name ${fnName} in this zome with the name ${zomeName}`
     );
 
-  const contextState = cloneDeep(worskpace.state);
+  const contextState = cloneDeep(workspace.state);
 
   const hostFnWorkspace: HostFnWorkspace = {
-    cascade: new Cascade(worskpace.state, worskpace.p2p),
+    cascade: new Cascade(workspace.state, workspace.p2p),
     state: contextState,
-    dna: worskpace.dna,
-    p2p: worskpace.p2p,
+    dna: workspace.dna,
+    p2p: workspace.p2p,
   };
   const zomeFnContext = buildZomeFunctionContext(hostFnWorkspace, zomeIndex);
 
-  const result = await worskpace.dna.zomes[zomeIndex].zome_functions[
-    fnName
-  ].call(zomeFnContext)(payload);
+  const result = await zome.zome_functions[fnName].call(zomeFnContext)(payload);
 
   let triggers: Array<Workflow<any, any>> = [];
   if (getTipOfChain(contextState) !== currentHeader) {
     // Do validation
     let i = chain_head_start_len;
+
+    const elementsToAppValidate = [];
 
     while (i < contextState.sourceChain.length) {
       const headerHash = contextState.sourceChain[i];
@@ -76,22 +86,36 @@ export const callZomeFn = (
 
       const depsMissing = await sys_validate_element(
         element,
-        { ...worskpace, state: contextState },
-        worskpace.p2p
+        { ...workspace, state: contextState },
+        workspace.p2p
       );
       if (depsMissing)
         throw new Error(
           `Could not validate a new element due to missing dependencies`
         );
 
+      elementsToAppValidate.push(element);
       i++;
+    }
+
+    for (const element of elementsToAppValidate) {
+      const outcome = await run_app_validation(
+        zome,
+        element,
+        contextState,
+        workspace
+      );
+      if (!outcome.resolved)
+        throw new Error('Error creating a new element: missing dependencies');
+      if (!outcome.valid)
+        throw new Error('Error creating a new element: invalid');
     }
 
     triggers.push(produce_dht_ops_task());
   }
 
-  worskpace.state.CAS = contextState.CAS;
-  worskpace.state.sourceChain = contextState.sourceChain;
+  workspace.state.CAS = contextState.CAS;
+  workspace.state.sourceChain = contextState.sourceChain;
 
   return {
     result: cloneDeep(result),
@@ -119,5 +143,59 @@ export function call_zome_fn_workflow(
     },
     task: worskpace =>
       callZomeFn(zome, fnName, payload, provenance, '')(worskpace),
+  };
+}
+
+async function run_app_validation(
+  zome: SimulatedZome,
+  element: Element,
+  contextState: CellState,
+  workspace: Workspace
+): Promise<ValidationOutcome> {
+  const header = element.signed_header.header.content;
+  if (header.type === HeaderType.CreateLink) {
+    const cascade = new Cascade(contextState, workspace.p2p);
+    const baseEntry = await cascade.retrieve_entry(header.base_address, {
+      strategy: GetStrategy.Contents,
+    });
+    if (!baseEntry) {
+      return {
+        resolved: false,
+        depsHashes: [header.base_address],
+      };
+    }
+    const targetEntry = await cascade.retrieve_entry(header.target_address, {
+      strategy: GetStrategy.Contents,
+    });
+    if (!targetEntry) {
+      return {
+        resolved: false,
+        depsHashes: [header.target_address],
+      };
+    }
+    return run_create_link_validation_callback(
+      zome,
+      header,
+      baseEntry,
+      targetEntry,
+      workspace
+    );
+  } else if (header.type === HeaderType.DeleteLink) {
+    return run_delete_link_validation_callback(zome, header, workspace);
+  } else if (
+    header.type === HeaderType.Create ||
+    header.type === HeaderType.Update ||
+    header.type === HeaderType.Delete
+  ) {
+    return run_validation_callback_direct(
+      zome,
+      workspace.dna,
+      element,
+      workspace
+    );
+  }
+  return {
+    valid: true,
+    resolved: true,
   };
 }

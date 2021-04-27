@@ -20,7 +20,7 @@ describe('Conductor', () => {
     });
 
     expect(hash).to.be.ok;
-    await sleep(3000);
+    await sleep(5000);
     expect(
       Object.keys(cell.getState().integratedDHTOps).length
     ).to.be.greaterThan(6);

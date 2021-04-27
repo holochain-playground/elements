@@ -1,5 +1,6 @@
 import { Dictionary, EntryVisibility } from '@holochain-open-dev/core-types';
-import { SimulatedZomeFunctionContext } from '../core/hdk';
+import { ValidationOutcome } from '../core/cell/sys_validate/types';
+import { SimulatedValidateFunctionContext, SimulatedZomeFunctionContext } from '../core/hdk';
 export interface SimulatedZomeFunctionArgument {
     name: string;
     type: string;
@@ -8,10 +9,12 @@ export interface SimulatedZomeFunction {
     call: (context: SimulatedZomeFunctionContext) => (payload: any) => Promise<any>;
     arguments: SimulatedZomeFunctionArgument[];
 }
+export declare type SimulatedValidateFunction = (context: SimulatedValidateFunctionContext) => (payload: any) => Promise<ValidationOutcome>;
 export interface SimulatedZome {
     name: string;
     entry_defs: Array<EntryDef>;
     zome_functions: Dictionary<SimulatedZomeFunction>;
+    validation_functions: Dictionary<SimulatedValidateFunction>;
     blocklyCode?: string;
 }
 export declare type SimulatedDnaTemplate = {

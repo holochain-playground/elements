@@ -9,14 +9,16 @@ export interface ConductorState {
     networkState: NetworkState;
     registeredTemplates: Dictionary<SimulatedDnaTemplate>;
     registeredDnas: Dictionary<SimulatedDna>;
+    name: string;
 }
 export declare class Conductor {
     readonly cells: Dictionary<Dictionary<Cell>>;
     registeredTemplates: Dictionary<SimulatedDnaTemplate>;
     registeredDnas: Dictionary<SimulatedDna>;
     network: Network;
+    name: string;
     constructor(state: ConductorState, bootstrapService: BootstrapService);
-    static create(bootstrapService: BootstrapService): Promise<Conductor>;
+    static create(bootstrapService: BootstrapService, name: string): Promise<Conductor>;
     getState(): ConductorState;
     getAllCells(): Cell[];
     getCells(dnaHash: Hash): Cell[];

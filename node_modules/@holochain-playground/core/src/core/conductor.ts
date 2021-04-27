@@ -18,6 +18,7 @@ export interface ConductorState {
   networkState: NetworkState;
   registeredTemplates: Dictionary<SimulatedDnaTemplate>;
   registeredDnas: Dictionary<SimulatedDna>;
+  name: string;
 }
 
 export class Conductor {
@@ -26,11 +27,13 @@ export class Conductor {
   registeredDnas!: Dictionary<SimulatedDna>;
 
   network: Network;
+  name: string;
 
   constructor(state: ConductorState, bootstrapService: BootstrapService) {
     this.network = new Network(state.networkState, this, bootstrapService);
     this.registeredDnas = state.registeredDnas;
     this.registeredTemplates = state.registeredTemplates;
+    this.name = state.name;
 
     this.cells = {};
     for (const [dnaHash, dnaCellsStates] of Object.entries(state.cellsState)) {
@@ -46,7 +49,10 @@ export class Conductor {
     }
   }
 
-  static async create(bootstrapService: BootstrapService): Promise<Conductor> {
+  static async create(
+    bootstrapService: BootstrapService,
+    name: string
+  ): Promise<Conductor> {
     const state: ConductorState = {
       cellsState: {},
       networkState: {
@@ -54,6 +60,7 @@ export class Conductor {
       },
       registeredDnas: {},
       registeredTemplates: {},
+      name,
     };
 
     return new Conductor(state, bootstrapService);
@@ -71,6 +78,7 @@ export class Conductor {
     }
 
     return {
+      name: this.name,
       networkState: this.network.getState(),
       cellsState,
       registeredDnas: this.registeredDnas,

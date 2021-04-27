@@ -26,12 +26,6 @@ export default {
   input: `src/index.ts`,
   output: { dir: 'dist', format: 'es', sourcemap: true },
   external: [
-    ...Object.keys(pkg.dependencies).filter(
-      (key) => !key.includes('cytoscape') && !key.includes('json-viewer')
-    ),
-    /scoped-material-components/,
-    /lit-html/,
-    'lodash-es',
   ],
   plugins,
 };

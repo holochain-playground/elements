@@ -44,6 +44,8 @@ export function getDHTOpBasis(dhtOp: DHTOp): Hash {
       return dhtOp.header.header.content.entry_hash;
     case DHTOpType.RegisterUpdatedContent:
       return dhtOp.header.header.content.original_entry_address;
+    case DHTOpType.RegisterUpdatedElement:
+      return dhtOp.header.header.content.original_header_address;
     case DHTOpType.RegisterAgentActivity:
       return dhtOp.header.header.content.author;
     case DHTOpType.RegisterAddLink:

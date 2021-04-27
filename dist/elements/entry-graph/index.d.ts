@@ -2,16 +2,18 @@ import { Checkbox } from 'scoped-material-components/mwc-checkbox';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Formfield } from 'scoped-material-components/mwc-formfield';
 import { Card } from 'scoped-material-components/mwc-card';
-import { PlaygroundElement } from '../../context/playground-element';
 import { HelpButton } from '../helpers/help-button';
 import { Menu } from 'scoped-material-components/mwc-menu';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Icon } from 'scoped-material-components/mwc-icon';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { PlaygroundElement } from '../../base/playground-element';
+import { CellObserver } from '../../base/cell-observer';
+import { CellsController } from '../../base/cells-controller';
 /**
  * @element entry-graph
  */
-export declare class EntryGraph extends PlaygroundElement {
+export declare class EntryGraph extends PlaygroundElement implements CellObserver {
     hideFilter: boolean;
     showEntryContents: boolean;
     showHeaders: boolean;
@@ -25,15 +27,16 @@ export declare class EntryGraph extends PlaygroundElement {
     private _entryTypes;
     private _visibleEntriesButton;
     private _visibleEntriesMenu;
+    _cellsController: CellsController;
+    observedCells(): import("@holochain-playground/core").Cell[];
     firstUpdated(): void;
     updated(changedValues: any): void;
-    observedCells(): import("@holochain-playground/core").Cell[];
     updatedGraph(): any;
-    static get styles(): import("lit-element").CSSResult[];
-    renderHelp(): import("lit-element").TemplateResult;
-    renderFilter(): import("lit-element").TemplateResult;
-    render(): import("lit-element").TemplateResult;
-    static get scopedElements(): {
+    static get styles(): import("lit").CSSResultGroup[];
+    renderHelp(): import("lit-html").TemplateResult<1>;
+    renderFilter(): import("lit-html").TemplateResult<1>;
+    render(): import("lit-html").TemplateResult<1>;
+    static elementDefinitions: {
         'mwc-checkbox': typeof Checkbox;
         'mwc-formfield': typeof Formfield;
         'mwc-icon-button': typeof IconButton;

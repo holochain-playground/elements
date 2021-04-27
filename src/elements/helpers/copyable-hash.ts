@@ -1,10 +1,11 @@
-import { ScopedElementsMixin } from '@open-wc/scoped-elements';
-import { html, LitElement, property, query } from 'lit-element';
+import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
+import { html, LitElement } from 'lit';
+import { property, query } from 'lit/decorators.js';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Snackbar } from 'scoped-material-components/mwc-snackbar';
 import { sharedStyles } from '../utils/shared-styles';
 
-export class CopyableHash extends ScopedElementsMixin(LitElement) {
+export class CopyableHash extends ScopedRegistryHost(LitElement) {
   @property({ type: String })
   hash!: string;
 
@@ -23,7 +24,9 @@ export class CopyableHash extends ScopedElementsMixin(LitElement) {
         labelText="Hash copied to clipboard"
       ></mwc-snackbar>
       <div class="row center-content">
-        <span style="font-family: monospace;">${this.hash.substring(0, 8)}...</span>
+        <span style="font-family: monospace;"
+          >${this.hash.substring(0, 8)}...</span
+        >
         <mwc-icon-button
           style="--mdc-icon-button-size	: 24px; --mdc-icon-size: 20px;"
           icon="content_copy"
@@ -37,10 +40,8 @@ export class CopyableHash extends ScopedElementsMixin(LitElement) {
     return sharedStyles;
   }
 
-  static get scopedElements() {
-    return {
-      'mwc-icon-button': IconButton,
-      'mwc-snackbar': Snackbar,
-    };
-  }
+  static elementDefinitions = {
+    'mwc-icon-button': IconButton,
+    'mwc-snackbar': Snackbar,
+  };
 }

@@ -1,12 +1,13 @@
-import { Cell, WorkflowType } from '@holochain-playground/core';
+import { Cell, Workflow, WorkflowType } from '@holochain-playground/core';
 import { Subject } from 'rxjs';
 import { Card } from 'scoped-material-components/mwc-card';
 import { Icon } from 'scoped-material-components/mwc-icon';
 import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
 import { List } from 'scoped-material-components/mwc-list';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
-import { PlaygroundElement } from '../../context/playground-element';
-export declare class CellTasks extends PlaygroundElement {
+import { CellObserver } from '../../base/cell-observer';
+import { PlaygroundElement } from '../../base/playground-element';
+export declare class CellTasks extends PlaygroundElement implements CellObserver {
     /** Public properties */
     cell: Cell;
     workflowsToDisplay: WorkflowType[];
@@ -21,13 +22,16 @@ export declare class CellTasks extends PlaygroundElement {
     private _runningTasks;
     private _successes;
     private _errors;
+    private _cellsController;
     observedCells(): Cell[];
-    onNewObservedCell(cell: Cell): import("@holochain-playground/core").MiddlewareSubscription[];
+    beforeWorkflow(cell: Cell, task: Workflow<any, any>): Promise<void>;
+    workflowSuccess(cell: Cell, task: Workflow<any, any>, result: any): Promise<void>;
+    workflowError(cell: Cell, task: Workflow<any, any>, error: any): Promise<void>;
     sortTasks(tasks: Array<[string, number]>): [string, number][];
     showTasks(): boolean;
-    render(): import("lit-element").TemplateResult;
-    static get styles(): import("lit-element").CSSResult[];
-    static get scopedElements(): {
+    render(): import("lit-html").TemplateResult<1>;
+    static get styles(): import("lit").CSSResultGroup[];
+    static elementDefinitions: {
         'mwc-card': typeof Card;
         'mwc-list': typeof List;
         'mwc-icon': typeof Icon;

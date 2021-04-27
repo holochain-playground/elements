@@ -1,10 +1,10 @@
-import { PlaygroundElement } from '../../context/playground-element';
+import { PlaygroundElement } from '../../base/playground-element';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { Card } from 'scoped-material-components/mwc-card';
 import { List } from 'scoped-material-components/mwc-list';
 import { Button } from 'scoped-material-components/mwc-button';
 export interface Step {
-    title: string;
+    title: (context: PlaygroundElement) => string;
     run: (context: PlaygroundElement) => Promise<void>;
 }
 export declare class RunSteps extends PlaygroundElement {
@@ -12,9 +12,9 @@ export declare class RunSteps extends PlaygroundElement {
     _runningStepIndex: number | undefined;
     _running: boolean;
     runSteps(): Promise<void>;
-    render(): import("lit-element").TemplateResult;
-    static get styles(): import("lit-element").CSSResult[];
-    static get scopedElements(): {
+    render(): any;
+    static get styles(): import("lit").CSSResultGroup[];
+    static elementDefinitions: {
         'mwc-list-item': typeof ListItem;
         'mwc-list': typeof List;
         'mwc-button': typeof Button;

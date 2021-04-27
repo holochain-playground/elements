@@ -11,14 +11,22 @@ describe('Links', () => {
 
     const cell = conductors[0].getAllCells()[0];
 
-    let baseHash = await conductors[0].callZomeFn({
+    await conductors[0].callZomeFn({
       cellId: cell.cellId,
       cap: null,
       fnName: 'create_entry',
       payload: { content: 'hi' },
       zome: 'demo_entries',
     });
-    
+
+    let baseHash = await conductors[0].callZomeFn({
+      cellId: cell.cellId,
+      cap: null,
+      fnName: 'hash_entry',
+      payload: { entry: { content: 'hi', entry_def_id: 'demo_entry' } },
+      zome: 'demo_entries',
+    });
+
     expect(baseHash).to.be.ok;
     await sleep(4000);
 
