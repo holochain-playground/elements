@@ -1,3 +1,4 @@
+import '@webcomponents/scoped-custom-element-registry';
 export * from './base/context';
 export * from './base/holochain-playground-container';
 export * from './base/cells-controller';
