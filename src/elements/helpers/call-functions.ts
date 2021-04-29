@@ -18,17 +18,16 @@ import { Select } from 'scoped-material-components/mwc-select';
 import { TextField } from 'scoped-material-components/mwc-textfield';
 import { sharedStyles } from '../utils/shared-styles';
 
-export type CallableFnArgument =
+export type CallableFnArgument = { name: string; required?: boolean } & (
   | {
       field: 'textfield';
-      name: string;
       type: string;
     }
   | {
-      name: string;
       field: 'custom';
       render: (value: any, setArgValue: (value: any) => void) => TemplateResult;
-    };
+    }
+);
 
 export interface CallableFn {
   name: string;
@@ -59,10 +58,13 @@ export class CallFns extends ScopedRegistryHost(LitElement) {
       changedValues.has('callableFns') &&
       changedValues.get('callableFns') &&
       !isEqual(
-        this.callableFns.map((fn) => ({ name: fn.name, args: fn.args })),
+        this.callableFns.map((fn) => ({
+          name: fn.name,
+          args: fn.args.map((arg) => arg.name),
+        })),
         (changedValues.get('callableFns') as Array<CallableFn>).map((fn) => ({
           name: fn.name,
-          args: fn.args,
+          args: fn.args.map((arg) => arg.name),
         }))
       )
     ) {
@@ -79,7 +81,7 @@ export class CallFns extends ScopedRegistryHost(LitElement) {
   renderField(callableFn: CallableFn, arg: CallableFnArgument) {
     if (arg.field === 'textfield')
       return html`<mwc-textfield
-        style="margin-top: 8px"
+        style="margin-top: 12px"
         outlined
         label=${arg.name + ': ' + arg.type}
         .value=${(this._arguments[callableFn.name] &&
@@ -89,11 +91,23 @@ export class CallFns extends ScopedRegistryHost(LitElement) {
           this.setArgument(callableFn.name, arg.name, e.target.value)}
       ></mwc-textfield>`;
     if (arg.field === 'custom')
-      return html`<div style="margin-top: 8px; display: contents;">
+      return html`<div style="margin-top: 12px;" class="column">
         ${arg.render(this._arguments[callableFn.name] || {}, (value) =>
           this.setArgument(callableFn.name, arg.name, value)
         )}
       </div>`;
+  }
+
+  isExecuteDisabled(callableFunction: CallableFn) {
+    return callableFunction.args
+      .filter((arg) => arg.required)
+      .some(
+        (arg) =>
+          !(
+            this._arguments[callableFunction.name] &&
+            this._arguments[callableFunction.name][arg.name]
+          )
+      );
   }
 
   renderCallableFunction(callableFunction: CallableFn) {
@@ -117,6 +131,7 @@ export class CallFns extends ScopedRegistryHost(LitElement) {
         raised
         @click=${() =>
           callableFunction.call(this._arguments[callableFunction.name])}
+        .disabled=${this.isExecuteDisabled(callableFunction)}
         >Execute</mwc-button
       >
     </div>`;

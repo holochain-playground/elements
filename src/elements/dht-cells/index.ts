@@ -20,7 +20,7 @@ import { Switch } from 'scoped-material-components/mwc-switch';
 import { CellTasks } from '../helpers/cell-tasks';
 import { HelpButton } from '../helpers/help-button';
 import { CellsController } from '../../base/cells-controller';
-import { selectAllCells, selectHoldingCells } from '../utils/selectors';
+import { selectAllCells, selectHoldingCells } from '../../base/selectors';
 import { sharedStyles } from '../utils/shared-styles';
 import { dhtCellsNodes, neighborsEdges } from './processors';
 import { graphStyles, layoutConfig } from './graph';
@@ -33,6 +33,7 @@ import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { uniq } from 'lodash-es';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CellObserver } from '../../base/cell-observer';
+import { CopyableHash } from '../helpers/copyable-hash';
 
 const MIN_ANIMATION_DELAY = 1000;
 const MAX_ANIMATION_DELAY = 7000;
@@ -385,33 +386,6 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
     })}`;
   }
 
-  renderCopyButton() {
-    //if (!this.activeAgentPubKey)
-    return html``;
-
-    const el = this._cy.getElementById(this.activeAgentPubKey);
-    const pos = el.renderedPosition();
-    return html`<mwc-icon-button
-      style=${styleMap({
-        position: 'absolute',
-        top: `${pos.y - 2}px`,
-        left: `${pos.x + 63}px`,
-        'z-index': '10',
-      })}
-      icon="content_copy"
-      @click=${() => {
-        navigator.clipboard.writeText(this.activeAgentPubKey);
-        this.dispatchEvent(
-          new CustomEvent('show-message', {
-            detail: { message: 'AgentPubKey copied to the clipboard' },
-            bubbles: true,
-            composed: true,
-          })
-        );
-      }}
-    ></mwc-icon-button>`;
-  }
-
   renderBottomToolbar() {
     const workflowsNames = Object.values(WorkflowType);
     const networkRequestNames = Object.values(NetworkRequestType);
@@ -512,9 +486,21 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
     return html`
       <mwc-card class="block-card" style="position: relative;">
         ${this.renderHelp()} ${this.renderTasksTooltips()}
-        ${this.renderCopyButton()}
         <div class="column fill">
-          <span class="block-title" style="margin: 16px;">DHT Cells</span>
+          <span class="block-title row" style="margin: 16px;"
+            >DHT Cells
+            ${this.activeDna
+              ? html`
+                  <span class="placeholder row">
+                    for Dna
+                    <copyable-hash
+                      .hash=${this.activeDna}
+                      style="margin-left: 8px;"
+                    ></copyable-hash>
+                  </span>
+                `
+              : html``}
+          </span>
           <div
             id="graph"
             class="fill ${classMap({
@@ -553,6 +539,7 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
     'mwc-switch': Switch,
     'mwc-formfield': Formfield,
     'mwc-icon-button': IconButton,
+    'copyable-hash': CopyableHash,
     'holochain-playground-help-button': HelpButton,
     'holochain-playground-cell-tasks': CellTasks,
   };

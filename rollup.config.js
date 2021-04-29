@@ -9,6 +9,8 @@ const pkg = require('./package.json');
 export const plugins = [
   replace({
     'customElements.define(JsonViewer.is, JsonViewer);': '',
+    'customElements.define(GridElement.is, GridElement);': '',
+    'customElements.define(GridColumnElement.is, GridColumnElement);': '',
   }),
   json(),
   typescript(),
@@ -27,7 +29,10 @@ export default {
   output: { dir: 'dist', format: 'es', sourcemap: true },
   external: [
     ...Object.keys(pkg.dependencies).filter(
-      (key) => !key.includes('cytoscape') && !key.includes('json-viewer')
+      (key) =>
+        !key.includes('cytoscape') &&
+        !key.includes('json-viewer') &&
+        !key.includes('@vaadin')
     ),
     /scoped-material-components/,
     'lit/directives/style-map.js',

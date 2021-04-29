@@ -9,7 +9,7 @@ import { Formfield } from 'scoped-material-components/mwc-formfield';
 import { Card } from 'scoped-material-components/mwc-card';
 
 import { allEntries } from './processors';
-import { selectAllCells, selectCell } from '../utils/selectors';
+import { selectAllCells, selectCell } from '../../base/selectors';
 import { sharedStyles } from '../utils/shared-styles';
 import { isEqual } from 'lodash-es';
 import { HelpButton } from '../helpers/help-button';

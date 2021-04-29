@@ -9,7 +9,7 @@ import {
   selectAllCells,
   selectCell,
   selectCells,
-} from './utils/selectors';
+} from '../base/selectors';
 import { sharedStyles } from './utils/shared-styles';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';

@@ -12,7 +12,7 @@ import { TextField } from 'scoped-material-components/mwc-textfield';
 import { Button } from 'scoped-material-components/mwc-button';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 import { Icon } from 'scoped-material-components/mwc-icon';
-import { selectCell } from '../utils/selectors';
+import { selectCell } from '../../base/selectors';
 import { Tab } from 'scoped-material-components/mwc-tab';
 import { TabBar } from 'scoped-material-components/mwc-tab-bar';
 import { Card } from 'scoped-material-components/mwc-card';

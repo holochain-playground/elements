@@ -2,7 +2,7 @@ import { html } from 'lit';
 import { property } from 'lit/decorators.js';
 
 import { sharedStyles } from './utils/shared-styles';
-import { selectAllCells, selectCell } from './utils/selectors';
+import { selectAllCells, selectCell } from '../base/selectors';
 import { getDhtShard } from '@holochain-playground/core';
 
 import { JsonViewer } from '@power-elements/json-viewer';

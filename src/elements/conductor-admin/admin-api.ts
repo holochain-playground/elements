@@ -1,17 +1,21 @@
 import { Conductor } from '@holochain-playground/core';
 import { html } from 'lit';
+import { PlaygroundElement } from '../../base/playground-element';
 import { CallableFn } from '../helpers/call-functions';
 
-export function adminApi(conductor: Conductor): CallableFn[] {
+export function adminApi(
+  element: PlaygroundElement,
+  conductor: Conductor
+): CallableFn[] {
   const installedAppIds = Object.keys(conductor.installedHapps);
   return [
     {
-      // TODO: add properties
       name: 'Clone DNA',
       args: [
         {
           name: 'installedAppId',
           field: 'custom',
+          required: true,
           render(args, setValue) {
             return html`<mwc-select
               outlined
@@ -31,6 +35,7 @@ export function adminApi(conductor: Conductor): CallableFn[] {
         {
           name: 'slotNick',
           field: 'custom',
+          required: true,
           render(args, setValue) {
             const slotNicks = args.installedAppId
               ? Object.keys(conductor.installedHapps[args.installedAppId].slots)
@@ -68,7 +73,9 @@ export function adminApi(conductor: Conductor): CallableFn[] {
               <span>Properties</span>
               ${args['slotNick']
                 ? propertyNames.length === 0
-                  ? html`<span>This DNA has no properties</span>`
+                  ? html`<span style="margin-top: 4px;" class="placeholder"
+                      >This DNA has no properties</span
+                    >`
                   : html`
                       ${propertyNames.map(
                         (property) => html`<mwc-textfield
@@ -84,20 +91,27 @@ export function adminApi(conductor: Conductor): CallableFn[] {
                         ></mwc-textfield>`
                       )}
                     `
-                : html`<span>Select a slot</span>`}
+                : html`<span style="margin-top: 4px;" class="placeholder"
+                    >Select a slot</span
+                  >`}
             </div>`;
           },
         },
         { name: 'membraneProof', field: 'textfield', type: 'String' },
       ],
-      call: (args) => {
-        return conductor.cloneCell(
+      call: async (args) => {
+        const cell = await conductor.cloneCell(
           args.installedAppId,
           args.slotNick,
           args.uid,
           args.properties,
           args.membraneProof
         );
+
+        element.updatePlayground({
+          activeDna: cell.dnaHash,
+          activeAgentPubKey: cell.agentPubKey,
+        });
       },
     },
   ];

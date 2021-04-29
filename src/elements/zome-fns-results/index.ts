@@ -7,7 +7,7 @@ import { Card } from 'scoped-material-components/mwc-card';
 import { sharedStyles } from '../utils/shared-styles';
 import { Button } from 'scoped-material-components/mwc-button';
 import { ZomeFunctionResult } from './types';
-import { selectAllCells, selectCell } from '../utils/selectors';
+import { selectAllCells, selectCell } from '../../base/selectors';
 import {
   CallZomeFnWorkflow,
   Cell,

@@ -1,18 +1,16 @@
-import { LitElement, html, css } from 'lit';
-import { property, query, state } from 'lit/decorators.js';
+import { html, css, PropertyValues } from 'lit';
+import { state } from 'lit/decorators.js';
+import { ref, createRef } from 'lit/directives/ref.js';
 
 import { sharedStyles } from '../utils/shared-styles';
 
-import { DhtShard } from '../dht-shard';
-import { EntryContents } from '../entry-contents';
 import { Card } from 'scoped-material-components/mwc-card';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { Tab } from 'scoped-material-components/mwc-tab';
 import { TabBar } from 'scoped-material-components/mwc-tab-bar';
 import { PlaygroundElement } from '../../base/playground-element';
-import { Conductor } from '@holochain-playground/core';
-import { selectCell } from '../utils/selectors';
+import { Cell, Conductor } from '@holochain-playground/core';
+import { selectCell } from '../../base/selectors';
 import { List } from 'scoped-material-components/mwc-list';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { CopyableHash } from '../helpers/copyable-hash';
@@ -20,10 +18,15 @@ import { Button } from 'scoped-material-components/mwc-button';
 import { HelpButton } from '../helpers/help-button';
 import { adminApi } from './admin-api';
 import { CallFns } from '../helpers/call-functions';
+import { GridElement } from '@vaadin/vaadin-grid';
+import { GridColumnElement } from '@vaadin/vaadin-grid/vaadin-grid-column';
+import { JsonViewer } from '@power-elements/json-viewer';
 
 export class ConductorAdmin extends PlaygroundElement {
   @state()
   private _selectedTabIndex: number = 0;
+
+  private _grid = createRef<GridElement>();
 
   get activeConductor(): Conductor | undefined {
     return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors)
@@ -73,49 +76,122 @@ export class ConductorAdmin extends PlaygroundElement {
     `;
   }
 
+  updated(changedValues: PropertyValues) {
+    super.updated(changedValues);
+    if (this._grid.value) {
+      this._grid.value.render();
+    }
+  }
+
+  setupGrid(grid: GridElement, conductor: Conductor) {
+    if (!grid) return;
+
+    setTimeout(() => {
+      grid.rowDetailsRenderer = function (root, grid, model) {
+        if (!root.firstElementChild) {
+          const cell = (model.item as any) as Cell;
+          root.innerHTML = `
+          <div class="column" style="padding: 8px; padding-top: 0">
+            <span>uid: "${cell.getSimulatedDna().uid}"</span>
+            <div class="row">
+              <span>Properties:</span>
+              <json-viewer style="margin-left: 8px">  
+                <script type="application/json">
+                  ${JSON.stringify(cell.getSimulatedDna().properties)}
+                </script> 
+              </json-viewer>
+            </div>
+          </div>
+          `;
+        }
+      };
+      const dnaColumn = this.shadowRoot.querySelector(
+        '#dna-column'
+      ) as GridColumnElement;
+      dnaColumn.renderer = (root: any, column, model) => {
+        const cell = (model.item as any) as Cell;
+        root.innerHTML = `<copyable-hash hash="${cell.dnaHash}"></copyable-hash>`;
+        root.item = model.item;
+      };
+      const agentPubKeyColumn = this.shadowRoot.querySelector(
+        '#agent-pub-key-column'
+      ) as GridColumnElement;
+      agentPubKeyColumn.renderer = (root: any, column, model) => {
+        const cell = (model.item as any) as Cell;
+        root.innerHTML = `<copyable-hash hash="${cell.agentPubKey}"></copyable-hash>`;
+        root.item = model.item;
+      };
+
+      const detailsToggleColumn = this.shadowRoot.querySelector(
+        '#details'
+      ) as GridColumnElement;
+      detailsToggleColumn.renderer = function (root: any, column, model) {
+        if (!root.firstElementChild) {
+          root.innerHTML = '<mwc-button label="Details"></mwc-button>';
+          let opened = false;
+          root.firstElementChild.addEventListener('click', function (e: any) {
+            if (!opened) {
+              grid.openItemDetails(root.item);
+            } else {
+              grid.closeItemDetails(root.item);
+            }
+            opened = !opened;
+          });
+        }
+        root.item = model.item;
+      };
+      const selectColumn = this.shadowRoot.querySelector(
+        '#select'
+      ) as GridColumnElement;
+      selectColumn.renderer = (root: any, column, model) => {
+        const cell = (model.item as any) as Cell;
+
+        const isSelected =
+          this.activeDna === cell.dnaHash &&
+          this.activeAgentPubKey === cell.agentPubKey;
+        root.innerHTML = `<mwc-button label="Select" ${
+          isSelected ? 'disabled' : ''
+        }></mwc-button>`;
+        root.firstElementChild.addEventListener('click', (e: any) => {
+          const cell = (model.item as any) as Cell;
+          this.updatePlayground({
+            activeAgentPubKey: cell.agentPubKey,
+            activeDna: cell.dnaHash,
+          });
+        });
+
+        root.item = model.item;
+      };
+    });
+  }
+
   renderCells(conductor: Conductor) {
-    return html` <table>
-      <thead>
-        <tr style="margin-bottom: 4px;">
-          <th class="bottom-border">Dna</th>
-          <th class="bottom-border">Agent</th>
-        </tr>
-      </thead>
-      ${conductor.getAllCells().map(
-        (cell) =>
-          html`<tr>
-            <td class="bottom-border">
-              <copyable-hash
-                .hash=${cell.dnaHash}
-                .sliceLength=${10}
-              ></copyable-hash>
-            </td>
-            <td class="bottom-border">
-              <copyable-hash
-                .hash=${cell.agentPubKey}
-                .sliceLength=${10}
-              ></copyable-hash>
-            </td>
-            <td>
-              <mwc-button
-                label="Select Cell"
-                .disabled=${cell.dnaHash === this.activeDna &&
-                cell.agentPubKey === this.activeAgentPubKey}
-                @click=${() =>
-                  this.updatePlayground({
-                    activeAgentPubKey: cell.agentPubKey,
-                    activeDna: cell.dnaHash,
-                    activeHash: undefined,
-                  })}
-              ></mwc-button>
-            </td>
-          </tr> `
-      )}
-    </table>`;
+    const items = conductor.getAllCells();
+
+    return html`
+      <vaadin-grid
+        .items=${items}
+        ${ref(this._grid)}
+        ${ref((el) => this.setupGrid(el as GridElement, conductor))}
+      >
+        <vaadin-grid-column
+          path="dna"
+          header="Dna"
+          id="dna-column"
+        ></vaadin-grid-column>
+        <vaadin-grid-column
+          id="agent-pub-key-column"
+          path="agentPubKey"
+          header="Agent Pub Key"
+        ></vaadin-grid-column>
+        <vaadin-grid-column flex-grow="0" id="details"></vaadin-grid-column>
+        <vaadin-grid-column flex-grow="0" id="select"></vaadin-grid-column>
+      </vaadin-grid>
+    `;
   }
 
   renderAdminAPI(conductor: Conductor) {
-    const adminApiFns = adminApi(conductor);
+    const adminApiFns = adminApi(this, conductor);
 
     return html`<call-functions .callableFns=${adminApiFns}></call-functions>`;
   }
@@ -139,7 +215,7 @@ export class ConductorAdmin extends PlaygroundElement {
           <mwc-tab label="Cells"></mwc-tab>
           <mwc-tab label="Admin API"></mwc-tab>
         </mwc-tab-bar>
-        <div style="padding: 16px;" class="column fill">
+        <div class="column fill">
           ${this._selectedTabIndex === 0
             ? this.renderCells(this.activeConductor)
             : this.renderAdminAPI(this.activeConductor)}
@@ -189,8 +265,11 @@ export class ConductorAdmin extends PlaygroundElement {
     'copyable-hash': CopyableHash,
     'call-functions': CallFns,
     'mwc-tab': Tab,
+    'vaadin-grid': GridElement,
+    'vaadin-grid-column': GridColumnElement,
     'mwc-tab-bar': TabBar,
     'mwc-list': List,
+    'json-viewer': JsonViewer,
     'mwc-list-item': ListItem,
     'mwc-card': Card,
     'mwc-button': Button,

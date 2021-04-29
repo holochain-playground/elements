@@ -23,6 +23,7 @@
     "@holochain-playground/core": "github:holochain-playground/core#build",
     "@lit-labs/scoped-registry-mixin": "^1.0.0-rc.1",
     "@power-elements/json-viewer": "^2.1.1",
+    "@vaadin/vaadin-grid": "^5.7.12",
     "@webcomponents/scoped-custom-element-registry": "0.0.1",
     "cytoscape": "^3.17.0",
     "cytoscape-cola": "^2.3.0",

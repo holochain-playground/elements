@@ -12,7 +12,7 @@ import { sourceChainNodes } from './processors';
 import { sharedStyles } from '../utils/shared-styles';
 
 import { HelpButton } from '../helpers/help-button';
-import { selectCell } from '../utils/selectors';
+import { selectCell } from '../../base/selectors';
 import { PlaygroundElement } from '../../base/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
 import { graphStyles } from './graph';
