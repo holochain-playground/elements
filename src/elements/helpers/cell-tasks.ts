@@ -6,8 +6,10 @@ import {
   WorkflowType,
   workflowPriority,
   CallZomeFnWorkflow,
+  NetworkRequestInfo,
 } from '@holochain-playground/core';
 import { css, html } from 'lit';
+import { styleMap } from 'lit-html/directives/style-map.js';
 import { property, state } from 'lit/decorators.js';
 
 import { Subject } from 'rxjs';
@@ -64,7 +66,12 @@ export class CellTasks extends PlaygroundElement implements CellObserver {
   private _successes: Array<{ task: CallZomeFnWorkflow; payload: any }> = [];
 
   @state()
-  private _errors: Array<{ task: Workflow<any, any>; error: any }> = [];
+  private _workflowErrors: Array<{ task: Workflow<any, any>; error: any }> = [];
+  @state()
+  private _networkRequestErrors: Array<{
+    networkRequest: NetworkRequestInfo<any, any>;
+    error: any;
+  }> = [];
 
   private _cellsController = new CellsController(this);
 
@@ -162,7 +169,7 @@ export class CellTasks extends PlaygroundElement implements CellObserver {
         task,
         error,
       };
-      this._errors.push(errorInfo);
+      this._workflowErrors.push(errorInfo);
 
       this.requestUpdate();
 
@@ -188,8 +195,51 @@ export class CellTasks extends PlaygroundElement implements CellObserver {
         await sleep(this.workflowDelay);
       }
 
-      const index = this._errors.findIndex((e) => e === errorInfo);
-      this._errors.splice(index, 1);
+      const index = this._workflowErrors.findIndex((e) => e === errorInfo);
+      this._workflowErrors.splice(index, 1);
+    }
+    this.requestUpdate();
+  }
+
+  async networkRequestError(
+    networkRequest: NetworkRequestInfo<any, any>,
+    error: any
+  ) {
+    if (!this.hideErrors) {
+      const errorInfo = {
+        networkRequest,
+        error,
+      };
+      this._networkRequestErrors.push(errorInfo);
+
+      this.requestUpdate();
+
+      if (this.stepByStep) {
+        this.dispatchEvent(
+          new CustomEvent('execution-paused', {
+            detail: { paused: true },
+            composed: true,
+            bubbles: true,
+          })
+        );
+        await new Promise((resolve) =>
+          this._resumeObservable.subscribe(() => resolve(null))
+        );
+        this.dispatchEvent(
+          new CustomEvent('execution-paused', {
+            detail: { paused: false },
+            composed: true,
+            bubbles: true,
+          })
+        );
+      } else {
+        await sleep(this.workflowDelay);
+      }
+
+      const index = this._networkRequestErrors.findIndex(
+        (e) => e === errorInfo
+      );
+      this._networkRequestErrors.splice(index, 1);
     }
     this.requestUpdate();
   }
@@ -205,10 +255,31 @@ export class CellTasks extends PlaygroundElement implements CellObserver {
   showTasks() {
     return (
       Object.keys(this._runningTasks).length !== 0 ||
-      this._errors.length !== 0 ||
+      this._workflowErrors.length !== 0 ||
       this._successes.length !== 0 ||
       this._callZomeTasks.length !== 0
     );
+  }
+
+  renderListItem(
+    icon: string,
+    primary: string,
+    secondary: string,
+    color: string = 'inherit'
+  ) {
+    return html`
+      <mwc-list-item
+        twoline
+        graphic="icon"
+        style="--mdc-list-item-graphic-margin: 4px;"
+      >
+        <mwc-icon slot="graphic" style=${styleMap({ color: color })}
+          >${icon}</mwc-icon
+        >
+        <span>${primary}</span>
+        <span slot="secondary">${secondary}</span>
+      </mwc-list-item>
+    `;
   }
 
   render() {
@@ -217,73 +288,48 @@ export class CellTasks extends PlaygroundElement implements CellObserver {
     return html`
       <mwc-card class="tasks-card">
         <mwc-list style="max-height: 300px; overflow-y: auto; width: 200px;">
-          ${this._callZomeTasks.map(
-            (callZome) => html`
-              <mwc-list-item
-                twoline
-                graphic="icon"
-                style="--mdc-list-item-graphic-margin: 4px;"
-              >
-                <mwc-icon slot="graphic" style="color: green;"
-                  >call_made</mwc-icon
-                >
-                <span>${callZome.details.fnName}</span>
-                <span slot="secondary">${callZome.details.zome} zome</span>
-              </mwc-list-item>
-            `
+          ${this._callZomeTasks.map((callZome) =>
+            this.renderListItem(
+              'call_made',
+              callZome.details.fnName,
+              callZome.details.zome + ' zome',
+              'green'
+            )
           )}
-          ${this._errors.map(
-            (errorInfo) => html`
-              <mwc-list-item
-                twoline
-                graphic="icon"
-                style="--mdc-list-item-graphic-margin: 4px;"
-              >
-                <mwc-icon slot="graphic" style="color: red"
-                  >error_outline</mwc-icon
-                >
-                <span> ${errorInfo.error.message} </span>
-                <span slot="secondary">
-                  ${errorInfo.task.type === WorkflowType.CALL_ZOME
-                    ? `${
-                        (errorInfo.task as CallZomeFnWorkflow).details.fnName
-                      } in ${
-                        (errorInfo.task as CallZomeFnWorkflow).details.zome
-                      }`
-                    : errorInfo.task.type}</span
-                >
-              </mwc-list-item>
-            `
+          ${this._workflowErrors.map((errorInfo) =>
+            this.renderListItem(
+              'error_outline',
+              errorInfo.error.message,
+              errorInfo.task.type === WorkflowType.CALL_ZOME
+                ? `${
+                    (errorInfo.task as CallZomeFnWorkflow).details.fnName
+                  } in ${(errorInfo.task as CallZomeFnWorkflow).details.zome}`
+                : errorInfo.task.type,
+              'red'
+            )
           )}
-          ${this._successes.map(
-            ({ task, payload }) => html`
-              <mwc-list-item
-                twoline
-                graphic="icon"
-                style="--mdc-list-item-graphic-margin: 4px;"
-              >
-                <mwc-icon slot="graphic" style="color: green"
-                  >check_circle_outline</mwc-icon
-                >
-                <span> ${task.details.fnName}</span>
-                <span slot="secondary">Success</span>
-              </mwc-list-item>
-            `
+          ${this._networkRequestErrors.map((errorInfo) =>
+            this.renderListItem(
+              'error_outline',
+              errorInfo.error.message,
+              errorInfo.networkRequest.type,
+              'red'
+            )
           )}
-          ${orderedTasks.map(
-            ([taskName, taskNumber]) => html`
-              <mwc-list-item
-                twoline
-                graphic="icon"
-                style="--mdc-list-item-graphic-margin: 4px;"
-              >
-                <mwc-icon slot="graphic">miscellaneous_services</mwc-icon>
-                <span>
-                  ${taskNumber > 1 ? taskNumber + 'x' : ''} ${taskName}
-                </span>
-                <span slot="secondary">Cell Workflow</span>
-              </mwc-list-item>
-            `
+          ${this._successes.map(({ task, payload }) =>
+            this.renderListItem(
+              'check_circle_outline',
+              task.details.fnName,
+              'Success',
+              'green'
+            )
+          )}
+          ${orderedTasks.map(([taskName, taskNumber]) =>
+            this.renderListItem(
+              'miscellaneous_services',
+              taskName,
+              'Cell Workflow'
+            )
           )}
         </mwc-list>
         ${this.stepByStep

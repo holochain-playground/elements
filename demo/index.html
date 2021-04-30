@@ -19,10 +19,9 @@
           margin-bottom: 20px;
         "
       >
-        <conductor-admin style="height: 600px; width: 100%"></conductor-admin>
         <dht-cells
           id="cells"
-          style="height: 600px; width: 800px"
+          style="height: 600px; width: 1000px"
           show-zome-fn-success
         ></dht-cells>
       </div>
@@ -36,10 +35,11 @@
         "
       >
         <call-zome-fns
-          style="height: 350px; width: 100%"
+          style="height: 350px; flex: 1;"
           id="call-zome"
         ></call-zome-fns>
-        <source-chain style="height: 350px; width: 100%"></source-chain>
+        <source-chain style="height: 350px; flex: 1;"></source-chain>
+        <entry-contents style="height: 350px; flex: 1;"></entry-contents>
       </div>
     </holochain-playground-container>
 
@@ -79,10 +79,18 @@
       customElements.define('conductor-admin', ConductorAdmin);
 
       const container = document.getElementById('container');
-      container.numberOfSimulatedConductors = 6;
+      container.numberOfSimulatedConductors = 10;
 
       container.addEventListener('ready', (e) => {
-        const conductor = e.detail.conductors[0];
+        const conductors = e.detail.conductors;
+        const conductor = conductors[0];
+
+        for (let i = 0; i < 6; i++) {
+          conductors[i].setBadAgent({
+            disable_validation_before_publish: true,
+            pretend_invalid_elements_are_valid: true,
+          });
+        }
 
         const cellId = conductor.getAllCells()[0].cellId;
 

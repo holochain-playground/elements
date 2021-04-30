@@ -248,6 +248,7 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
     const neighbors = neighborsEdges(this.cellsController.observedCells);
     if (this._neighborEdges.length != neighbors.length) {
       this._neighborEdges = neighbors;
+      this._cy.remove('edge');
       this._cy.add(neighbors);
     }
 
@@ -492,7 +493,7 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
             ${this.activeDna
               ? html`
                   <span class="placeholder row">
-                    for Dna
+                    , for Dna
                     <copyable-hash
                       .hash=${this.activeDna}
                       style="margin-left: 8px;"
