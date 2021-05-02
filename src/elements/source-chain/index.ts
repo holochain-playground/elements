@@ -144,7 +144,7 @@ export class SourceChain extends PlaygroundElement implements CellObserver {
     return html`
       <mwc-card class="block-card">
         <div class="column fill">
-          <span class="block-title" style="margin: 16px;">Source chain</span>
+          <span class="block-title" style="margin: 16px;">Source-Chain</span>
           ${this.renderHelp()}
           ${this.activeCell
             ? html``

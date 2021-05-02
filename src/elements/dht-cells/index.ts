@@ -55,6 +55,7 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
   networkRequestsToDisplay: NetworkRequestType[] = [
     NetworkRequestType.PUBLISH_REQUEST,
     NetworkRequestType.CALL_REMOTE,
+    NetworkRequestType.WARRANT,
   ];
 
   @property({ type: Boolean, attribute: 'hide-time-controller' })

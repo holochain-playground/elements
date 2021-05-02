@@ -13,6 +13,7 @@ import {
   getHashType,
   HashType,
 } from '@holochain-playground/core';
+import { cloneDeep } from 'lodash';
 
 export function selectCells(dna: Hash, conductor: Conductor): Cell[] {
   return conductor.getCells(dna);
@@ -27,7 +28,7 @@ export function selectGlobalDHTOpsCount(cells: Cell[]): number {
   let dhtOps = 0;
 
   for (const cell of cells) {
-    dhtOps += Object.keys(cell.getState().integratedDHTOps).length;
+    dhtOps += Object.keys(cell._state.integratedDHTOps).length;
   }
 
   return dhtOps;
@@ -35,8 +36,8 @@ export function selectGlobalDHTOpsCount(cells: Cell[]): number {
 
 export function selectHoldingCells(hash: Hash, cells: Cell[]): Cell[] {
   if (getHashType(hash) === HashType.ENTRY)
-    return cells.filter((cell) => isHoldingEntry(cell.getState(), hash));
-  return cells.filter((cell) => isHoldingElement(cell.getState(), hash));
+    return cells.filter((cell) => isHoldingEntry(cell._state, hash));
+  return cells.filter((cell) => isHoldingElement(cell._state, hash));
 }
 
 export function selectConductorByAgent(
@@ -68,7 +69,7 @@ export function selectUniqueDHTOpsCount(cells: Cell[]): number {
   const globalDHTOps = {};
 
   for (const cell of cells) {
-    for (const hash of Object.keys(cell.getState().integratedDHTOps)) {
+    for (const hash of Object.keys(cell._state.integratedDHTOps)) {
       globalDHTOps[hash] = {};
     }
   }
@@ -80,9 +81,9 @@ export function selectFromCAS(hash: Hash, cells: Cell[]): any {
   if (!hash) return undefined;
 
   for (const cell of cells) {
-    const entry = cell.getState().CAS[hash];
+    const entry = cell._state.CAS[hash];
     if (entry) {
-      return entry;
+      return cloneDeep(entry);
     }
   }
   return undefined;
@@ -100,7 +101,7 @@ export function selectMedianHoldingDHTOps(cells: Cell[]): number {
   const holdingDHTOps = [];
 
   for (const cell of cells) {
-    holdingDHTOps.push(Object.keys(cell.getState().integratedDHTOps).length);
+    holdingDHTOps.push(Object.keys(cell._state.integratedDHTOps).length);
   }
 
   holdingDHTOps.sort();

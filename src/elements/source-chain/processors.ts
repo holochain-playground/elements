@@ -10,7 +10,7 @@ export function sourceChainNodes(cell: Cell) {
   if (!cell) return [];
 
   const nodes = [];
-  const state = cell.getState();
+  const state = cell._state;
 
   const headersHashes = state.sourceChain;
   for (const headerHash of headersHashes) {
