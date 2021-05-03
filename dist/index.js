@@ -78288,6 +78288,11 @@ class CellTasks extends PlaygroundElement {
     async beforeWorkflow(cell, task) {
         if (!this.workflowsToDisplay.includes(task.type))
             return;
+        if (task.type === WorkflowType.APP_VALIDATION &&
+            cell.conductor.badAgent &&
+            cell.conductor.badAgent.config.pretend_invalid_elements_are_valid) {
+            return;
+        }
         if (task.type === WorkflowType.CALL_ZOME) {
             this._callZomeTasks.push(task);
         }
