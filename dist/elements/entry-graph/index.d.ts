@@ -10,6 +10,7 @@ import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CellObserver } from '../../base/cell-observer';
 import { CellsController } from '../../base/cells-controller';
+import { CopyableHash } from '../helpers/copyable-hash';
 /**
  * @element entry-graph
  */
@@ -40,6 +41,7 @@ export declare class EntryGraph extends PlaygroundElement implements CellObserve
         'mwc-checkbox': typeof Checkbox;
         'mwc-formfield': typeof Formfield;
         'mwc-icon-button': typeof IconButton;
+        'copyable-hash': typeof CopyableHash;
         'mwc-card': typeof Card;
         'mwc-menu': typeof Menu;
         'mwc-icon': typeof Icon;

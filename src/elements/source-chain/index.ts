@@ -18,6 +18,7 @@ import { Card } from 'scoped-material-components/mwc-card';
 import { graphStyles } from './graph';
 import { CellObserver } from '../../base/cell-observer';
 import { CellsController } from '../../base/cells-controller';
+import { CopyableHash } from '../helpers/copyable-hash';
 
 cytoscape.use(dagre); // register extension
 
@@ -144,7 +145,7 @@ export class SourceChain extends PlaygroundElement implements CellObserver {
     return html`
       <mwc-card class="block-card">
         <div class="column fill">
-          <span class="block-title" style="margin: 16px;"
+          <span class="block-title row" style="margin: 16px;"
             >Source-Chain${this.activeAgentPubKey
               ? html`
                   <span class="placeholder row">
@@ -195,6 +196,7 @@ export class SourceChain extends PlaygroundElement implements CellObserver {
 
   static elementDefinitions = {
     'mwc-card': Card,
+    'copyable-hash': CopyableHash,
     'help-button': HelpButton,
   };
 }

@@ -22,6 +22,7 @@ import { graphStyles } from './graph';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CellObserver } from '../../base/cell-observer';
 import { CellsController } from '../../base/cells-controller';
+import { CopyableHash } from '../helpers/copyable-hash';
 
 cytoscape.use(cola);
 
@@ -263,12 +264,12 @@ export class EntryGraph extends PlaygroundElement implements CellObserver {
     return html`
       <mwc-card class="block-card">
         <div class="column fill" style="margin: 16px;">
-          <span class="block-title"
+          <span class="block-title row"
             >Entry
             Graph${this.activeDna
               ? html`
                   <span class="placeholder row">
-                    , for DNA
+                    , for Dna
                     <copyable-hash
                       .hash=${this.activeDna}
                       style="margin-left: 8px;"
@@ -291,6 +292,7 @@ export class EntryGraph extends PlaygroundElement implements CellObserver {
     'mwc-checkbox': Checkbox,
     'mwc-formfield': Formfield,
     'mwc-icon-button': IconButton,
+    'copyable-hash': CopyableHash,
     'mwc-card': Card,
     'mwc-menu': Menu,
     'mwc-icon': Icon,

@@ -78593,7 +78593,6 @@ class DhtCells extends PlaygroundElement {
         this.hideTimeController = false;
         this.hideFilter = false;
         this.stepByStep = false;
-        this.skipGenesis = false;
         this.showZomeFnSuccess = false;
         this._resumeObservable = new Subject();
         this._onPause = false;
@@ -79009,10 +79008,6 @@ __decorate([
     e$4({ type: Boolean, attribute: 'step-by-step' }),
     __metadata("design:type", Object)
 ], DhtCells.prototype, "stepByStep", void 0);
-__decorate([
-    e$4({ type: Boolean, attribute: 'skip-genesis' }),
-    __metadata("design:type", Object)
-], DhtCells.prototype, "skipGenesis", void 0);
 __decorate([
     e$4({ type: Boolean, attribute: 'show-zome-fn-success' }),
     __metadata("design:type", Object)
@@ -85196,12 +85191,12 @@ class EntryGraph extends PlaygroundElement {
         return html$1 `
       <mwc-card class="block-card">
         <div class="column fill" style="margin: 16px;">
-          <span class="block-title"
+          <span class="block-title row"
             >Entry
             Graph${this.activeDna
             ? html$1 `
                   <span class="placeholder row">
-                    , for DNA
+                    , for Dna
                     <copyable-hash
                       .hash=${this.activeDna}
                       style="margin-left: 8px;"
@@ -85224,6 +85219,7 @@ EntryGraph.elementDefinitions = {
     'mwc-checkbox': Checkbox,
     'mwc-formfield': Formfield,
     'mwc-icon-button': IconButton,
+    'copyable-hash': CopyableHash,
     'mwc-card': Card,
     'mwc-menu': Menu,
     'mwc-icon': Icon,
@@ -96316,7 +96312,7 @@ class SourceChain extends PlaygroundElement {
         return html$1 `
       <mwc-card class="block-card">
         <div class="column fill">
-          <span class="block-title" style="margin: 16px;"
+          <span class="block-title row" style="margin: 16px;"
             >Source-Chain${this.activeAgentPubKey
             ? html$1 `
                   <span class="placeholder row">
@@ -96366,6 +96362,7 @@ class SourceChain extends PlaygroundElement {
 }
 SourceChain.elementDefinitions = {
     'mwc-card': Card,
+    'copyable-hash': CopyableHash,
     'help-button': HelpButton,
 };
 __decorate([

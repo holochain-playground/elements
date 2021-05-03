@@ -24,7 +24,6 @@ export declare class DhtCells extends PlaygroundElement implements CellObserver 
     hideTimeController: boolean;
     hideFilter: boolean;
     stepByStep: boolean;
-    skipGenesis: boolean;
     showZomeFnSuccess: boolean;
     private _graph;
     private _activeWorkflowsButton;

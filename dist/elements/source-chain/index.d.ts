@@ -5,6 +5,7 @@ import { PlaygroundElement } from '../../base/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
 import { CellObserver } from '../../base/cell-observer';
 import { CellsController } from '../../base/cells-controller';
+import { CopyableHash } from '../helpers/copyable-hash';
 /**
  * @element source-chain
  */
@@ -23,6 +24,7 @@ export declare class SourceChain extends PlaygroundElement implements CellObserv
     static get styles(): import("lit").CSSResultGroup[];
     static elementDefinitions: {
         'mwc-card': typeof Card;
+        'copyable-hash': typeof CopyableHash;
         'help-button': typeof HelpButton;
     };
 }
