@@ -22,6 +22,7 @@ import { graphStyles } from './graph';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CellObserver } from '../../base/cell-observer';
 import { CellsController } from '../../base/cells-controller';
+import { CopyableHash } from '../helpers/copyable-hash';
 
 cytoscape.use(cola);
 
@@ -76,7 +77,7 @@ export class EntryGraph extends PlaygroundElement implements CellObserver {
   private _visibleEntriesButton: Button;
   @query('#visible-entries-menu')
   private _visibleEntriesMenu: Menu;
-  
+
   _cellsController = new CellsController(this);
 
   observedCells() {
@@ -116,7 +117,6 @@ export class EntryGraph extends PlaygroundElement implements CellObserver {
     super.updated(changedValues);
     this.updatedGraph();
   }
-
 
   updatedGraph() {
     if (this.entryGraph.getBoundingClientRect().width === 0 || !this.ready) {
@@ -264,7 +264,20 @@ export class EntryGraph extends PlaygroundElement implements CellObserver {
     return html`
       <mwc-card class="block-card">
         <div class="column fill" style="margin: 16px;">
-          <span class="block-title">Entry Graph</span>
+          <span class="block-title row"
+            >Entry
+            Graph${this.activeDna
+              ? html`
+                  <span class="placeholder row">
+                    , for Dna
+                    <copyable-hash
+                      .hash=${this.activeDna}
+                      style="margin-left: 8px;"
+                    ></copyable-hash>
+                  </span>
+                `
+              : html``}</span
+          >
 
           <div id="entry-graph" class="fill"></div>
 
@@ -279,6 +292,7 @@ export class EntryGraph extends PlaygroundElement implements CellObserver {
     'mwc-checkbox': Checkbox,
     'mwc-formfield': Formfield,
     'mwc-icon-button': IconButton,
+    'copyable-hash': CopyableHash,
     'mwc-card': Card,
     'mwc-menu': Menu,
     'mwc-icon': Icon,

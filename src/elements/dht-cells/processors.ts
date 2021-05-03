@@ -28,15 +28,14 @@ export function neighborsEdges(cells: Cell[]) {
 
   for (const cell of cells) {
     const cellAgentPubKey = cell.agentPubKey;
-    const cellNeighbors = cell.p2p.getNeighbors();
+    const cellNeighbors = cell.p2p.neighbors;
 
     for (const cellNeighbor of cellNeighbors) {
       if (
         !(
           allNeighbors[cellNeighbor] &&
           allNeighbors[cellNeighbor][cellAgentPubKey]
-        ) &&
-        !doTheyHaveBeef(cellDict[cellAgentPubKey], cellDict[cellNeighbor])
+        )
       ) {
         edges.push({
           data: {

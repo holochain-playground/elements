@@ -8,6 +8,8 @@ import { Card } from 'scoped-material-components/mwc-card';
 import { sharedStyles } from '../utils/shared-styles';
 import { List } from 'scoped-material-components/mwc-list';
 import { Button } from 'scoped-material-components/mwc-button';
+import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
+import { selectAllCells } from '../../base/selectors';
 
 export interface Step {
   title: (context: PlaygroundElement) => string;
@@ -27,11 +29,61 @@ export class RunSteps extends PlaygroundElement {
   async runSteps() {
     this._running = true;
 
+    await this.awaitNetworkConsistency();
+
     for (let i = 0; i < this.steps.length; i++) {
       this._runningStepIndex = i;
       await this.steps[i].run(this);
+      await this.awaitNetworkConsistency();
     }
     this._running = false;
+  }
+
+  async awaitNetworkConsistency() {
+    return new Promise((resolve) => {
+      const cells = selectAllCells(this.activeDna, this.conductors);
+
+      const checkConsistency = (consistencyCheckCount = 0) => {
+        for (const cell of cells) {
+          for (const triggers of Object.values(cell._triggers)) {
+            if (triggers.running || triggers.triggered) return;
+          }
+        }
+        if (consistencyCheckCount === 3) resolve(null);
+        else setTimeout(() => checkConsistency(consistencyCheckCount + 1), 200);
+      };
+
+      for (const cell of cells) {
+        cell.workflowExecutor.success(async () => checkConsistency());
+        cell.workflowExecutor.error(async () => checkConsistency());
+      }
+    });
+  }
+
+  renderContent() {
+    if (!this.conductors || this.conductors.length === 0)
+      return html`<div class="fill center-content">
+        <mwc-circular-progress></mwc-circular-progress>
+      </div>`;
+    if (!this.steps)
+      return html`<div class="center-content" style="flex: 1;">
+        <span class="placeholder">There are no steps to run</span>
+      </div>`;
+    return html`
+      <mwc-list activatable>
+        ${this.steps.map(
+          (step, index) =>
+            html`<mwc-list-item
+              noninteractive
+              class=${classMap({
+                future: this._runningStepIndex < index,
+              })}
+              .activated=${this._running && this._runningStepIndex === index}
+              >${index + 1}. ${step.title(this)}</mwc-list-item
+            >`
+        )}
+      </mwc-list>
+    `;
   }
 
   render() {
@@ -43,30 +95,11 @@ export class RunSteps extends PlaygroundElement {
             <mwc-button
               .label=${this._running ? 'RUNNING...' : 'RUN'}
               raised
-              .disabled=${this._running}
+              .disabled=${this._running || !this.conductors}
               @click=${() => this.runSteps()}
             ></mwc-button>
           </div>
-          ${this.steps
-            ? html`
-                <mwc-list activatable>
-                  ${this.steps.map(
-                    (step, index) =>
-                      html`<mwc-list-item
-                        noninteractive
-                        class=${classMap({
-                          future: this._runningStepIndex < index,
-                        })}
-                        .activated=${this._running &&
-                        this._runningStepIndex === index}
-                        >${index + 1}. ${step.title(this)}</mwc-list-item
-                      >`
-                  )}
-                </mwc-list>
-              `
-            : html`<div class="center-content" style="flex: 1;">
-                <span class="placeholder">There are no steps to run</span>
-              </div>`}
+          ${this.renderContent()}
         </div>
       </mwc-card>
     `;
@@ -88,6 +121,7 @@ export class RunSteps extends PlaygroundElement {
   }
 
   static elementDefinitions = {
+    'mwc-circular-progress': CircularProgress,
     'mwc-list-item': ListItem,
     'mwc-list': List,
     'mwc-button': Button,
