@@ -25,7 +25,7 @@ export declare class P2pCell {
     redundancyFactor: number;
     _gossipLoop: SimpleBloomMod;
     networkRequestsExecutor: MiddlewareExecutor<NetworkRequestInfo<any, any>>;
-    neighborConnections: Dictionary<Connection>;
+    neighborConnections: Dictionary<Connection | undefined>;
     constructor(state: P2pCellState, cellId: CellId, network: Network);
     getState(): P2pCellState;
     get cell(): Cell;

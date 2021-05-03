@@ -32,7 +32,7 @@ export const validation_receipt = async (
     putValidationReceipt(dhtOpHash, receipt)(workspace.state);
 
     const badAgents = getBadAgents(workspace.state);
-    const beforeCount = workspace.state.badAgents.length
+    const beforeCount = workspace.state.badAgents.length;
 
     workspace.state.badAgents = badAgents;
 

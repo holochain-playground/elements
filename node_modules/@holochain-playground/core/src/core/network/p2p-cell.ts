@@ -51,7 +51,7 @@ export class P2pCell {
     NetworkRequestInfo<any, any>
   >();
 
-  neighborConnections: Dictionary<Connection> = {};
+  neighborConnections: Dictionary<Connection | undefined> = {};
 
   constructor(
     state: P2pCellState,
@@ -197,7 +197,7 @@ export class P2pCell {
 
   connectWith(peer: Cell): Connection {
     if (this.neighborConnections[peer.agentPubKey])
-      return this.neighborConnections[peer.agentPubKey];
+      return this.neighborConnections[peer.agentPubKey] as Connection;
     return new Connection(this.cell, peer);
   }
 
@@ -206,6 +206,7 @@ export class P2pCell {
   }
 
   handleCloseNeighborConnection(from: Cell) {
+    this.neighborConnections[from.agentPubKey] = undefined;
     delete this.neighborConnections[from.agentPubKey];
     this.syncNeighbors();
   }
@@ -217,13 +218,14 @@ export class P2pCell {
 
       withPeer.p2p.handleOpenNeighborConnection(this.cell, connection);
     }
-    return this.neighborConnections[withPeer.agentPubKey];
+    return this.neighborConnections[withPeer.agentPubKey] as Connection;
   }
 
   closeNeighborConnection(withPeer: AgentPubKey) {
     if (this.neighborConnections[withPeer]) {
-      const connection = this.neighborConnections[withPeer];
+      const connection = this.neighborConnections[withPeer] as Connection;
       connection.close();
+      this.neighborConnections[withPeer] = undefined;
       delete this.neighborConnections[withPeer];
 
       connection

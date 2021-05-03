@@ -3007,6 +3007,7 @@ class P2pCell {
         this.neighborConnections[from.agentPubKey] = connection;
     }
     handleCloseNeighborConnection(from) {
+        this.neighborConnections[from.agentPubKey] = undefined;
         delete this.neighborConnections[from.agentPubKey];
         this.syncNeighbors();
     }
@@ -3022,6 +3023,7 @@ class P2pCell {
         if (this.neighborConnections[withPeer]) {
             const connection = this.neighborConnections[withPeer];
             connection.close();
+            this.neighborConnections[withPeer] = undefined;
             delete this.neighborConnections[withPeer];
             connection
                 .getPeer(this.cellId[1])
