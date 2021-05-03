@@ -4,6 +4,7 @@ import { getIntegratedDhtOpsWithoutReceipt } from '../dht/get';
 import { putDhtOpToIntegrated, putValidationReceipt } from '../dht/put';
 import { WorkflowReturn, WorkflowType, Workspace } from './workflows';
 import { now, ValidationReceipt } from '@holochain-open-dev/core-types';
+import { getBadAgents } from '../../network/utils';
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/integrate_dht_ops_workflow.rs
 export const validation_receipt = async (
@@ -29,6 +30,15 @@ export const validation_receipt = async (
     };
 
     putValidationReceipt(dhtOpHash, receipt)(workspace.state);
+
+    const badAgents = getBadAgents(workspace.state);
+    const beforeCount = workspace.state.badAgents.length
+
+    workspace.state.badAgents = badAgents;
+
+    if (beforeCount !== badAgents.length) {
+      workspace.p2p.syncNeighbors();
+    }
 
     integratedValue.send_receipt = false;
 

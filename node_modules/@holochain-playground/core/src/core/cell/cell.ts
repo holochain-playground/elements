@@ -103,6 +103,7 @@ export class Cell {
       authoredDHTOps: {},
       validationReceipts: {},
       sourceChain: [],
+      badAgents: [],
     };
 
     const p2p = conductor.network.createP2pCell(cellId);
@@ -135,9 +136,6 @@ export class Cell {
 
   /** Network handlers */
   // https://github.com/holochain/holochain/blob/develop/crates/holochain/src/conductor/cell.rs#L429
-  public async handle_new_neighbor(neighborPubKey: AgentPubKey): Promise<void> {
-    this.p2p.addNeighbor(neighborPubKey);
-  }
 
   public handle_publish(
     from_agent: AgentPubKey,
@@ -223,8 +221,6 @@ export class Cell {
   async handle_gossip(from_agent: AgentPubKey, gossip: GossipData) {
     const dhtOpsToProcess: Dictionary<DHTOp> = {};
 
-    const badAgents = getBadAgents(this._state);
-
     for (const badAction of gossip.badActions) {
       const dhtOpHash = hash(badAction.op, HashType.DHTOP);
       if (!hasDhtOpBeenProcessed(this._state, dhtOpHash)) {
@@ -239,14 +235,12 @@ export class Cell {
     for (const [dhtOpHash, validatedOp] of Object.entries(
       gossip.validated_dht_ops
     )) {
-      if (hasDhtOpBeenProcessed(this._state, dhtOpHash)) {
-        for (const receipt of validatedOp.validation_receipts) {
-          putValidationReceipt(dhtOpHash, receipt)(this._state);
-        }
+      for (const receipt of validatedOp.validation_receipts) {
+        putValidationReceipt(dhtOpHash, receipt)(this._state);
       }
-      
+
       // TODO: fix for when sharding is implemented
-      if (this.p2p.shouldWeHold(dhtOpHash)) {
+      if (this.p2p.shouldWeHold(getDHTOpBasis(validatedOp.op))) {
         dhtOpsToProcess[dhtOpHash] = validatedOp.op;
       }
     }
@@ -255,10 +249,13 @@ export class Cell {
       await this.handle_publish(from_agent, false, dhtOpsToProcess);
     }
 
-    if (getBadAgents(this._state).length > badAgents.length) {
-      // We may have added bad agents: resync the neighbors
+    const badAgents = getBadAgents(this._state);
+    if (badAgents.length > this._state.badAgents.length) {
+      // We have added bad agents: resync the neighbors
       await this.p2p.syncNeighbors();
     }
+
+    this._state.badAgents = badAgents;
   }
 
   /** Workflow internal execution */

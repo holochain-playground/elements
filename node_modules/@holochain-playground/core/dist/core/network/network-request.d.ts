@@ -3,7 +3,6 @@ import { GetOptions } from '../../types';
 import { Cell } from '../cell/cell';
 export declare enum NetworkRequestType {
     CALL_REMOTE = "Call Remote",
-    ADD_NEIGHBOR = "Add Neighbor",
     PUBLISH_REQUEST = "Publish Request",
     GET_REQUEST = "Get Request",
     WARRANT = "Warrant",
@@ -25,4 +24,3 @@ export declare type GetRequestInfo = NetworkRequestInfo<NetworkRequestType.GET_R
     options: GetOptions;
 }>;
 export declare type CallRemoteRequestInfo = NetworkRequestInfo<NetworkRequestType.CALL_REMOTE, {}>;
-export declare type AddNeighborRequestInfo = NetworkRequestInfo<NetworkRequestType.ADD_NEIGHBOR, {}>;

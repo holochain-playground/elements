@@ -11,6 +11,7 @@ export interface CellState {
     integrationLimbo: Dictionary<IntegrationLimboValue>;
     validationLimbo: Dictionary<ValidationLimboValue>;
     validationReceipts: Dictionary<Dictionary<ValidationReceipt>>;
+    badAgents: AgentPubKey[];
 }
 export interface IntegratedDhtOpsValue {
     op: DHTOp;

@@ -78546,11 +78546,10 @@ function neighborsEdges(cells) {
     const cellDict = cells.reduce((acc, next) => ({ ...acc, [next.agentPubKey]: next }), {});
     for (const cell of cells) {
         const cellAgentPubKey = cell.agentPubKey;
-        const cellNeighbors = cell.p2p.getNeighbors();
+        const cellNeighbors = cell.p2p.neighbors;
         for (const cellNeighbor of cellNeighbors) {
             if (!(allNeighbors[cellNeighbor] &&
-                allNeighbors[cellNeighbor][cellAgentPubKey]) &&
-                !doTheyHaveBeef(cellDict[cellAgentPubKey], cellDict[cellNeighbor])) {
+                allNeighbors[cellNeighbor][cellAgentPubKey])) {
                 edges.push({
                     data: {
                         id: `${cellAgentPubKey}->${cellNeighbor}`,

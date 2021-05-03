@@ -20,6 +20,7 @@ export interface CellState {
   integrationLimbo: Dictionary<IntegrationLimboValue>; // Key is the hash of the DHT op
   validationLimbo: Dictionary<ValidationLimboValue>; // Key is the hash of the DHT op
   validationReceipts: Dictionary<Dictionary<ValidationReceipt>>; // Segmented by dhtOpHash/authorOfReceipt
+  badAgents: AgentPubKey[];
 }
 
 export interface IntegratedDhtOpsValue {

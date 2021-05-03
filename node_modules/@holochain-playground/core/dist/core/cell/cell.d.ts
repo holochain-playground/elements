@@ -35,7 +35,6 @@ export declare class Cell {
         provenance: AgentPubKey;
     }): Promise<any>;
     /** Network handlers */
-    handle_new_neighbor(neighborPubKey: AgentPubKey): Promise<void>;
     handle_publish(from_agent: AgentPubKey, request_validation_receipt: boolean, ops: Dictionary<DHTOp>): Promise<void>;
     handle_get(dht_hash: Hash, options: GetOptions): Promise<GetResult | undefined>;
     handle_get_links(base_address: Hash, options: GetLinksOptions): Promise<GetLinksResponse>;
