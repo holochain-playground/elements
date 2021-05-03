@@ -43,13 +43,14 @@ export class RunSteps extends PlaygroundElement {
     return new Promise((resolve) => {
       const cells = selectAllCells(this.activeDna, this.conductors);
 
-      const checkConsistency = () => {
+      const checkConsistency = (consistencyCheckCount = 0) => {
         for (const cell of cells) {
           for (const triggers of Object.values(cell._triggers)) {
             if (triggers.running || triggers.triggered) return;
           }
         }
-        resolve(null);
+        if (consistencyCheckCount === 3) resolve(null);
+        else setTimeout(() => checkConsistency(consistencyCheckCount + 1), 200);
       };
 
       for (const cell of cells) {
