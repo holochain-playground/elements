@@ -10,6 +10,7 @@ import {
   Metadata,
   NewEntryHeader,
   Signature,
+  Timestamp,
   Update,
 } from '@holochain-open-dev/core-types';
 import { EntryDef, SimulatedDna } from '../../../dnas/simulated-dna';
@@ -63,10 +64,13 @@ export function check_prev_timestamp(
   header: Header,
   prev_header: Header
 ): void {
-  if (header.timestamp < prev_header.timestamp)
+  const tsToMillis = (t: Timestamp) => t[0] * 1000000 + t[1];
+
+  if (tsToMillis(header.timestamp) <= tsToMillis(prev_header.timestamp)) {
     throw new Error(
       `New header must have a greater timestamp than any previous one`
     );
+  }
 }
 
 export function check_prev_seq(header: Header, prev_header: Header): void {

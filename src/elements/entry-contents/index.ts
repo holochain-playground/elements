@@ -2,7 +2,7 @@ import { html, css } from 'lit';
 import { JsonViewer } from '@power-elements/json-viewer';
 
 import { sharedStyles } from '../utils/shared-styles';
-import { selectAllCells, selectFromCAS } from '../utils/selectors';
+import { selectAllCells, selectFromCAS } from '../../base/selectors';
 import { Card } from 'scoped-material-components/mwc-card';
 import { shortenStrRec } from '../utils/hash';
 import { CopyableHash } from '../helpers/copyable-hash';

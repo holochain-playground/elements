@@ -55,7 +55,16 @@ const dna = {
 
 describe('Capabilities', () => {
   it('grant, call_remote, and revoke', async () => {
-    const conductors = await createConductors(2, [], dna);
+    const conductors = await createConductors(2, [], {
+      name: 'simulated-app',
+      description: '',
+      slots: {
+        default: {
+          dna,
+          deferred: false,
+        },
+      },
+    });
 
     await sleep(100);
 

@@ -8,9 +8,9 @@ export function dhtCellsNodes(cells: Cell[]) {
   const cellNodes = sortedCells.map((cell) => ({
     data: {
       id: cell.agentPubKey,
-      label: cell.conductor.name,
+      label: `${cell.conductor.name}${cell.conductor.badAgent ? '😈' : ''}`,
     },
-    classes: ['cell'],
+    classes: ['cell', cell.conductor.badAgent ? 'bad-agent' : ''],
   }));
 
   return cellNodes;
@@ -21,6 +21,11 @@ export function neighborsEdges(cells: Cell[]) {
   const allNeighbors: Dictionary<Dictionary<boolean>> = {};
   const edges: any[] = [];
 
+  const cellDict: Dictionary<Cell> = cells.reduce(
+    (acc, next) => ({ ...acc, [next.agentPubKey]: next }),
+    {}
+  );
+
   for (const cell of cells) {
     const cellAgentPubKey = cell.agentPubKey;
     const cellNeighbors = cell.p2p.getNeighbors();
@@ -30,7 +35,8 @@ export function neighborsEdges(cells: Cell[]) {
         !(
           allNeighbors[cellNeighbor] &&
           allNeighbors[cellNeighbor][cellAgentPubKey]
-        )
+        ) &&
+        !doTheyHaveBeef(cellDict[cellAgentPubKey], cellDict[cellNeighbor])
       ) {
         edges.push({
           data: {
@@ -50,16 +56,25 @@ export function neighborsEdges(cells: Cell[]) {
     }
 
     for (const farNeighbor of cell.p2p.farKnownPeers) {
-      edges.push({
-        data: {
-          id: `${cellAgentPubKey}->${farNeighbor}`,
-          source: cellAgentPubKey,
-          target: farNeighbor,
-        },
-        classes: ['far-neighbor-edge'],
-      });
+      if (!doTheyHaveBeef(cellDict[cellAgentPubKey], cellDict[farNeighbor])) {
+        edges.push({
+          data: {
+            id: `${cellAgentPubKey}->${farNeighbor}`,
+            source: cellAgentPubKey,
+            target: farNeighbor,
+          },
+          classes: ['far-neighbor-edge'],
+        });
+      }
     }
   }
 
   return edges;
+}
+
+function doTheyHaveBeef(cellA: Cell, cellB: Cell): boolean {
+  return (
+    cellA.p2p.badAgents.includes(cellB.agentPubKey) ||
+    cellB.p2p.badAgents.includes(cellA.agentPubKey)
+  );
 }

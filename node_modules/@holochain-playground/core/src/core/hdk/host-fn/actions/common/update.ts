@@ -27,7 +27,7 @@ export async function common_update(
     }
   );
 
-  if (!headerToUpdate) throw new Error('Could not find element to be deleted');
+  if (!headerToUpdate) throw new Error('Could not find element to be updated');
 
   const original_entry_hash = (headerToUpdate.header.content as NewEntryHeader)
     .entry_hash;

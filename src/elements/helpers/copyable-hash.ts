@@ -8,6 +8,8 @@ import { sharedStyles } from '../utils/shared-styles';
 export class CopyableHash extends ScopedRegistryHost(LitElement) {
   @property({ type: String })
   hash!: string;
+  @property({ type: Number })
+  sliceLength: number = 8;
 
   @query('#copy-notification')
   _copyNotification: Snackbar;
@@ -25,7 +27,7 @@ export class CopyableHash extends ScopedRegistryHost(LitElement) {
       ></mwc-snackbar>
       <div class="row center-content">
         <span style="font-family: monospace;"
-          >${this.hash.substring(0, 8)}...</span
+          >${this.hash.substring(0, this.sliceLength)}...</span
         >
         <mwc-icon-button
           style="--mdc-icon-button-size	: 24px; --mdc-icon-size: 20px;"

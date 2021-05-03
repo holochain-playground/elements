@@ -8,6 +8,7 @@ import {
 import { cloneDeep } from 'lodash-es';
 import { SimulatedZome } from '../../../dnas/simulated-dna';
 import { GetStrategy } from '../../../types';
+import { BadAgentConfig } from '../../bad-agent';
 import { Cell, run_create_link_validation_callback } from '../../cell';
 import { buildZomeFunctionContext } from '../../hdk/context';
 import { HostFnWorkspace } from '../../hdk/host-fn';
@@ -98,17 +99,19 @@ export const callZomeFn = (
       i++;
     }
 
-    for (const element of elementsToAppValidate) {
-      const outcome = await run_app_validation(
-        zome,
-        element,
-        contextState,
-        workspace
-      );
-      if (!outcome.resolved)
-        throw new Error('Error creating a new element: missing dependencies');
-      if (!outcome.valid)
-        throw new Error('Error creating a new element: invalid');
+    if (shouldValidateBeforePublishing(workspace.badAgentConfig)) {
+      for (const element of elementsToAppValidate) {
+        const outcome = await run_app_validation(
+          zome,
+          element,
+          contextState,
+          workspace
+        );
+        if (!outcome.resolved)
+          throw new Error('Error creating a new element: missing dependencies');
+        if (!outcome.valid)
+          throw new Error('Error creating a new element: invalid');
+      }
     }
 
     triggers.push(produce_dht_ops_task());
@@ -144,6 +147,13 @@ export function call_zome_fn_workflow(
     task: worskpace =>
       callZomeFn(zome, fnName, payload, provenance, '')(worskpace),
   };
+}
+
+function shouldValidateBeforePublishing(
+  badAgentConfig?: BadAgentConfig
+): boolean {
+  if (!badAgentConfig) return true;
+  return !badAgentConfig.disable_validation_before_publish;
 }
 
 async function run_app_validation(

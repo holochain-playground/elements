@@ -1,6 +1,6 @@
 import {
-  now,
   Hash,
+  now,
   AgentPubKey,
   Dna,
   HeaderType,
@@ -14,6 +14,7 @@ import {
   CreateLink,
   Delete,
   DeleteLink,
+  Timestamp,
 } from '@holochain-open-dev/core-types';
 import { hash, HashType } from '../../../processors/hash';
 import { CellState } from '../state';

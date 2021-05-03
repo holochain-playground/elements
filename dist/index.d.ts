@@ -4,7 +4,7 @@ export * from './base/cells-controller';
 export * from './base/playground-element';
 export * from './elements/call-zome-fns';
 export * from './elements/zome-fns-results';
-export * from './elements/conductor-detail';
+export * from './elements/conductor-admin';
 export * from './elements/dht-cells';
 export * from './elements/dht-shard';
 export * from './elements/dht-stats';

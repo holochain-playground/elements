@@ -9,7 +9,7 @@ import {
   selectAllCells,
   selectCell,
   selectCells,
-} from './utils/selectors';
+} from '../base/selectors';
 import { sharedStyles } from './utils/shared-styles';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
@@ -17,8 +17,8 @@ import { TextField } from 'scoped-material-components/mwc-textfield';
 import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
 import {
   createConductors,
-  demoDnaTemplate,
   Conductor,
+  demoHapp,
 } from '@holochain-playground/core';
 import { PlaygroundElement } from '../base/playground-element';
 
@@ -94,7 +94,7 @@ export class DhtStats extends PlaygroundElement {
       conductors = await createConductors(
         newNodesToCreate,
         conductors,
-        demoDnaTemplate()
+        demoHapp()
       );
     } else if (newNodes < currentNodes) {
       const conductorsToRemove = currentNodes - newNodes;

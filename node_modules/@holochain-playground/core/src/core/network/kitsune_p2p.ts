@@ -2,6 +2,7 @@ import { AgentPubKey, Hash } from '@holochain-open-dev/core-types';
 import { Cell } from '../cell/cell';
 import { Network } from './network';
 import { NetworkRequest } from './network-request';
+import { P2pCell } from './p2p-cell';
 
 export class KitsuneP2p {
   discover: Discover;
@@ -28,6 +29,7 @@ export class KitsuneP2p {
     from_agent: AgentPubKey,
     basis: Hash,
     remote_agent_count: number,
+    filtered_agents: AgentPubKey[],
     networkRequest: NetworkRequest<T>
   ): Promise<Array<T>> {
     // TODO Get all local agents and call them
@@ -38,6 +40,7 @@ export class KitsuneP2p {
       from_agent,
       basis,
       remote_agent_count,
+      filtered_agents,
       networkRequest
     );
   }
@@ -63,12 +66,14 @@ export class Discover {
     from_agent: AgentPubKey,
     basis: Hash,
     remote_agent_count: number,
+    filtered_agents: AgentPubKey[],
     networkRequest: NetworkRequest<T>
   ): Promise<Array<T>> {
     const agents = await this.search_for_agents(
       dna_hash,
       basis,
-      remote_agent_count
+      remote_agent_count,
+      filtered_agents
     );
 
     const promises = agents.map(cell => networkRequest(cell));
@@ -78,12 +83,14 @@ export class Discover {
   private async search_for_agents(
     dna_hash: Hash,
     basis: Hash,
-    remote_agent_count: number
+    remote_agent_count: number,
+    filtered_agents: AgentPubKey[]
   ): Promise<Cell[]> {
     return this.network.bootstrapService.getNeighborhood(
       dna_hash,
       basis,
-      remote_agent_count
+      remote_agent_count,
+      filtered_agents
     );
   }
 }

@@ -1,4 +1,4 @@
-import { Cell, Workflow, WorkflowType } from '@holochain-playground/core';
+import { Cell, Workflow, WorkflowType, NetworkRequestInfo } from '@holochain-playground/core';
 import { Subject } from 'rxjs';
 import { Card } from 'scoped-material-components/mwc-card';
 import { Icon } from 'scoped-material-components/mwc-icon';
@@ -21,14 +21,17 @@ export declare class CellTasks extends PlaygroundElement implements CellObserver
     private _callZomeTasks;
     private _runningTasks;
     private _successes;
-    private _errors;
+    private _workflowErrors;
+    private _networkRequestErrors;
     private _cellsController;
     observedCells(): Cell[];
     beforeWorkflow(cell: Cell, task: Workflow<any, any>): Promise<void>;
     workflowSuccess(cell: Cell, task: Workflow<any, any>, result: any): Promise<void>;
     workflowError(cell: Cell, task: Workflow<any, any>, error: any): Promise<void>;
+    networkRequestError(networkRequest: NetworkRequestInfo<any, any>, error: any): Promise<void>;
     sortTasks(tasks: Array<[string, number]>): [string, number][];
     showTasks(): boolean;
+    renderListItem(icon: string, primary: string, secondary: string, color?: string): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
     static get styles(): import("lit").CSSResultGroup[];
     static elementDefinitions: {

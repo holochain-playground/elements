@@ -12,7 +12,7 @@ import { sourceChainNodes } from './processors';
 import { sharedStyles } from '../utils/shared-styles';
 
 import { HelpButton } from '../helpers/help-button';
-import { selectCell } from '../utils/selectors';
+import { selectCell } from '../../base/selectors';
 import { PlaygroundElement } from '../../base/playground-element';
 import { Card } from 'scoped-material-components/mwc-card';
 import { graphStyles } from './graph';
@@ -144,7 +144,7 @@ export class SourceChain extends PlaygroundElement implements CellObserver {
     return html`
       <mwc-card class="block-card">
         <div class="column fill">
-          <span class="block-title" style="margin: 16px;">Source chain</span>
+          <span class="block-title" style="margin: 16px;">Source-Chain</span>
           ${this.renderHelp()}
           ${this.activeCell
             ? html``

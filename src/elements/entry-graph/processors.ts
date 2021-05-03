@@ -21,6 +21,7 @@ import {
   getHeaderModifiers,
 } from '@holochain-playground/core';
 import { shortenStrRec } from '../utils/hash';
+
 export function allEntries(
   cells: Cell[],
   showEntryContents: boolean,
@@ -32,7 +33,7 @@ export function allEntries(
   const entryTypes: Dictionary<string> = {};
 
   for (const cell of cells) {
-    const state = cell.getState();
+    const state = cell._state;
     for (const entryHash of getAllHeldEntries(state)) {
       details[entryHash] = getEntryDetails(state, entryHash);
       if (!links[entryHash]) links[entryHash] = [];
@@ -52,7 +53,7 @@ export function allEntries(
   }
 
   for (const cell of cells) {
-    const state = cell.getState();
+    const state = cell._state;
 
     for (const headerHash of getAllHeldHeaders(state)) {
       const header: SignedHeaderHashed = state.CAS[headerHash];

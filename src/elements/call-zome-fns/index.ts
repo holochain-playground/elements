@@ -12,7 +12,7 @@ import { TextField } from 'scoped-material-components/mwc-textfield';
 import { Button } from 'scoped-material-components/mwc-button';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 import { Icon } from 'scoped-material-components/mwc-icon';
-import { selectCell } from '../utils/selectors';
+import { selectCell } from '../../base/selectors';
 import { Tab } from 'scoped-material-components/mwc-tab';
 import { TabBar } from 'scoped-material-components/mwc-tab-bar';
 import { Card } from 'scoped-material-components/mwc-card';
@@ -23,6 +23,11 @@ import { CopyableHash } from '../helpers/copyable-hash';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CellsController } from '../../base/cells-controller';
 import { CellObserver } from '../../base/cell-observer';
+import {
+  CallableFn,
+  CallableFnArgument,
+  CallFns,
+} from '../helpers/call-functions';
 
 /**
  * @element call-zome-fns
@@ -53,64 +58,11 @@ export class CallZomeFns extends PlaygroundElement implements CellObserver {
     return this.activeCell.getSimulatedDna().zomes[this._selectedZomeIndex];
   }
 
-  get activeZomeFn(): { name: string; fn: SimulatedZomeFunction } {
-    let zomeFnName = Object.keys(this.activeZome.zome_functions)[0];
-    if (this.selectedZomeFnName) {
-      zomeFnName = this.selectedZomeFnName;
-    }
-    return {
-      name: zomeFnName,
-      fn: this.activeZome.zome_functions[zomeFnName],
-    };
-  }
-
   observedCells() {
     return [this.activeCell];
   }
 
-  setFunctionArgument(fnName: string, argName: string, argValue: any) {
-    const dnaHash = this.activeCell.dnaHash;
-    const pubKey = this.activeCell.agentPubKey;
-    const zomeName = this.activeZome.name;
-
-    if (!this._arguments[dnaHash]) this._arguments[dnaHash] = {};
-    if (!this._arguments[dnaHash][pubKey])
-      this._arguments[dnaHash][pubKey] = {};
-    if (!this._arguments[dnaHash][pubKey][zomeName])
-      this._arguments[dnaHash][pubKey][zomeName] = {};
-    if (!this._arguments[dnaHash][pubKey][zomeName][fnName])
-      this._arguments[dnaHash][pubKey][zomeName][fnName] = {};
-    this._arguments[dnaHash][pubKey][zomeName][fnName][argName] = argValue;
-
-    this.requestUpdate();
-  }
-
-  getFunctionArguments(fnName: string): Dictionary<any> {
-    const dnaHash = this.activeCell.dnaHash;
-    const agentPubKey = this.activeCell.agentPubKey;
-    const zomeName = this.activeZome.name;
-    return (
-      this._arguments[dnaHash] &&
-      this._arguments[dnaHash][agentPubKey] &&
-      this._arguments[dnaHash][agentPubKey][zomeName] &&
-      this._arguments[dnaHash][agentPubKey][zomeName][fnName]
-    );
-  }
-  getFunctionArgument(fnName: string, argName: string): any {
-    const dnaHash = this.activeCell.dnaHash;
-    const agentPubKey = this.activeCell.agentPubKey;
-    const zomeName = this.activeZome.name;
-
-    return (
-      this._arguments[dnaHash] &&
-      this._arguments[dnaHash][agentPubKey] &&
-      this._arguments[dnaHash][agentPubKey][zomeName] &&
-      this._arguments[dnaHash][agentPubKey][zomeName][fnName] &&
-      this._arguments[dnaHash][agentPubKey][zomeName][fnName][argName]
-    );
-  }
-
-  async callZomeFunction(fnName: string) {
+  async callZomeFunction(fnName: string, args: Dictionary<any>) {
     const zome = this.activeZome;
 
     this.requestUpdate();
@@ -118,44 +70,10 @@ export class CallZomeFns extends PlaygroundElement implements CellObserver {
     this.activeCell.conductor.callZomeFn({
       cellId: this.activeCell.cellId,
       zome: zome.name,
-      payload: this.getFunctionArguments(fnName),
+      payload: args,
       fnName,
       cap: null,
     });
-  }
-
-  renderCallableFunction(fnName: string, zomeFunction: SimulatedZomeFunction) {
-    return html` <div class="column" style="flex: 1; margin: 16px;">
-      <div class="flex-scrollable-parent">
-        <div class="flex-scrollable-container">
-          <div class="flex-scrollable-y">
-            <div class="column" style="flex: 1;">
-              ${zomeFunction.arguments.length === 0
-                ? html`<span class="placeholder" style="margin-top: 28px;"
-                    >This function has no arguments</span
-                  >`
-                : zomeFunction.arguments.map(
-                    (arg) => html`<mwc-textfield
-                      style="margin-top: 8px"
-                      outlined
-                      label=${arg.name + ': ' + arg.type}
-                      .value=${this.getFunctionArgument(fnName, arg.name) || ''}
-                      @input=${(e) =>
-                        this.setFunctionArgument(
-                          fnName,
-                          arg.name,
-                          e.target.value
-                        )}
-                    ></mwc-textfield>`
-                  )}
-            </div>
-          </div>
-        </div>
-      </div>
-      <mwc-button raised @click=${() => this.callZomeFunction(fnName)}
-        >Execute</mwc-button
-      >
-    </div>`;
   }
 
   renderActiveZomeFns() {
@@ -171,37 +89,13 @@ export class CallZomeFns extends PlaygroundElement implements CellObserver {
         >
       </div> `;
 
-    return html`
-      <div class="flex-scrollable-parent">
-        <div class="flex-scrollable-container">
-          <div class="flex-scrollable-y" style="height: 100%">
-            <mwc-drawer style="--mdc-drawer-width: auto;">
-              <mwc-list
-                activatable
-                @selected=${(e) =>
-                  (this.selectedZomeFnName = zomeFns[e.detail.index][0])}
-              >
-                ${zomeFns.map(
-                  ([name, fn]) => html`
-                    <mwc-list-item .activated=${this.activeZomeFn.name === name}
-                      >${name}
-                    </mwc-list-item>
-                  `
-                )}
-              </mwc-list>
-              <div slot="appContent" class="column" style="height: 100%;">
-                <div class="column" style="flex: 1;">
-                  ${this.renderCallableFunction(
-                    this.activeZomeFn.name,
-                    this.activeZomeFn.fn
-                  )}
-                </div>
-              </div>
-            </mwc-drawer>
-          </div>
-        </div>
-      </div>
-    `;
+    const fns: Array<CallableFn> = zomeFns.map((zomeFn) => ({
+      name: zomeFn[0],
+      args: zomeFn[1].arguments.map((arg) => ({ ...arg, field: 'textfield' })),
+      call: (args) => this.callZomeFunction(zomeFn[0], args),
+    }));
+
+    return html` <call-functions .callableFns=${fns}></call-functions> `;
   }
 
   render() {
@@ -274,16 +168,12 @@ export class CallZomeFns extends PlaygroundElement implements CellObserver {
   }
 
   static elementDefinitions = {
-    'mwc-button': Button,
-    'mwc-textfield': TextField,
     'mwc-circular-progress': CircularProgress,
     'mwc-icon': Icon,
     'mwc-tab': Tab,
-    'mwc-list': List,
-    'mwc-drawer': Drawer,
-    'mwc-list-item': ListItem,
     'mwc-tab-bar': TabBar,
     'mwc-card': Card,
     'copyable-hash': CopyableHash,
+    'call-functions': CallFns,
   };
 }

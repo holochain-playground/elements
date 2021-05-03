@@ -95,10 +95,10 @@ export function distance(hash1: Hash, hash2: Hash): number {
   const location1 = location(hash1);
   const location2 = location(hash2);
 
-  return locationDistance(location1, location2) + 1;
+  return shortest_arc_distance(location1, location2) + 1;
 }
 
-export function locationDistance(location1: number, location2: number): number {
+export function shortest_arc_distance(location1: number, location2: number): number {
   const distance1 = wrap(location1 - location2);
   const distance2 = wrap(location2 - location1);
   return Math.min(distance1, distance2);

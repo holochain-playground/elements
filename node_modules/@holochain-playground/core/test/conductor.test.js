@@ -1,4 +1,4 @@
-import { Conductor, createConductors, demoDnaTemplate } from '../dist';
+import { createConductors, demoHapp } from '../dist';
 import { expect } from '@esm-bundle/chai';
 import { sleep } from './utils';
 
@@ -6,7 +6,7 @@ describe('Conductor', () => {
   it('create conductors and call zome fn', async function () {
     this.timeout(0);
 
-    const conductors = await createConductors(10, [], demoDnaTemplate());
+    const conductors = await createConductors(10, [], demoHapp());
     await sleep(10000);
 
     const cell = conductors[0].getAllCells()[0];

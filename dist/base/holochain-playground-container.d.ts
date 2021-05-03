@@ -1,13 +1,13 @@
 import { Snackbar } from 'scoped-material-components/mwc-snackbar';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { LitElement } from 'lit';
-import { Conductor, SimulatedDnaTemplate } from '@holochain-playground/core';
+import { LitElement, PropertyValues } from 'lit';
+import { Conductor, SimulatedHappBundle } from '@holochain-playground/core';
 import { AgentPubKey, Hash } from '@holochain-open-dev/core-types';
 declare const HolochainPlaygroundContainer_base: new () => LitElement;
 export declare class HolochainPlaygroundContainer extends HolochainPlaygroundContainer_base {
     numberOfSimulatedConductors: number;
-    simulatedDnaTemplate: SimulatedDnaTemplate;
+    simulatedHapp: SimulatedHappBundle;
     private snackbar;
     private message;
     /** Context variables */
@@ -18,6 +18,7 @@ export declare class HolochainPlaygroundContainer extends HolochainPlaygroundCon
     conductorsUrls: string[] | undefined;
     static get provide(): string[];
     static get styles(): import("lit").CSSResultGroup;
+    update(changedValues: PropertyValues): void;
     firstUpdated(): Promise<void>;
     showMessage(message: string): void;
     renderSnackbar(): import("lit-html").TemplateResult<1>;

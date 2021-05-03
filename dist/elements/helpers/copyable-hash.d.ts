@@ -4,6 +4,7 @@ import { Snackbar } from 'scoped-material-components/mwc-snackbar';
 declare const CopyableHash_base: typeof LitElement;
 export declare class CopyableHash extends CopyableHash_base {
     hash: string;
+    sliceLength: number;
     _copyNotification: Snackbar;
     copyHash(): Promise<void>;
     render(): import("lit-html").TemplateResult<1>;

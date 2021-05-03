@@ -1,6 +1,6 @@
 import { html, css } from 'lit';
 import { PlaygroundElement } from '../../base/playground-element';
-import { selectAllDNAs } from '../utils/selectors';
+import { selectAllDNAs } from '../../base/selectors';
 import { Select } from 'scoped-material-components/mwc-select';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { Card } from 'scoped-material-components/mwc-card';

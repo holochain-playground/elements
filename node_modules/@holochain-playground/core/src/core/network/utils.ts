@@ -1,6 +1,13 @@
-import { Hash } from '@holochain-open-dev/core-types';
+import {
+  AgentPubKey,
+  DHTOp,
+  Hash,
+  ValidationReceipt,
+  ValidationStatus,
+} from '@holochain-open-dev/core-types';
 import { uniq } from 'lodash-es';
 import { distance, location, wrap } from '../../processors/hash';
+import { CellState } from '../cell';
 
 export function getClosestNeighbors(
   peers: Hash[],
@@ -35,4 +42,52 @@ export function getFarthestNeighbors(peers: Hash[], targetHash: Hash): Hash[] {
   ].filter(n => !!n);
 
   return uniq(neighbors);
+}
+
+export interface BadAction {
+  badAgents: AgentPubKey[];
+  op: DHTOp;
+  receipts: ValidationReceipt[];
+}
+export function getBadActions(state: CellState): Array<BadAction> {
+  const badActions: Array<BadAction> = [];
+
+  for (const [dhtOpHash, receipts] of Object.entries(
+    state.validationReceipts
+  )) {
+    const myReceipt = receipts[state.agentPubKey];
+    if (myReceipt) {
+      const dhtOp = state.integratedDHTOps[dhtOpHash].op;
+      const badAction: BadAction = {
+        badAgents: [],
+        op: dhtOp,
+        receipts: Object.values(receipts),
+      };
+
+      if (myReceipt.validation_status === ValidationStatus.Rejected) {
+        badAction.badAgents.push(dhtOp.header.header.content.author);
+      }
+      for (const [validatorAgent, receipt] of Object.entries(receipts)) {
+        if (receipt.validation_status !== myReceipt.validation_status) {
+          badAction.badAgents.push(receipt.validator);
+        }
+      }
+
+      if (badAction.badAgents.length > 0) {
+        badActions.push(badAction);
+      }
+    }
+  }
+  return badActions;
+}
+
+export function getBadAgents(state: CellState): AgentPubKey[] {
+  const actions = getBadActions(state);
+
+  const badAgents: AgentPubKey[] = actions.reduce(
+    (acc, next) => [...acc, ...next.badAgents],
+    [] as string[]
+  );
+
+  return uniq(badAgents);
 }
