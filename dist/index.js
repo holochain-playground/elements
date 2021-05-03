@@ -40785,6 +40785,11 @@ const DataProviderMixin = superClass => class DataProviderMixin extends superCla
     if (this.__pendingScrollToIndex && this.$.items.children.length) {
       const index = this.__pendingScrollToIndex;
       delete this.__pendingScrollToIndex;
+
+      if (this._debounceIncreasePool) {
+        this._debounceIncreasePool.flush();
+      }
+
       this.scrollToIndex(index);
     }
   }
@@ -40874,8 +40879,14 @@ const DynamicColumnsMixin = superClass => class DynamicColumnsMixin extends supe
         this._rowDetailsTemplate = rowDetailsTemplate;
       }
 
-      if (info.addedNodes.filter(this._isColumnElement).length > 0 ||
-        info.removedNodes.filter(this._isColumnElement).length > 0) {
+      const hasColumnElements = (nodeCollection) => nodeCollection.filter(this._isColumnElement).length > 0;
+      if (hasColumnElements(info.addedNodes) || hasColumnElements(info.removedNodes)) {
+        const allRemovedCells = info.removedNodes.reduce((list, c) => list.concat(c._allCells), []);
+        const filterNotConnected = (element) =>
+          allRemovedCells.filter((cell) => cell._content.contains(element)).length;
+
+        this.__removeSorters(this._sorters.filter(filterNotConnected));
+        this.__removeFilters(this._filters.filter(filterNotConnected));
         this._updateColumnTree();
       }
 
@@ -41043,13 +41054,34 @@ const FilterMixin = superClass => class FilterMixin extends superClass {
 
   /** @private */
   _filterChanged(e) {
-    if (this._filters.indexOf(e.target) === -1) {
-      this._filters.push(e.target);
-    }
-
     e.stopPropagation();
 
-    if (this.dataProvider) {
+    this.__addFilter(e.target);
+    this.__applyFilters();
+  }
+
+  /** @private */
+  __removeFilters(filtersToRemove) {
+    if (filtersToRemove.length == 0) {
+      return;
+    }
+
+    this._filters = this._filters.filter((filter) => filtersToRemove.indexOf(filter) < 0);
+    this.__applyFilters();
+  }
+
+  /** @private */
+  __addFilter(filter) {
+    const filterIndex = this._filters.indexOf(filter);
+
+    if (filterIndex === -1) {
+      this._filters.push(filter);
+    }
+  }
+
+  /** @private */
+  __applyFilters() {
+    if (this.dataProvider && this.isAttached) {
       this.clearCache();
     }
   }
@@ -42023,30 +42055,60 @@ const SortMixin = superClass => class SortMixin extends superClass {
   /** @private */
   _onSorterChanged(e) {
     const sorter = e.target;
+    e.stopPropagation();
+    this.__updateSorter(sorter);
+    this.__applySorters();
+  }
 
-    this._removeArrayItem(this._sorters, sorter);
+  /** @private */
+  __removeSorters(sortersToRemove) {
+    if (sortersToRemove.length == 0) {
+      return;
+    }
+
+    this._sorters = this._sorters.filter((sorter) => sortersToRemove.indexOf(sorter) < 0);
+    if (this.multiSort) {
+      this.__updateSortOrders();
+    }
+    this.__applySorters();
+  }
+
+  /** @private */
+  __updateSortOrders() {
+    this._sorters.forEach((sorter, index) => (sorter._order = this._sorters.length > 1 ? index : null), this);
+  }
+
+  /** @private */
+  __updateSorter(sorter) {
+    if (!sorter.direction && this._sorters.indexOf(sorter) === -1) {
+      return;
+    }
     sorter._order = null;
 
     if (this.multiSort) {
+      this._removeArrayItem(this._sorters, sorter);
       if (sorter.direction) {
         this._sorters.unshift(sorter);
       }
-
+      this.__updateSortOrders();
       this._sorters.forEach((sorter, index) => sorter._order = this._sorters.length > 1 ? index : null, this);
     } else {
       if (sorter.direction) {
-        this._sorters.forEach(sorter => {
+        const otherSorters = this._sorters.filter((s) => s != sorter);
+        this._sorters = [sorter];
+        otherSorters.forEach((sorter) => {
           sorter._order = null;
           sorter.direction = null;
         });
-        this._sorters = [sorter];
       }
     }
+  }
 
-    e.stopPropagation();
-
+  /** @private */
+  __applySorters() {
     if (this.dataProvider &&
-      // No need to clear cache if sorters didn't change
+      // No need to clear cache if sorters didn't change and grid is attached
+      this.isAttached &&
       JSON.stringify(this._previousSorters) !== JSON.stringify(this._mapSorters())) {
       this.clearCache();
     }
@@ -44944,7 +45006,7 @@ class GridElement extends
   }
 
   static get version() {
-    return '5.7.12';
+    return '5.7.13';
   }
 
   static get observers() {
@@ -45419,6 +45481,7 @@ class GridElement extends
     this._a11yUpdateRowSelected(row, model.selected);
     this._a11yUpdateRowLevel(row, model.level);
     this._toggleAttribute('expanded', model.expanded, row);
+    this._toggleAttribute('details-opened', this._isDetailsOpened(item), row);
     if (this._rowDetailsTemplate || this.rowDetailsRenderer) {
       this._toggleDetailsCell(row, item);
     }
@@ -79280,11 +79343,31 @@ class RunSteps extends PlaygroundElement {
     }
     async runSteps() {
         this._running = true;
+        await this.awaitNetworkConsistency();
         for (let i = 0; i < this.steps.length; i++) {
             this._runningStepIndex = i;
             await this.steps[i].run(this);
+            await this.awaitNetworkConsistency();
         }
         this._running = false;
+    }
+    async awaitNetworkConsistency() {
+        return new Promise((resolve) => {
+            const cells = selectAllCells(this.activeDna, this.conductors);
+            const checkConsistency = () => {
+                for (const cell of cells) {
+                    for (const triggers of Object.values(cell._triggers)) {
+                        if (triggers.running || triggers.triggered)
+                            return;
+                    }
+                }
+                resolve(null);
+            };
+            for (const cell of cells) {
+                cell.workflowExecutor.success(async () => checkConsistency());
+                cell.workflowExecutor.error(async () => checkConsistency());
+            }
+        });
     }
     renderContent() {
         if (!this.conductors || this.conductors.length === 0)

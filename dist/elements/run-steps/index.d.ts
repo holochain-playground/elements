@@ -13,6 +13,7 @@ export declare class RunSteps extends PlaygroundElement {
     _runningStepIndex: number | undefined;
     _running: boolean;
     runSteps(): Promise<void>;
+    awaitNetworkConsistency(): Promise<unknown>;
     renderContent(): any;
     render(): any;
     static get styles(): import("lit").CSSResultGroup[];

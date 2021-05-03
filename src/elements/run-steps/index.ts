@@ -9,6 +9,7 @@ import { sharedStyles } from '../utils/shared-styles';
 import { List } from 'scoped-material-components/mwc-list';
 import { Button } from 'scoped-material-components/mwc-button';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
+import { selectAllCells } from '../../base/selectors';
 
 export interface Step {
   title: (context: PlaygroundElement) => string;
@@ -28,11 +29,34 @@ export class RunSteps extends PlaygroundElement {
   async runSteps() {
     this._running = true;
 
+    await this.awaitNetworkConsistency();
+
     for (let i = 0; i < this.steps.length; i++) {
       this._runningStepIndex = i;
       await this.steps[i].run(this);
+      await this.awaitNetworkConsistency();
     }
     this._running = false;
+  }
+
+  async awaitNetworkConsistency() {
+    return new Promise((resolve) => {
+      const cells = selectAllCells(this.activeDna, this.conductors);
+
+      const checkConsistency = () => {
+        for (const cell of cells) {
+          for (const triggers of Object.values(cell._triggers)) {
+            if (triggers.running || triggers.triggered) return;
+          }
+        }
+        resolve(null);
+      };
+
+      for (const cell of cells) {
+        cell.workflowExecutor.success(async () => checkConsistency());
+        cell.workflowExecutor.error(async () => checkConsistency());
+      }
+    });
   }
 
   renderContent() {

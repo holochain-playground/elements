@@ -25,6 +25,7 @@
           show-zome-fn-success
           skip-genesis
         ></dht-cells>
+        <run-steps style="height: 600px; width: 400px"></run-steps>
       </div>
       <div
         style="
@@ -36,11 +37,11 @@
         "
       >
         <call-zome-fns
-          style="height: 350px; flex: 1;"
+          style="height: 350px; flex: 1"
           id="call-zome"
         ></call-zome-fns>
-        <source-chain style="height: 350px; flex: 1;"></source-chain>
-        <entry-contents style="height: 350px; flex: 1;"></entry-contents>
+        <source-chain style="height: 350px; flex: 1"></source-chain>
+        <entry-contents style="height: 350px; flex: 1"></entry-contents>
       </div>
     </holochain-playground-container>
 
@@ -82,11 +83,50 @@
       const container = document.getElementById('container');
       container.numberOfSimulatedConductors = 10;
 
+      let headerHash = undefined;
+      const steps = [
+        {
+          title: (context) =>
+            `${context.conductors[1].name} (an honest agent) creates an entry`,
+          run: async (context) => {
+            const cell = context.conductors[1].getAllCells()[0];
+            headerHash = await context.conductors[1].callZomeFn({
+              cellId: cell.cellId,
+              zome: 'demo_entries',
+              fnName: 'create_entry',
+              payload: { content: 'Good morning!' },
+              cap: null,
+            });
+            console.log(headerHash);
+          },
+        },
+        {
+          title: (context) =>
+            `${context.conductors[2].name} (an honest agent) tries to update that same entry`,
+          run: async (context) => {
+            const cell = context.conductors[2].getAllCells()[0];
+
+            try {
+              await context.conductors[2].callZomeFn({
+                cellId: cell.cellId,
+                zome: 'demo_entries',
+                fnName: 'update_entry',
+                payload: {
+                  original_header_address: headerHash,
+                  new_content: 'Bad morning!',
+                },
+                cap: null,
+              });
+            } catch (e) {}
+          },
+        },
+      ];
+
       container.addEventListener('ready', (e) => {
         const conductors = e.detail.conductors;
         const conductor = conductors[0];
 
-        for (let i = 0; i < 6; i++) {
+        for (let i = 1; i < 7; i++) {
           conductors[i].setBadAgent({
             disable_validation_before_publish: true,
             pretend_invalid_elements_are_valid: true,
@@ -96,6 +136,7 @@
         const cellId = conductor.getAllCells()[0].cellId;
 
         container.activeDna = cellId[0];
+        e.target.querySelector('run-steps').steps = steps;
       });
     </script>
   </body>
