@@ -8,6 +8,7 @@ import { Card } from 'scoped-material-components/mwc-card';
 import { sharedStyles } from '../utils/shared-styles';
 import { List } from 'scoped-material-components/mwc-list';
 import { Button } from 'scoped-material-components/mwc-button';
+import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 
 export interface Step {
   title: (context: PlaygroundElement) => string;
@@ -34,6 +35,32 @@ export class RunSteps extends PlaygroundElement {
     this._running = false;
   }
 
+  renderContent() {
+    if (!this.conductors || this.conductors.length === 0)
+      return html`<div class="fill center-content">
+        <mwc-circular-progress></mwc-circular-progress>
+      </div>`;
+    if (!this.steps)
+      return html`<div class="center-content" style="flex: 1;">
+        <span class="placeholder">There are no steps to run</span>
+      </div>`;
+    return html`
+      <mwc-list activatable>
+        ${this.steps.map(
+          (step, index) =>
+            html`<mwc-list-item
+              noninteractive
+              class=${classMap({
+                future: this._runningStepIndex < index,
+              })}
+              .activated=${this._running && this._runningStepIndex === index}
+              >${index + 1}. ${step.title(this)}</mwc-list-item
+            >`
+        )}
+      </mwc-list>
+    `;
+  }
+
   render() {
     return html`
       <mwc-card class="block-card">
@@ -43,30 +70,11 @@ export class RunSteps extends PlaygroundElement {
             <mwc-button
               .label=${this._running ? 'RUNNING...' : 'RUN'}
               raised
-              .disabled=${this._running}
+              .disabled=${this._running || !this.conductors}
               @click=${() => this.runSteps()}
             ></mwc-button>
           </div>
-          ${this.steps
-            ? html`
-                <mwc-list activatable>
-                  ${this.steps.map(
-                    (step, index) =>
-                      html`<mwc-list-item
-                        noninteractive
-                        class=${classMap({
-                          future: this._runningStepIndex < index,
-                        })}
-                        .activated=${this._running &&
-                        this._runningStepIndex === index}
-                        >${index + 1}. ${step.title(this)}</mwc-list-item
-                      >`
-                  )}
-                </mwc-list>
-              `
-            : html`<div class="center-content" style="flex: 1;">
-                <span class="placeholder">There are no steps to run</span>
-              </div>`}
+          ${this.renderContent()}
         </div>
       </mwc-card>
     `;
@@ -88,6 +96,7 @@ export class RunSteps extends PlaygroundElement {
   }
 
   static elementDefinitions = {
+    'mwc-circular-progress': CircularProgress,
     'mwc-list-item': ListItem,
     'mwc-list': List,
     'mwc-button': Button,

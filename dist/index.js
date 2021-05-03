@@ -79286,6 +79286,28 @@ class RunSteps extends PlaygroundElement {
         }
         this._running = false;
     }
+    renderContent() {
+        if (!this.conductors || this.conductors.length === 0)
+            return html$1 `<div class="fill center-content">
+        <mwc-circular-progress></mwc-circular-progress>
+      </div>`;
+        if (!this.steps)
+            return html$1 `<div class="center-content" style="flex: 1;">
+        <span class="placeholder">There are no steps to run</span>
+      </div>`;
+        return html$1 `
+      <mwc-list activatable>
+        ${this.steps.map((step, index) => html$1 `<mwc-list-item
+              noninteractive
+              class=${classMap({
+            future: this._runningStepIndex < index,
+        })}
+              .activated=${this._running && this._runningStepIndex === index}
+              >${index + 1}. ${step.title(this)}</mwc-list-item
+            >`)}
+      </mwc-list>
+    `;
+    }
     render() {
         return html$1 `
       <mwc-card class="block-card">
@@ -79295,27 +79317,11 @@ class RunSteps extends PlaygroundElement {
             <mwc-button
               .label=${this._running ? 'RUNNING...' : 'RUN'}
               raised
-              .disabled=${this._running}
+              .disabled=${this._running || !this.conductors}
               @click=${() => this.runSteps()}
             ></mwc-button>
           </div>
-          ${this.steps
-            ? html$1 `
-                <mwc-list activatable>
-                  ${this.steps.map((step, index) => html$1 `<mwc-list-item
-                        noninteractive
-                        class=${classMap({
-                future: this._runningStepIndex < index,
-            })}
-                        .activated=${this._running &&
-                this._runningStepIndex === index}
-                        >${index + 1}. ${step.title(this)}</mwc-list-item
-                      >`)}
-                </mwc-list>
-              `
-            : html$1 `<div class="center-content" style="flex: 1;">
-                <span class="placeholder">There are no steps to run</span>
-              </div>`}
+          ${this.renderContent()}
         </div>
       </mwc-card>
     `;
@@ -79336,6 +79342,7 @@ class RunSteps extends PlaygroundElement {
     }
 }
 RunSteps.elementDefinitions = {
+    'mwc-circular-progress': CircularProgress,
     'mwc-list-item': ListItem,
     'mwc-list': List$1,
     'mwc-button': Button,
@@ -85184,7 +85191,20 @@ class EntryGraph extends PlaygroundElement {
         return html$1 `
       <mwc-card class="block-card">
         <div class="column fill" style="margin: 16px;">
-          <span class="block-title">Entry Graph</span>
+          <span class="block-title"
+            >Entry
+            Graph${this.activeDna
+            ? html$1 `
+                  <span class="placeholder row">
+                    , for DNA
+                    <copyable-hash
+                      .hash=${this.activeDna}
+                      style="margin-left: 8px;"
+                    ></copyable-hash>
+                  </span>
+                `
+            : html$1 ``}</span
+          >
 
           <div id="entry-graph" class="fill"></div>
 
@@ -96291,7 +96311,19 @@ class SourceChain extends PlaygroundElement {
         return html$1 `
       <mwc-card class="block-card">
         <div class="column fill">
-          <span class="block-title" style="margin: 16px;">Source-Chain</span>
+          <span class="block-title" style="margin: 16px;"
+            >Source-Chain${this.activeAgentPubKey
+            ? html$1 `
+                  <span class="placeholder row">
+                    , for Agent
+                    <copyable-hash
+                      .hash=${this.activeAgentPubKey}
+                      style="margin-left: 8px;"
+                    ></copyable-hash>
+                  </span>
+                `
+            : html$1 ``}</span
+          >
           ${this.renderHelp()}
           ${this.activeCell
             ? html$1 ``

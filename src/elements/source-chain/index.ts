@@ -144,7 +144,19 @@ export class SourceChain extends PlaygroundElement implements CellObserver {
     return html`
       <mwc-card class="block-card">
         <div class="column fill">
-          <span class="block-title" style="margin: 16px;">Source-Chain</span>
+          <span class="block-title" style="margin: 16px;"
+            >Source-Chain${this.activeAgentPubKey
+              ? html`
+                  <span class="placeholder row">
+                    , for Agent
+                    <copyable-hash
+                      .hash=${this.activeAgentPubKey}
+                      style="margin-left: 8px;"
+                    ></copyable-hash>
+                  </span>
+                `
+              : html``}</span
+          >
           ${this.renderHelp()}
           ${this.activeCell
             ? html``

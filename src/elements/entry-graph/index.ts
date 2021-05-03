@@ -76,7 +76,7 @@ export class EntryGraph extends PlaygroundElement implements CellObserver {
   private _visibleEntriesButton: Button;
   @query('#visible-entries-menu')
   private _visibleEntriesMenu: Menu;
-  
+
   _cellsController = new CellsController(this);
 
   observedCells() {
@@ -116,7 +116,6 @@ export class EntryGraph extends PlaygroundElement implements CellObserver {
     super.updated(changedValues);
     this.updatedGraph();
   }
-
 
   updatedGraph() {
     if (this.entryGraph.getBoundingClientRect().width === 0 || !this.ready) {
@@ -264,7 +263,20 @@ export class EntryGraph extends PlaygroundElement implements CellObserver {
     return html`
       <mwc-card class="block-card">
         <div class="column fill" style="margin: 16px;">
-          <span class="block-title">Entry Graph</span>
+          <span class="block-title"
+            >Entry
+            Graph${this.activeDna
+              ? html`
+                  <span class="placeholder row">
+                    , for DNA
+                    <copyable-hash
+                      .hash=${this.activeDna}
+                      style="margin-left: 8px;"
+                    ></copyable-hash>
+                  </span>
+                `
+              : html``}</span
+          >
 
           <div id="entry-graph" class="fill"></div>
 
