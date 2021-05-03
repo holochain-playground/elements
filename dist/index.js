@@ -78593,6 +78593,7 @@ class DhtCells extends PlaygroundElement {
         this.hideTimeController = false;
         this.hideFilter = false;
         this.stepByStep = false;
+        this.skipGenesis = false;
         this.showZomeFnSuccess = false;
         this._resumeObservable = new Subject();
         this._onPause = false;
@@ -79008,6 +79009,10 @@ __decorate([
     e$4({ type: Boolean, attribute: 'step-by-step' }),
     __metadata("design:type", Object)
 ], DhtCells.prototype, "stepByStep", void 0);
+__decorate([
+    e$4({ type: Boolean, attribute: 'skip-genesis' }),
+    __metadata("design:type", Object)
+], DhtCells.prototype, "skipGenesis", void 0);
 __decorate([
     e$4({ type: Boolean, attribute: 'show-zome-fn-success' }),
     __metadata("design:type", Object)
