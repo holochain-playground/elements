@@ -110,6 +110,10 @@ export class CallFns extends ScopedRegistryHost(LitElement) {
       );
   }
 
+  callFunction(callableFunction: CallableFn) {
+    callableFunction.call(this._arguments[callableFunction.name]);
+  }
+
   renderCallableFunction(callableFunction: CallableFn) {
     return html` <div class="column" style="flex: 1; margin: 16px;">
       <div class="flex-scrollable-parent">
@@ -129,8 +133,7 @@ export class CallFns extends ScopedRegistryHost(LitElement) {
       </div>
       <mwc-button
         raised
-        @click=${() =>
-          callableFunction.call(this._arguments[callableFunction.name])}
+        @click=${() => this.callFunction(callableFunction)}
         .disabled=${this.isExecuteDisabled(callableFunction)}
         >Execute</mwc-button
       >

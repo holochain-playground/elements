@@ -149,8 +149,8 @@ export class ZomeFnsResults extends PlaygroundElement implements CellObserver {
     return html`
       <mwc-card class="block-card">
         <div class="column" style="flex: 1; margin: 16px">
-          <span class="title"
-            >Zome Fns Results<span class="placeholder"
+          <span class="title row"
+            >Zome Fns Results<span class="placeholder row"
               >${this.renderAgent()}</span
             >
           </span>

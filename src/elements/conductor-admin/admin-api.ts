@@ -100,18 +100,22 @@ export function adminApi(
         { name: 'membraneProof', field: 'textfield', type: 'String' },
       ],
       call: async (args) => {
-        const cell = await conductor.cloneCell(
-          args.installedAppId,
-          args.slotNick,
-          args.uid,
-          args.properties,
-          args.membraneProof
-        );
+        try {
+          const cell = await conductor.cloneCell(
+            args.installedAppId,
+            args.slotNick,
+            args.uid,
+            args.properties,
+            args.membraneProof
+          );
 
-        element.updatePlayground({
-          activeDna: cell.dnaHash,
-          activeAgentPubKey: cell.agentPubKey,
-        });
+          element.updatePlayground({
+            activeDna: cell.dnaHash,
+            activeAgentPubKey: cell.agentPubKey,
+          });
+        } catch (e) {
+          element.showMessage(`Error: ${e.message}`);
+        }
       },
     },
   ];
