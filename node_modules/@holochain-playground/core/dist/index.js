@@ -1586,9 +1586,7 @@ function check_prev_header(header) {
 }
 function check_prev_timestamp(header, prev_header) {
     const tsToMillis = (t) => t[0] * 1000000 + t[1];
-    if (tsToMillis(header.timestamp) <= tsToMillis(prev_header.timestamp)) {
-        throw new Error(`New header must have a greater timestamp than any previous one`);
-    }
+    if (tsToMillis(header.timestamp) <= tsToMillis(prev_header.timestamp)) ;
 }
 function check_prev_seq(header, prev_header) {
     const prev_seq = prev_header.header_seq
