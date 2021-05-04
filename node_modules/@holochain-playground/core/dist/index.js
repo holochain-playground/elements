@@ -3084,10 +3084,18 @@ class P2pCell {
     async openNeighborConnection(withPeer) {
         if (!this.neighborConnections[withPeer.agentPubKey]) {
             // Try to connect: can fail due to validation
-            await this._executeNetworkRequest(withPeer, NetworkRequestType.CONNECT, {}, peer => Promise.all([
-                this.check_agent_valid(withPeer),
-                withPeer.p2p.check_agent_valid(this.cell),
-            ]));
+            // TODO: uncomment
+            /*       await this._executeNetworkRequest(
+              withPeer,
+              NetworkRequestType.CONNECT,
+              {},
+              peer =>
+                Promise.all([
+                  this.check_agent_valid(withPeer),
+                  withPeer.p2p.check_agent_valid(this.cell),
+                ])
+            );
+       */
             const connection = await this.connectWith(withPeer);
             this.neighborConnections[withPeer.agentPubKey] = connection;
             withPeer.p2p.handleOpenNeighborConnection(this.cell, connection);

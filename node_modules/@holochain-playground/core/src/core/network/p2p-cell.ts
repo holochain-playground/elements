@@ -226,7 +226,8 @@ export class P2pCell {
   async openNeighborConnection(withPeer: Cell): Promise<Connection> {
     if (!this.neighborConnections[withPeer.agentPubKey]) {
       // Try to connect: can fail due to validation
-      await this._executeNetworkRequest(
+      // TODO: uncomment
+      /*       await this._executeNetworkRequest(
         withPeer,
         NetworkRequestType.CONNECT,
         {},
@@ -236,7 +237,7 @@ export class P2pCell {
             withPeer.p2p.check_agent_valid(this.cell),
           ])
       );
-
+ */
       const connection = await this.connectWith(withPeer);
       this.neighborConnections[withPeer.agentPubKey] = connection;
 
