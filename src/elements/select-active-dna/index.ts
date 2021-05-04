@@ -9,8 +9,6 @@ import { sharedStyles } from '../utils/shared-styles';
 export class SelectActiveDna extends PlaygroundElement {
   selectDNA(dna: string) {
     this.updatePlayground({
-      activeAgentPubKey: null,
-      activeHash: null,
       activeDna: dna,
     });
   }

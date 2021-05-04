@@ -3,7 +3,7 @@ import { CircularProgress } from 'scoped-material-components/mwc-circular-progre
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { ProviderMixin, ConsumerMixin } from 'lit-element-context';
 import { LitElement, css as css$1, html as html$1 } from 'lit';
-import { demoHapp, createConductors, getHashType, HashType, isHoldingEntry, isHoldingElement, WorkflowType, sleep, workflowPriority, Cell, location, NetworkRequestType, getDhtShard, getAllHeldEntries, getEntryDetails, getLinksForEntry, getEntryTypeString, getAllHeldHeaders, getHeaderModifiers, getAppEntryType, getLiveLinks } from '@holochain-playground/core';
+import { getHashType, HashType, isHoldingEntry, isHoldingElement, demoHapp, createConductors, WorkflowType, sleep, workflowPriority, Cell, location, NetworkRequestType, getDhtShard, getAllHeldEntries, getEntryDetails, getLinksForEntry, getEntryTypeString, getAllHeldHeaders, getHeaderModifiers, getAppEntryType, getLiveLinks } from '@holochain-playground/core';
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 import { Icon } from 'scoped-material-components/mwc-icon';
 import { Tab } from 'scoped-material-components/mwc-tab';
@@ -80,249 +80,6 @@ const o$7=({finisher:e,descriptor:t})=>(o,n)=>{var r;if(void 0===n){const n=null
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */function o$6(o,r){return o$7({descriptor:t=>{const i={get(){var t;return null===(t=this.renderRoot)||void 0===t?void 0:t.querySelector(o)},enumerable:!0,configurable:!0};if(r){const r="symbol"==typeof t?Symbol():"__"+t;i.get=function(){var t;return void 0===this[r]&&(this[r]=null===(t=this.renderRoot)||void 0===t?void 0:t.querySelector(o)),this[r]};}return i}})}
-
-class HolochainPlaygroundContainer extends ScopedRegistryHost(ProviderMixin(LitElement)) {
-    constructor() {
-        super(...arguments);
-        this.numberOfSimulatedConductors = 10;
-        this.simulatedHapp = demoHapp();
-        this.conductors = [];
-    }
-    static get provide() {
-        return [
-            'activeDna',
-            'activeAgentPubKey',
-            'activeHash',
-            'conductors',
-            'conductorsUrls',
-        ];
-    }
-    static get styles() {
-        return css$1 `
-      :host {
-        display: contents;
-      }
-    `;
-    }
-    update(changedValues) {
-        super.update(changedValues);
-        if (changedValues.has('activeDna') && this.activeDna && this.activeHash) {
-            this.activeHash = undefined;
-        }
-    }
-    async firstUpdated() {
-        if (!this.conductorsUrls) {
-            this.conductors = await createConductors(this.numberOfSimulatedConductors, [], this.simulatedHapp);
-            this.activeDna = this.conductors[0].getAllCells()[0].dnaHash;
-            this.dispatchEvent(new CustomEvent('ready', {
-                bubbles: true,
-                composed: true,
-                detail: {
-                    activeDna: this.activeDna,
-                    activeAgentPubKey: this.activeAgentPubKey,
-                    activeHash: this.activeHash,
-                    conductors: this.conductors,
-                    conductorsUrls: this.conductorsUrls,
-                },
-            }));
-        }
-        this.addEventListener('update-context', (e) => {
-            const keys = Object.keys(e.detail);
-            for (const key of keys) {
-                this[key] = e.detail[key];
-            }
-        });
-        this.addEventListener('show-message', (e) => {
-            this.showMessage(e.detail.message);
-        });
-        /*
-        this.blackboard.select('conductorsUrls').subscribe(async (urls) => {
-          if (urls !== undefined) {
-            try {
-              // await connectToConductors(this.blackboard, urls);
-            } catch (e) {
-              console.error(e);
-              this.showError('Error when connecting with the nodes');
-            }
-          }
-        }); */
-    }
-    showMessage(message) {
-        this.message = message;
-        this.snackbar.show();
-    }
-    renderSnackbar() {
-        return html$1 `
-      <mwc-snackbar id="snackbar" labelText=${this.message}>
-        <mwc-icon-button icon="close" slot="dismiss"></mwc-icon-button>
-      </mwc-snackbar>
-    `;
-    }
-    render() {
-        return html$1 `
-      ${this.renderSnackbar()}
-      ${this.conductors
-            ? html$1 ` <slot></slot> `
-            : html$1 ` <mwc-circular-progress></mwc-circular-progress>`}
-    `;
-    }
-}
-HolochainPlaygroundContainer.elementDefinitions = {
-    'mwc-circular-progress': CircularProgress,
-    'mwc-snackbar': Snackbar,
-    'mwc-icon-button': IconButton,
-};
-__decorate([
-    e$4({ type: Number }),
-    __metadata("design:type", Number)
-], HolochainPlaygroundContainer.prototype, "numberOfSimulatedConductors", void 0);
-__decorate([
-    e$4({ type: Object }),
-    __metadata("design:type", Object)
-], HolochainPlaygroundContainer.prototype, "simulatedHapp", void 0);
-__decorate([
-    o$6('#snackbar'),
-    __metadata("design:type", Snackbar)
-], HolochainPlaygroundContainer.prototype, "snackbar", void 0);
-__decorate([
-    e$4({ type: String }),
-    __metadata("design:type", String)
-], HolochainPlaygroundContainer.prototype, "message", void 0);
-__decorate([
-    e$4({ type: String }),
-    __metadata("design:type", String)
-], HolochainPlaygroundContainer.prototype, "activeDna", void 0);
-__decorate([
-    e$4({ type: String }),
-    __metadata("design:type", String)
-], HolochainPlaygroundContainer.prototype, "activeAgentPubKey", void 0);
-__decorate([
-    e$4({ type: String }),
-    __metadata("design:type", String)
-], HolochainPlaygroundContainer.prototype, "activeHash", void 0);
-__decorate([
-    e$4({ type: Array }),
-    __metadata("design:type", Array)
-], HolochainPlaygroundContainer.prototype, "conductors", void 0);
-__decorate([
-    e$4({ type: Array }),
-    __metadata("design:type", Array)
-], HolochainPlaygroundContainer.prototype, "conductorsUrls", void 0);
-
-class CellsController {
-    constructor(host) {
-        this.host = host;
-        this._subscriptions = {};
-        this.observedCells = [];
-        host.addController(this);
-    }
-    hostUpdated() {
-        this.observedCells = this.host.observedCells().filter((cell) => !!cell);
-        const newCellsById = this.observedCells.reduce((acc, next) => ({ ...acc, [this.getStrCellId(next)]: next }), {});
-        const newCellsIds = Object.keys(newCellsById);
-        const oldCellsIds = Object.keys(this._subscriptions);
-        const addedCellsIds = newCellsIds.filter((cellId) => !oldCellsIds.includes(cellId));
-        const removedCellsIds = oldCellsIds.filter((cellId) => !newCellsIds.includes(cellId));
-        for (const addedCellId of addedCellsIds) {
-            const cell = newCellsById[addedCellId];
-            const subscriptions = [
-                cell.workflowExecutor.success(async () => {
-                    this.host.requestUpdate();
-                }),
-            ];
-            if (this.host.beforeWorkflow) {
-                subscriptions.push(cell.workflowExecutor.before((task) => this.host.beforeWorkflow(cell, task)));
-            }
-            if (this.host.workflowSuccess) {
-                subscriptions.push(cell.workflowExecutor.success((task, result) => this.host.workflowSuccess(cell, task, result)));
-            }
-            if (this.host.workflowError) {
-                subscriptions.push(cell.workflowExecutor.error((task, error) => this.host.workflowError(cell, task, error)));
-            }
-            if (this.host.beforeNetworkRequest) {
-                subscriptions.push(cell.p2p.networkRequestsExecutor.before((networkRequest) => this.host.beforeNetworkRequest(networkRequest)));
-            }
-            if (this.host.networkRequestSuccess) {
-                subscriptions.push(cell.p2p.networkRequestsExecutor.success((networkRequest, result) => this.host.networkRequestSuccess(networkRequest, result)));
-            }
-            if (this.host.networkRequestError) {
-                subscriptions.push(cell.p2p.networkRequestsExecutor.error((networkRequest, error) => this.host.networkRequestError(networkRequest, error)));
-            }
-            this._subscriptions[addedCellId] = subscriptions;
-        }
-        removedCellsIds.forEach((cellId) => this.unsubscribeFromCellId(cellId));
-        if (this.host.onCellsChanged &&
-            (addedCellsIds.length > 0 || removedCellsIds.length > 0))
-            this.host.onCellsChanged();
-    }
-    hostDisconnected() {
-        for (const cellSubscriptions of Object.values(this._subscriptions)) {
-            for (const signalSubscription of cellSubscriptions) {
-                signalSubscription.unsubscribe();
-            }
-        }
-    }
-    getStrCellId(cell) {
-        return `${cell.dnaHash}/${cell.agentPubKey}`;
-    }
-    unsubscribeFromCellId(cellId) {
-        for (const signalSubscription of this._subscriptions[cellId]) {
-            signalSubscription.unsubscribe();
-        }
-        this._subscriptions[cellId] = undefined;
-        delete this._subscriptions[cellId];
-    }
-}
-
-class PlaygroundElement extends ScopedRegistryHost(ConsumerMixin(LitElement)) {
-    constructor() {
-        super(...arguments);
-        this.conductors = [];
-    }
-    static get inject() {
-        return [
-            'activeDna',
-            'activeAgentPubKey',
-            'activeHash',
-            'conductors',
-            'conductorsUrls',
-        ];
-    }
-    updatePlayground(context) {
-        this.dispatchEvent(new CustomEvent('update-context', {
-            bubbles: true,
-            composed: true,
-            detail: context,
-        }));
-    }
-    showMessage(message) {
-        this.dispatchEvent(new CustomEvent('show-message', {
-            bubbles: true,
-            composed: true,
-            detail: { message },
-        }));
-    }
-}
-__decorate([
-    e$4({ type: String }),
-    __metadata("design:type", String)
-], PlaygroundElement.prototype, "activeDna", void 0);
-__decorate([
-    e$4({ type: String }),
-    __metadata("design:type", String)
-], PlaygroundElement.prototype, "activeAgentPubKey", void 0);
-__decorate([
-    e$4({ type: String }),
-    __metadata("design:type", String)
-], PlaygroundElement.prototype, "activeHash", void 0);
-__decorate([
-    r$4(),
-    __metadata("design:type", Array)
-], PlaygroundElement.prototype, "conductors", void 0);
-__decorate([
-    e$4({ type: Array }),
-    __metadata("design:type", Array)
-], PlaygroundElement.prototype, "conductorsUrls", void 0);
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -17607,6 +17364,254 @@ function selectAllDNAs(conductors) {
 function selectRedundancyFactor(cell) {
     return cell.p2p.redundancyFactor;
 }
+
+class HolochainPlaygroundContainer extends ScopedRegistryHost(ProviderMixin(LitElement)) {
+    constructor() {
+        super(...arguments);
+        this.numberOfSimulatedConductors = 10;
+        this.simulatedHapp = demoHapp();
+        this.conductors = [];
+    }
+    static get provide() {
+        return [
+            'activeDna',
+            'activeAgentPubKey',
+            'activeHash',
+            'conductors',
+            'conductorsUrls',
+        ];
+    }
+    static get styles() {
+        return css$1 `
+      :host {
+        display: contents;
+      }
+    `;
+    }
+    update(changedValues) {
+        super.update(changedValues);
+        if (changedValues.has('activeDna') && this.activeDna) {
+            if (this.activeHash) {
+                this.activeHash = undefined;
+            }
+            if (!selectCell(this.activeDna, this.activeAgentPubKey, this.conductors)) {
+                this.activeAgentPubKey = undefined;
+            }
+        }
+    }
+    async firstUpdated() {
+        if (!this.conductorsUrls) {
+            this.conductors = await createConductors(this.numberOfSimulatedConductors, [], this.simulatedHapp);
+            this.activeDna = this.conductors[0].getAllCells()[0].dnaHash;
+            this.dispatchEvent(new CustomEvent('ready', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    activeDna: this.activeDna,
+                    activeAgentPubKey: this.activeAgentPubKey,
+                    activeHash: this.activeHash,
+                    conductors: this.conductors,
+                    conductorsUrls: this.conductorsUrls,
+                },
+            }));
+        }
+        this.addEventListener('update-context', (e) => {
+            const keys = Object.keys(e.detail);
+            for (const key of keys) {
+                this[key] = e.detail[key];
+            }
+        });
+        this.addEventListener('show-message', (e) => {
+            this.showMessage(e.detail.message);
+        });
+        /*
+        this.blackboard.select('conductorsUrls').subscribe(async (urls) => {
+          if (urls !== undefined) {
+            try {
+              // await connectToConductors(this.blackboard, urls);
+            } catch (e) {
+              console.error(e);
+              this.showError('Error when connecting with the nodes');
+            }
+          }
+        }); */
+    }
+    showMessage(message) {
+        this.message = message;
+        this.snackbar.show();
+    }
+    renderSnackbar() {
+        return html$1 `
+      <mwc-snackbar id="snackbar" labelText=${this.message}>
+        <mwc-icon-button icon="close" slot="dismiss"></mwc-icon-button>
+      </mwc-snackbar>
+    `;
+    }
+    render() {
+        return html$1 `
+      ${this.renderSnackbar()}
+      ${this.conductors
+            ? html$1 ` <slot></slot> `
+            : html$1 ` <mwc-circular-progress></mwc-circular-progress>`}
+    `;
+    }
+}
+HolochainPlaygroundContainer.elementDefinitions = {
+    'mwc-circular-progress': CircularProgress,
+    'mwc-snackbar': Snackbar,
+    'mwc-icon-button': IconButton,
+};
+__decorate([
+    e$4({ type: Number }),
+    __metadata("design:type", Number)
+], HolochainPlaygroundContainer.prototype, "numberOfSimulatedConductors", void 0);
+__decorate([
+    e$4({ type: Object }),
+    __metadata("design:type", Object)
+], HolochainPlaygroundContainer.prototype, "simulatedHapp", void 0);
+__decorate([
+    o$6('#snackbar'),
+    __metadata("design:type", Snackbar)
+], HolochainPlaygroundContainer.prototype, "snackbar", void 0);
+__decorate([
+    e$4({ type: String }),
+    __metadata("design:type", String)
+], HolochainPlaygroundContainer.prototype, "message", void 0);
+__decorate([
+    e$4({ type: String }),
+    __metadata("design:type", String)
+], HolochainPlaygroundContainer.prototype, "activeDna", void 0);
+__decorate([
+    e$4({ type: String }),
+    __metadata("design:type", String)
+], HolochainPlaygroundContainer.prototype, "activeAgentPubKey", void 0);
+__decorate([
+    e$4({ type: String }),
+    __metadata("design:type", String)
+], HolochainPlaygroundContainer.prototype, "activeHash", void 0);
+__decorate([
+    e$4({ type: Array }),
+    __metadata("design:type", Array)
+], HolochainPlaygroundContainer.prototype, "conductors", void 0);
+__decorate([
+    e$4({ type: Array }),
+    __metadata("design:type", Array)
+], HolochainPlaygroundContainer.prototype, "conductorsUrls", void 0);
+
+class CellsController {
+    constructor(host) {
+        this.host = host;
+        this._subscriptions = {};
+        this.observedCells = [];
+        host.addController(this);
+    }
+    hostUpdated() {
+        this.observedCells = this.host.observedCells().filter((cell) => !!cell);
+        const newCellsById = this.observedCells.reduce((acc, next) => ({ ...acc, [this.getStrCellId(next)]: next }), {});
+        const newCellsIds = Object.keys(newCellsById);
+        const oldCellsIds = Object.keys(this._subscriptions);
+        const addedCellsIds = newCellsIds.filter((cellId) => !oldCellsIds.includes(cellId));
+        const removedCellsIds = oldCellsIds.filter((cellId) => !newCellsIds.includes(cellId));
+        for (const addedCellId of addedCellsIds) {
+            const cell = newCellsById[addedCellId];
+            const subscriptions = [
+                cell.workflowExecutor.success(async () => {
+                    this.host.requestUpdate();
+                }),
+            ];
+            if (this.host.beforeWorkflow) {
+                subscriptions.push(cell.workflowExecutor.before((task) => this.host.beforeWorkflow(cell, task)));
+            }
+            if (this.host.workflowSuccess) {
+                subscriptions.push(cell.workflowExecutor.success((task, result) => this.host.workflowSuccess(cell, task, result)));
+            }
+            if (this.host.workflowError) {
+                subscriptions.push(cell.workflowExecutor.error((task, error) => this.host.workflowError(cell, task, error)));
+            }
+            if (this.host.beforeNetworkRequest) {
+                subscriptions.push(cell.p2p.networkRequestsExecutor.before((networkRequest) => this.host.beforeNetworkRequest(networkRequest)));
+            }
+            if (this.host.networkRequestSuccess) {
+                subscriptions.push(cell.p2p.networkRequestsExecutor.success((networkRequest, result) => this.host.networkRequestSuccess(networkRequest, result)));
+            }
+            if (this.host.networkRequestError) {
+                subscriptions.push(cell.p2p.networkRequestsExecutor.error((networkRequest, error) => this.host.networkRequestError(networkRequest, error)));
+            }
+            this._subscriptions[addedCellId] = subscriptions;
+        }
+        removedCellsIds.forEach((cellId) => this.unsubscribeFromCellId(cellId));
+        if (this.host.onCellsChanged &&
+            (addedCellsIds.length > 0 || removedCellsIds.length > 0))
+            this.host.onCellsChanged();
+    }
+    hostDisconnected() {
+        for (const cellSubscriptions of Object.values(this._subscriptions)) {
+            for (const signalSubscription of cellSubscriptions) {
+                signalSubscription.unsubscribe();
+            }
+        }
+    }
+    getStrCellId(cell) {
+        return `${cell.dnaHash}/${cell.agentPubKey}`;
+    }
+    unsubscribeFromCellId(cellId) {
+        for (const signalSubscription of this._subscriptions[cellId]) {
+            signalSubscription.unsubscribe();
+        }
+        this._subscriptions[cellId] = undefined;
+        delete this._subscriptions[cellId];
+    }
+}
+
+class PlaygroundElement extends ScopedRegistryHost(ConsumerMixin(LitElement)) {
+    constructor() {
+        super(...arguments);
+        this.conductors = [];
+    }
+    static get inject() {
+        return [
+            'activeDna',
+            'activeAgentPubKey',
+            'activeHash',
+            'conductors',
+            'conductorsUrls',
+        ];
+    }
+    updatePlayground(context) {
+        this.dispatchEvent(new CustomEvent('update-context', {
+            bubbles: true,
+            composed: true,
+            detail: context,
+        }));
+    }
+    showMessage(message) {
+        this.dispatchEvent(new CustomEvent('show-message', {
+            bubbles: true,
+            composed: true,
+            detail: { message },
+        }));
+    }
+}
+__decorate([
+    e$4({ type: String }),
+    __metadata("design:type", String)
+], PlaygroundElement.prototype, "activeDna", void 0);
+__decorate([
+    e$4({ type: String }),
+    __metadata("design:type", String)
+], PlaygroundElement.prototype, "activeAgentPubKey", void 0);
+__decorate([
+    e$4({ type: String }),
+    __metadata("design:type", String)
+], PlaygroundElement.prototype, "activeHash", void 0);
+__decorate([
+    r$4(),
+    __metadata("design:type", Array)
+], PlaygroundElement.prototype, "conductors", void 0);
+__decorate([
+    e$4({ type: Array }),
+    __metadata("design:type", Array)
+], PlaygroundElement.prototype, "conductorsUrls", void 0);
 
 const sharedStyles = css$1 `
   .row {
@@ -96478,8 +96483,6 @@ __decorate([
 class SelectActiveDna extends PlaygroundElement {
     selectDNA(dna) {
         this.updatePlayground({
-            activeAgentPubKey: null,
-            activeHash: null,
             activeDna: dna,
         });
     }

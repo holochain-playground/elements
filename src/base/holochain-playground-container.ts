@@ -13,7 +13,12 @@ import {
 } from '@holochain-playground/core';
 import { AgentPubKey, Dictionary, Hash } from '@holochain-open-dev/core-types';
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
-import { selectAllCells, selectCells, selectHoldingCells } from './selectors';
+import {
+  selectAllCells,
+  selectCell,
+  selectCells,
+  selectHoldingCells,
+} from './selectors';
 
 export class HolochainPlaygroundContainer extends ScopedRegistryHost(
   ProviderMixin(LitElement) as new () => LitElement
@@ -64,8 +69,15 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
   update(changedValues: PropertyValues) {
     super.update(changedValues);
 
-    if (changedValues.has('activeDna') && this.activeDna && this.activeHash) {
-      this.activeHash = undefined;
+    if (changedValues.has('activeDna') && this.activeDna) {
+      if (this.activeHash) {
+        this.activeHash = undefined;
+      }
+      if (
+        !selectCell(this.activeDna, this.activeAgentPubKey, this.conductors)
+      ) {
+        this.activeAgentPubKey = undefined;
+      }
     }
   }
 
