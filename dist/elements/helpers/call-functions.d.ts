@@ -31,6 +31,7 @@ export declare class CallFns extends CallFns_base {
     setArgument(fnName: string, argName: string, value: any): void;
     renderField(callableFn: CallableFn, arg: CallableFnArgument): TemplateResult<1>;
     isExecuteDisabled(callableFunction: CallableFn): boolean;
+    callFunction(callableFunction: CallableFn): void;
     renderCallableFunction(callableFunction: CallableFn): TemplateResult<1>;
     render(): TemplateResult<1>;
     static styles: import("lit").CSSResultGroup[];

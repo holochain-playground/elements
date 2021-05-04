@@ -17824,6 +17824,9 @@ class CallFns extends ScopedRegistryHost(h$2) {
             .some((arg) => !(this._arguments[callableFunction.name] &&
             this._arguments[callableFunction.name][arg.name]));
     }
+    callFunction(callableFunction) {
+        callableFunction.call(this._arguments[callableFunction.name]);
+    }
     renderCallableFunction(callableFunction) {
         return html$1 ` <div class="column" style="flex: 1; margin: 16px;">
       <div class="flex-scrollable-parent">
@@ -17841,7 +17844,7 @@ class CallFns extends ScopedRegistryHost(h$2) {
       </div>
       <mwc-button
         raised
-        @click=${() => callableFunction.call(this._arguments[callableFunction.name])}
+        @click=${() => this.callFunction(callableFunction)}
         .disabled=${this.isExecuteDisabled(callableFunction)}
         >Execute</mwc-button
       >
@@ -18815,11 +18818,16 @@ function adminApi(element, conductor) {
                 { name: 'membraneProof', field: 'textfield', type: 'String' },
             ],
             call: async (args) => {
-                const cell = await conductor.cloneCell(args.installedAppId, args.slotNick, args.uid, args.properties, args.membraneProof);
-                element.updatePlayground({
-                    activeDna: cell.dnaHash,
-                    activeAgentPubKey: cell.agentPubKey,
-                });
+                try {
+                    const cell = await conductor.cloneCell(args.installedAppId, args.slotNick, args.uid, args.properties, args.membraneProof);
+                    element.updatePlayground({
+                        activeDna: cell.dnaHash,
+                        activeAgentPubKey: cell.agentPubKey,
+                    });
+                }
+                catch (e) {
+                    element.showMessage(`Error: ${e.message}`);
+                }
             },
         },
     ];
