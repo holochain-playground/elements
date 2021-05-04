@@ -2,7 +2,6 @@ import { AgentPubKey, Hash } from '@holochain-open-dev/core-types';
 import { Cell } from '../cell/cell';
 import { Network } from './network';
 import { NetworkRequest } from './network-request';
-import { P2pCell } from './p2p-cell';
 
 export class KitsuneP2p {
   discover: Discover;
@@ -32,8 +31,6 @@ export class KitsuneP2p {
     filtered_agents: AgentPubKey[],
     networkRequest: NetworkRequest<T>
   ): Promise<Array<T>> {
-    // TODO Get all local agents and call them
-
     // Discover neighbors
     return this.discover.message_neighborhood(
       dna_hash,
@@ -45,7 +42,6 @@ export class KitsuneP2p {
     );
   }
 
-  /** */
 }
 
 // From https://github.com/holochain/holochain/blob/develop/crates/kitsune_p2p/kitsune_p2p/src/spawn/actor/discover.rs

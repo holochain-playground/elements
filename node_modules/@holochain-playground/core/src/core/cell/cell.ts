@@ -7,6 +7,7 @@ import {
   CapSecret,
   Timestamp,
   ValidationReceipt,
+  Element,
 } from '@holochain-open-dev/core-types';
 import { Conductor } from '../conductor';
 import { genesis, genesis_task } from './workflows/genesis';
@@ -29,13 +30,18 @@ import { GetLinksResponse, GetResult } from './cascade/types';
 import { Authority } from './cascade/authority';
 import { getHashType, hash, HashType } from '../../processors/hash';
 import { GetLinksOptions, GetOptions } from '../../types';
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, uniq } from 'lodash-es';
 import { DhtArc } from '../network/dht_arc';
 import { getDHTOpBasis } from './utils';
 import { GossipData } from '../network/gossip/types';
 import { hasDhtOpBeenProcessed } from './dht/get';
 import { putValidationReceipt } from './dht/put';
 import { BadAction, getBadActions, getBadAgents } from '../network/utils';
+import {
+  app_validation_task,
+  run_agent_validation_callback,
+} from './workflows/app_validation';
+import { getSourceChainElements } from './source-chain/get';
 
 export type CellSignal = 'after-workflow-executed' | 'before-workflow-executed';
 export type CellSignalListener = (payload: any) => void;
@@ -52,15 +58,8 @@ export class Cell {
 
   workflowExecutor = new MiddlewareExecutor<Workflow<any, any>>();
 
-  constructor(
-    public _state: CellState,
-    public conductor: Conductor,
-    public p2p: P2pCell
-  ) {
+  constructor(public _state: CellState, public conductor: Conductor) {
     // Let genesis be run before actually joining
-    setTimeout(() => {
-      this.p2p.join(this);
-    });
   }
 
   get cellId(): CellId {
@@ -73,6 +72,10 @@ export class Cell {
 
   get dnaHash(): Hash {
     return this.cellId[0];
+  }
+
+  get p2p(): P2pCell {
+    return this.conductor.network.p2pCells[this.cellId[0]][this.cellId[1]];
   }
 
   getState(): CellState {
@@ -106,11 +109,13 @@ export class Cell {
       badAgents: [],
     };
 
-    const p2p = conductor.network.createP2pCell(cellId);
+    const cell = new Cell(newCellState, conductor);
 
-    const cell = new Cell(newCellState, conductor, p2p);
+    conductor.network.createP2pCell(cell);
 
     await cell._runWorkflow(genesis_task(cellId, membrane_proof));
+
+    await cell.p2p.join(cell);
 
     return cell;
   }
@@ -255,7 +260,18 @@ export class Cell {
       await this.p2p.syncNeighbors();
     }
 
-    this._state.badAgents = badAgents;
+    this._state.badAgents = uniq([...this._state.badAgents, ...badAgents]);
+  }
+
+  // Check if the agent we are trying to connect with passes the membrane rules for this Dna
+  async handle_check_agent(firstElements: Element[]): Promise<void> {
+    const result = await this.workflowExecutor.execute(
+      () => run_agent_validation_callback(this.buildWorkspace(), firstElements),
+      app_validation_task(true)
+    );
+
+    if (!result.resolved) throw new Error('Unresolved in agent validate?');
+    else if (!result.valid) throw new Error('Agent is invalid in this Dna');
   }
 
   /** Workflow internal execution */
@@ -274,6 +290,7 @@ export class Cell {
     const workflowsToRun = pendingWorkflows.map(triggeredWorkflowFromType);
 
     const promises = Object.values(workflowsToRun).map(async w => {
+      if (!this._triggers[w.type]) console.log(w);
       this._triggers[w.type].triggered = false;
       this._triggers[w.type].running = true;
       await this._runWorkflow(w);

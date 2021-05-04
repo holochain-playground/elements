@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">67.55% </span>
+                <span class="strong">67.82% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>179/265</span>
+                <span class='fraction'>177/261</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
+                <span class="strong">80% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>9/12</span>
+                <span class='fraction'>8/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">66.67% </span>
+                <span class="strong">58.33% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>8/12</span>
+                <span class='fraction'>7/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">67.55% </span>
+                <span class="strong">67.82% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>179/265</span>
+                <span class='fraction'>177/261</span>
             </div>
         
             
@@ -318,11 +318,7 @@
 <a name='L259'></a><a href='#L259'>259</a>
 <a name='L260'></a><a href='#L260'>260</a>
 <a name='L261'></a><a href='#L261'>261</a>
-<a name='L262'></a><a href='#L262'>262</a>
-<a name='L263'></a><a href='#L263'>263</a>
-<a name='L264'></a><a href='#L264'>264</a>
-<a name='L265'></a><a href='#L265'>265</a>
-<a name='L266'></a><a href='#L266'>266</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">7x</span>
+<a name='L262'></a><a href='#L262'>262</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
@@ -369,10 +365,6 @@
 <span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-yes">45x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -434,8 +426,8 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">233985x</span>
-<span class="cline-any cline-yes">233985x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
@@ -637,11 +629,7 @@ export class Conductor {
 <span class="cstat-no" title="statement not covered" >      if (!this.cells[dnaHash]) this.cells[dnaHash] = {};</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >      for (const [agentPubKey, cellState] of Object.entries(dnaCellsStates)) {</span>
-<span class="cstat-no" title="statement not covered" >        this.cells[dnaHash][agentPubKey] = new Cell(</span>
-<span class="cstat-no" title="statement not covered" >          cellState,</span>
-<span class="cstat-no" title="statement not covered" >          this,</span>
-<span class="cstat-no" title="statement not covered" >          this.network.createP2pCell(getCellId(cellState))</span>
-<span class="cstat-no" title="statement not covered" >        );</span>
+<span class="cstat-no" title="statement not covered" >        this.cells[dnaHash][agentPubKey] = new Cell(cellState, this);</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
   }
@@ -698,9 +686,9 @@ export class Conductor {
 <span class="cstat-no" title="statement not covered" >    return dnaCells ? Object.values(dnaCells) : [];</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
-  getCell(dnaHash: Hash, agentPubKey: AgentPubKey): Cell | undefined {
-    return this.cells[dnaHash] ? this.cells[dnaHash][agentPubKey] <span class="branch-0 cbranch-no" title="branch not covered" >: undefined;</span>
-  }
+<span class="fstat-no" title="function not covered" >  getCell(dnaHash: Hash, agentPubKey: AgentPubKey): Cell | undefined {</span>
+<span class="cstat-no" title="statement not covered" >    return this.cells[dnaHash] ? this.cells[dnaHash][agentPubKey] : undefined;</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
 &nbsp;
   /** Bad agents */
 &nbsp;
@@ -859,7 +847,7 @@ export class Conductor {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Mon May 03 2021 19:35:05 GMT+0200 (Hora d’estiu del Centre d’Europa)
+                at Tue May 04 2021 17:17:31 GMT+0200 (Hora d’estiu del Centre d’Europa)
             </div>
         </div>
         <script src="../../prettify.js"></script>

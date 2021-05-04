@@ -1,4 +1,4 @@
-import { CellId, AgentPubKey, Hash, Dictionary, DHTOp, CapSecret } from '@holochain-open-dev/core-types';
+import { CellId, AgentPubKey, Hash, Dictionary, DHTOp, CapSecret, Element } from '@holochain-open-dev/core-types';
 import { Conductor } from '../conductor';
 import { P2pCell } from '../network/p2p-cell';
 import { CellState } from './state';
@@ -13,16 +13,16 @@ export declare type CellSignalListener = (payload: any) => void;
 export declare class Cell {
     _state: CellState;
     conductor: Conductor;
-    p2p: P2pCell;
     _triggers: Dictionary<{
         running: boolean;
         triggered: boolean;
     }>;
     workflowExecutor: MiddlewareExecutor<Workflow<any, any>>;
-    constructor(_state: CellState, conductor: Conductor, p2p: P2pCell);
+    constructor(_state: CellState, conductor: Conductor);
     get cellId(): CellId;
     get agentPubKey(): AgentPubKey;
     get dnaHash(): Hash;
+    get p2p(): P2pCell;
     getState(): CellState;
     getSimulatedDna(): import("../..").SimulatedDna;
     static create(conductor: Conductor, cellId: CellId, membrane_proof: any): Promise<Cell>;
@@ -44,6 +44,7 @@ export declare class Cell {
     handle_fetch_op_hash_data(op_hashes: Array<Hash>): Dictionary<DHTOp>;
     handle_gossip_ops(op_hashes: Array<Hash>): Dictionary<DHTOp>;
     handle_gossip(from_agent: AgentPubKey, gossip: GossipData): Promise<void>;
+    handle_check_agent(firstElements: Element[]): Promise<void>;
     /** Workflow internal execution */
     triggerWorkflow(workflow: Workflow<any, any>): void;
     _runPendingWorkflows(): Promise<void>;

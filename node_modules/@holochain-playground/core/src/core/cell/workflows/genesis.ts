@@ -4,13 +4,17 @@ import {
   Entry,
   CellId,
 } from '@holochain-open-dev/core-types';
-import { Cell, Workflow } from '../../cell';
+import { Cell, run_agent_validation_callback, Workflow } from '../../cell';
 import {
   buildAgentValidationPkg,
   buildCreate,
   buildDna,
   buildShh,
 } from '../source-chain/builder-headers';
+import {
+  getSourceChainElement,
+  getSourceChainElements,
+} from '../source-chain/get';
 import { putElement } from '../source-chain/put';
 import { CellState } from '../state';
 import { produce_dht_ops_task } from './produce_dht_ops';
@@ -44,6 +48,21 @@ export const genesis = (
     signed_header: buildShh(create_agent_pub_key_entry),
     entry: entry,
   })(worskpace.state);
+
+  if (
+    !(
+      worskpace.badAgentConfig &&
+      worskpace.badAgentConfig.disable_validation_before_publish
+    )
+  ) {
+    const firstElements = getSourceChainElements(worskpace.state, 0, 3);
+    const result = await run_agent_validation_callback(
+      worskpace,
+      firstElements
+    );
+    if (!result.resolved) throw new Error('Unresolved in agent validate?');
+    else if (!result.valid) throw new Error('Agent is invalid in this Dna');
+  }
 
   return {
     result: undefined,

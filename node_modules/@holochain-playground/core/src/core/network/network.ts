@@ -1,5 +1,6 @@
 import { CellId, Dictionary, Hash } from '@holochain-open-dev/core-types';
 import { BootstrapService } from '../../bootstrap/bootstrap-service';
+import { Cell } from '../cell/cell';
 import { Conductor } from '../conductor';
 import { P2pCell, P2pCellState } from '../network/p2p-cell';
 import { KitsuneP2p } from './kitsune_p2p';
@@ -26,7 +27,7 @@ export class Network {
       for (const [agentPubKey, p2pCellState] of Object.entries(p2pState)) {
         this.p2pCells[dnaHash][agentPubKey] = new P2pCell(
           p2pCellState,
-          [dnaHash, agentPubKey],
+          conductor.getCell(dnaHash, agentPubKey) as Cell,
           this
         );
       }
@@ -58,7 +59,8 @@ export class Network {
     return ([] as P2pCell[]).concat(...nestedCells);
   }
 
-  createP2pCell(cellId: CellId): P2pCell {
+  createP2pCell(cell: Cell): P2pCell {
+    const cellId = cell.cellId;
     const dnaHash = cellId[0];
 
     const state: P2pCellState = {
@@ -69,7 +71,7 @@ export class Network {
       badAgents: [],
     };
 
-    const p2pCell = new P2pCell(state, cellId, this);
+    const p2pCell = new P2pCell(state, cell, this);
 
     if (!this.p2pCells[dnaHash]) this.p2pCells[dnaHash] = {};
     this.p2pCells[dnaHash][cellId[1]] = p2pCell;

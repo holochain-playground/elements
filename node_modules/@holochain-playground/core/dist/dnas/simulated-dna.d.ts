@@ -1,4 +1,4 @@
-import { AgentPubKey, CellId, Dictionary, EntryVisibility } from '@holochain-open-dev/core-types';
+import { AgentPubKey, CellId, Dictionary, EntryVisibility, Element } from '@holochain-open-dev/core-types';
 import { ValidationOutcome } from '../core/cell/sys_validate/types';
 import { SimulatedValidateFunctionContext, SimulatedZomeFunctionContext } from '../core/hdk';
 export interface SimulatedZomeFunctionArgument {
@@ -14,7 +14,13 @@ export interface SimulatedZome {
     name: string;
     entry_defs: Array<EntryDef>;
     zome_functions: Dictionary<SimulatedZomeFunction>;
-    validation_functions: Dictionary<SimulatedValidateFunction>;
+    validation_functions: {
+        validate_create_agent?: (context: SimulatedValidateFunctionContext) => (args: {
+            element: Element;
+            agent_pub_key: AgentPubKey;
+            membrane_proof: any;
+        }) => Promise<ValidationOutcome>;
+    } & Dictionary<SimulatedValidateFunction>;
     blocklyCode?: string;
 }
 export interface SimulatedDna {

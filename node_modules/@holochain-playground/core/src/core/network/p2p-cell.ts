@@ -4,6 +4,7 @@ import {
   CellId,
   DHTOp,
   Dictionary,
+  Element,
   Hash,
   ValidationReceipt,
   ValidationStatus,
@@ -11,7 +12,7 @@ import {
 import { MiddlewareExecutor } from '../../executor/middleware-executor';
 import { hash, HashType, location } from '../../processors/hash';
 import { GetLinksOptions, GetOptions } from '../../types';
-import { Cell, isHoldingDhtOp } from '../cell';
+import { Cell, getSourceChainElements, isHoldingDhtOp } from '../cell';
 import {
   GetElementResponse,
   GetEntryResponse,
@@ -55,7 +56,7 @@ export class P2pCell {
 
   constructor(
     state: P2pCellState,
-    protected cellId: CellId,
+    public cell: Cell,
     protected network: Network
   ) {
     this.farKnownPeers = state.farKnownPeers;
@@ -80,11 +81,8 @@ export class P2pCell {
     };
   }
 
-  get cell(): Cell {
-    return this.network.conductor.getCell(
-      this.cellId[0],
-      this.cellId[1]
-    ) as Cell;
+  get cellId(): CellId {
+    return this.cell.cellId;
   }
 
   get badAgents() {
@@ -195,10 +193,24 @@ export class P2pCell {
     return Object.keys(this.neighborConnections);
   }
 
-  connectWith(peer: Cell): Connection {
+  async connectWith(peer: Cell): Promise<Connection> {
     if (this.neighborConnections[peer.agentPubKey])
       return this.neighborConnections[peer.agentPubKey] as Connection;
+
     return new Connection(this.cell, peer);
+  }
+
+  async check_agent_valid(peer: Cell): Promise<void> {
+    const peerFirst3Elements = getSourceChainElements(peer._state, 0, 3);
+
+    try {
+      await this.cell.handle_check_agent(peerFirst3Elements);
+    } catch (e) {
+      if (!this.cell._state.badAgents.includes(peer.agentPubKey))
+        this.cell._state.badAgents.push(peer.agentPubKey);
+
+      throw new Error('Invalid agent');
+    }
   }
 
   handleOpenNeighborConnection(from: Cell, connection: Connection) {
@@ -211,9 +223,21 @@ export class P2pCell {
     this.syncNeighbors();
   }
 
-  openNeighborConnection(withPeer: Cell): Connection {
+  async openNeighborConnection(withPeer: Cell): Promise<Connection> {
     if (!this.neighborConnections[withPeer.agentPubKey]) {
-      const connection = this.connectWith(withPeer);
+      // Try to connect: can fail due to validation
+      await this._executeNetworkRequest(
+        withPeer,
+        NetworkRequestType.CONNECT,
+        {},
+        peer =>
+          Promise.all([
+            this.check_agent_valid(withPeer),
+            withPeer.p2p.check_agent_valid(this.cell),
+          ])
+      );
+
+      const connection = await this.connectWith(withPeer);
       this.neighborConnections[withPeer.agentPubKey] = connection;
 
       withPeer.p2p.handleOpenNeighborConnection(this.cell, connection);
@@ -264,13 +288,15 @@ export class P2pCell {
 
     neighborsToForget.forEach(n => this.closeNeighborConnection(n));
 
-    newNeighbors.forEach(neighbor => {
+    const promises = newNeighbors.map(async neighbor => {
       try {
-        this.openNeighborConnection(neighbor);
+        await this.openNeighborConnection(neighbor);
       } catch (e) {
         // Couldn't open connection
       }
     });
+
+    await Promise.all(promises);
 
     if (Object.keys(this.neighborConnections).length < this.neighborNumber) {
       setTimeout(() => this.syncNeighbors(), 400);
@@ -330,7 +356,7 @@ export class P2pCell {
       details,
     };
 
-    const connection = this.connectWith(toCell);
+    const connection = await this.connectWith(toCell);
 
     const result = await this.networkRequestsExecutor.execute(
       () => connection.sendRequest(this.cellId[1], request),

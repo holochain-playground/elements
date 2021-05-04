@@ -25,6 +25,7 @@ export declare enum WorkflowType {
     PUBLISH_DHT_OPS = "Publish DHT Ops",
     PRODUCE_DHT_OPS = "Produce DHT Ops",
     APP_VALIDATION = "App Validation",
+    AGENT_VALIDATION = "Validate Agent",
     INTEGRATE_DHT_OPS = "Integrate DHT Ops",
     GENESIS = "Genesis",
     INCOMING_DHT_OPS = "Incoming DHT Ops",

@@ -13,6 +13,7 @@ export enum NetworkRequestType {
   GET_REQUEST = 'Get Request',
   WARRANT = 'Warrant',
   GOSSIP = 'Gossip',
+  CONNECT = 'Connect',
 }
 
 export type NetworkRequest<T> = (cell: Cell) => Promise<T>;

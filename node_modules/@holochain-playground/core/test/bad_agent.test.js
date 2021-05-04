@@ -63,7 +63,7 @@ describe('Bad Agent', () => {
     });
     expect(result).to.be.ok;
 
-    await sleep(7000);
+    await sleep(10000);
 
     const honestCells = conductors
       .map(c => c.getAllCells()[0])

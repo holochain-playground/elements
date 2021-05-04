@@ -6,7 +6,8 @@ export declare enum NetworkRequestType {
     PUBLISH_REQUEST = "Publish Request",
     GET_REQUEST = "Get Request",
     WARRANT = "Warrant",
-    GOSSIP = "Gossip"
+    GOSSIP = "Gossip",
+    CONNECT = "Connect"
 }
 export declare type NetworkRequest<T> = (cell: Cell) => Promise<T>;
 export interface NetworkRequestInfo<T extends NetworkRequestType, D> {

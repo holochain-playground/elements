@@ -27,7 +27,9 @@ import {
 } from '../../../dnas/simulated-dna';
 import {
   AgentPubKey,
+  AgentValidationPkg,
   AppEntryType,
+  Create,
   CreateLink,
   DeleteLink,
   DHTOp,
@@ -102,9 +104,11 @@ export const app_validation = async (
 
 export type AppValidationWorkflow = Workflow<any, any>;
 
-export function app_validation_task(): AppValidationWorkflow {
+export function app_validation_task(
+  agent: boolean = false
+): AppValidationWorkflow {
   return {
-    type: WorkflowType.APP_VALIDATION,
+    type: agent ? WorkflowType.AGENT_VALIDATION : WorkflowType.APP_VALIDATION,
     details: undefined,
     task: worskpace => app_validation(worskpace),
   };
@@ -345,8 +349,23 @@ async function run_validation_callback_inner(
     entry_def
   );
 
+  return invoke_validation_fns(
+    zomes_to_invoke,
+    fnsToCall,
+    { element },
+    workspace
+  );
+}
+
+async function invoke_validation_fns(
+  zomes_to_invoke: Array<SimulatedZome>,
+  fnsToCall: string[],
+  payload: any,
+  workspace: Workspace
+): Promise<ValidationOutcome> {
+  const cascade = new Cascade(workspace.state, workspace.p2p);
   const hostFnWorkspace: HostFnWorkspace = {
-    cascade: new Cascade(workspace.state, workspace.p2p),
+    cascade,
     state: workspace.state,
     dna: workspace.dna,
     p2p: workspace.p2p,
@@ -362,7 +381,7 @@ async function run_validation_callback_inner(
 
         const outcome: ValidationOutcome = await zome.validation_functions[
           validateFn
-        ](context)(element);
+        ](context)(payload);
         if (!outcome.resolved) return outcome;
         else if (!outcome.valid) return outcome;
       }
@@ -370,6 +389,33 @@ async function run_validation_callback_inner(
   }
 
   return { resolved: true, valid: true };
+}
+
+export async function run_agent_validation_callback(
+  workspace: Workspace,
+  elements: Element[]
+) {
+  const create_agent_element = elements[2];
+  const fnsToCall = ['validate_create_agent'];
+
+  const zomes_to_invoke = await get_zomes_to_invoke(
+    create_agent_element,
+    workspace
+  );
+
+  const membrane_proof = (elements[1].signed_header.header
+    .content as AgentValidationPkg).membrane_proof;
+
+  return invoke_validation_fns(
+    zomes_to_invoke as SimulatedZome[],
+    fnsToCall,
+    {
+      element: elements[2],
+      membrane_proof,
+      agent_pub_key: create_agent_element.signed_header.header.content.author,
+    },
+    workspace
+  );
 }
 
 export async function run_create_link_validation_callback(
@@ -452,7 +498,7 @@ function get_element_validate_functions_to_invoke(
 
   const entry_type = (header as NewEntryHeader).entry_type;
   if (entry_type) {
-    if (entry_type === 'Agent') fnsComponents.push('agent');
+    // if (entry_type === 'Agent') fnsComponents.push('agent');
     if ((entry_type as { App: AppEntryType }).App) {
       fnsComponents.push('entry');
       if (maybeEntryDef) fnsComponents.push(maybeEntryDef.id);

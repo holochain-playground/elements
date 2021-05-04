@@ -62,7 +62,7 @@ export const demoEntriesZome: SimulatedZome = {
     },
   },
   validation_functions: {
-    validate_update_entry_demo_entry: hdk => async element => {
+    validate_update_entry_demo_entry: hdk => async ({ element }) => {
       const update = element.signed_header.header.content as Update;
       const updateAuthor = update.author;
 

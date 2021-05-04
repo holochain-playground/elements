@@ -1273,6 +1273,28 @@ function getNewHeaders(state) {
 function getAllAuthoredHeaders(state) {
     return state.sourceChain.map(headerHash => state.CAS[headerHash]);
 }
+function getSourceChainElements(state, fromIndex, toIndex) {
+    const elements = [];
+    for (let i = fromIndex; i < toIndex; i++) {
+        const element = getSourceChainElement(state, i);
+        if (element)
+            elements.push(element);
+    }
+    return elements;
+}
+function getSourceChainElement(state, index) {
+    const headerHash = state.sourceChain[index];
+    const signed_header = state.CAS[headerHash];
+    let entry = undefined;
+    const entryHash = signed_header.header.content.entry_hash;
+    if (entryHash) {
+        entry = state.CAS[entryHash];
+    }
+    return {
+        entry,
+        signed_header,
+    };
+}
 
 function hashEntry(entry) {
     if (entry.entry_type === 'Agent')
@@ -1811,7 +1833,10 @@ const validation_receipt = async (workspace) => {
         putValidationReceipt(dhtOpHash, receipt)(workspace.state);
         const badAgents = getBadAgents(workspace.state);
         const beforeCount = workspace.state.badAgents.length;
-        workspace.state.badAgents = badAgents;
+        workspace.state.badAgents = uniq([
+            ...workspace.state.badAgents,
+            ...badAgents,
+        ]);
         if (beforeCount !== badAgents.length) {
             workspace.p2p.syncNeighbors();
         }
@@ -1837,6 +1862,7 @@ var WorkflowType;
     WorkflowType["PUBLISH_DHT_OPS"] = "Publish DHT Ops";
     WorkflowType["PRODUCE_DHT_OPS"] = "Produce DHT Ops";
     WorkflowType["APP_VALIDATION"] = "App Validation";
+    WorkflowType["AGENT_VALIDATION"] = "Validate Agent";
     WorkflowType["INTEGRATE_DHT_OPS"] = "Integrate DHT Ops";
     WorkflowType["GENESIS"] = "Genesis";
     WorkflowType["INCOMING_DHT_OPS"] = "Incoming DHT Ops";
@@ -2179,9 +2205,9 @@ const app_validation = async (workspace) => {
         triggers: integrateDhtOps ? [integrate_dht_ops_task()] : [],
     };
 };
-function app_validation_task() {
+function app_validation_task(agent = false) {
     return {
-        type: WorkflowType.APP_VALIDATION,
+        type: agent ? WorkflowType.AGENT_VALIDATION : WorkflowType.APP_VALIDATION,
         details: undefined,
         task: worskpace => app_validation(worskpace),
     };
@@ -2330,8 +2356,12 @@ async function get_zomes_to_invoke(element, workspace) {
 }
 async function run_validation_callback_inner(zomes_to_invoke, element, entry_def, workspace) {
     const fnsToCall = get_element_validate_functions_to_invoke(element, entry_def);
+    return invoke_validation_fns(zomes_to_invoke, fnsToCall, { element }, workspace);
+}
+async function invoke_validation_fns(zomes_to_invoke, fnsToCall, payload, workspace) {
+    const cascade = new Cascade(workspace.state, workspace.p2p);
     const hostFnWorkspace = {
-        cascade: new Cascade(workspace.state, workspace.p2p),
+        cascade,
         state: workspace.state,
         dna: workspace.dna,
         p2p: workspace.p2p,
@@ -2340,7 +2370,7 @@ async function run_validation_callback_inner(zomes_to_invoke, element, entry_def
         for (const validateFn of fnsToCall) {
             if (zome.validation_functions[validateFn]) {
                 const context = buildValidationFunctionContext(hostFnWorkspace, workspace.dna.zomes.findIndex(z => z === zome));
-                const outcome = await zome.validation_functions[validateFn](context)(element);
+                const outcome = await zome.validation_functions[validateFn](context)(payload);
                 if (!outcome.resolved)
                     return outcome;
                 else if (!outcome.valid)
@@ -2349,6 +2379,18 @@ async function run_validation_callback_inner(zomes_to_invoke, element, entry_def
         }
     }
     return { resolved: true, valid: true };
+}
+async function run_agent_validation_callback(workspace, elements) {
+    const create_agent_element = elements[2];
+    const fnsToCall = ['validate_create_agent'];
+    const zomes_to_invoke = await get_zomes_to_invoke(create_agent_element, workspace);
+    const membrane_proof = elements[1].signed_header.header
+        .content.membrane_proof;
+    return invoke_validation_fns(zomes_to_invoke, fnsToCall, {
+        element: elements[2],
+        membrane_proof,
+        agent_pub_key: create_agent_element.signed_header.header.content.author,
+    }, workspace);
 }
 async function run_create_link_validation_callback(zome, link_add, base, target, workspace) {
     const validateCreateLink = 'validate_create_link';
@@ -2397,8 +2439,7 @@ function get_element_validate_functions_to_invoke(element, maybeEntryDef) {
         fnsComponents.push('delete');
     const entry_type = header.entry_type;
     if (entry_type) {
-        if (entry_type === 'Agent')
-            fnsComponents.push('agent');
+        // if (entry_type === 'Agent') fnsComponents.push('agent');
         if (entry_type.App) {
             fnsComponents.push('entry');
             if (maybeEntryDef)
@@ -2545,6 +2586,15 @@ const genesis = (agentId, dnaHash, membrane_proof) => async (worskpace) => {
         signed_header: buildShh(create_agent_pub_key_entry),
         entry: entry,
     })(worskpace.state);
+    if (!(worskpace.badAgentConfig &&
+        worskpace.badAgentConfig.disable_validation_before_publish)) {
+        const firstElements = getSourceChainElements(worskpace.state, 0, 3);
+        const result = await run_agent_validation_callback(worskpace, firstElements);
+        if (!result.resolved)
+            throw new Error('Unresolved in agent validate?');
+        else if (!result.valid)
+            throw new Error('Agent is invalid in this Dna');
+    }
     return {
         result: undefined,
         triggers: [produce_dht_ops_task()],
@@ -2643,10 +2693,9 @@ class MiddlewareExecutor {
 }
 
 class Cell {
-    constructor(_state, conductor, p2p) {
+    constructor(_state, conductor) {
         this._state = _state;
         this.conductor = conductor;
-        this.p2p = p2p;
         this._triggers = {
             [WorkflowType.INTEGRATE_DHT_OPS]: { running: false, triggered: true },
             [WorkflowType.PRODUCE_DHT_OPS]: { running: false, triggered: true },
@@ -2657,9 +2706,6 @@ class Cell {
         };
         this.workflowExecutor = new MiddlewareExecutor();
         // Let genesis be run before actually joining
-        setTimeout(() => {
-            this.p2p.join(this);
-        });
     }
     get cellId() {
         return [this._state.dnaHash, this._state.agentPubKey];
@@ -2669,6 +2715,9 @@ class Cell {
     }
     get dnaHash() {
         return this.cellId[0];
+    }
+    get p2p() {
+        return this.conductor.network.p2pCells[this.cellId[0]][this.cellId[1]];
     }
     getState() {
         return cloneDeep(this._state);
@@ -2694,9 +2743,10 @@ class Cell {
             sourceChain: [],
             badAgents: [],
         };
-        const p2p = conductor.network.createP2pCell(cellId);
-        const cell = new Cell(newCellState, conductor, p2p);
+        const cell = new Cell(newCellState, conductor);
+        conductor.network.createP2pCell(cell);
         await cell._runWorkflow(genesis_task(cellId, membrane_proof));
+        await cell.p2p.join(cell);
         return cell;
     }
     /** Workflows */
@@ -2784,7 +2834,15 @@ class Cell {
             // We have added bad agents: resync the neighbors
             await this.p2p.syncNeighbors();
         }
-        this._state.badAgents = badAgents;
+        this._state.badAgents = uniq([...this._state.badAgents, ...badAgents]);
+    }
+    // Check if the agent we are trying to connect with passes the membrane rules for this Dna
+    async handle_check_agent(firstElements) {
+        const result = await this.workflowExecutor.execute(() => run_agent_validation_callback(this.buildWorkspace(), firstElements), app_validation_task(true));
+        if (!result.resolved)
+            throw new Error('Unresolved in agent validate?');
+        else if (!result.valid)
+            throw new Error('Agent is invalid in this Dna');
     }
     /** Workflow internal execution */
     triggerWorkflow(workflow) {
@@ -2797,6 +2855,8 @@ class Cell {
             .map(([type, t]) => type);
         const workflowsToRun = pendingWorkflows.map(triggeredWorkflowFromType);
         const promises = Object.values(workflowsToRun).map(async (w) => {
+            if (!this._triggers[w.type])
+                console.log(w);
             this._triggers[w.type].triggered = false;
             this._triggers[w.type].running = true;
             await this._runWorkflow(w);
@@ -2933,12 +2993,13 @@ var NetworkRequestType;
     NetworkRequestType["GET_REQUEST"] = "Get Request";
     NetworkRequestType["WARRANT"] = "Warrant";
     NetworkRequestType["GOSSIP"] = "Gossip";
+    NetworkRequestType["CONNECT"] = "Connect";
 })(NetworkRequestType || (NetworkRequestType = {}));
 
 // From: https://github.com/holochain/holochain/blob/develop/crates/holochain_p2p/src/lib.rs
 class P2pCell {
-    constructor(state, cellId, network) {
-        this.cellId = cellId;
+    constructor(state, cell, network) {
+        this.cell = cell;
         this.network = network;
         this.redundancyFactor = 3;
         this.networkRequestsExecutor = new MiddlewareExecutor();
@@ -2961,8 +3022,8 @@ class P2pCell {
             neighborNumber: this.neighborNumber,
         };
     }
-    get cell() {
-        return this.network.conductor.getCell(this.cellId[0], this.cellId[1]);
+    get cellId() {
+        return this.cell.cellId;
     }
     get badAgents() {
         if (this.cell.conductor.badAgent &&
@@ -2996,10 +3057,21 @@ class P2pCell {
     get neighbors() {
         return Object.keys(this.neighborConnections);
     }
-    connectWith(peer) {
+    async connectWith(peer) {
         if (this.neighborConnections[peer.agentPubKey])
             return this.neighborConnections[peer.agentPubKey];
         return new Connection(this.cell, peer);
+    }
+    async check_agent_valid(peer) {
+        const peerFirst3Elements = getSourceChainElements(peer._state, 0, 3);
+        try {
+            await this.cell.handle_check_agent(peerFirst3Elements);
+        }
+        catch (e) {
+            if (!this.cell._state.badAgents.includes(peer.agentPubKey))
+                this.cell._state.badAgents.push(peer.agentPubKey);
+            throw new Error('Invalid agent');
+        }
     }
     handleOpenNeighborConnection(from, connection) {
         this.neighborConnections[from.agentPubKey] = connection;
@@ -3009,9 +3081,14 @@ class P2pCell {
         delete this.neighborConnections[from.agentPubKey];
         this.syncNeighbors();
     }
-    openNeighborConnection(withPeer) {
+    async openNeighborConnection(withPeer) {
         if (!this.neighborConnections[withPeer.agentPubKey]) {
-            const connection = this.connectWith(withPeer);
+            // Try to connect: can fail due to validation
+            await this._executeNetworkRequest(withPeer, NetworkRequestType.CONNECT, {}, peer => Promise.all([
+                this.check_agent_valid(withPeer),
+                withPeer.p2p.check_agent_valid(this.cell),
+            ]));
+            const connection = await this.connectWith(withPeer);
             this.neighborConnections[withPeer.agentPubKey] = connection;
             withPeer.p2p.handleOpenNeighborConnection(this.cell, connection);
         }
@@ -3046,14 +3123,15 @@ class P2pCell {
         const newNeighbors = neighbors.filter(cell => !this.neighbors.includes(cell.agentPubKey));
         const neighborsToForget = this.neighbors.filter(n => !neighbors.find(c => c.agentPubKey === n));
         neighborsToForget.forEach(n => this.closeNeighborConnection(n));
-        newNeighbors.forEach(neighbor => {
+        const promises = newNeighbors.map(async (neighbor) => {
             try {
-                this.openNeighborConnection(neighbor);
+                await this.openNeighborConnection(neighbor);
             }
             catch (e) {
                 // Couldn't open connection
             }
         });
+        await Promise.all(promises);
         if (Object.keys(this.neighborConnections).length < this.neighborNumber) {
             setTimeout(() => this.syncNeighbors(), 400);
         }
@@ -3078,7 +3156,7 @@ class P2pCell {
             type,
             details,
         };
-        const connection = this.connectWith(toCell);
+        const connection = await this.connectWith(toCell);
         const result = await this.networkRequestsExecutor.execute(() => connection.sendRequest(this.cellId[1], request), networkRequest);
         return result;
     }
@@ -3094,7 +3172,6 @@ class KitsuneP2p {
         return networkRequest(peer);
     }
     async rpc_multi(dna_hash, from_agent, basis, remote_agent_count, filtered_agents, networkRequest) {
-        // TODO Get all local agents and call them
         // Discover neighbors
         return this.discover.message_neighborhood(dna_hash, from_agent, basis, remote_agent_count, filtered_agents, networkRequest);
     }
@@ -3127,7 +3204,7 @@ class Network {
             if (!this.p2pCells[dnaHash])
                 this.p2pCells[dnaHash];
             for (const [agentPubKey, p2pCellState] of Object.entries(p2pState)) {
-                this.p2pCells[dnaHash][agentPubKey] = new P2pCell(p2pCellState, [dnaHash, agentPubKey], this);
+                this.p2pCells[dnaHash][agentPubKey] = new P2pCell(p2pCellState, conductor.getCell(dnaHash, agentPubKey), this);
             }
         }
         this.kitsune = new KitsuneP2p(this);
@@ -3149,7 +3226,8 @@ class Network {
         const nestedCells = Object.values(this.p2pCells).map(dnaCells => Object.values(dnaCells));
         return [].concat(...nestedCells);
     }
-    createP2pCell(cellId) {
+    createP2pCell(cell) {
+        const cellId = cell.cellId;
         const dnaHash = cellId[0];
         const state = {
             neighbors: [],
@@ -3158,7 +3236,7 @@ class Network {
             neighborNumber: 5,
             badAgents: [],
         };
-        const p2pCell = new P2pCell(state, cellId, this);
+        const p2pCell = new P2pCell(state, cell, this);
         if (!this.p2pCells[dnaHash])
             this.p2pCells[dnaHash] = {};
         this.p2pCells[dnaHash][cellId[1]] = p2pCell;
@@ -3183,7 +3261,7 @@ class Conductor {
             if (!this.cells[dnaHash])
                 this.cells[dnaHash] = {};
             for (const [agentPubKey, cellState] of Object.entries(dnaCellsStates)) {
-                this.cells[dnaHash][agentPubKey] = new Cell(cellState, this, this.network.createP2pCell(getCellId(cellState)));
+                this.cells[dnaHash][agentPubKey] = new Cell(cellState, this);
             }
         }
     }
@@ -3381,7 +3459,7 @@ const demoEntriesZome = {
         },
     },
     validation_functions: {
-        validate_update_entry_demo_entry: hdk => async (element) => {
+        validate_update_entry_demo_entry: hdk => async ({ element }) => {
             const update = element.signed_header.header.content;
             const updateAuthor = update.author;
             const originalHeader = await hdk.get(update.original_header_address);
@@ -3509,5 +3587,5 @@ async function createConductors(conductorsToCreate, currentConductors, happ) {
     return allConductors;
 }
 
-export { AGENT_PREFIX, Authority, Cascade, Cell, Conductor, DHTOP_PREFIX, DNA_PREFIX, DelayMiddleware, Discover, ENTRY_PREFIX, GetStrategy, HEADER_PREFIX, HashType, index as Hdk, KitsuneP2p, MiddlewareExecutor, Network, NetworkRequestType, P2pCell, ValidationLimboStatus, ValidationStatus, WorkflowType, app_validation, app_validation_task, buildAgentValidationPkg, buildCreate, buildCreateLink, buildDelete, buildDeleteLink, buildDna, buildShh, buildUpdate, callZomeFn, call_zome_fn_workflow, computeDhtStatus, counterfeit_check, createConductors, deleteValidationLimboValue, demoDna, demoEntriesZome, demoHapp, demoLinksZome, demoPathsZome, distance, genesis, genesis_task, getAllAuthoredEntries, getAllAuthoredHeaders, getAllHeldEntries, getAllHeldHeaders, getAppEntryType, getAuthor, getBadActions, getBadAgents, getCellId, getClosestNeighbors, getCreateLinksForEntry, getDHTOpBasis, getDhtShard, getDnaHash, getElement, getEntryDetails, getEntryDhtStatus, getEntryTypeString, getFarthestNeighbors, getHashType, getHeaderAt, getHeaderModifiers, getHeadersForEntry, getIntegratedDhtOpsWithoutReceipt, getLinksForEntry, getLiveLinks, getNewHeaders, getNextHeaderSeq, getNonPublishedDhtOps, getRemovesOnLinkAdd, getTipOfChain, getValidationLimboDhtOps, getValidationReceipts, hasDhtOpBeenProcessed, hash, hashEntry, incoming_dht_ops, incoming_dht_ops_task, integrate_dht_ops, integrate_dht_ops_task, isHoldingDhtOp, isHoldingElement, isHoldingEntry, location, produce_dht_ops, produce_dht_ops_task, publish_dht_ops, publish_dht_ops_task, pullAllIntegrationLimboDhtOps, putDhtOpData, putDhtOpMetadata, putDhtOpToIntegrated, putElement, putIntegrationLimboValue, putSystemMetadata, putValidationLimboValue, putValidationReceipt, query_dht_ops, register_header_on_basis, run_create_link_validation_callback, run_delete_link_validation_callback, run_validation_callback_direct, shortest_arc_distance, sleep, store_element, store_entry, sys_validate_element, sys_validation, sys_validation_task, triggeredWorkflowFromType, valid_cap_grant, validate_op, workflowPriority, wrap };
+export { AGENT_PREFIX, Authority, Cascade, Cell, Conductor, DHTOP_PREFIX, DNA_PREFIX, DelayMiddleware, Discover, ENTRY_PREFIX, GetStrategy, HEADER_PREFIX, HashType, index as Hdk, KitsuneP2p, MiddlewareExecutor, Network, NetworkRequestType, P2pCell, ValidationLimboStatus, ValidationStatus, WorkflowType, app_validation, app_validation_task, buildAgentValidationPkg, buildCreate, buildCreateLink, buildDelete, buildDeleteLink, buildDna, buildShh, buildUpdate, callZomeFn, call_zome_fn_workflow, computeDhtStatus, counterfeit_check, createConductors, deleteValidationLimboValue, demoDna, demoEntriesZome, demoHapp, demoLinksZome, demoPathsZome, distance, genesis, genesis_task, getAllAuthoredEntries, getAllAuthoredHeaders, getAllHeldEntries, getAllHeldHeaders, getAppEntryType, getAuthor, getBadActions, getBadAgents, getCellId, getClosestNeighbors, getCreateLinksForEntry, getDHTOpBasis, getDhtShard, getDnaHash, getElement, getEntryDetails, getEntryDhtStatus, getEntryTypeString, getFarthestNeighbors, getHashType, getHeaderAt, getHeaderModifiers, getHeadersForEntry, getIntegratedDhtOpsWithoutReceipt, getLinksForEntry, getLiveLinks, getNewHeaders, getNextHeaderSeq, getNonPublishedDhtOps, getRemovesOnLinkAdd, getSourceChainElement, getSourceChainElements, getTipOfChain, getValidationLimboDhtOps, getValidationReceipts, hasDhtOpBeenProcessed, hash, hashEntry, incoming_dht_ops, incoming_dht_ops_task, integrate_dht_ops, integrate_dht_ops_task, isHoldingDhtOp, isHoldingElement, isHoldingEntry, location, produce_dht_ops, produce_dht_ops_task, publish_dht_ops, publish_dht_ops_task, pullAllIntegrationLimboDhtOps, putDhtOpData, putDhtOpMetadata, putDhtOpToIntegrated, putElement, putIntegrationLimboValue, putSystemMetadata, putValidationLimboValue, putValidationReceipt, query_dht_ops, register_header_on_basis, run_agent_validation_callback, run_create_link_validation_callback, run_delete_link_validation_callback, run_validation_callback_direct, shortest_arc_distance, sleep, store_element, store_entry, sys_validate_element, sys_validation, sys_validation_task, triggeredWorkflowFromType, valid_cap_grant, validate_op, workflowPriority, wrap };
 //# sourceMappingURL=index.js.map

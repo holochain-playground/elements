@@ -17,7 +17,7 @@ export declare type P2pCellState = {
     neighborNumber: number;
 };
 export declare class P2pCell {
-    protected cellId: CellId;
+    cell: Cell;
     protected network: Network;
     farKnownPeers: AgentPubKey[];
     storageArc: DhtArc;
@@ -26,9 +26,9 @@ export declare class P2pCell {
     _gossipLoop: SimpleBloomMod;
     networkRequestsExecutor: MiddlewareExecutor<NetworkRequestInfo<any, any>>;
     neighborConnections: Dictionary<Connection | undefined>;
-    constructor(state: P2pCellState, cellId: CellId, network: Network);
+    constructor(state: P2pCellState, cell: Cell, network: Network);
     getState(): P2pCellState;
-    get cell(): Cell;
+    get cellId(): CellId;
     get badAgents(): string[];
     /** P2p actions */
     join(containerCell: Cell): Promise<void>;
@@ -39,10 +39,11 @@ export declare class P2pCell {
     call_remote(agent: AgentPubKey, zome: string, fnName: string, cap: CapSecret | undefined, payload: any): Promise<any>;
     /** Neighbor handling */
     get neighbors(): Array<AgentPubKey>;
-    connectWith(peer: Cell): Connection;
+    connectWith(peer: Cell): Promise<Connection>;
+    check_agent_valid(peer: Cell): Promise<void>;
     handleOpenNeighborConnection(from: Cell, connection: Connection): void;
     handleCloseNeighborConnection(from: Cell): void;
-    openNeighborConnection(withPeer: Cell): Connection;
+    openNeighborConnection(withPeer: Cell): Promise<Connection>;
     closeNeighborConnection(withPeer: AgentPubKey): void;
     syncNeighbors(): Promise<void>;
     shouldWeHold(dhtOpHash: Hash): boolean;

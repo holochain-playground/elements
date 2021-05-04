@@ -48,11 +48,7 @@ export class Conductor {
       if (!this.cells[dnaHash]) this.cells[dnaHash] = {};
 
       for (const [agentPubKey, cellState] of Object.entries(dnaCellsStates)) {
-        this.cells[dnaHash][agentPubKey] = new Cell(
-          cellState,
-          this,
-          this.network.createP2pCell(getCellId(cellState))
-        );
+        this.cells[dnaHash][agentPubKey] = new Cell(cellState, this);
       }
     }
   }

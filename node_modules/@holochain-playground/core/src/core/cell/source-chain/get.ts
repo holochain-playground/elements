@@ -1,4 +1,9 @@
-import { Hash, SignedHeaderHashed } from '@holochain-open-dev/core-types';
+import {
+  Element,
+  Hash,
+  NewEntryHeader,
+  SignedHeaderHashed,
+} from '@holochain-open-dev/core-types';
 import { CellState } from '../state';
 
 /**
@@ -18,4 +23,38 @@ export function getAllAuthoredHeaders(
   state: CellState
 ): Array<SignedHeaderHashed> {
   return state.sourceChain.map(headerHash => state.CAS[headerHash]);
+}
+
+export function getSourceChainElements(
+  state: CellState,
+  fromIndex: number,
+  toIndex: number
+): Element[] {
+  const elements: Element[] = [];
+
+  for (let i = fromIndex; i < toIndex; i++) {
+    const element = getSourceChainElement(state, i);
+    if (element) elements.push(element);
+  }
+
+  return elements;
+}
+
+export function getSourceChainElement(
+  state: CellState,
+  index: number
+): Element | undefined {
+  const headerHash = state.sourceChain[index];
+  const signed_header: SignedHeaderHashed = state.CAS[headerHash];
+
+  let entry = undefined;
+  const entryHash = (signed_header.header.content as NewEntryHeader).entry_hash;
+  if (entryHash) {
+    entry = state.CAS[entryHash];
+  }
+
+  return {
+    entry,
+    signed_header,
+  };
 }
