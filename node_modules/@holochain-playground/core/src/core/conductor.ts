@@ -170,6 +170,7 @@ export class Conductor {
       throw new Error(
         `Trying to clone a dna would create exactly the same DNA`
       );
+    this.registeredDnas[newDnaHash] = dna;
 
     const cell = await this.createCell(
       dna,
@@ -179,7 +180,6 @@ export class Conductor {
     this.installedHapps[installedAppId].slots[slotNick].clones.push(
       cell.cellId
     );
-    this.registeredDnas[newDnaHash] = dna;
 
     return cell;
   }

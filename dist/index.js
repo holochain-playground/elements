@@ -17442,7 +17442,7 @@ class HolochainPlaygroundContainer extends ScopedRegistryHost(ProviderMixin(LitE
     }
     renderSnackbar() {
         return html$1 `
-      <mwc-snackbar id="snackbar" labelText=${this.message}>
+      <mwc-snackbar id="snackbar" .labelText=${this.message}>
         <mwc-icon-button icon="close" slot="dismiss"></mwc-icon-button>
       </mwc-snackbar>
     `;
