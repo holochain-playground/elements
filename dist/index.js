@@ -324,97 +324,6 @@ __decorate([
     __metadata("design:type", Array)
 ], PlaygroundElement.prototype, "conductorsUrls", void 0);
 
-const sharedStyles = css$1 `
-  .row {
-    display: flex;
-    flex-direction: row;
-  }
-  .column {
-    display: flex;
-    flex-direction: column;
-  }
-  .fill {
-    flex: 1;
-  }
-
-  .center-content {
-    align-items: center;
-    justify-content: center;
-    display: flex;
-  }
-
-  span {
-    margin-block-start: 0;
-  }
-
-  .title {
-    font-size: 20px;
-  }
-
-  .placeholder {
-    color: rgba(0, 0, 0, 0.6);
-  }
-
-  .flex-scrollable-parent {
-    position: relative;
-    display: flex;
-    flex: 1;
-  }
-
-  .flex-scrollable-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-  }
-
-  .flex-scrollable-x {
-    max-width: 100%;
-    overflow-x: auto;
-  }
-  .flex-scrollable-y {
-    max-height: 100%;
-    overflow-y: auto;
-  }
-
-  .json-info {
-    padding: 4px;
-    max-width: 400px;
-  }
-
-  .block-card {
-    width: auto;
-    position: relative;
-    flex: 1;
-  }
-
-  .block-title {
-    font-size: 20px;
-  }
-
-  .block-help {
-    position: absolute;
-    right: 8px;
-    top: 8px;
-  }
-
-  .horizontal-divider {
-    background-color: grey;
-    height: 1px;
-    opacity: 0.3;
-    margin-bottom: 0;
-    width: 100%;
-  }
-  .vertical-divider {
-    background-color: grey;
-    width: 1px;
-    height: 60%;
-    opacity: 0.3;
-    margin-bottom: 0;
-  }
-`;
-
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 function createCommonjsModule(fn, basedir, module) {
@@ -17640,6 +17549,9 @@ function selectHoldingCells(hash, cells) {
         return cells.filter((cell) => isHoldingEntry(cell._state, hash));
     return cells.filter((cell) => isHoldingElement(cell._state, hash));
 }
+function selectConductorByAgent(agentPubKey, conductors) {
+    return conductors.find((conductor) => conductor.getAllCells().find((cell) => cell.agentPubKey === agentPubKey));
+}
 function selectCell(dnaHash, agentPubKey, conductors) {
     for (const conductor of conductors) {
         for (const cell of conductor.getAllCells()) {
@@ -17670,6 +17582,10 @@ function selectFromCAS(hash, cells) {
     }
     return undefined;
 }
+function selectHeaderEntry(headerHash, cells) {
+    const header = selectFromCAS(headerHash, cells);
+    return selectFromCAS(header.header.content.entry_hash, cells);
+}
 function selectMedianHoldingDHTOps(cells) {
     const holdingDHTOps = [];
     for (const cell of cells) {
@@ -17691,6 +17607,97 @@ function selectAllDNAs(conductors) {
 function selectRedundancyFactor(cell) {
     return cell.p2p.redundancyFactor;
 }
+
+const sharedStyles = css$1 `
+  .row {
+    display: flex;
+    flex-direction: row;
+  }
+  .column {
+    display: flex;
+    flex-direction: column;
+  }
+  .fill {
+    flex: 1;
+  }
+
+  .center-content {
+    align-items: center;
+    justify-content: center;
+    display: flex;
+  }
+
+  span {
+    margin-block-start: 0;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .placeholder {
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .flex-scrollable-parent {
+    position: relative;
+    display: flex;
+    flex: 1;
+  }
+
+  .flex-scrollable-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  .flex-scrollable-x {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .flex-scrollable-y {
+    max-height: 100%;
+    overflow-y: auto;
+  }
+
+  .json-info {
+    padding: 4px;
+    max-width: 400px;
+  }
+
+  .block-card {
+    width: auto;
+    position: relative;
+    flex: 1;
+  }
+
+  .block-title {
+    font-size: 20px;
+  }
+
+  .block-help {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+  }
+
+  .horizontal-divider {
+    background-color: grey;
+    height: 1px;
+    opacity: 0.3;
+    margin-bottom: 0;
+    width: 100%;
+  }
+  .vertical-divider {
+    background-color: grey;
+    width: 1px;
+    height: 60%;
+    opacity: 0.3;
+    margin-bottom: 0;
+  }
+`;
 
 class CopyableHash extends ScopedRegistryHost(LitElement) {
     constructor() {
@@ -96519,5 +96526,5 @@ SelectActiveDna.elementDefinitions = {
     'mwc-card': Card,
 };
 
-export { CallFns, CallZomeFns, CellTasks, CellsController, ConductorAdmin, CopyableHash, DhtCells, DhtShard, DhtStats, EntryContents, EntryGraph, HelpButton, HolochainPlaygroundContainer, PlaygroundElement, RunSteps, SelectActiveDna, SourceChain, ZomeFnsResults };
+export { CallFns, CallZomeFns, CellTasks, CellsController, ConductorAdmin, CopyableHash, DhtCells, DhtShard, DhtStats, EntryContents, EntryGraph, HelpButton, HolochainPlaygroundContainer, PlaygroundElement, RunSteps, SelectActiveDna, SourceChain, ZomeFnsResults, selectAllCells, selectAllDNAs, selectCell, selectCells, selectConductorByAgent, selectFromCAS, selectGlobalDHTOpsCount, selectHeaderEntry, selectHoldingCells, selectMedianHoldingDHTOps, selectRedundancyFactor, selectUniqueDHTOpsCount };
 //# sourceMappingURL=index.js.map

@@ -2,6 +2,7 @@ export * from './base/context';
 export * from './base/holochain-playground-container';
 export * from './base/cells-controller';
 export * from './base/playground-element';
+export * from './base/selectors';
 
 export * from './elements/call-zome-fns';
 export * from './elements/zome-fns-results';
