@@ -44,6 +44,8 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
   activeHash: Hash | undefined;
   @property({ type: Array })
   conductors: Conductor[] = [];
+  @property({ type: Array })
+  happs: Dictionary<SimulatedHappBundle> = {};
 
   @property({ type: Array })
   conductorsUrls: string[] | undefined;
@@ -55,6 +57,7 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
       'activeHash',
       'conductors',
       'conductorsUrls',
+      'happs',
     ];
   }
 
@@ -89,6 +92,8 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
         this.simulatedHapp
       );
 
+      this.happs[this.simulatedHapp.name] = this.simulatedHapp;
+
       this.activeDna = this.conductors[0].getAllCells()[0].dnaHash;
 
       this.dispatchEvent(
@@ -101,6 +106,7 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
             activeHash: this.activeHash,
             conductors: this.conductors,
             conductorsUrls: this.conductorsUrls,
+            happs: this.happs,
           },
         })
       );
@@ -116,17 +122,6 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
     this.addEventListener('show-message', (e: CustomEvent) => {
       this.showMessage(e.detail.message);
     });
-    /* 
-    this.blackboard.select('conductorsUrls').subscribe(async (urls) => {
-      if (urls !== undefined) {
-        try {
-          // await connectToConductors(this.blackboard, urls);
-        } catch (e) {
-          console.error(e);
-          this.showError('Error when connecting with the nodes');
-        }
-      }
-    }); */
   }
 
   showMessage(message: string) {

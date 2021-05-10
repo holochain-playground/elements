@@ -83,60 +83,6 @@
       const container = document.getElementById('container');
       container.numberOfSimulatedConductors = 10;
 
-      let headerHash = undefined;
-      const steps = [
-        {
-          title: (context) =>
-            `${context.conductors[1].name} (an honest agent) creates an entry`,
-          run: async (context) => {
-            const cell = context.conductors[1].getAllCells()[0];
-            headerHash = await context.conductors[1].callZomeFn({
-              cellId: cell.cellId,
-              zome: 'demo_entries',
-              fnName: 'create_entry',
-              payload: { content: 'Good morning!' },
-              cap: null,
-            });
-          },
-        },
-        {
-          title: (context) =>
-            `${context.conductors[5].name} (an honest agent) tries to update that same entry`,
-          run: async (context) => {
-            const cell = context.conductors[5].getAllCells()[0];
-
-            try {
-              await context.conductors[5].callZomeFn({
-                cellId: cell.cellId,
-                zome: 'demo_entries',
-                fnName: 'update_entry',
-                payload: {
-                  original_header_address: headerHash,
-                  new_content: 'Bad morning!',
-                },
-                cap: null,
-              });
-            } catch (e) {}
-          },
-        },
-      ];
-
-      container.addEventListener('ready', (e) => {
-        const conductors = e.detail.conductors;
-        const conductor = conductors[0];
-
-        for (let i = 5; i < 6; i++) {
-          conductors[i].setBadAgent({
-            disable_validation_before_publish: true,
-            pretend_invalid_elements_are_valid: true,
-          });
-        }
-
-        const cellId = conductor.getAllCells()[0].cellId;
-
-        container.activeDna = cellId[0];
-        e.target.querySelector('run-steps').steps = steps;
-      });
     </script>
   </body>
 </html>

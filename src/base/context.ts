@@ -1,6 +1,5 @@
-import { Conductor } from '@holochain-playground/core';
+import { Conductor, SimulatedHappBundle } from '@holochain-playground/core';
 import { Dictionary, Hash } from '@holochain-open-dev/core-types';
-import { ZomeFunctionResult } from '../elements/zome-fns-results/types';
 
 export interface PlaygroundContext {
   activeDna: Hash;
@@ -8,4 +7,5 @@ export interface PlaygroundContext {
   activeHash: Hash | undefined;
   conductors: Conductor[];
   conductorsUrls: string[] | undefined;
+  happs: Dictionary<SimulatedHappBundle>;
 }
