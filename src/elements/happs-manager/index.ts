@@ -78,13 +78,24 @@ export class HappsManager extends PlaygroundElement {
   update(changedValues: PropertyValues) {
     super.update(changedValues);
 
-    // If there is a newly compiled dna and the last dna was the _lastSelectedDna, update it
+    if (
+      this._editingHapp &&
+      changedValues.has('activeDna') &&
+      this.activeDna !== changedValues.get('activeDna')
+    ) {
+      // If there is a newly compiled dna and the last dna was the _lastSelectedDna, update it
+      for (const slot of this._editingHapp.slots) {
+        if (slot[1].dnaHash === this._lastSelectedDna) {
+          slot[1].dnaHash = changedValues.get('activeDna') as string;
+        }
+      }
+    }
   }
 
   renderDnaSlot(index: number, slotNick: string, dnaSlot: LightDnaSlot) {
     const knownDnas = Object.keys(this.dnas);
 
-    return html`<div class="row center-content" style="margin-bottom: 8px;">
+    return html`<div class="row center-content" style="margin-top: 12px;">
       ${this._editingHapp
         ? html` <mwc-icon-button
               style="align-self: start; margin-top: 4px;"
@@ -141,7 +152,7 @@ export class HappsManager extends PlaygroundElement {
       <mwc-button
         .disabled=${this.activeDna === dnaSlot.dnaHash}
         @click=${() => {
-          console.log(dnaSlot);
+          this._lastSelectedDna = dnaSlot.dnaHash;
           this.updatePlayground({ activeDna: dnaSlot.dnaHash });
         }}
         style="margin-left: 16px; align-self: start; margin-top: 10px;"
@@ -222,6 +233,19 @@ export class HappsManager extends PlaygroundElement {
 
       ${this._editingHapp
         ? html` <mwc-button
+              label="Delete"
+              raised
+              style="--mdc-theme-primary: red; margin-right: 12px;"
+              @click=${() => {
+                const name = this._activeHapp.name;
+                this.happs[name] = undefined;
+                delete this.happs[name];
+
+                this._selectedHappId = undefined;
+                this._editingHapp = undefined;
+              }}
+            ></mwc-button>
+            <mwc-button
               label="Cancel"
               @click=${() => (this._editingHapp = undefined)}
               style="margin-right: 12px;"
@@ -232,16 +256,22 @@ export class HappsManager extends PlaygroundElement {
               .disabled=${!this._editingHappValid}
               @click=${() => this.saveHapp()}
             ></mwc-button>`
-        : html`<mwc-button
-            label="Edit"
-            @click=${() => (this._editingHapp = wrapEditable(this._activeHapp))}
-          ></mwc-button> `}
+        : html`
+            <mwc-button
+              label="Edit"
+              @click=${() =>
+                (this._editingHapp = wrapEditable(this._activeHapp))}
+            ></mwc-button>
+          `}
     </div>`;
   }
 
   renderHappDetail() {
     const happ = this._editingHapp || this._activeHapp;
-    if (!happ) return html``;
+    if (!happ)
+      return html`<div class="column center-content" style="flex: 1;">
+        <span class="placeholder">Selected a hApp to see its details</span>
+      </div>`;
     const slots = this._editingHapp
       ? this._editingHapp.slots
       : Object.entries(this._activeHapp.slots);
@@ -283,22 +313,24 @@ export class HappsManager extends PlaygroundElement {
         </div>
 
         <span style="margin-top: 24px; margin-bottom: 16px;">Dna Slots</span>
-        <hr style="width: 100%; margin: 0;" />
-        <div class="flex-scrollable-parent">
-          <div class="flex-scrollable-container">
-            <div class="flex-scrollable-y" style="height: 100%">
-              ${slots.length === 0
-                ? html`<div class="column center-content" style="flex: 1;">
-                    <span class="placeholder" style="margin-top: 42px;"
-                      >There are no Dna Slots yet</span
-                    >
-                  </div>`
-                : slots.map(([nick, slot], i) =>
-                    this.renderDnaSlot(i, nick, slot)
-                  )}
-            </div>
-          </div>
-        </div>
+        <hr style="width: 100%; margin: 0; opacity: 0.4;" />
+        ${slots.length === 0
+          ? html`<div class="column center-content" style="flex: 1;">
+              <span class="placeholder" style="margin-top: 42px;"
+                >There are no Dna Slots yet</span
+              >
+            </div>`
+          : html`
+              <div class="flex-scrollable-parent">
+                <div class="flex-scrollable-container">
+                  <div class="flex-scrollable-y" style="height: 100%">
+                    ${slots.map(([nick, slot], i) =>
+                      this.renderDnaSlot(i, nick, slot)
+                    )}
+                  </div>
+                </div>
+              </div>
+            `}
       </div>
       ${this.renderBottomBar()}
     </div> `;
@@ -315,30 +347,44 @@ export class HappsManager extends PlaygroundElement {
               <div class="flex-scrollable-y" style="height: 100%">
                 <mwc-drawer style="--mdc-drawer-width: auto;">
                   <div class="column" style="height: 100%">
-                    <mwc-list
-                      style="flex: 1;"
-                      class=${classMap({
-                        disabled: !!this._editingHapp,
-                      })}
-                      activatable
-                      .disabled=${this._editingHapp}
-                      @selected=${(e) =>
-                        (this._selectedHappId = happs[e.detail.index][1].name)}
-                    >
-                      ${Object.keys(this.happs).map(
-                        (happId) => html`
-                          <mwc-list-item
-                            .activated=${this._selectedHappId === happId}
-                            >${happId}
-                          </mwc-list-item>
-                        `
-                      )}
-                    </mwc-list>
-
+                    ${happs.length === 0
+                      ? html`<div
+                          class="column center-content"
+                          style="flex: 1;"
+                        >
+                          <span class="placeholder" style="margin: 12px;"
+                            >Create a hApp to start</span
+                          >
+                        </div>`
+                      : html`
+                          <mwc-list
+                            style="flex: 1;"
+                            class=${classMap({
+                              disabled: !!this._editingHapp,
+                            })}
+                            activatable
+                            .disabled=${this._editingHapp}
+                            @selected=${(e) =>
+                              (this._selectedHappId =
+                                happs.length > 0
+                                  ? happs[e.detail.index][1].name
+                                  : undefined)}
+                          >
+                            ${Object.keys(this.happs).map(
+                              (happId) => html`
+                                <mwc-list-item
+                                  .activated=${this._selectedHappId === happId}
+                                  >${happId}
+                                </mwc-list-item>
+                              `
+                            )}
+                          </mwc-list>
+                        `}
                     <mwc-button
                       class=${classMap({
                         disabled: !!this._editingHapp,
                       })}
+                      raised
                       label="New happ"
                       @click=${() => {
                         const name = `New hApp ${this._newHappCount++}`;
@@ -348,6 +394,7 @@ export class HappsManager extends PlaygroundElement {
                           slots: {},
                         };
                         this.happs[name] = happ;
+                        this._selectedHappId = name;
                         this.requestUpdate();
                       }}
                     ></mwc-button>
