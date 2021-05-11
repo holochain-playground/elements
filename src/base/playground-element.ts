@@ -1,7 +1,11 @@
-import { PlaygroundContext } from './context';
+import { LightHappBundle, PlaygroundContext } from './context';
 import { ConsumerMixin } from 'lit-element-context';
 import { Hash, AgentPubKey, Dictionary } from '@holochain-open-dev/core-types';
-import { Conductor, SimulatedHappBundle } from '@holochain-playground/core';
+import {
+  Conductor,
+  SimulatedDna,
+  SimulatedHappBundle,
+} from '@holochain-playground/core';
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 import { LitElement } from 'lit';
 import { property, state } from 'lit/decorators.js';
@@ -19,7 +23,10 @@ export class PlaygroundElement extends ScopedRegistryHost(
   @state()
   conductors: Conductor[] = [];
   @state()
-  happs: Dictionary<SimulatedHappBundle> = {};
+  happs: Dictionary<LightHappBundle> = {};
+
+  @state()
+  dnas: Dictionary<SimulatedDna> = {};
 
   @property({ type: Array })
   conductorsUrls: string[] | undefined;
@@ -32,6 +39,7 @@ export class PlaygroundElement extends ScopedRegistryHost(
       'conductors',
       'conductorsUrls',
       'happs',
+      'dnas',
     ];
   }
 

@@ -19,13 +19,7 @@
           margin-bottom: 20px;
         "
       >
-        <dht-cells
-          id="cells"
-          style="height: 600px; width: 1000px"
-          show-zome-fn-success
-          skip-genesis
-        ></dht-cells>
-        <conductor-admin style="height: 600px; width: 400px"></conductor-admin>
+        <happs-manager style="height: 600px; width: 500px"></happs-manager>
       </div>
       <div
         style="
@@ -59,6 +53,7 @@
         EntryGraph,
         EntryContents,
         RunSteps,
+        HappsManager
       } from '../dist';
       import {
         GetStrategy,
@@ -79,6 +74,7 @@
       customElements.define('zome-fns-results', ZomeFnsResults);
       customElements.define('entry-contents', EntryContents);
       customElements.define('conductor-admin', ConductorAdmin);
+      customElements.define('happs-manager', HappsManager);
 
       const container = document.getElementById('container');
       container.numberOfSimulatedConductors = 10;
