@@ -1,7 +1,7 @@
 import {
-  AgentPubKey,
+  AgentPubKeyB64,
+  AnyDhtHashB64,
   DHTOp,
-  Hash,
   ValidationReceipt,
   ValidationStatus,
 } from '@holochain-open-dev/core-types';
@@ -10,26 +10,33 @@ import { distance, location, wrap } from '../../processors/hash';
 import { CellState } from '../cell';
 
 export function getClosestNeighbors(
-  peers: Hash[],
-  targetHash: Hash,
+  peers: AgentPubKeyB64[],
+  targetHash: AnyDhtHashB64,
   numNeighbors: number
-): Hash[] {
-  const sortedPeers = peers.sort((agentA: Hash, agentB: Hash) => {
-    const distanceA = distance(agentA, targetHash);
-    const distanceB = distance(agentB, targetHash);
-    return distanceA - distanceB;
-  });
+): AgentPubKeyB64[] {
+  const sortedPeers = peers.sort(
+    (agentA: AgentPubKeyB64, agentB: AgentPubKeyB64) => {
+      const distanceA = distance(agentA, targetHash);
+      const distanceB = distance(agentB, targetHash);
+      return distanceA - distanceB;
+    }
+  );
 
   return sortedPeers.slice(0, numNeighbors);
 }
 
-export function getFarthestNeighbors(peers: Hash[], targetHash: Hash): Hash[] {
-  const sortedPeers = peers.sort((agentA: Hash, agentB: Hash) => {
-    return (
-      wrap(location(agentA) - location(targetHash)) -
-      wrap(location(agentB) - location(targetHash))
-    );
-  });
+export function getFarthestNeighbors(
+  peers: AgentPubKeyB64[],
+  targetHash: AnyDhtHashB64
+): AgentPubKeyB64[] {
+  const sortedPeers = peers.sort(
+    (agentA: AgentPubKeyB64, agentB: AgentPubKeyB64) => {
+      return (
+        wrap(location(agentA) - location(targetHash)) -
+        wrap(location(agentB) - location(targetHash))
+      );
+    }
+  );
 
   const index35 = Math.floor(sortedPeers.length * 0.35);
   const index50 = Math.floor(sortedPeers.length / 2);
@@ -45,7 +52,7 @@ export function getFarthestNeighbors(peers: Hash[], targetHash: Hash): Hash[] {
 }
 
 export interface BadAction {
-  badAgents: AgentPubKey[];
+  badAgents: AgentPubKeyB64[];
   op: DHTOp;
   receipts: ValidationReceipt[];
 }
@@ -81,10 +88,10 @@ export function getBadActions(state: CellState): Array<BadAction> {
   return badActions;
 }
 
-export function getBadAgents(state: CellState): AgentPubKey[] {
+export function getBadAgents(state: CellState): AgentPubKeyB64[] {
   const actions = getBadActions(state);
 
-  const badAgents: AgentPubKey[] = actions.reduce(
+  const badAgents: AgentPubKeyB64[] = actions.reduce(
     (acc, next) => [...acc, ...next.badAgents],
     [] as string[]
   );

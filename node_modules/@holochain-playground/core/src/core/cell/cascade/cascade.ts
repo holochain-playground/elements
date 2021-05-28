@@ -1,4 +1,5 @@
 import {
+  AnyDhtHashB64,
   CreateLink,
   Details,
   DetailsType,
@@ -7,7 +8,8 @@ import {
   ElementDetails,
   Entry,
   EntryDetails,
-  Hash,
+  EntryHashB64,
+  HeaderHashB64,
   NewEntryHeader,
   SignedHeaderHashed,
 } from '@holochain-open-dev/core-types';
@@ -34,7 +36,7 @@ export class Cascade {
 
   // TODO refactor when sqlite gets merged
   public async retrieve_header(
-    hash: Hash,
+    hash: HeaderHashB64,
     options: GetOptions
   ): Promise<SignedHeaderHashed | undefined> {
     if (getHashType(hash) !== HashType.HEADER)
@@ -58,7 +60,7 @@ export class Cascade {
   }
 
   public async retrieve_entry(
-    hash: Hash,
+    hash: EntryHashB64,
     options: GetOptions
   ): Promise<Entry | undefined> {
     const hashType = getHashType(hash);
@@ -80,7 +82,7 @@ export class Cascade {
   }
 
   public async dht_get(
-    hash: Hash,
+    hash: AnyDhtHashB64,
     options: GetOptions
   ): Promise<Element | undefined> {
     // TODO rrDHT arcs
@@ -138,7 +140,7 @@ export class Cascade {
   }
 
   public async dht_get_details(
-    hash: Hash,
+    hash: AnyDhtHashB64,
     options: GetOptions
   ): Promise<Details | undefined> {
     if (getHashType(hash) === HashType.ENTRY) {
@@ -165,7 +167,7 @@ export class Cascade {
   }
 
   public async dht_get_links(
-    base_address: Hash,
+    base_address: EntryHashB64,
     options: GetLinksOptions
   ): Promise<Link[]> {
     // TODO: check if we are an authority
@@ -175,7 +177,7 @@ export class Cascade {
   }
 
   async getEntryDetails(
-    entryHash: Hash,
+    entryHash: EntryHashB64,
     options: GetOptions
   ): Promise<EntryDetails | undefined> {
     // TODO: check if we are an authority
@@ -206,10 +208,10 @@ export class Cascade {
   }
 
   async getHeaderDetails(
-    entryHash: Hash,
+    headerHash: HeaderHashB64,
     options: GetOptions
   ): Promise<ElementDetails | undefined> {
-    const result = await this.p2p.get(entryHash, options);
+    const result = await this.p2p.get(headerHash, options);
 
     if (!result) return undefined;
     if ((result as GetElementResponse).validation_status === undefined)

@@ -1,4 +1,4 @@
-import { AgentPubKey, CellId, Dictionary, Hash } from '@holochain-open-dev/core-types';
+import { AgentPubKeyB64, CellId, Dictionary, DnaHashB64 } from '@holochain-open-dev/core-types';
 import { Cell } from '../core/cell';
 import { Network, NetworkState } from './network/network';
 import { InstalledHapps, SimulatedDna, SimulatedHappBundle } from '../dnas/simulated-dna';
@@ -24,8 +24,8 @@ export declare class Conductor {
     static create(bootstrapService: BootstrapService, name: string): Promise<Conductor>;
     getState(): ConductorState;
     getAllCells(): Cell[];
-    getCells(dnaHash: Hash): Cell[];
-    getCell(dnaHash: Hash, agentPubKey: AgentPubKey): Cell | undefined;
+    getCells(dnaHash: DnaHashB64): Cell[];
+    getCell(dnaHash: DnaHashB64, agentPubKey: AgentPubKeyB64): Cell | undefined;
     /** Bad agents */
     setBadAgent(badAgentConfig: BadAgentConfig): void;
     setCounterfeitDna(cellId: CellId, dna: SimulatedDna): void;

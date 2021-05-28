@@ -1,4 +1,4 @@
-import { Hash, Element, NewEntryHeader } from '@holochain-open-dev/core-types';
+import { HeaderHashB64, Element, NewEntryHeader } from '@holochain-open-dev/core-types';
 import { GetStrategy } from '../../../../../types';
 import {
   buildDelete,
@@ -9,8 +9,8 @@ import { HostFnWorkspace } from '../../../host-fn';
 
 export async function common_delete(
   worskpace: HostFnWorkspace,
-  header_hash: Hash
-): Promise<Hash> {
+  header_hash: HeaderHashB64
+): Promise<HeaderHashB64> {
   const headerToDelete = await worskpace.cascade.retrieve_header(header_hash, {
     strategy: GetStrategy.Contents,
   });

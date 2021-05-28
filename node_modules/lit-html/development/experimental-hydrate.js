@@ -139,7 +139,7 @@ const openChildPart = (rootValue, marker, stack, options) => {
             // we need to decide what to do in this case. Note that this part won't be
             // retained by any parent TemplateInstance, since a primitive had been
             // rendered in its place.
-            // https://github.com/Polymer/lit-html/issues/1434
+            // https://github.com/lit/lit/issues/1434
             // throw new Error('Hydration value mismatch: Found a TemplateInstance' +
             //  'where a leaf value was expected');
             part = new ChildPart(marker, null, state.part, options);
@@ -167,7 +167,7 @@ const openChildPart = (rootValue, marker, stack, options) => {
         // TODO(kschaaf): We can detect when a primitive is being hydrated on the
         // client where a TemplateResult was rendered on the server, but we need to
         // decide on a strategy for what to do next.
-        // https://github.com/Polymer/lit-html/issues/1434
+        // https://github.com/lit/lit/issues/1434
         // if (marker.data !== 'lit-part') {
         //   throw new Error('Hydration value mismatch: Primitive found where TemplateResult expected');
         // }

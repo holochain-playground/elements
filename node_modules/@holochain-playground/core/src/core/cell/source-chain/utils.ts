@@ -1,6 +1,5 @@
 import {
-  Hash,
-  AgentPubKey,
+  AgentPubKeyB64,
   Dna,
   HeaderType,
   CellId,
@@ -14,19 +13,21 @@ import {
   Update,
   Entry,
   CapSecret,
+  HeaderHashB64,
+  DnaHashB64,
 } from '@holochain-open-dev/core-types';
 import { CellState } from '../state';
 import { getAllAuthoredHeaders } from './get';
 
-export function getTipOfChain(cellState: CellState): Hash {
+export function getTipOfChain(cellState: CellState): HeaderHashB64 {
   return cellState.sourceChain[cellState.sourceChain.length - 1];
 }
 
-export function getAuthor(cellState: CellState): AgentPubKey {
+export function getAuthor(cellState: CellState): AgentPubKeyB64 {
   return getHeaderAt(cellState, 0).header.content.author;
 }
 
-export function getDnaHash(state: CellState): Hash {
+export function getDnaHash(state: CellState): DnaHashB64 {
   const firstHeaderHash = state.sourceChain[state.sourceChain.length - 1];
 
   const dna: SignedHeaderHashed<Dna> = state.CAS[firstHeaderHash];
@@ -45,7 +46,10 @@ export function getNextHeaderSeq(cellState: CellState): number {
   return cellState.sourceChain.length;
 }
 
-export function getElement(state: CellState, headerHash: Hash): Element {
+export function getElement(
+  state: CellState,
+  headerHash: HeaderHashB64
+): Element {
   const signed_header: SignedHeaderHashed = state.CAS[headerHash];
 
   let entry;
@@ -80,7 +84,7 @@ export function valid_cap_grant(
   state: CellState,
   zome: string,
   fnName: string,
-  provenance: AgentPubKey,
+  provenance: AgentPubKeyB64,
   secret: CapSecret | undefined
 ): boolean {
   if (provenance === getCellId(state)[1]) return true;
@@ -133,7 +137,7 @@ function isCapGrantValid(
   capGrant: ZomeCallCapGrant,
   zome: string,
   fnName: string,
-  check_agent: AgentPubKey,
+  check_agent: AgentPubKeyB64,
   check_secret: CapSecret | undefined
 ): boolean {
   if (!capGrant.functions.find(fn => fn.fn_name === fnName && fn.zome === zome))
@@ -142,13 +146,13 @@ function isCapGrantValid(
   if (capGrant.access === 'Unrestricted') return true;
   else if (
     (capGrant.access as {
-      Assigned: { assignees: AgentPubKey[]; secret: CapSecret };
+      Assigned: { assignees: AgentPubKeyB64[]; secret: CapSecret };
     }).Assigned
   ) {
     return (capGrant.access as {
       Assigned: {
         secret: CapSecret;
-        assignees: AgentPubKey[];
+        assignees: AgentPubKeyB64[];
       };
     }).Assigned.assignees.includes(check_agent);
   } else {

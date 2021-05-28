@@ -1,8 +1,8 @@
-import { AgentPubKey, CapSecret } from '@holochain-open-dev/core-types';
+import { AgentPubKeyB64, CapSecret } from '@holochain-open-dev/core-types';
 import { HostFn, HostFnWorkspace } from '../host-fn';
 
 export type CallRemoteFn = (args: {
-  agent: AgentPubKey;
+  agent: AgentPubKeyB64;
   zome: string;
   fn_name: string;
   cap_secret: CapSecret | undefined;

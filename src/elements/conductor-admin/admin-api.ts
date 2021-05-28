@@ -1,5 +1,6 @@
-import { Conductor } from '@holochain-playground/core';
+import { Conductor, SimulatedHappBundle } from '@holochain-playground/core';
 import { html } from 'lit';
+import { buildHappBundle } from '../../base/context';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CallableFn } from '../helpers/call-functions';
 
@@ -8,7 +9,85 @@ export function adminApi(
   conductor: Conductor
 ): CallableFn[] {
   const installedAppIds = Object.keys(conductor.installedHapps);
+
+  const allHapps = Object.keys(element.happs).filter(
+    (key) => !conductor.installedHapps[key]
+  );
+
   return [
+    {
+      name: 'Install hApp',
+      args: [
+        {
+          name: 'hAppId',
+          field: 'custom',
+          required: true,
+          render(args, setValue) {
+            if (allHapps.length === 0)
+              return html`<span class="placeholder"
+                >There are no hApps that you don't have installed</span
+              >`;
+
+            return html`<mwc-select
+              outlined
+              required
+              label="Select Happ to Install"
+              .value=${args['hAppId']}
+              @selected=${(e) => setValue(allHapps[e.detail.index])}
+            >
+              ${allHapps.map(
+                (appId) =>
+                  html`<mwc-list-item .value=${appId}>${appId}</mwc-list-item>`
+              )}
+            </mwc-select>`;
+          },
+        },
+
+        {
+          name: 'membraneProofs',
+          field: 'custom',
+          required: false,
+          render(args, setValue) {
+            if (!args['hAppId'])
+              return html`<div class="column">
+                <span>Membrane Proofs</span
+                ><span style="margin-top: 4px;" class="placeholder"
+                  >Select a hApp to install</span
+                >
+              </div>`;
+
+            const membraneProofs = args['membraneProofs'] || {};
+            const happ = element.happs[args['hAppId']];
+
+            return html` <div class="column">
+              <span>Membrane Proofs</span>${Object.entries(happ.slots)
+                .filter(([_, slot]) => !slot.deferred)
+                .map(
+                  ([slotNick, dnaSlot]) => html`<mwc-textfield
+                    style="margin-top: 12px;"
+                    outlined
+                    .label=${slotNick}
+                    .value=${(args['membraneProofs'] &&
+                      args['membraneProofs'][slotNick]) ||
+                    ''}
+                    @input=${(e) =>
+                      setValue({
+                        ...membraneProofs,
+                        [slotNick]: e.target.value,
+                      })}
+                  >
+                  </mwc-textfield>`
+                )}
+            </div>`;
+          },
+        },
+      ],
+      call: async (args) => {
+        const happ = buildHappBundle(element, args['hAppId']);
+
+        await conductor.installHapp(happ, args['membraneProofs'] || {});
+      },
+    },
     {
       name: 'Clone DNA',
       args: [

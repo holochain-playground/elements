@@ -1,4 +1,8 @@
-import { CellId, Dictionary, Hash } from '@holochain-open-dev/core-types';
+import {
+  AgentPubKeyB64,
+  Dictionary,
+  DnaHashB64,
+} from '@holochain-open-dev/core-types';
 import { BootstrapService } from '../../bootstrap/bootstrap-service';
 import { Cell } from '../cell/cell';
 import { Conductor } from '../conductor';
@@ -80,9 +84,9 @@ export class Network {
   }
 
   public sendRequest<T>(
-    dna: Hash,
-    fromAgent: Hash,
-    toAgent: Hash,
+    dna: DnaHashB64,
+    fromAgent: AgentPubKeyB64,
+    toAgent: AgentPubKeyB64,
     request: NetworkRequest<T>
   ): Promise<T> {
     const localCell =

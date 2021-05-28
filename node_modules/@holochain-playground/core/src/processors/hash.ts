@@ -1,7 +1,7 @@
 import {
   serializeHash,
   Dictionary,
-  Hash,
+  AnyDhtHashB64,
 } from '@holochain-open-dev/core-types';
 // @ts-ignore
 import blake from 'blakejs';
@@ -44,10 +44,10 @@ function str2ab(str: string) {
   return buf;
 }
 
-const hashCache: Dictionary<Hash> = {};
+const hashCache: Dictionary<AnyDhtHashB64> = {};
 
 // From https://github.com/holochain/holochain/blob/dc0cb61d0603fa410ac5f024ed6ccfdfc29715b3/crates/holo_hash/src/encode.rs
-export function hash(content: any, type: HashType): Hash {
+export function hash(content: any, type: HashType): AnyDhtHashB64 {
   const contentString =
     typeof content === 'string' ? content : JSON.stringify(content);
 
@@ -91,14 +91,17 @@ export function location(hash: string): number {
 }
 
 // We return the distance as the shortest distance between two hashes in the circle
-export function distance(hash1: Hash, hash2: Hash): number {
+export function distance(hash1: AnyDhtHashB64, hash2: AnyDhtHashB64): number {
   const location1 = location(hash1);
   const location2 = location(hash2);
 
   return shortest_arc_distance(location1, location2) + 1;
 }
 
-export function shortest_arc_distance(location1: number, location2: number): number {
+export function shortest_arc_distance(
+  location1: number,
+  location2: number
+): number {
   const distance1 = wrap(location1 - location2);
   const distance2 = wrap(location2 - location1);
   return Math.min(distance1, distance2);
@@ -112,7 +115,7 @@ export function wrap(uint: number): number {
   return uint;
 }
 
-export function getHashType(hash: Hash): HashType {
+export function getHashType(hash: AnyDhtHashB64): HashType {
   const hashExt = hash.slice(1, 5);
 
   if (hashExt === AGENT_PREFIX) return HashType.AGENT;

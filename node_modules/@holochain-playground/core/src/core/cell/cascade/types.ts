@@ -7,7 +7,7 @@ import {
   Update,
   CreateLink,
   DeleteLink,
-  Hash,
+  EntryHashB64,
 } from '@holochain-open-dev/core-types';
 import { ValidationStatus } from '..';
 
@@ -39,7 +39,7 @@ export interface GetLinksResponse {
 }
 
 export interface Link {
-  base: Hash;
-  target: Hash;
+  base: EntryHashB64;
+  target: EntryHashB64;
   tag: any;
 }

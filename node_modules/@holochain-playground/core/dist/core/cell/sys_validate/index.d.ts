@@ -1,7 +1,7 @@
-import { AgentPubKey, AppEntryType, Entry, EntryType, Hash, Header, Metadata, NewEntryHeader, Signature, Update } from '@holochain-open-dev/core-types';
+import { AgentPubKeyB64, AppEntryType, Entry, EntryHashB64, EntryType, Header, Metadata, NewEntryHeader, Signature, Update } from '@holochain-open-dev/core-types';
 import { EntryDef, SimulatedDna } from '../../../dnas/simulated-dna';
 export declare function verify_header_signature(sig: Signature, header: Header): Promise<boolean>;
-export declare function author_key_is_valid(author: AgentPubKey): Promise<boolean>;
+export declare function author_key_is_valid(author: AgentPubKeyB64): Promise<boolean>;
 export declare function check_prev_header(header: Header): void;
 export declare function check_valid_if_dna(header: Header, metadata: Metadata): void;
 export declare function check_chain_rollback(): void;
@@ -11,7 +11,7 @@ export declare function check_prev_seq(header: Header, prev_header: Header): voi
 export declare function check_entry_type(entry_type: EntryType, entry: Entry): void;
 export declare function check_app_entry_type(entry_type: AppEntryType, simulated_dna: SimulatedDna): EntryDef;
 export declare function check_not_private(entry_def: EntryDef): void;
-export declare function check_entry_hash(hash: Hash, entry: Entry): void;
+export declare function check_entry_hash(hash: EntryHashB64, entry: Entry): void;
 export declare function check_new_entry_header(header: Header): void;
 export declare const MAX_ENTRY_SIZE: number;
 export declare function check_entry_size(entry: Entry): void;

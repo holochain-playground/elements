@@ -1,4 +1,4 @@
-import { Hash, Element, CreateLink } from '@holochain-open-dev/core-types';
+import { HeaderHashB64, Element, CreateLink } from '@holochain-open-dev/core-types';
 import { GetStrategy } from '../../../../types';
 import {
   buildDeleteLink,
@@ -7,12 +7,12 @@ import {
 import { putElement } from '../../../cell/source-chain/put';
 import { HostFn, HostFnWorkspace } from '../../host-fn';
 
-export type DeleteLinkFn = (deletes_address: Hash) => Promise<Hash>;
+export type DeleteLinkFn = (deletes_address: HeaderHashB64) => Promise<HeaderHashB64>;
 
 // Creates a new Create header and its entry in the source chain
 export const delete_link: HostFn<DeleteLinkFn> = (
   worskpace: HostFnWorkspace
-): DeleteLinkFn => async (deletes_address): Promise<Hash> => {
+): DeleteLinkFn => async (deletes_address): Promise<HeaderHashB64> => {
   const elementToDelete = await worskpace.cascade.dht_get(deletes_address, {
     strategy: GetStrategy.Contents,
   });

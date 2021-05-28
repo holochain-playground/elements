@@ -67,7 +67,7 @@ declare global {
 // This line will be used in regexes to search for LitElement usage.
 // TODO(justinfagnani): inject version number at build time
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-((globalThis as any)['litElementVersions'] ??= []).push('3.0.0-rc.1');
+((globalThis as any)['litElementVersions'] ??= []).push('3.0.0-rc.2');
 
 /**
  * Base element class that manages element properties and attributes, and
@@ -128,7 +128,7 @@ export class LitElement extends ReactiveElement {
 
   // TODO(kschaaf): Consider debouncing directive disconnection so element moves
   // do not thrash directive callbacks
-  // https://github.com/Polymer/lit-html/issues/1457
+  // https://github.com/lit/lit/issues/1457
   /**
    * @category lifecycle
    */
@@ -183,7 +183,7 @@ if (DEV_MODE) {
           `\`${name}\` is implemented. It ` +
             `has been removed from this version of LitElement. `
           // TODO(sorvell): add link to changelog when location has stabilized.
-          // + See the changelog at https://github.com/Polymer/lit-html/blob/main/packages/lit-element/CHANGELOG.md`
+          // + See the changelog at https://github.com/lit/lit/blob/main/packages/lit-element/CHANGELOG.md`
         );
       }
     };

@@ -1,10 +1,10 @@
-import { Entry, Hash, Element } from '@holochain-open-dev/core-types';
+import { AnyDhtHashB64, Element } from '@holochain-open-dev/core-types';
 import { GetOptions, GetStrategy } from '../../../types';
 import { Cell } from '../../cell';
 import { HostFn, HostFnWorkspace } from '../host-fn';
 
 export type GetFn = (
-  args: Hash,
+  args: AnyDhtHashB64,
   options?: GetOptions
 ) => Promise<Element | undefined>;
 

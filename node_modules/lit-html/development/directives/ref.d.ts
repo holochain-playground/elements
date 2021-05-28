@@ -9,6 +9,9 @@ import { AsyncDirective } from '../async-directive.js';
  * Creates a new Ref object, which is container for a reference to an element.
  */
 export declare const createRef: <T = Element>() => Ref<T>;
+/**
+ * An object that holds a ref value.
+ */
 declare class Ref<T = Element> {
     /**
      * The current Element value of the ref, or else `undefined` if the ref is no
@@ -16,6 +19,7 @@ declare class Ref<T = Element> {
      */
     readonly value?: T;
 }
+export type { Ref };
 export declare type RefOrCallback = Ref | ((el: Element | undefined) => void);
 declare class RefDirective extends AsyncDirective {
     private _element?;

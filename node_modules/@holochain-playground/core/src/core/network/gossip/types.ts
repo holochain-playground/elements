@@ -1,8 +1,7 @@
 import {
-  AgentPubKey,
+  AgentPubKeyB64,
   DHTOp,
   Dictionary,
-  Hash,
   ValidationReceipt,
 } from '@holochain-open-dev/core-types';
 import { DhtArc } from '../dht_arc';
@@ -12,7 +11,7 @@ import { BadAction } from '../utils';
 
 export interface GossipData {
   validated_dht_ops: Dictionary<GossipDhtOpData>;
-  neighbors: Array<AgentPubKey>;
+  neighbors: Array<AgentPubKeyB64>;
   badActions: Array<BadAction>;
 }
 

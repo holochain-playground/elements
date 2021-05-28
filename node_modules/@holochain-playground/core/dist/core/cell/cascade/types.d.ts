@@ -1,4 +1,4 @@
-import { Entry, EntryType, SignedHeaderHashed, Create, Delete, Update, CreateLink, DeleteLink, Hash } from '@holochain-open-dev/core-types';
+import { Entry, EntryType, SignedHeaderHashed, Create, Delete, Update, CreateLink, DeleteLink, EntryHashB64 } from '@holochain-open-dev/core-types';
 import { ValidationStatus } from '..';
 export interface GetEntryResponse {
     entry: Entry;
@@ -20,7 +20,7 @@ export interface GetLinksResponse {
     link_removes: SignedHeaderHashed<DeleteLink>[];
 }
 export interface Link {
-    base: Hash;
-    target: Hash;
+    base: EntryHashB64;
+    target: EntryHashB64;
     tag: any;
 }

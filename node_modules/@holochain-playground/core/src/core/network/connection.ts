@@ -1,4 +1,4 @@
-import { AgentPubKey } from '@holochain-open-dev/core-types';
+import { AgentPubKeyB64 } from '@holochain-open-dev/core-types';
 import { Cell } from '../cell';
 import { NetworkRequest } from './network-request';
 
@@ -23,7 +23,7 @@ export class Connection {
   }
 
   sendRequest<T>(
-    fromAgent: AgentPubKey,
+    fromAgent: AgentPubKeyB64,
     networkRequest: NetworkRequest<T>
   ): Promise<T> {
     if (this.closed) throw new Error('Connection closed!');
@@ -36,8 +36,8 @@ export class Connection {
     throw new Error('Bad request');
   }
 
-  getPeer(myAgentPubKey: AgentPubKey): Cell {
-    if (this.opener.agentPubKey === myAgentPubKey) return this.receiver;
+  getPeer(myAgentPubKeyB64: AgentPubKeyB64): Cell {
+    if (this.opener.agentPubKey === myAgentPubKeyB64) return this.receiver;
     return this.opener;
   }
 }

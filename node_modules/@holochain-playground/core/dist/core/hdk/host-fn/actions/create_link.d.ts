@@ -1,8 +1,8 @@
-import { Hash } from '@holochain-open-dev/core-types';
+import { EntryHashB64, HeaderHashB64 } from '@holochain-open-dev/core-types';
 import { HostFn } from '../../host-fn';
 export declare type CreateLinkFn = (args: {
-    base: Hash;
-    target: Hash;
+    base: EntryHashB64;
+    target: EntryHashB64;
     tag: any;
-}) => Promise<Hash>;
+}) => Promise<HeaderHashB64>;
 export declare const create_link: HostFn<CreateLinkFn>;

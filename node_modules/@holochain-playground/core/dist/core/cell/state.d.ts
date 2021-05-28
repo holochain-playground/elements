@@ -1,9 +1,9 @@
-import { AgentPubKey, DHTOp, Dictionary, Hash, Metadata, ValidationReceipt } from '@holochain-open-dev/core-types';
+import { AgentPubKeyB64, DHTOp, Dictionary, DnaHashB64, HeaderHashB64, DhtOpHashB64, Metadata, ValidationReceipt, AnyDhtHashB64 } from '@holochain-open-dev/core-types';
 import { DhtArc } from '../network/dht_arc';
 export interface CellState {
-    dnaHash: Hash;
-    agentPubKey: AgentPubKey;
-    sourceChain: Array<Hash>;
+    dnaHash: DnaHashB64;
+    agentPubKey: AgentPubKeyB64;
+    sourceChain: Array<HeaderHashB64>;
     CAS: Dictionary<any>;
     metadata: Metadata;
     integratedDHTOps: Dictionary<IntegratedDhtOpsValue>;
@@ -11,7 +11,7 @@ export interface CellState {
     integrationLimbo: Dictionary<IntegrationLimboValue>;
     validationLimbo: Dictionary<ValidationLimboValue>;
     validationReceipts: Dictionary<Dictionary<ValidationReceipt>>;
-    badAgents: AgentPubKey[];
+    badAgents: AgentPubKeyB64[];
 }
 export interface IntegratedDhtOpsValue {
     op: DHTOp;
@@ -43,11 +43,11 @@ export declare enum ValidationLimboStatus {
 export interface ValidationLimboValue {
     status: ValidationLimboStatus;
     op: DHTOp;
-    basis: Hash;
+    basis: AnyDhtHashB64;
     time_added: number;
     last_try: number | undefined;
     num_tries: number;
-    from_agent: AgentPubKey | undefined;
+    from_agent: AgentPubKeyB64 | undefined;
     send_receipt: Boolean;
 }
-export declare function query_dht_ops(integratedDHTOps: Dictionary<IntegratedDhtOpsValue>, from: number | undefined, to: number | undefined, dht_arc: DhtArc): Array<Hash>;
+export declare function query_dht_ops(integratedDHTOps: Dictionary<IntegratedDhtOpsValue>, from: number | undefined, to: number | undefined, dht_arc: DhtArc): Array<DhtOpHashB64>;

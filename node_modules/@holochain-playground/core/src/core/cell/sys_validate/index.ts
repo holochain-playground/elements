@@ -1,10 +1,10 @@
 import {
-  AgentPubKey,
+  AgentPubKeyB64,
   AppEntryType,
   Create,
   Entry,
+  EntryHashB64,
   EntryType,
-  Hash,
   Header,
   HeaderType,
   Metadata,
@@ -30,7 +30,7 @@ export async function verify_header_signature(
 /// of signing with dpki
 /// TODO: This is just a stub until we have dpki.
 export async function author_key_is_valid(
-  author: AgentPubKey
+  author: AgentPubKeyB64
 ): Promise<boolean> {
   return true;
 }
@@ -127,7 +127,7 @@ export function check_not_private(entry_def: EntryDef): void {
     throw new Error(`Trying to validate as public a private entry type`);
 }
 
-export function check_entry_hash(hash: Hash, entry: Entry): void {
+export function check_entry_hash(hash: EntryHashB64, entry: Entry): void {
   if (hashEntry(entry) !== hash) throw new Error(`Entry hash is invalid`);
 }
 

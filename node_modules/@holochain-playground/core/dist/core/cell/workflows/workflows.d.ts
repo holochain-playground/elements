@@ -32,4 +32,3 @@ export declare enum WorkflowType {
     VALIDATION_RECEIPT = "Validation Receipt"
 }
 export declare function workflowPriority(workflowType: WorkflowType): number;
-export declare function triggeredWorkflowFromType(type: WorkflowType): Workflow<any, any>;

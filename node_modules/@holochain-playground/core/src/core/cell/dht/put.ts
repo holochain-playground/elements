@@ -1,5 +1,4 @@
 import {
-  Hash,
   DHTOp,
   getEntry,
   DHTOpType,
@@ -13,6 +12,10 @@ import {
   SignedHeaderHashed,
   NewEntryHeader,
   ValidationReceipt,
+  DhtOpHashB64,
+  HeaderHashB64,
+  EntryHashB64,
+  AnyDhtHashB64,
 } from '@holochain-open-dev/core-types';
 import { isEqual } from 'lodash-es';
 import {
@@ -25,14 +28,14 @@ import {
 import { getHeadersForEntry } from './get';
 
 export const putValidationLimboValue = (
-  dhtOpHash: Hash,
+  dhtOpHash: DhtOpHashB64,
   validationLimboValue: ValidationLimboValue
 ) => (state: CellState) => {
   state.validationLimbo[dhtOpHash] = validationLimboValue;
 };
 
 export const putValidationReceipt = (
-  dhtOpHash: Hash,
+  dhtOpHash: DhtOpHashB64,
   validationReceipt: ValidationReceipt
 ) => (state: CellState) => {
   if (!state.validationReceipts[dhtOpHash])
@@ -43,14 +46,14 @@ export const putValidationReceipt = (
   ] = validationReceipt;
 };
 
-export const deleteValidationLimboValue = (dhtOpHash: Hash) => (
+export const deleteValidationLimboValue = (dhtOpHash: DhtOpHashB64) => (
   state: CellState
 ) => {
   delete state.validationLimbo[dhtOpHash];
 };
 
 export const putIntegrationLimboValue = (
-  dhtOpHash: Hash,
+  dhtOpHash: DhtOpHashB64,
   integrationLimboValue: IntegrationLimboValue
 ) => (state: CellState) => {
   state.integrationLimbo[dhtOpHash] = integrationLimboValue;
@@ -147,13 +150,13 @@ export const putDhtOpMetadata = (dhtOp: DHTOp) => (state: CellState) => {
   }
 };
 
-function is_header_alive(state: CellState, headerHash: Hash): boolean {
+function is_header_alive(state: CellState, headerHash: HeaderHashB64): boolean {
   const dhtHeaders = state.metadata.system_meta[headerHash];
   if (dhtHeaders) {
     const isHeaderDeleted = !!dhtHeaders.find(
       metaVal =>
         (metaVal as {
-          Delete: Hash;
+          Delete: HeaderHashB64;
         }).Delete
     );
     return !isHeaderDeleted;
@@ -161,7 +164,9 @@ function is_header_alive(state: CellState, headerHash: Hash): boolean {
   return true;
 }
 
-const update_entry_dht_status = (entryHash: Hash) => (state: CellState) => {
+const update_entry_dht_status = (entryHash: EntryHashB64) => (
+  state: CellState
+) => {
   const headers = getHeadersForEntry(state, entryHash);
 
   const entryIsAlive = headers.some(header =>
@@ -174,7 +179,7 @@ const update_entry_dht_status = (entryHash: Hash) => (state: CellState) => {
 };
 
 export const register_header_on_basis = (
-  basis: Hash,
+  basis: AnyDhtHashB64,
   header: SignedHeaderHashed
 ) => (state: CellState) => {
   let value: SysMetaVal | undefined;
@@ -192,7 +197,7 @@ export const register_header_on_basis = (
   }
 };
 
-export const putSystemMetadata = (basis: Hash, value: SysMetaVal) => (
+export const putSystemMetadata = (basis: AnyDhtHashB64, value: SysMetaVal) => (
   state: CellState
 ) => {
   if (!state.metadata.system_meta[basis]) {
@@ -205,7 +210,7 @@ export const putSystemMetadata = (basis: Hash, value: SysMetaVal) => (
 };
 
 export const putDhtOpToIntegrated = (
-  dhtOpHash: Hash,
+  dhtOpHash: DhtOpHashB64,
   integratedValue: IntegratedDhtOpsValue
 ) => (state: CellState) => {
   state.integratedDHTOps[dhtOpHash] = integratedValue;

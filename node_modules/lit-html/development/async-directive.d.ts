@@ -132,7 +132,7 @@ export { directive } from './directive.js';
 export declare abstract class AsyncDirective extends Directive {
     isConnected: boolean;
     private _pendingValue;
-    _$disconnetableChildren?: Set<Disconnectable>;
+    _$disconnectableChildren?: Set<Disconnectable>;
     /**
      * Initialize the part with internal fields
      * @param part

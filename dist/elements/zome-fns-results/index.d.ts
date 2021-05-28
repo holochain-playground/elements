@@ -3,7 +3,7 @@ import { Card } from 'scoped-material-components/mwc-card';
 import { Button } from 'scoped-material-components/mwc-button';
 import { ZomeFunctionResult } from './types';
 import { Cell, Workflow } from '@holochain-playground/core';
-import { AgentPubKey } from '@holochain-open-dev/core-types';
+import { AgentPubKeyB64 } from '@holochain-open-dev/core-types';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 import { ExpandableLine } from '../helpers/expandable-line';
 import { JsonViewer } from '@power-elements/json-viewer';
@@ -14,7 +14,7 @@ import { PlaygroundElement } from '../../base/playground-element';
 import { CellsController } from '../../base/cells-controller';
 export declare class ZomeFnsResults extends PlaygroundElement implements CellObserver {
     hideAgentPubKey: boolean;
-    forAgent: AgentPubKey | undefined;
+    forAgent: AgentPubKeyB64 | undefined;
     private _results;
     _cellsController: CellsController;
     get activeCell(): Cell;

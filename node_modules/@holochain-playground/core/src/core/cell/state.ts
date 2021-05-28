@@ -1,18 +1,21 @@
 import {
-  AgentPubKey,
+  AgentPubKeyB64,
   DHTOp,
   Dictionary,
-  Hash,
+  DnaHashB64,
+  HeaderHashB64,
+  DhtOpHashB64,
   Metadata,
   ValidationReceipt,
+  AnyDhtHashB64,
 } from '@holochain-open-dev/core-types';
 import { location } from '../../processors/hash';
 import { contains, DhtArc } from '../network/dht_arc';
 
 export interface CellState {
-  dnaHash: Hash;
-  agentPubKey: AgentPubKey;
-  sourceChain: Array<Hash>;
+  dnaHash: DnaHashB64;
+  agentPubKey: AgentPubKeyB64;
+  sourceChain: Array<HeaderHashB64>;
   CAS: Dictionary<any>;
   metadata: Metadata; // For the moment only DHT shard
   integratedDHTOps: Dictionary<IntegratedDhtOpsValue>; // Key is the hash of the DHT op
@@ -20,7 +23,7 @@ export interface CellState {
   integrationLimbo: Dictionary<IntegrationLimboValue>; // Key is the hash of the DHT op
   validationLimbo: Dictionary<ValidationLimboValue>; // Key is the hash of the DHT op
   validationReceipts: Dictionary<Dictionary<ValidationReceipt>>; // Segmented by dhtOpHash/authorOfReceipt
-  badAgents: AgentPubKey[];
+  badAgents: AgentPubKeyB64[];
 }
 
 export interface IntegratedDhtOpsValue {
@@ -62,11 +65,11 @@ export enum ValidationLimboStatus {
 export interface ValidationLimboValue {
   status: ValidationLimboStatus;
   op: DHTOp;
-  basis: Hash;
+  basis: AnyDhtHashB64;
   time_added: number;
   last_try: number | undefined;
   num_tries: number;
-  from_agent: AgentPubKey | undefined;
+  from_agent: AgentPubKeyB64 | undefined;
   /// Send a receipt to this author.
   send_receipt: Boolean;
 }
@@ -76,9 +79,9 @@ export function query_dht_ops(
   from: number | undefined,
   to: number | undefined,
   dht_arc: DhtArc
-): Array<Hash> {
+): Array<DhtOpHashB64> {
   const isDhtOpsInFilter = ([dhtOpHash, dhtOpValue]: [
-    Hash,
+    DhtOpHashB64,
     IntegratedDhtOpsValue
   ]) => {
     if (from && dhtOpValue.when_integrated < from) return false;

@@ -1,11 +1,11 @@
-import { Entry, Hash } from '@holochain-open-dev/core-types';
+import { Entry, HeaderHashB64 } from '@holochain-open-dev/core-types';
 import { HostFn, HostFnWorkspace } from '../../host-fn';
 import { common_create } from './common/create';
 
 export type CreateEntryFn = (args: {
   content: any;
   entry_def_id: string;
-}) => Promise<Hash>;
+}) => Promise<HeaderHashB64>;
 
 // Creates a new Create header and its entry in the source chain
 export const create_entry: HostFn<CreateEntryFn> = (
@@ -14,7 +14,7 @@ export const create_entry: HostFn<CreateEntryFn> = (
 ): CreateEntryFn => async (args: {
   content: any;
   entry_def_id: string;
-}): Promise<Hash> => {
+}): Promise<HeaderHashB64> => {
   const entry: Entry = { entry_type: 'App', content: args.content };
 
   const entryDefIndex = workspace.dna.zomes[zome_index].entry_defs.findIndex(

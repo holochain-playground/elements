@@ -66,7 +66,7 @@ export declare abstract class Directive {
     __attributeIndex: number | undefined;
     __directive?: Directive;
     _$parent: Disconnectable;
-    _$disconnetableChildren?: Set<Disconnectable>;
+    _$disconnectableChildren?: Set<Disconnectable>;
     _$setDirectiveConnected?(isConnected: boolean): void;
     constructor(_partInfo: PartInfo);
     /** @internal */

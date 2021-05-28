@@ -1,10 +1,10 @@
-import { Entry, Hash, Element } from '@holochain-open-dev/core-types';
+import { EntryHashB64 } from '@holochain-open-dev/core-types';
 import { GetLinksOptions, GetOptions, GetStrategy } from '../../../types';
 import { Link } from '../../cell/cascade/types';
 import { HostFn, HostFnWorkspace } from '../host-fn';
 
 export type GetLinksFn = (
-  base_address: Hash,
+  base_address: EntryHashB64,
   options?: GetLinksOptions
 ) => Promise<Link[] | undefined>;
 

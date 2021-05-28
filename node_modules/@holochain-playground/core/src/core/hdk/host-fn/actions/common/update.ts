@@ -1,5 +1,5 @@
 import {
-  Hash,
+  HeaderHashB64,
   Element,
   NewEntryHeader,
   Entry,
@@ -16,10 +16,10 @@ import { HostFnWorkspace } from '../../../host-fn';
 
 export async function common_update(
   worskpace: HostFnWorkspace,
-  original_header_hash: Hash,
+  original_header_hash: HeaderHashB64,
   entry: Entry,
   entry_type: EntryType
-): Promise<Hash> {
+): Promise<HeaderHashB64> {
   const headerToUpdate = await worskpace.cascade.retrieve_header(
     original_header_hash,
     {

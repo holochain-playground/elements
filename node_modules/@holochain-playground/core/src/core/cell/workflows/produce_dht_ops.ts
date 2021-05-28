@@ -1,10 +1,10 @@
 import { elementToDHTOps } from '@holochain-open-dev/core-types';
+
 import { hash, HashType } from '../../../processors/hash';
-import { Cell, CellState, Workflow } from '../../cell';
 import { getNewHeaders } from '../source-chain/get';
 import { getElement } from '../source-chain/utils';
 import { publish_dht_ops_task } from './publish_dht_ops';
-import { WorkflowReturn, WorkflowType, Workspace } from './workflows';
+import { Workflow, WorkflowReturn, WorkflowType, Workspace } from './workflows';
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/produce_dht_ops_workflow.rs
 export const produce_dht_ops = async (

@@ -30,7 +30,7 @@ export async function connectToConductors(
   conductorsUrls: string[]
 ): Promise<void> {
   const initialPlayground: Playground = {
-    activeAgentPubKey: null,
+    activeAgentPubKeyB64: null,
     activeDna: null,
     activeEntryHash: null,
     conductors: [],

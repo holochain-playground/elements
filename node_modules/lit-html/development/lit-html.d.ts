@@ -132,7 +132,7 @@ declare class Template {
 }
 export interface Disconnectable {
     _$parent?: Disconnectable;
-    _$disconnetableChildren?: Set<Disconnectable>;
+    _$disconnectableChildren?: Set<Disconnectable>;
 }
 declare function resolveDirective(part: ChildPart | AttributePart | ElementPart, value: unknown, parent?: DirectiveParent, attributeIndex?: number): unknown;
 /**
@@ -147,7 +147,7 @@ declare class TemplateInstance {
     /** @internal */
     _$parent: Disconnectable;
     /** @internal */
-    _$disconnetableChildren?: Set<Disconnectable>;
+    _$disconnectableChildren?: Set<Disconnectable>;
     constructor(template: Template, parent: ChildPart);
     _clone(options: RenderOptions | undefined): Node;
     _update(values: Array<unknown>): void;
@@ -195,7 +195,7 @@ declare class ChildPart {
     /** @internal */
     _$parent: Disconnectable | undefined;
     /** @internal */
-    _$disconnetableChildren?: Set<Disconnectable>;
+    _$disconnectableChildren?: Set<Disconnectable>;
     /** @internal */
     _$setChildPartConnected?(isConnected: boolean, removeFromParent?: boolean, from?: number): void;
     /** @internal */
@@ -276,7 +276,7 @@ declare class AttributePart {
     /** @internal */
     _$parent: Disconnectable | undefined;
     /** @internal */
-    _$disconnetableChildren?: Set<Disconnectable>;
+    _$disconnectableChildren?: Set<Disconnectable>;
     protected _sanitizer: ValueSanitizer | undefined;
     /** @internal */
     _setDirectiveConnected?: (directive: Directive | undefined, isConnected: boolean, removeFromParent?: boolean) => void;
@@ -348,7 +348,7 @@ declare class ElementPart {
     /** @internal */
     _$parent: Disconnectable | undefined;
     /** @internal */
-    _$disconnetableChildren?: Set<Disconnectable>;
+    _$disconnectableChildren?: Set<Disconnectable>;
     /** @internal */
     _setDirectiveConnected?: (directive: Directive | undefined, isConnected: boolean, removeFromParent?: boolean) => void;
     options: RenderOptions | undefined;

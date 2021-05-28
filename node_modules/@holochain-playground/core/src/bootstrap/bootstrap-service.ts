@@ -1,8 +1,9 @@
 import {
-  AgentPubKey,
+  AgentPubKeyB64,
+  AnyDhtHashB64,
   CellId,
   Dictionary,
-  Hash,
+  DnaHashB64,
 } from '@holochain-open-dev/core-types';
 import { Cell } from '../core/cell';
 import {
@@ -21,10 +22,10 @@ export class BootstrapService {
   }
 
   getNeighborhood(
-    dnaHash: Hash,
-    basis_dht_hash: Hash,
+    dnaHash: DnaHashB64,
+    basis_dht_hash: AnyDhtHashB64,
     numNeighbors: number,
-    filteredAgents: Hash[] = []
+    filteredAgents: AgentPubKeyB64[] = []
   ): Cell[] {
     const cells = Object.keys(this.cells[dnaHash]).filter(
       cellPubKey => !filteredAgents.includes(cellPubKey)
@@ -40,9 +41,9 @@ export class BootstrapService {
   }
 
   getFarKnownPeers(
-    dnaHash: Hash,
-    agentPubKey: string,
-    filteredAgents: Hash[] = []
+    dnaHash: DnaHashB64,
+    agentPubKey: AgentPubKeyB64,
+    filteredAgents: AgentPubKeyB64[] = []
   ): Cell[] {
     const cells = Object.keys(this.cells[dnaHash]).filter(
       peerPubKey =>

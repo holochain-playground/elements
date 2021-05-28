@@ -9,9 +9,16 @@ import {
   Conductor,
   createConductors,
   demoHapp,
+  hash,
+  HashType,
+  SimulatedDna,
   SimulatedHappBundle,
 } from '@holochain-playground/core';
-import { AgentPubKey, Dictionary, Hash } from '@holochain-open-dev/core-types';
+import {
+  AgentPubKeyB64,
+  Dictionary,
+  DnaHashB64,
+} from '@holochain-open-dev/core-types';
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 import {
   selectAllCells,
@@ -19,6 +26,7 @@ import {
   selectCells,
   selectHoldingCells,
 } from './selectors';
+import { LightDnaSlot, LightHappBundle } from './context';
 
 export class HolochainPlaygroundContainer extends ScopedRegistryHost(
   ProviderMixin(LitElement) as new () => LitElement
@@ -37,13 +45,17 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
 
   /** Context variables */
   @property({ type: String })
-  activeDna: Hash | undefined;
+  activeDna: DnaHashB64 | undefined;
   @property({ type: String })
-  activeAgentPubKey: AgentPubKey | undefined;
+  activeAgentPubKey: AgentPubKeyB64 | undefined;
   @property({ type: String })
-  activeHash: Hash | undefined;
+  activeHash: DnaHashB64 | undefined;
   @property({ type: Array })
   conductors: Conductor[] = [];
+  @property({ type: Array })
+  happs: Dictionary<LightHappBundle> = {};
+  @property({ type: Array })
+  dnas: Dictionary<SimulatedDna> = {};
 
   @property({ type: Array })
   conductorsUrls: string[] | undefined;
@@ -55,6 +67,8 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
       'activeHash',
       'conductors',
       'conductorsUrls',
+      'happs',
+      'dnas',
     ];
   }
 
@@ -89,6 +103,32 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
         this.simulatedHapp
       );
 
+      const slots: Dictionary<LightDnaSlot> = {};
+
+      for (const [slotNick, dnaSlot] of Object.entries(
+        this.simulatedHapp.slots
+      )) {
+        if (typeof dnaSlot.dna === 'string') {
+          throw new Error(
+            'Initial happ bundle must come with its dnas already builtin'
+          );
+        }
+
+        const dnaHash = hash(dnaSlot.dna, HashType.DNA);
+
+        slots[slotNick] = {
+          deferred: dnaSlot.deferred,
+          dnaHash,
+        };
+
+        this.dnas[dnaHash] = dnaSlot.dna;
+      }
+
+      this.happs[this.simulatedHapp.name] = {
+        ...this.simulatedHapp,
+        slots,
+      };
+
       this.activeDna = this.conductors[0].getAllCells()[0].dnaHash;
 
       this.dispatchEvent(
@@ -101,6 +141,7 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
             activeHash: this.activeHash,
             conductors: this.conductors,
             conductorsUrls: this.conductorsUrls,
+            happs: this.happs,
           },
         })
       );
@@ -116,17 +157,6 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
     this.addEventListener('show-message', (e: CustomEvent) => {
       this.showMessage(e.detail.message);
     });
-    /* 
-    this.blackboard.select('conductorsUrls').subscribe(async (urls) => {
-      if (urls !== undefined) {
-        try {
-          // await connectToConductors(this.blackboard, urls);
-        } catch (e) {
-          console.error(e);
-          this.showError('Error when connecting with the nodes');
-        }
-      }
-    }); */
   }
 
   showMessage(message: string) {

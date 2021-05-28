@@ -129,7 +129,7 @@ const DEV_MODE = true;
  */
 const setChildrenConnected = (parent, isConnected) => {
     var _a, _b;
-    const children = parent._$disconnetableChildren;
+    const children = parent._$disconnectableChildren;
     if (children === undefined) {
         return false;
     }
@@ -159,7 +159,7 @@ const removeDisconnectableFromParent = (obj) => {
         if ((parent = obj._$parent) === undefined) {
             break;
         }
-        children = parent._$disconnetableChildren;
+        children = parent._$disconnectableChildren;
         children.delete(obj);
         obj = parent;
     } while ((children === null || children === void 0 ? void 0 : children.size) === 0);
@@ -168,9 +168,9 @@ const addDisconnectableToParent = (obj) => {
     // Climb the parent tree, creating a sparse tree of children needing
     // disconnection
     for (let parent; (parent = obj._$parent); obj = parent) {
-        let children = parent._$disconnetableChildren;
+        let children = parent._$disconnectableChildren;
         if (children === undefined) {
-            parent._$disconnetableChildren = children = new Set();
+            parent._$disconnectableChildren = children = new Set();
         }
         else if (children.has(obj)) {
             // Once we've reached a parent that already contains this child, we
@@ -189,7 +189,7 @@ const addDisconnectableToParent = (obj) => {
  * the core code when parts are moved between different parents.
  */
 function reparentDisconnectables(newParent) {
-    if (this._$disconnetableChildren !== undefined) {
+    if (this._$disconnectableChildren !== undefined) {
         removeDisconnectableFromParent(this);
         this._$parent = newParent;
         addDisconnectableToParent(this);
@@ -221,7 +221,7 @@ function reparentDisconnectables(newParent) {
  */
 function setChildPartConnected(isConnected, isClearingValue = false, fromPartIndex = 0) {
     const value = this._$committedValue;
-    const children = this._$disconnetableChildren;
+    const children = this._$disconnectableChildren;
     if (children === undefined || children.size === 0) {
         return;
     }
@@ -275,7 +275,7 @@ export class AsyncDirective extends Directive {
         this.isConnected = true;
         this._pendingValue = noChange;
         // @internal
-        this._$disconnetableChildren = undefined;
+        this._$disconnectableChildren = undefined;
     }
     /**
      * Initialize the part with internal fields

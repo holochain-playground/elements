@@ -14,7 +14,7 @@ import {
   Workflow,
   WorkflowType,
 } from '@holochain-playground/core';
-import { AgentPubKey, Dictionary } from '@holochain-open-dev/core-types';
+import { AgentPubKeyB64, Dictionary } from '@holochain-open-dev/core-types';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 import { ExpandableLine } from '../helpers/expandable-line';
 import { JsonViewer } from '@power-elements/json-viewer';
@@ -29,7 +29,7 @@ export class ZomeFnsResults extends PlaygroundElement implements CellObserver {
   hideAgentPubKey = false;
 
   @property({ type: String, attribute: 'for-agent' })
-  forAgent: AgentPubKey | undefined = undefined;
+  forAgent: AgentPubKeyB64 | undefined = undefined;
 
   // Results segmented by dnaHash/agentPubKey/timestamp
   private _results: Dictionary<Dictionary<Dictionary<ZomeFunctionResult>>> = {};

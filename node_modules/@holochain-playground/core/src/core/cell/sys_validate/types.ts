@@ -1,4 +1,3 @@
-import { Hash } from '@holochain-open-dev/core-types';
 import { DepsMissing } from '../workflows/sys_validation';
 
 export type ValidationOutcome =

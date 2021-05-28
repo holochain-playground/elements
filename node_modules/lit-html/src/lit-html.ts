@@ -699,7 +699,7 @@ class Template {
 
 export interface Disconnectable {
   _$parent?: Disconnectable;
-  _$disconnetableChildren?: Set<Disconnectable>;
+  _$disconnectableChildren?: Set<Disconnectable>;
 }
 
 function resolveDirective(
@@ -760,7 +760,7 @@ class TemplateInstance {
   /** @internal */
   _$parent: Disconnectable;
   /** @internal */
-  _$disconnetableChildren?: Set<Disconnectable> = undefined;
+  _$disconnectableChildren?: Set<Disconnectable> = undefined;
 
   constructor(template: Template, parent: ChildPart) {
     this._$template = template;
@@ -895,7 +895,7 @@ class ChildPart {
   // The following fields will be patched onto ChildParts when required by
   // AsyncDirective
   /** @internal */
-  _$disconnetableChildren?: Set<Disconnectable> = undefined;
+  _$disconnectableChildren?: Set<Disconnectable> = undefined;
   /** @internal */
   _$setChildPartConnected?(
     isConnected: boolean,
@@ -1125,7 +1125,7 @@ class ChildPart {
         // If no existing part, create a new one
         // TODO (justinfagnani): test perf impact of always creating two parts
         // instead of sharing parts between nodes
-        // https://github.com/Polymer/lit-html/issues/1266
+        // https://github.com/lit/lit/issues/1266
         itemParts.push(
           (itemPart = new ChildPart(
             this._insert(createMarker()),
@@ -1201,7 +1201,7 @@ class AttributePart {
   /** @internal */
   _$parent: Disconnectable | undefined;
   /** @internal */
-  _$disconnetableChildren?: Set<Disconnectable> = undefined;
+  _$disconnectableChildren?: Set<Disconnectable> = undefined;
 
   protected _sanitizer: ValueSanitizer | undefined;
   /** @internal */
@@ -1458,7 +1458,7 @@ class ElementPart {
   _$parent: Disconnectable | undefined;
 
   /** @internal */
-  _$disconnetableChildren?: Set<Disconnectable> = undefined;
+  _$disconnectableChildren?: Set<Disconnectable> = undefined;
 
   /** @internal */
   _setDirectiveConnected?: (
@@ -1529,4 +1529,4 @@ export const _Σ = {
 // This line will be used in regexes to search for lit-html usage.
 // TODO(justinfagnani): inject version number at build time
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-((globalThis as any)['litHtmlVersions'] ??= []).push('2.0.0-rc.2');
+((globalThis as any)['litHtmlVersions'] ??= []).push('2.0.0-rc.3');

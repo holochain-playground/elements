@@ -9,6 +9,9 @@ import { directive, AsyncDirective } from '../async-directive.js';
  * Creates a new Ref object, which is container for a reference to an element.
  */
 export const createRef = () => new Ref();
+/**
+ * An object that holds a ref value.
+ */
 class Ref {
 }
 // When callbacks are used for refs, this map tracks the last value the callback

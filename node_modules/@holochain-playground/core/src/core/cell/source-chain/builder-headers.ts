@@ -1,7 +1,6 @@
 import {
-  Hash,
   now,
-  AgentPubKey,
+  AgentPubKeyB64,
   Dna,
   HeaderType,
   AgentValidationPkg,
@@ -15,6 +14,9 @@ import {
   Delete,
   DeleteLink,
   Timestamp,
+  DnaHashB64,
+  EntryHashB64,
+  HeaderHashB64,
 } from '@holochain-open-dev/core-types';
 import { hash, HashType } from '../../../processors/hash';
 import { CellState } from '../state';
@@ -31,7 +33,7 @@ export function buildShh(header: Header): SignedHeaderHashed {
   };
 }
 
-export function buildDna(dnaHash: Hash, agentId: AgentPubKey): Dna {
+export function buildDna(dnaHash: DnaHashB64, agentId: AgentPubKeyB64): Dna {
   const dna: Dna = {
     author: agentId,
     hash: dnaHash,
@@ -73,8 +75,8 @@ export function buildCreate(
 export function buildCreateLink(
   state: CellState,
   zome_id: number,
-  base: Hash,
-  target: Hash,
+  base: EntryHashB64,
+  target: EntryHashB64,
   tag: any
 ): CreateLink {
   const create_link: CreateLink = {
@@ -92,8 +94,8 @@ export function buildUpdate(
   state: CellState,
   entry: Entry,
   entry_type: EntryType,
-  original_entry_address: Hash,
-  original_header_address: Hash
+  original_entry_address: EntryHashB64,
+  original_header_address: HeaderHashB64
 ): Update {
   const entry_hash = hashEntry(entry);
 
@@ -111,8 +113,8 @@ export function buildUpdate(
 
 export function buildDelete(
   state: CellState,
-  deletes_address: Hash,
-  deletes_entry_address: Hash
+  deletes_address: HeaderHashB64,
+  deletes_entry_address: EntryHashB64
 ): Delete {
   const deleteHeader: Delete = {
     ...buildCommon(state),
@@ -125,8 +127,8 @@ export function buildDelete(
 
 export function buildDeleteLink(
   state: CellState,
-  base_address: Hash,
-  link_add_address: Hash
+  base_address: EntryHashB64,
+  link_add_address: HeaderHashB64
 ): DeleteLink {
   const deleteHeader: DeleteLink = {
     ...buildCommon(state),

@@ -9,5 +9,5 @@ export interface BadAgentConfig {
 export interface BadAgent {
   config: BadAgentConfig;
 
-  counterfeitDnas: Dictionary<Dictionary<SimulatedDna>>; // Segmented by DnaHash / AgentPubKey
+  counterfeitDnas: Dictionary<Dictionary<SimulatedDna>>; // Segmented by DnaHash / AgentPubKeyB64
 }

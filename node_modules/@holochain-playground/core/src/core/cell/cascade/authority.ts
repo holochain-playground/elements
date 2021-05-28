@@ -1,12 +1,10 @@
 import {
   Create,
-  CreateLink,
   Delete,
-  DeleteLink,
-  Element,
   Entry,
+  EntryHashB64,
   EntryType,
-  Hash,
+  HeaderHashB64,
   NewEntryHeader,
   SignedHeaderHashed,
   Update,
@@ -31,7 +29,7 @@ export class Authority {
   constructor(protected state: CellState, protected p2p: P2pCell) {}
 
   public async handle_get_entry(
-    entry_hash: Hash,
+    entry_hash: EntryHashB64,
     options: GetOptions
   ): Promise<GetEntryResponse | undefined> {
     const entry = this.state.CAS[entry_hash];
@@ -58,7 +56,7 @@ export class Authority {
   }
 
   public async handle_get_element(
-    header_hash: Hash,
+    header_hash: HeaderHashB64,
     options: GetOptions
   ): Promise<GetElementResponse | undefined> {
     if (this.state.metadata.misc_meta[header_hash] !== 'StoreElement') {
@@ -93,7 +91,7 @@ export class Authority {
   }
 
   public async handle_get_links(
-    base_address: Hash,
+    base_address: EntryHashB64,
     options: GetLinksOptions
   ): Promise<GetLinksResponse> {
     return getLinksForEntry(this.state, base_address);

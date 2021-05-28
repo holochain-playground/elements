@@ -543,7 +543,7 @@ class TemplateInstance {
         /** @internal */
         this._parts = [];
         /** @internal */
-        this._$disconnetableChildren = undefined;
+        this._$disconnectableChildren = undefined;
         this._$template = template;
         this._$parent = parent;
     }
@@ -605,7 +605,7 @@ class ChildPart {
         // The following fields will be patched onto ChildParts when required by
         // AsyncDirective
         /** @internal */
-        this._$disconnetableChildren = undefined;
+        this._$disconnectableChildren = undefined;
         this._$startNode = startNode;
         this._$endNode = endNode;
         this._$parent = parent;
@@ -802,7 +802,7 @@ class ChildPart {
                 // If no existing part, create a new one
                 // TODO (justinfagnani): test perf impact of always creating two parts
                 // instead of sharing parts between nodes
-                // https://github.com/Polymer/lit-html/issues/1266
+                // https://github.com/lit/lit/issues/1266
                 itemParts.push((itemPart = new ChildPart(this._insert(createMarker()), this._insert(createMarker()), this, this.options)));
             }
             else {
@@ -846,7 +846,7 @@ class AttributePart {
         /** @internal */
         this._$committedValue = nothing;
         /** @internal */
-        this._$disconnetableChildren = undefined;
+        this._$disconnectableChildren = undefined;
         /** @internal */
         this._setDirectiveConnected = undefined;
         this.element = element;
@@ -1034,7 +1034,7 @@ class ElementPart {
         this.element = element;
         this.type = ELEMENT_PART;
         /** @internal */
-        this._$disconnetableChildren = undefined;
+        this._$disconnectableChildren = undefined;
         /** @internal */
         this._setDirectiveConnected = undefined;
         this._$parent = parent;
@@ -1088,5 +1088,5 @@ export const _Σ = {
 // This line will be used in regexes to search for lit-html usage.
 // TODO(justinfagnani): inject version number at build time
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-((_e = (_f = globalThis)['litHtmlVersions']) !== null && _e !== void 0 ? _e : (_f['litHtmlVersions'] = [])).push('2.0.0-rc.2');
+((_e = (_f = globalThis)['litHtmlVersions']) !== null && _e !== void 0 ? _e : (_f['litHtmlVersions'] = [])).push('2.0.0-rc.3');
 //# sourceMappingURL=lit-html.js.map

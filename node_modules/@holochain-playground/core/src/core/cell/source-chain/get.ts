@@ -1,6 +1,6 @@
 import {
   Element,
-  Hash,
+  HeaderHashB64,
   NewEntryHeader,
   SignedHeaderHashed,
 } from '@holochain-open-dev/core-types';
@@ -9,7 +9,7 @@ import { CellState } from '../state';
 /**
  * Returns the header hashes which don't have their DHTOps in the authoredDHTOps DB
  */
-export function getNewHeaders(state: CellState): Array<Hash> {
+export function getNewHeaders(state: CellState): Array<HeaderHashB64> {
   const dhtOps = Object.values(state.authoredDHTOps);
   const headerHashesAlreadyPublished = dhtOps.map(
     dhtOp => dhtOp.op.header.header.hash

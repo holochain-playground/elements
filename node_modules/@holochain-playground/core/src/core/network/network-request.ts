@@ -1,8 +1,9 @@
 import {
-  AgentPubKey,
+  AgentPubKeyB64,
+  AnyDhtHashB64,
   DHTOp,
   Dictionary,
-  Hash,
+  DnaHashB64,
 } from '@holochain-open-dev/core-types';
 import { GetOptions } from '../../types';
 import { Cell } from '../cell/cell';
@@ -19,9 +20,9 @@ export enum NetworkRequestType {
 export type NetworkRequest<T> = (cell: Cell) => Promise<T>;
 
 export interface NetworkRequestInfo<T extends NetworkRequestType, D> {
-  dnaHash: Hash;
-  fromAgent: AgentPubKey;
-  toAgent: AgentPubKey;
+  dnaHash: DnaHashB64;
+  fromAgent: AgentPubKeyB64;
+  toAgent: AgentPubKeyB64;
   type: T;
   details: D;
 }
@@ -36,7 +37,7 @@ export type PublishRequestInfo = NetworkRequestInfo<
 export type GetRequestInfo = NetworkRequestInfo<
   NetworkRequestType.GET_REQUEST,
   {
-    hash: Hash;
+    hash: AnyDhtHashB64;
     options: GetOptions;
   }
 >;

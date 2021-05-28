@@ -2,8 +2,9 @@ import { Snackbar } from 'scoped-material-components/mwc-snackbar';
 import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { LitElement, PropertyValues } from 'lit';
-import { Conductor, SimulatedHappBundle } from '@holochain-playground/core';
-import { AgentPubKey, Hash } from '@holochain-open-dev/core-types';
+import { Conductor, SimulatedDna, SimulatedHappBundle } from '@holochain-playground/core';
+import { AgentPubKeyB64, Dictionary, DnaHashB64 } from '@holochain-open-dev/core-types';
+import { LightHappBundle } from './context';
 declare const HolochainPlaygroundContainer_base: new () => LitElement;
 export declare class HolochainPlaygroundContainer extends HolochainPlaygroundContainer_base {
     numberOfSimulatedConductors: number;
@@ -11,10 +12,12 @@ export declare class HolochainPlaygroundContainer extends HolochainPlaygroundCon
     private snackbar;
     private message;
     /** Context variables */
-    activeDna: Hash | undefined;
-    activeAgentPubKey: AgentPubKey | undefined;
-    activeHash: Hash | undefined;
+    activeDna: DnaHashB64 | undefined;
+    activeAgentPubKey: AgentPubKeyB64 | undefined;
+    activeHash: DnaHashB64 | undefined;
     conductors: Conductor[];
+    happs: Dictionary<LightHappBundle>;
+    dnas: Dictionary<SimulatedDna>;
     conductorsUrls: string[] | undefined;
     static get provide(): string[];
     static get styles(): import("lit").CSSResultGroup;

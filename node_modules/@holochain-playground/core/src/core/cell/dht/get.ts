@@ -1,6 +1,6 @@
 import {
   Dictionary,
-  Hash,
+  DhtOpHashB64,
   Header,
   getSysMetaValHeaderHash,
   LinkMetaVal,
@@ -18,6 +18,8 @@ import {
   Metadata,
   DHTOp,
   ValidationReceipt,
+  EntryHashB64,
+  HeaderHashB64,
 } from '@holochain-open-dev/core-types';
 import { isEqual, uniq } from 'lodash-es';
 import { hash, HashType } from '../../../processors/hash';
@@ -47,7 +49,7 @@ export function getValidationLimboDhtOps(
   return pendingDhtOps;
 }
 
-export const getValidationReceipts = (dhtOpHash: Hash) => (
+export const getValidationReceipts = (dhtOpHash: DhtOpHashB64) => (
   state: CellState
 ): ValidationReceipt[] => {
   return state.validationReceipts[dhtOpHash]
@@ -67,7 +69,7 @@ export function pullAllIntegrationLimboDhtOps(
 
 export function getHeadersForEntry(
   state: CellState,
-  entryHash: Hash
+  entryHash: EntryHashB64
 ): SignedHeaderHashed[] {
   const entryMetadata = state.metadata.system_meta[entryHash];
   if (!entryMetadata) return [];
@@ -85,7 +87,7 @@ export function getHeadersForEntry(
 
 export function getEntryDhtStatus(
   state: CellState,
-  entryHash: Hash
+  entryHash: EntryHashB64
 ): EntryDhtStatus | undefined {
   const meta = state.metadata.misc_meta[entryHash];
 
@@ -98,7 +100,7 @@ export function getEntryDhtStatus(
 
 export function getEntryDetails(
   state: CellState,
-  entry_hash: Hash
+  entry_hash: EntryHashB64
 ): EntryDetails {
   const entry = state.CAS[entry_hash];
   const allHeaders = getHeadersForEntry(state, entry_hash);
@@ -138,7 +140,7 @@ export function getEntryDetails(
 
 export function getHeaderModifiers(
   state: CellState,
-  headerHash: Hash
+  headerHash: HeaderHashB64
 ): {
   updates: SignedHeaderHashed<Update>[];
   deletes: SignedHeaderHashed<Delete>[];
@@ -151,11 +153,11 @@ export function getHeaderModifiers(
     };
 
   const updates = allModifiers
-    .filter(m => (m as { Update: Hash }).Update)
-    .map(m => state.CAS[(m as { Update: Hash }).Update]);
+    .filter(m => (m as { Update: HeaderHashB64 }).Update)
+    .map(m => state.CAS[(m as { Update: HeaderHashB64 }).Update]);
   const deletes = allModifiers
-    .filter(m => (m as { Delete: Hash }).Delete)
-    .map(m => state.CAS[(m as { Delete: Hash }).Delete]);
+    .filter(m => (m as { Delete: HeaderHashB64 }).Delete)
+    .map(m => state.CAS[(m as { Delete: HeaderHashB64 }).Delete]);
 
   return {
     updates,
@@ -163,7 +165,7 @@ export function getHeaderModifiers(
   };
 }
 
-export function getAllHeldEntries(state: CellState): Hash[] {
+export function getAllHeldEntries(state: CellState): EntryHashB64[] {
   const newEntryHeaders = Object.values(state.integratedDHTOps)
     .filter(dhtOpValue => dhtOpValue.op.type === DHTOpType.StoreEntry)
     .map(dhtOpValue => dhtOpValue.op.header);
@@ -175,7 +177,7 @@ export function getAllHeldEntries(state: CellState): Hash[] {
   return uniq(allEntryHashes);
 }
 
-export function getAllHeldHeaders(state: CellState): Hash[] {
+export function getAllHeldHeaders(state: CellState): HeaderHashB64[] {
   const headers = Object.values(state.integratedDHTOps)
     .filter(dhtOpValue => dhtOpValue.op.type === DHTOpType.StoreElement)
     .map(dhtOpValue => dhtOpValue.op.header);
@@ -185,7 +187,7 @@ export function getAllHeldHeaders(state: CellState): Hash[] {
   return uniq(allHeaderHashes);
 }
 
-export function getAllAuthoredEntries(state: CellState): Hash[] {
+export function getAllAuthoredEntries(state: CellState): EntryHashB64[] {
   const allHeaders = Object.values(state.authoredDHTOps).map(
     dhtOpValue => dhtOpValue.op.header
   );
@@ -197,15 +199,15 @@ export function getAllAuthoredEntries(state: CellState): Hash[] {
   return newEntryHeaders.map(h => h.header.content.entry_hash);
 }
 
-export function isHoldingEntry(state: CellState, entryHash: Hash): boolean {
+export function isHoldingEntry(state: CellState, entryHash: EntryHashB64): boolean {
   return state.metadata.system_meta[entryHash] !== undefined;
 }
 
-export function isHoldingElement(state: CellState, headerHash: Hash): boolean {
+export function isHoldingElement(state: CellState, headerHash: HeaderHashB64): boolean {
   return state.metadata.misc_meta[headerHash] === 'StoreElement';
 }
 
-export function isHoldingDhtOp(state: CellState, dhtOpHash: Hash): boolean {
+export function isHoldingDhtOp(state: CellState, dhtOpHash: DhtOpHashB64): boolean {
   return !!state.integratedDHTOps[dhtOpHash];
 }
 
@@ -231,7 +233,7 @@ export function getDhtShard(state: CellState): Dictionary<EntryDHTInfo> {
 
 export function getLinksForEntry(
   state: CellState,
-  entryHash: Hash
+  entryHash: EntryHashB64
 ): GetLinksResponse {
   const linkMetaVals = getCreateLinksForEntry(state, entryHash);
 
@@ -261,7 +263,7 @@ export function getLinksForEntry(
 
 export function getCreateLinksForEntry(
   state: CellState,
-  entryHash: Hash
+  entryHash: EntryHashB64
 ): LinkMetaVal[] {
   return state.metadata.link_meta
     .filter(({ key, value }) => isEqual(key.base, entryHash))
@@ -270,16 +272,16 @@ export function getCreateLinksForEntry(
 
 export function getRemovesOnLinkAdd(
   state: CellState,
-  link_add_hash: Hash
-): Hash[] {
+  link_add_hash: HeaderHashB64
+): HeaderHashB64[] {
   const metadata = state.metadata.system_meta[link_add_hash];
 
   if (!metadata) return [];
 
-  const removes: Hash[] = [];
+  const removes: HeaderHashB64[] = [];
   for (const val of metadata) {
-    if ((val as { DeleteLink: Hash }).DeleteLink) {
-      removes.push((val as { DeleteLink: Hash }).DeleteLink);
+    if ((val as { DeleteLink: HeaderHashB64 }).DeleteLink) {
+      removes.push((val as { DeleteLink: HeaderHashB64 }).DeleteLink);
     }
   }
   return removes;
@@ -362,7 +364,7 @@ export function computeDhtStatus(
 
 export function hasDhtOpBeenProcessed(
   state: CellState,
-  dhtOpHash: Hash
+  dhtOpHash: DhtOpHashB64
 ): boolean {
   return (
     !!state.integrationLimbo[dhtOpHash] ||

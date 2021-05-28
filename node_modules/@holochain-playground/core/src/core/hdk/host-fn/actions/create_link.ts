@@ -1,5 +1,8 @@
-import { Element, Hash } from '@holochain-open-dev/core-types';
-import { Cell } from '../../../cell';
+import {
+  Element,
+  EntryHashB64,
+  HeaderHashB64,
+} from '@holochain-open-dev/core-types';
 import {
   buildCreateLink,
   buildShh,
@@ -8,16 +11,16 @@ import { putElement } from '../../../cell/source-chain/put';
 import { HostFn, HostFnWorkspace } from '../../host-fn';
 
 export type CreateLinkFn = (args: {
-  base: Hash;
-  target: Hash;
+  base: EntryHashB64;
+  target: EntryHashB64;
   tag: any;
-}) => Promise<Hash>;
+}) => Promise<HeaderHashB64>;
 
 // Creates a new CreateLink header in the source chain
 export const create_link: HostFn<CreateLinkFn> = (
   worskpace: HostFnWorkspace,
   zome_id: number
-): CreateLinkFn => async (args): Promise<Hash> => {
+): CreateLinkFn => async (args): Promise<HeaderHashB64> => {
   const createLink = buildCreateLink(
     worskpace.state,
     zome_id,

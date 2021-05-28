@@ -1,8 +1,8 @@
 import { DHTOp, Dictionary } from '@holochain-open-dev/core-types';
-import { Cell, CellState, Workflow } from '../../cell';
+
 import { getNonPublishedDhtOps } from '../source-chain/utils';
 import { getDHTOpBasis } from '../utils';
-import { WorkflowReturn, WorkflowType, Workspace } from './workflows';
+import { Workflow, WorkflowReturn, WorkflowType, Workspace } from './workflows';
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/publish_dht_ops_workflow.rs
 export const publish_dht_ops = async (

@@ -33,7 +33,7 @@ export declare const _Σ: {
             __attributeIndex: number | undefined;
             __directive?: Directive | undefined;
             _$parent: import("./lit-html.js").Disconnectable;
-            _$disconnetableChildren?: Set<import("./lit-html.js").Disconnectable> | undefined;
+            _$disconnectableChildren?: Set<import("./lit-html.js").Disconnectable> | undefined;
             _$setDirectiveConnected?(isConnected: boolean): void;
             _$initialize(part: Part, parent: import("./lit-html.js").Disconnectable, attributeIndex: number | undefined): void;
             render: ((...props: unknown[]) => unknown) & (() => unknown);

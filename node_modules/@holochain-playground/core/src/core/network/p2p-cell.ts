@@ -1,11 +1,12 @@
 import {
-  AgentPubKey,
+  AgentPubKeyB64,
+  AnyDhtHashB64,
   CapSecret,
   CellId,
   DHTOp,
   Dictionary,
   Element,
-  Hash,
+  EntryHashB64,
   ValidationReceipt,
   ValidationStatus,
 } from '@holochain-open-dev/core-types';
@@ -31,16 +32,16 @@ import {
 import { getBadAgents } from './utils';
 
 export type P2pCellState = {
-  neighbors: AgentPubKey[];
-  farKnownPeers: AgentPubKey[];
-  badAgents: AgentPubKey[];
+  neighbors: AgentPubKeyB64[];
+  farKnownPeers: AgentPubKeyB64[];
+  badAgents: AgentPubKeyB64[];
   redundancyFactor: number;
   neighborNumber: number;
 };
 
 // From: https://github.com/holochain/holochain/blob/develop/crates/holochain_p2p/src/lib.rs
 export class P2pCell {
-  farKnownPeers: AgentPubKey[];
+  farKnownPeers: AgentPubKeyB64[];
 
   storageArc: DhtArc;
   neighborNumber: number;
@@ -106,7 +107,7 @@ export class P2pCell {
 
   async leave(): Promise<void> {}
 
-  async publish(dht_hash: Hash, ops: Dictionary<DHTOp>): Promise<void> {
+  async publish(dht_hash: AnyDhtHashB64, ops: Dictionary<DHTOp>): Promise<void> {
     await this.network.kitsune.rpc_multi(
       this.cellId[0],
       this.cellId[1],
@@ -124,7 +125,7 @@ export class P2pCell {
   }
 
   async get(
-    dht_hash: Hash,
+    dht_hash: AnyDhtHashB64,
     options: GetOptions
   ): Promise<GetElementResponse | GetEntryResponse | undefined> {
     const gets = await this.network.kitsune.rpc_multi(
@@ -146,7 +147,7 @@ export class P2pCell {
   }
 
   async get_links(
-    base_address: Hash,
+    base_address: EntryHashB64,
     options: GetLinksOptions
   ): Promise<GetLinksResponse[]> {
     return this.network.kitsune.rpc_multi(
@@ -166,7 +167,7 @@ export class P2pCell {
   }
 
   async call_remote(
-    agent: AgentPubKey,
+    agent: AgentPubKeyB64,
     zome: string,
     fnName: string,
     cap: CapSecret | undefined,
@@ -189,7 +190,7 @@ export class P2pCell {
 
   /** Neighbor handling */
 
-  public get neighbors(): Array<AgentPubKey> {
+  public get neighbors(): Array<AgentPubKeyB64> {
     return Object.keys(this.neighborConnections);
   }
 
@@ -246,7 +247,7 @@ export class P2pCell {
     return this.neighborConnections[withPeer.agentPubKey] as Connection;
   }
 
-  closeNeighborConnection(withPeer: AgentPubKey) {
+  closeNeighborConnection(withPeer: AgentPubKeyB64) {
     if (this.neighborConnections[withPeer]) {
       const connection = this.neighborConnections[withPeer] as Connection;
       connection.close();
@@ -305,10 +306,10 @@ export class P2pCell {
   }
 
   // TODO: fix when sharding is implemented
-  shouldWeHold(dhtOpHash: Hash): boolean {
+  shouldWeHold(dhtOpBasis: AnyDhtHashB64): boolean {
     const neighbors = this.network.bootstrapService.getNeighborhood(
       this.cellId[0],
-      dhtOpHash,
+      dhtOpBasis,
       this.redundancyFactor + 1,
       this.badAgents
     );
@@ -322,7 +323,7 @@ export class P2pCell {
   /** Gossip */
 
   public async outgoing_gossip(
-    to_agent: AgentPubKey,
+    to_agent: AgentPubKeyB64,
     gossips: GossipData,
     warrant: boolean = false
   ): Promise<void> {
