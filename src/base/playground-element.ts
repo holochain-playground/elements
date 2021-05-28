@@ -1,10 +1,9 @@
 import { LightHappBundle, PlaygroundContext } from './context';
 import { ConsumerMixin } from 'lit-element-context';
-import { Hash, AgentPubKey, Dictionary } from '@holochain-open-dev/core-types';
+import { AgentPubKeyB64, AnyDhtHashB64, Dictionary, DnaHashB64 } from '@holochain-open-dev/core-types';
 import {
   Conductor,
   SimulatedDna,
-  SimulatedHappBundle,
 } from '@holochain-playground/core';
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 import { LitElement } from 'lit';
@@ -15,11 +14,11 @@ export class PlaygroundElement extends ScopedRegistryHost(
 ) {
   /** Context variables */
   @property({ type: String })
-  activeDna: Hash | undefined;
+  activeDna: DnaHashB64 | undefined;
   @property({ type: String })
-  activeAgentPubKey: AgentPubKey | undefined;
+  activeAgentPubKey: AgentPubKeyB64 | undefined;
   @property({ type: String })
-  activeHash: Hash | undefined;
+  activeHash: AnyDhtHashB64 | undefined;
   @state()
   conductors: Conductor[] = [];
   @state()

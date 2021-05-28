@@ -14,7 +14,11 @@ import {
   SimulatedDna,
   SimulatedHappBundle,
 } from '@holochain-playground/core';
-import { AgentPubKey, Dictionary, Hash } from '@holochain-open-dev/core-types';
+import {
+  AgentPubKeyB64,
+  Dictionary,
+  DnaHashB64,
+} from '@holochain-open-dev/core-types';
 import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
 import {
   selectAllCells,
@@ -41,11 +45,11 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
 
   /** Context variables */
   @property({ type: String })
-  activeDna: Hash | undefined;
+  activeDna: DnaHashB64 | undefined;
   @property({ type: String })
-  activeAgentPubKey: AgentPubKey | undefined;
+  activeAgentPubKey: AgentPubKeyB64 | undefined;
   @property({ type: String })
-  activeHash: Hash | undefined;
+  activeHash: DnaHashB64 | undefined;
   @property({ type: Array })
   conductors: Conductor[] = [];
   @property({ type: Array })

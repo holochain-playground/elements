@@ -4,12 +4,12 @@ import {
   SimulatedDnaSlot,
   SimulatedHappBundle,
 } from '@holochain-playground/core';
-import { Dictionary, Hash } from '@holochain-open-dev/core-types';
+import { AgentPubKeyB64, AnyDhtHashB64, Dictionary, DnaHashB64 } from '@holochain-open-dev/core-types';
 
 export interface PlaygroundContext {
-  activeDna: Hash;
-  activeAgentPubKey: Hash | undefined;
-  activeHash: Hash | undefined;
+  activeDna: DnaHashB64;
+  activeAgentPubKey: AgentPubKeyB64 | undefined;
+  activeHash: AnyDhtHashB64 | undefined;
   conductors: Conductor[];
   conductorsUrls: string[] | undefined;
   happs: Dictionary<LightHappBundle>; // Indexed by happId
@@ -17,7 +17,7 @@ export interface PlaygroundContext {
 }
 
 export interface LightDnaSlot {
-  dnaHash: Hash;
+  dnaHash: DnaHashB64;
   deferred: boolean;
 }
 export interface LightHappBundle {
