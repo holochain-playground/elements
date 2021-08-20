@@ -54,9 +54,11 @@ export class SelectActiveDna extends PlaygroundElement {
     ];
   }
 
-  static elementDefinitions = {
-    'mwc-list-item': ListItem,
-    'mwc-select': Select,
-    'mwc-card': Card,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-list-item': ListItem,
+      'mwc-select': Select,
+      'mwc-card': Card,
+    };
+  }
 }

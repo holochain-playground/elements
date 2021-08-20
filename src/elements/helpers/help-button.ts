@@ -33,9 +33,11 @@ export class HelpButton extends PlaygroundElement {
     `;
   }
 
-  static elementDefinitions = {
-    'mwc-icon-button': IconButton,
-    'mwc-button': Button,
-    'mwc-dialog': Dialog,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-icon-button': IconButton,
+      'mwc-button': Button,
+      'mwc-dialog': Dialog,
+    };
+  }
 }

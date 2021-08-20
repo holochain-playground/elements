@@ -153,10 +153,12 @@ export class ConnectToNodes extends PlaygroundElement {
     `;
   }
 
-  static elementDefinitions = {
-    'mwc-button': Button,
-    'mwc-dialog': Dialog,
-    'mwc-textfield': TextField,
-    'mwc-icon-button': IconButton,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-button': Button,
+      'mwc-dialog': Dialog,
+      'mwc-textfield': TextField,
+      'mwc-icon-button': IconButton,
+    };
+  }
 }

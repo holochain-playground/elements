@@ -194,9 +194,11 @@ export class SourceChain extends PlaygroundElement implements CellObserver {
     ];
   }
 
-  static elementDefinitions = {
-    'mwc-card': Card,
-    'copyable-hash': CopyableHash,
-    'help-button': HelpButton,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-card': Card,
+      'copyable-hash': CopyableHash,
+      'help-button': HelpButton,
+    };
+  }
 }

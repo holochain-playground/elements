@@ -19,7 +19,7 @@ import {
   Dictionary,
   DnaHashB64,
 } from '@holochain-open-dev/core-types';
-import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
+import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import {
   selectAllCells,
   selectCell,
@@ -28,7 +28,7 @@ import {
 } from './selectors';
 import { LightDnaSlot, LightHappBundle } from './context';
 
-export class HolochainPlaygroundContainer extends ScopedRegistryHost(
+export class HolochainPlaygroundContainer extends ScopedElementsMixin(
   ProviderMixin(LitElement) as new () => LitElement
 ) {
   @property({ type: Number })
@@ -181,9 +181,11 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
     `;
   }
 
-  static elementDefinitions = {
-    'mwc-circular-progress': CircularProgress,
-    'mwc-snackbar': Snackbar,
-    'mwc-icon-button': IconButton,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-circular-progress': CircularProgress,
+      'mwc-snackbar': Snackbar,
+      'mwc-icon-button': IconButton,
+    };
+  }
 }

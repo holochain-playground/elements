@@ -358,11 +358,13 @@ export class CellTasks extends PlaygroundElement implements CellObserver {
     ];
   }
 
-  static elementDefinitions = {
-    'mwc-card': Card,
-    'mwc-list': List,
-    'mwc-icon': Icon,
-    'mwc-list-item': ListItem,
-    'mwc-linear-progress': LinearProgress,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-card': Card,
+      'mwc-list': List,
+      'mwc-icon': Icon,
+      'mwc-list-item': ListItem,
+      'mwc-linear-progress': LinearProgress,
+    };
+  }
 }

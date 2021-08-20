@@ -51,7 +51,9 @@ export class DhtShard extends PlaygroundElement {
     `;
   }
 
-  static elementDefinitions = {
-    'json-viewer': JsonViewer,
-  };
+  static get scopedElements() {
+    return {
+      'json-viewer': JsonViewer,
+    };
+  }
 }

@@ -288,16 +288,18 @@ export class EntryGraph extends PlaygroundElement implements CellObserver {
     `;
   }
 
-  static elementDefinitions = {
-    'mwc-checkbox': Checkbox,
-    'mwc-formfield': Formfield,
-    'mwc-icon-button': IconButton,
-    'copyable-hash': CopyableHash,
-    'mwc-card': Card,
-    'mwc-menu': Menu,
-    'mwc-icon': Icon,
-    'mwc-list-item': ListItem,
-    'mwc-button': Button,
-    'holochain-playground-help-button': HelpButton,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-checkbox': Checkbox,
+      'mwc-formfield': Formfield,
+      'mwc-icon-button': IconButton,
+      'copyable-hash': CopyableHash,
+      'mwc-card': Card,
+      'mwc-menu': Menu,
+      'mwc-icon': Icon,
+      'mwc-list-item': ListItem,
+      'mwc-button': Button,
+      'holochain-playground-help-button': HelpButton,
+    };
+  }
 }

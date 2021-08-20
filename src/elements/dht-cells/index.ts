@@ -102,6 +102,14 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
       this.requestUpdate();
     });
 
+    new ResizeObserver(() => {
+      setTimeout(() => {
+        this._cy.resize();
+        if (this._layout) this._layout.run();
+        this.requestUpdate();
+      });
+    }).observe(this);
+
     this._cy = cytoscape({
       container: this._graph,
       boxSelectionEnabled: false,
@@ -224,14 +232,18 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
   }
 
   setupGraphNodes() {
-    const nodes = dhtCellsNodes(this.cellsController.observedCells);
+    if (!this._cy) return;
+
+    const observedCells = this.cellsController.observedCells
+
+    const nodes = dhtCellsNodes(observedCells);
 
     if (this._layout) this._layout.stop();
     this._cy.remove('node');
     this._cy.remove('edge');
 
     this._cy.add(nodes);
-    const neighbors = neighborsEdges(this.cellsController.observedCells);
+    const neighbors = neighborsEdges(observedCells);
     this._cy.add(neighbors);
 
     this._layout = this._cy.elements().makeLayout(layoutConfig);
@@ -247,7 +259,7 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
     super.updated(changedValues);
 
     const neighbors = neighborsEdges(this.cellsController.observedCells);
-    if (this._neighborEdges.length != neighbors.length) {
+    if (this._neighborEdges.length != neighbors.length && this._cy.nodes().length > 0) {
       this._neighborEdges = neighbors;
       this._cy.remove('edge');
       this._cy.add(neighbors);
@@ -530,19 +542,21 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
     ];
   }
 
-  static elementDefinitions = {
-    'mwc-card': Card,
-    'mwc-menu-surface': MenuSurface,
-    'mwc-button': Button,
-    'mwc-icon': Icon,
-    'mwc-menu': Menu,
-    'mwc-list-item': ListItem,
-    'mwc-slider': Slider,
-    'mwc-switch': Switch,
-    'mwc-formfield': Formfield,
-    'mwc-icon-button': IconButton,
-    'copyable-hash': CopyableHash,
-    'holochain-playground-help-button': HelpButton,
-    'holochain-playground-cell-tasks': CellTasks,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-card': Card,
+      'mwc-menu-surface': MenuSurface,
+      'mwc-button': Button,
+      'mwc-icon': Icon,
+      'mwc-menu': Menu,
+      'mwc-list-item': ListItem,
+      'mwc-slider': Slider,
+      'mwc-switch': Switch,
+      'mwc-formfield': Formfield,
+      'mwc-icon-button': IconButton,
+      'copyable-hash': CopyableHash,
+      'holochain-playground-help-button': HelpButton,
+      'holochain-playground-cell-tasks': CellTasks,
+    };
+  }
 }

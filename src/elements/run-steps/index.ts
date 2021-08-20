@@ -120,11 +120,13 @@ export class RunSteps extends PlaygroundElement {
     ];
   }
 
-  static elementDefinitions = {
-    'mwc-circular-progress': CircularProgress,
-    'mwc-list-item': ListItem,
-    'mwc-list': List,
-    'mwc-button': Button,
-    'mwc-card': Card,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-circular-progress': CircularProgress,
+      'mwc-list-item': ListItem,
+      'mwc-list': List,
+      'mwc-button': Button,
+      'mwc-card': Card,
+    };
+  }
 }

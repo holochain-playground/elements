@@ -261,19 +261,21 @@ export class ConductorAdmin extends PlaygroundElement {
     ];
   }
 
-  static elementDefinitions = {
-    'copyable-hash': CopyableHash,
-    'call-functions': CallFns,
-    'mwc-tab': Tab,
-    'vaadin-grid': GridElement,
-    'vaadin-grid-column': GridColumnElement,
-    'mwc-tab-bar': TabBar,
-    'mwc-list': List,
-    'json-viewer': JsonViewer,
-    'mwc-list-item': ListItem,
-    'mwc-card': Card,
-    'mwc-button': Button,
-    'mwc-icon-button': IconButton,
-    'help-button': HelpButton,
-  };
+  static get scopedElements() {
+    return {
+      'copyable-hash': CopyableHash,
+      'call-functions': CallFns,
+      'mwc-tab': Tab,
+      'vaadin-grid': GridElement,
+      'vaadin-grid-column': GridColumnElement,
+      'mwc-tab-bar': TabBar,
+      'mwc-list': List,
+      'json-viewer': JsonViewer,
+      'mwc-list-item': ListItem,
+      'mwc-card': Card,
+      'mwc-button': Button,
+      'mwc-icon-button': IconButton,
+      'help-button': HelpButton,
+    };
+  }
 }

@@ -71,9 +71,11 @@ export class EntryContents extends PlaygroundElement {
     `;
   }
 
-  static elementDefinitions = {
-    'json-viewer': JsonViewer,
-    'mwc-card': Card,
-    'copyable-hash': CopyableHash,
-  };
+  static get scopedElements() {
+    return {
+      'json-viewer': JsonViewer,
+      'mwc-card': Card,
+      'copyable-hash': CopyableHash,
+    };
+  }
 }

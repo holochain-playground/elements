@@ -167,13 +167,15 @@ export class CallZomeFns extends PlaygroundElement implements CellObserver {
     ];
   }
 
-  static elementDefinitions = {
-    'mwc-circular-progress': CircularProgress,
-    'mwc-icon': Icon,
-    'mwc-tab': Tab,
-    'mwc-tab-bar': TabBar,
-    'mwc-card': Card,
-    'copyable-hash': CopyableHash,
-    'call-functions': CallFns,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-circular-progress': CircularProgress,
+      'mwc-icon': Icon,
+      'mwc-tab': Tab,
+      'mwc-tab-bar': TabBar,
+      'mwc-card': Card,
+      'copyable-hash': CopyableHash,
+      'call-functions': CallFns,
+    };
+  }
 }

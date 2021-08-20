@@ -1,11 +1,11 @@
-import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
+import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { html, LitElement } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { ref } from 'lit/directives/ref.js';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { sharedStyles } from '../utils/shared-styles';
 
-export class EditableField extends ScopedRegistryHost(LitElement) {
+export class EditableField extends ScopedElementsMixin(LitElement) {
   @property()
   value: any;
 
@@ -70,9 +70,11 @@ export class EditableField extends ScopedRegistryHost(LitElement) {
     </div>`;
   }
 
-  static elementDefinitions = {
-    'mwc-icon-button': IconButton,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-icon-button': IconButton,
+    };
+  }
 
   static styles = [sharedStyles];
 }

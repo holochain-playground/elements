@@ -1,14 +1,7 @@
 import { Dictionary } from '@holochain-open-dev/core-types';
-import { SimulatedZomeFunctionArgument } from '@holochain-playground/core';
-import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
-import { html } from 'lit';
-import {
-  css,
-  LitElement,
-  property,
-  PropertyValues,
-  TemplateResult,
-} from 'lit-element';
+import { property } from 'lit/decorators.js';
+import { ScopedElementsMixin } from '@open-wc/scoped-elements';
+import { css, LitElement, html, PropertyValues, TemplateResult } from 'lit';
 import { isEqual } from 'lodash';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Drawer } from 'scoped-material-components/mwc-drawer';
@@ -35,7 +28,7 @@ export interface CallableFn {
   call: (args: Dictionary<any>) => void;
 }
 
-export class CallFns extends ScopedRegistryHost(LitElement) {
+export class CallFns extends ScopedElementsMixin(LitElement) {
   @property()
   callableFns!: CallableFn[];
 
@@ -187,12 +180,14 @@ export class CallFns extends ScopedRegistryHost(LitElement) {
     `,
   ];
 
-  static elementDefinitions = {
-    'mwc-drawer': Drawer,
-    'mwc-list': List,
-    'mwc-list-item': ListItem,
-    'mwc-button': Button,
-    'mwc-textfield': TextField,
-    'mwc-select': Select,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-drawer': Drawer,
+      'mwc-list': List,
+      'mwc-list-item': ListItem,
+      'mwc-button': Button,
+      'mwc-textfield': TextField,
+      'mwc-select': Select,
+    };
+  }
 }

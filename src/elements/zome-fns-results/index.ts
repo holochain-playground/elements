@@ -254,14 +254,16 @@ export class ZomeFnsResults extends PlaygroundElement implements CellObserver {
     ];
   }
 
-  static elementDefinitions = {
-    'mwc-list-item': ListItem,
-    'mwc-icon': Icon,
-    'mwc-circular-progress': CircularProgress,
-    'mwc-button': Button,
-    'mwc-card': Card,
-    'json-viewer': JsonViewer,
-    'expandable-line': ExpandableLine,
-    'copyable-hash': CopyableHash,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-list-item': ListItem,
+      'mwc-icon': Icon,
+      'mwc-circular-progress': CircularProgress,
+      'mwc-button': Button,
+      'mwc-card': Card,
+      'json-viewer': JsonViewer,
+      'expandable-line': ExpandableLine,
+      'copyable-hash': CopyableHash,
+    };
+  }
 }

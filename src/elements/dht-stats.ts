@@ -218,10 +218,12 @@ TODO: handle gossip at the core layer
     `;
   }
 
-  static elementDefinitions = {
-    'mwc-linear-progress': LinearProgress,
-    'mwc-textfield': TextField,
-    'mwc-icon-button': IconButton,
-    'mwc-dialog': Dialog,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-linear-progress': LinearProgress,
+      'mwc-textfield': TextField,
+      'mwc-icon-button': IconButton,
+      'mwc-dialog': Dialog,
+    };
+  }
 }

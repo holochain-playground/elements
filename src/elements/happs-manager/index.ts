@@ -429,15 +429,17 @@ export class HappsManager extends PlaygroundElement {
     ];
   }
 
-  static elementDefinitions = {
-    'mwc-list-item': ListItem,
-    'mwc-icon-button': IconButton,
-    'mwc-textfield': TextField,
-    'mwc-list': List,
-    'copyable-hash': CopyableHash,
-    'mwc-select': Select,
-    'mwc-card': Card,
-    'mwc-button': Button,
-    'mwc-drawer': Drawer,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-list-item': ListItem,
+      'mwc-icon-button': IconButton,
+      'mwc-textfield': TextField,
+      'mwc-list': List,
+      'copyable-hash': CopyableHash,
+      'mwc-select': Select,
+      'mwc-card': Card,
+      'mwc-button': Button,
+      'mwc-drawer': Drawer,
+    };
+  }
 }
