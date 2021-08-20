@@ -31,42 +31,42 @@ export class HolochainPlaygroundGoldenLayout extends HolochainPlaygroundContaine
       >
         <golden-layout-register component-type="source-chain">
           <template>
-            <source-chain style="flex: 1; margin: 8px;"></source-chain>
+            <source-chain style="height: 100%; width: 100%;"></source-chain>
           </template>
         </golden-layout-register>
         <golden-layout-register component-type="dht-cells">
           <template>
-            <dht-cells style="flex: 1; margin: 8px;"></dht-cells>
+            <dht-cells style="height: 100%; width: 100%;"></dht-cells>
           </template>
         </golden-layout-register>
         <golden-layout-register component-type="conductor-admin">
           <template>
-            <conductor-admin style="flex: 1; margin: 8px;"></conductor-admin>
+            <conductor-admin style="height: 100%; width: 100%;"></conductor-admin>
           </template>
         </golden-layout-register>
         <golden-layout-register component-type="call-zome-fns">
           <template>
-            <call-zome-fns style="flex: 1; margin: 8px;"></call-zome-fns>
+            <call-zome-fns style="height: 100%; width: 100%;"></call-zome-fns>
           </template>
         </golden-layout-register>
         <golden-layout-register component-type="entry-contents">
           <template>
-            <entry-contents style="flex: 1; margin: 8px;"></entry-contents>
+            <entry-contents style="height: 100%; width: 100%;"></entry-contents>
           </template>
         </golden-layout-register>
         <golden-layout-register component-type="entry-graph">
           <template>
-            <entry-graph style="flex: 1; margin: 8px;"></entry-graph>
+            <entry-graph style="height: 100%; width: 100%;"></entry-graph>
           </template>
         </golden-layout-register>
         <golden-layout-register component-type="happs-manager">
           <template>
-            <happs-manager style="flex: 1; margin: 8px;"></happs-manager>
+            <happs-manager style="height: 100%; width: 100%;"></happs-manager>
           </template>
         </golden-layout-register>
         <golden-layout-register component-type="zome-fns-results">
           <template>
-            <zome-fns-results style="flex: 1; margin: 8px;"></zome-fns-results>
+            <zome-fns-results style="height: 100%; width: 100%;"></zome-fns-results>
           </template>
         </golden-layout-register>
 

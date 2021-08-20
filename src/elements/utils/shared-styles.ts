@@ -60,7 +60,8 @@ export const sharedStyles = css`
   }
 
   .block-card {
-    width: auto;
+    width: 100%;
+    height: 100%;
     position: relative;
     flex: 1;
   }
