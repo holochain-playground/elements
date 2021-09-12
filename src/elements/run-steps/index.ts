@@ -3,12 +3,12 @@ import { state, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import { PlaygroundElement } from '../../base/playground-element';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
-import { Card } from 'scoped-material-components/mwc-card';
+import { ListItem } from '@scoped-elements/material-web';
+import { Card } from '@scoped-elements/material-web';
 import { sharedStyles } from '../utils/shared-styles';
-import { List } from 'scoped-material-components/mwc-list';
-import { Button } from 'scoped-material-components/mwc-button';
-import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
+import { List } from '@scoped-elements/material-web';
+import { Button } from '@scoped-elements/material-web';
+import { CircularProgress } from '@scoped-elements/material-web';
 import { selectAllCells } from '../../base/selectors';
 
 export interface Step {

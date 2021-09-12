@@ -2,7 +2,7 @@ import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { html, LitElement } from 'lit';
 import { styleMap } from 'lit/directives/style-map.js';
 import { property } from 'lit/decorators.js';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import { IconButton } from '@scoped-elements/material-web';
 import { sharedStyles } from '../utils/shared-styles';
 
 export class ExpandableLine extends ScopedElementsMixin(LitElement) {

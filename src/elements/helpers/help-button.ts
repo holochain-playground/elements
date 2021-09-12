@@ -1,8 +1,8 @@
 import { property, query } from 'lit/decorators.js';
 import { html } from 'lit';
-import { Button } from 'scoped-material-components/mwc-button';
-import { Dialog } from 'scoped-material-components/mwc-dialog';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import { Button } from '@scoped-elements/material-web';
+import { Dialog } from '@scoped-elements/material-web';
+import { IconButton } from '@scoped-elements/material-web';
 import { PlaygroundElement } from '../../base/playground-element';
 
 export class HelpButton extends PlaygroundElement {

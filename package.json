@@ -19,12 +19,13 @@
     "publish-to-branch": "npm run build && gh-pages -d . -b build"
   },
   "dependencies": {
-    "@holochain-open-dev/core-types": "git+https://github.com/holochain-open-dev/core-types.git#build",
+    "@holochain-open-dev/core-types": "0.1.1",
     "@holochain-playground/core": "github:holochain-playground/core#build",
     "@open-wc/scoped-elements": "^2.0.0-next.4",
     "@power-elements/json-viewer": "^2.1.1",
+    "@scoped-elements/golden-layout": "github:scoped-elements/golden-layout#build",
+    "@scoped-elements/material-web": "^0.0.4",
     "@vaadin/vaadin-grid": "^5.7.12",
-    "@webcomponents/scoped-custom-element-registry": "0.0.1",
     "cytoscape": "^3.17.0",
     "cytoscape-cola": "^2.3.0",
     "cytoscape-dagre": "^2.2.2",
@@ -32,12 +33,10 @@
     "cytoscape-klay": "^3.1.3",
     "cytoscape-popper": "^1.0.7",
     "cytoscape-spread": "^3.0.0",
-    "golden-layout-custom-elements": "github:guillemcordoba/golden-layout-custom-elements#build",
-    "lit": "^2.0.0-rc.1",
+    "lit": "^2.0.0-rc.4",
     "lit-element-context": "^0.1.1",
     "lodash-es": "^4.17.21",
-    "rxjs": "^6.6.3",
-    "scoped-material-components": "^0.1.6"
+    "rxjs": "^6.6.3"
   },
   "devDependencies": {
     "@babel/core": "^7.13.8",

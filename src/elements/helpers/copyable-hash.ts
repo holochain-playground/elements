@@ -1,8 +1,8 @@
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { html, LitElement } from 'lit';
 import { property, query } from 'lit/decorators.js';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { Snackbar } from 'scoped-material-components/mwc-snackbar';
+import { IconButton } from '@scoped-elements/material-web';
+import { Snackbar } from '@scoped-elements/material-web';
 import { sharedStyles } from '../utils/shared-styles';
 
 export class CopyableHash extends ScopedElementsMixin(LitElement) {

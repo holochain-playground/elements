@@ -3,12 +3,12 @@ import { property } from 'lit/decorators.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { css, LitElement, html, PropertyValues, TemplateResult } from 'lit';
 import { isEqual } from 'lodash';
-import { Button } from 'scoped-material-components/mwc-button';
-import { Drawer } from 'scoped-material-components/mwc-drawer';
-import { List } from 'scoped-material-components/mwc-list';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
-import { Select } from 'scoped-material-components/mwc-select';
-import { TextField } from 'scoped-material-components/mwc-textfield';
+import { Button } from '@scoped-elements/material-web';
+import { Drawer } from '@scoped-elements/material-web';
+import { List } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
+import { Select } from '@scoped-elements/material-web';
+import { TextField } from '@scoped-elements/material-web';
 import { sharedStyles } from '../utils/shared-styles';
 
 export type CallableFnArgument = { name: string; required?: boolean } & (

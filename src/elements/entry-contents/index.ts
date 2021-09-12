@@ -3,7 +3,7 @@ import { JsonViewer } from '@power-elements/json-viewer';
 
 import { sharedStyles } from '../utils/shared-styles';
 import { selectAllCells, selectFromCAS } from '../../base/selectors';
-import { Card } from 'scoped-material-components/mwc-card';
+import { Card } from '@scoped-elements/material-web';
 import { shortenStrRec } from '../utils/hash';
 import { CopyableHash } from '../helpers/copyable-hash';
 import { PlaygroundElement } from '../../base/playground-element';

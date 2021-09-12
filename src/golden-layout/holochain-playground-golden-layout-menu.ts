@@ -1,9 +1,9 @@
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { html, LitElement } from 'lit';
-import { List } from 'scoped-material-components/mwc-list';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { List } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
 
-import { GoldenLayoutDragSource } from 'golden-layout-custom-elements';
+import { GoldenLayoutDragSource } from '@scoped-elements/golden-layout';
 import { GOLDEN_LAYOUT_COMPONENTS } from './components';
 import { sharedStyles } from '../elements/utils/shared-styles';
 

@@ -4,8 +4,8 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import cytoscape from 'cytoscape';
-import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
-import { Button } from 'scoped-material-components/mwc-button';
+import { MenuSurface } from '@scoped-elements/material-web';
+import { Button } from '@scoped-elements/material-web';
 import { DHTOp, Dictionary } from '@holochain-open-dev/core-types';
 import {
   sleep,
@@ -14,9 +14,9 @@ import {
   PublishRequestInfo,
   NetworkRequestInfo,
 } from '@holochain-playground/core';
-import { Card } from 'scoped-material-components/mwc-card';
-import { Slider } from 'scoped-material-components/mwc-slider';
-import { Switch } from 'scoped-material-components/mwc-switch';
+import { Card } from '@scoped-elements/material-web';
+import { Slider } from '@scoped-elements/material-web';
+import { Switch } from '@scoped-elements/material-web';
 import { CellTasks } from '../helpers/cell-tasks';
 import { HelpButton } from '../helpers/help-button';
 import { CellsController } from '../../base/cells-controller';
@@ -24,12 +24,12 @@ import { selectAllCells, selectHoldingCells } from '../../base/selectors';
 import { sharedStyles } from '../utils/shared-styles';
 import { dhtCellsNodes, neighborsEdges } from './processors';
 import { graphStyles, layoutConfig } from './graph';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { Formfield } from 'scoped-material-components/mwc-formfield';
-import { Icon } from 'scoped-material-components/mwc-icon';
+import { IconButton } from '@scoped-elements/material-web';
+import { Formfield } from '@scoped-elements/material-web';
+import { Icon } from '@scoped-elements/material-web';
 import { Subject } from 'rxjs';
-import { Menu } from 'scoped-material-components/mwc-menu';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { Menu } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
 import { uniq } from 'lodash-es';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CellObserver } from '../../base/cell-observer';

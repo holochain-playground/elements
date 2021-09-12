@@ -2,7 +2,7 @@ import { html } from 'lit';
 import {
   GoldenLayout,
   GoldenLayoutRegister,
-} from 'golden-layout-custom-elements';
+} from '@scoped-elements/golden-layout';
 
 import { CallZomeFns } from '../elements/call-zome-fns';
 import { ConductorAdmin } from '../elements/conductor-admin';

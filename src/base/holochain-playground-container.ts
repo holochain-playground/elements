@@ -1,6 +1,8 @@
-import { Snackbar } from 'scoped-material-components/mwc-snackbar';
-import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import {
+  IconButton,
+  Snackbar,
+  CircularProgress,
+} from '@scoped-elements/material-web';
 import { ProviderMixin } from 'lit-element-context';
 
 import { LitElement, html, css, PropertyValues } from 'lit';

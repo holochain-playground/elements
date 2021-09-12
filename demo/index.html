@@ -29,7 +29,6 @@
     </holochain-playground-golden-layout>
 
     <script type="module">
-      import '@webcomponents/scoped-custom-element-registry';
       import { html, render } from 'lit';
       import {
         HolochainPlaygroundGoldenLayout,
@@ -54,7 +53,7 @@
         GoldenLayoutRoot,
         GoldenLayoutRow,
         GoldenLayoutComponent,
-      } from 'golden-layout-custom-elements';
+      } from '@scoped-elements/golden-layout';
 
       customElements.define(
         'holochain-playground-golden-layout',

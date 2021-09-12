@@ -8,17 +8,17 @@ import {
   Cell,
 } from '@holochain-playground/core';
 import { sharedStyles } from '../utils/shared-styles';
-import { TextField } from 'scoped-material-components/mwc-textfield';
-import { Button } from 'scoped-material-components/mwc-button';
-import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
-import { Icon } from 'scoped-material-components/mwc-icon';
+import { TextField } from '@scoped-elements/material-web';
+import { Button } from '@scoped-elements/material-web';
+import { CircularProgress } from '@scoped-elements/material-web';
+import { Icon } from '@scoped-elements/material-web';
 import { selectCell } from '../../base/selectors';
-import { Tab } from 'scoped-material-components/mwc-tab';
-import { TabBar } from 'scoped-material-components/mwc-tab-bar';
-import { Card } from 'scoped-material-components/mwc-card';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
-import { List } from 'scoped-material-components/mwc-list';
-import { Drawer } from 'scoped-material-components/mwc-drawer';
+import { Tab } from '@scoped-elements/material-web';
+import { TabBar } from '@scoped-elements/material-web';
+import { Card } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
+import { List } from '@scoped-elements/material-web';
+import { Drawer } from '@scoped-elements/material-web';
 import { CopyableHash } from '../helpers/copyable-hash';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CellsController } from '../../base/cells-controller';

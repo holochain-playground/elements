@@ -4,17 +4,17 @@ import { ref, createRef } from 'lit/directives/ref.js';
 
 import { sharedStyles } from '../utils/shared-styles';
 
-import { Card } from 'scoped-material-components/mwc-card';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { Tab } from 'scoped-material-components/mwc-tab';
-import { TabBar } from 'scoped-material-components/mwc-tab-bar';
+import { Card } from '@scoped-elements/material-web';
+import { IconButton } from '@scoped-elements/material-web';
+import { Tab } from '@scoped-elements/material-web';
+import { TabBar } from '@scoped-elements/material-web';
 import { PlaygroundElement } from '../../base/playground-element';
 import { Cell, Conductor } from '@holochain-playground/core';
 import { selectCell } from '../../base/selectors';
-import { List } from 'scoped-material-components/mwc-list';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { List } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
 import { CopyableHash } from '../helpers/copyable-hash';
-import { Button } from 'scoped-material-components/mwc-button';
+import { Button } from '@scoped-elements/material-web';
 import { HelpButton } from '../helpers/help-button';
 import { adminApi } from './admin-api';
 import { CallFns } from '../helpers/call-functions';
