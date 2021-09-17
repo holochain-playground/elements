@@ -21,10 +21,7 @@ function buildHappBundle(context, happId) {
             dna: context.dnas[dnaSlot.dnaHash],
         };
     }
-    const happBundle = {
-        ...ligthHapp,
-        slots,
-    };
+    const happBundle = Object.assign(Object.assign({}, ligthHapp), { slots });
     return happBundle;
 }
 
@@ -52,6 +49,16 @@ function __decorate(decorators, target, key, desc) {
 
 function __metadata(metadataKey, metadataValue) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
+}
+
+function __awaiter(thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
 }
 
 /**
@@ -17402,47 +17409,46 @@ class HolochainPlaygroundContainer extends ScopedElementsMixin(ProviderMixin(Lit
             }
         }
     }
-    async firstUpdated() {
-        if (!this.conductorsUrls) {
-            this.conductors = await createConductors(this.numberOfSimulatedConductors, [], this.simulatedHapp);
-            const slots = {};
-            for (const [slotNick, dnaSlot] of Object.entries(this.simulatedHapp.slots)) {
-                if (typeof dnaSlot.dna === 'string') {
-                    throw new Error('Initial happ bundle must come with its dnas already builtin');
+    firstUpdated() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.conductorsUrls) {
+                this.conductors = yield createConductors(this.numberOfSimulatedConductors, [], this.simulatedHapp);
+                const slots = {};
+                for (const [slotNick, dnaSlot] of Object.entries(this.simulatedHapp.slots)) {
+                    if (typeof dnaSlot.dna === 'string') {
+                        throw new Error('Initial happ bundle must come with its dnas already builtin');
+                    }
+                    const dnaHash = hash(dnaSlot.dna, HashType.DNA);
+                    slots[slotNick] = {
+                        deferred: dnaSlot.deferred,
+                        dnaHash,
+                    };
+                    this.dnas[dnaHash] = dnaSlot.dna;
                 }
-                const dnaHash = hash(dnaSlot.dna, HashType.DNA);
-                slots[slotNick] = {
-                    deferred: dnaSlot.deferred,
-                    dnaHash,
-                };
-                this.dnas[dnaHash] = dnaSlot.dna;
+                this.happs[this.simulatedHapp.name] = Object.assign(Object.assign({}, this.simulatedHapp), { slots });
+                this.activeDna = this.conductors[0].getAllCells()[0].dnaHash;
+                this.dispatchEvent(new CustomEvent('ready', {
+                    bubbles: true,
+                    composed: true,
+                    detail: {
+                        activeDna: this.activeDna,
+                        activeAgentPubKey: this.activeAgentPubKey,
+                        activeHash: this.activeHash,
+                        conductors: this.conductors,
+                        conductorsUrls: this.conductorsUrls,
+                        happs: this.happs,
+                    },
+                }));
             }
-            this.happs[this.simulatedHapp.name] = {
-                ...this.simulatedHapp,
-                slots,
-            };
-            this.activeDna = this.conductors[0].getAllCells()[0].dnaHash;
-            this.dispatchEvent(new CustomEvent('ready', {
-                bubbles: true,
-                composed: true,
-                detail: {
-                    activeDna: this.activeDna,
-                    activeAgentPubKey: this.activeAgentPubKey,
-                    activeHash: this.activeHash,
-                    conductors: this.conductors,
-                    conductorsUrls: this.conductorsUrls,
-                    happs: this.happs,
-                },
-            }));
-        }
-        this.addEventListener('update-context', (e) => {
-            const keys = Object.keys(e.detail);
-            for (const key of keys) {
-                this[key] = e.detail[key];
-            }
-        });
-        this.addEventListener('show-message', (e) => {
-            this.showMessage(e.detail.message);
+            this.addEventListener('update-context', (e) => {
+                const keys = Object.keys(e.detail);
+                for (const key of keys) {
+                    this[key] = e.detail[key];
+                }
+            });
+            this.addEventListener('show-message', (e) => {
+                this.showMessage(e.detail.message);
+            });
         });
     }
     showMessage(message) {
@@ -17526,7 +17532,7 @@ class CellsController {
     }
     hostUpdated() {
         this.observedCells = this.host.observedCells().filter((cell) => !!cell);
-        const newCellsById = this.observedCells.reduce((acc, next) => ({ ...acc, [this.getStrCellId(next)]: next }), {});
+        const newCellsById = this.observedCells.reduce((acc, next) => (Object.assign(Object.assign({}, acc), { [this.getStrCellId(next)]: next })), {});
         const newCellsIds = Object.keys(newCellsById);
         const oldCellsIds = Object.keys(this._subscriptions);
         const addedCellsIds = newCellsIds.filter((cellId) => !oldCellsIds.includes(cellId));
@@ -17534,9 +17540,9 @@ class CellsController {
         for (const addedCellId of addedCellsIds) {
             const cell = newCellsById[addedCellId];
             const subscriptions = [
-                cell.workflowExecutor.success(async () => {
+                cell.workflowExecutor.success(() => __awaiter(this, void 0, void 0, function* () {
                     this.host.requestUpdate();
-                }),
+                })),
             ];
             if (this.host.beforeWorkflow) {
                 subscriptions.push(cell.workflowExecutor.before((task) => this.host.beforeWorkflow(cell, task)));
@@ -17741,9 +17747,11 @@ class CopyableHash extends ScopedElementsMixin(LitElement) {
         super(...arguments);
         this.sliceLength = 8;
     }
-    async copyHash() {
-        await navigator.clipboard.writeText(this.hash);
-        this._copyNotification.show();
+    copyHash() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield navigator.clipboard.writeText(this.hash);
+            this._copyNotification.show();
+        });
     }
     render() {
         return html$1 `
@@ -17949,15 +17957,17 @@ class CallZomeFns extends PlaygroundElement {
     observedCells() {
         return [this.activeCell];
     }
-    async callZomeFunction(fnName, args) {
-        const zome = this.activeZome;
-        this.requestUpdate();
-        this.activeCell.conductor.callZomeFn({
-            cellId: this.activeCell.cellId,
-            zome: zome.name,
-            payload: args,
-            fnName,
-            cap: null,
+    callZomeFunction(fnName, args) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const zome = this.activeZome;
+            this.requestUpdate();
+            this.activeCell.conductor.callZomeFn({
+                cellId: this.activeCell.cellId,
+                zome: zome.name,
+                payload: args,
+                fnName,
+                cap: null,
+            });
         });
     }
     renderActiveZomeFns() {
@@ -17971,7 +17981,7 @@ class CallZomeFns extends PlaygroundElement {
       </div> `;
         const fns = zomeFns.map((zomeFn) => ({
             name: zomeFn[0],
-            args: zomeFn[1].arguments.map((arg) => ({ ...arg, field: 'textfield' })),
+            args: zomeFn[1].arguments.map((arg) => (Object.assign(Object.assign({}, arg), { field: 'textfield' }))),
             call: (args) => this.callZomeFunction(zomeFn[0], args),
         }));
         return html$1 ` <call-functions .callableFns=${fns}></call-functions> `;
@@ -18509,38 +18519,44 @@ class ZomeFnsResults extends PlaygroundElement {
             return [selectCell(this.activeDna, this.forAgent, this.conductors)];
         return selectAllCells(this.activeDna, this.conductors);
     }
-    async beforeWorkflow(cell, workflowInfo) {
-        if (workflowInfo.type === WorkflowType.CALL_ZOME) {
-            const timestamp = Date.now().toString();
-            const callZomeWorkflow = workflowInfo;
-            if (!this._results[cell.dnaHash])
-                this._results[cell.dnaHash] = {};
-            if (!this._results[cell.dnaHash][cell.agentPubKey])
-                this._results[cell.dnaHash][cell.agentPubKey] = {};
-            this._results[cell.dnaHash][cell.agentPubKey][timestamp] = {
-                cellId: cell.cellId,
-                fnName: callZomeWorkflow.details.fnName,
-                payload: callZomeWorkflow.details.payload,
-                zome: callZomeWorkflow.details.zome,
-                result: undefined,
-            };
-            workflowInfo.timestamp = timestamp;
-            this.requestUpdate();
-        }
+    beforeWorkflow(cell, workflowInfo) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (workflowInfo.type === WorkflowType.CALL_ZOME) {
+                const timestamp = Date.now().toString();
+                const callZomeWorkflow = workflowInfo;
+                if (!this._results[cell.dnaHash])
+                    this._results[cell.dnaHash] = {};
+                if (!this._results[cell.dnaHash][cell.agentPubKey])
+                    this._results[cell.dnaHash][cell.agentPubKey] = {};
+                this._results[cell.dnaHash][cell.agentPubKey][timestamp] = {
+                    cellId: cell.cellId,
+                    fnName: callZomeWorkflow.details.fnName,
+                    payload: callZomeWorkflow.details.payload,
+                    zome: callZomeWorkflow.details.zome,
+                    result: undefined,
+                };
+                workflowInfo.timestamp = timestamp;
+                this.requestUpdate();
+            }
+        });
     }
-    async workflowSuccess(cell, workflowInfo, result) {
-        if (workflowInfo.type === WorkflowType.CALL_ZOME &&
-            workflowInfo.timestamp) {
-            this._results[cell.dnaHash][cell.agentPubKey][workflowInfo.timestamp].result = { success: true, payload: result.result };
-            this.requestUpdate();
-        }
+    workflowSuccess(cell, workflowInfo, result) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (workflowInfo.type === WorkflowType.CALL_ZOME &&
+                workflowInfo.timestamp) {
+                this._results[cell.dnaHash][cell.agentPubKey][workflowInfo.timestamp].result = { success: true, payload: result.result };
+                this.requestUpdate();
+            }
+        });
     }
-    async workflowError(cell, workflowInfo, error) {
-        if (workflowInfo.type === WorkflowType.CALL_ZOME &&
-            workflowInfo.timestamp) {
-            this._results[cell.dnaHash][cell.agentPubKey][workflowInfo.timestamp].result = { success: false, payload: error.message };
-            this.requestUpdate();
-        }
+    workflowError(cell, workflowInfo, error) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (workflowInfo.type === WorkflowType.CALL_ZOME &&
+                workflowInfo.timestamp) {
+                this._results[cell.dnaHash][cell.agentPubKey][workflowInfo.timestamp].result = { success: false, payload: error.message };
+                this.requestUpdate();
+            }
+        });
     }
     getActiveResults() {
         if (!this.activeCell)
@@ -18832,10 +18848,10 @@ function adminApi(element, conductor) {
                     },
                 },
             ],
-            call: async (args) => {
+            call: (args) => __awaiter(this, void 0, void 0, function* () {
                 const happ = buildHappBundle(element, args['hAppId']);
-                await conductor.installHapp(happ, args['membraneProofs'] || {});
-            },
+                yield conductor.installHapp(happ, args['membraneProofs'] || {});
+            }),
         },
         {
             name: 'Clone DNA',
@@ -18911,9 +18927,9 @@ function adminApi(element, conductor) {
                 },
                 { name: 'membraneProof', field: 'textfield', type: 'String' },
             ],
-            call: async (args) => {
+            call: (args) => __awaiter(this, void 0, void 0, function* () {
                 try {
-                    const cell = await conductor.cloneCell(args.installedAppId, args.slotNick, args.uid, args.properties, args.membraneProof);
+                    const cell = yield conductor.cloneCell(args.installedAppId, args.slotNick, args.uid, args.properties, args.membraneProof);
                     element.updatePlayground({
                         activeDna: cell.dnaHash,
                         activeAgentPubKey: cell.agentPubKey,
@@ -18922,7 +18938,7 @@ function adminApi(element, conductor) {
                 catch (e) {
                     element.showMessage(`Error: ${e.message}`);
                 }
-            },
+            }),
         },
     ];
 }
@@ -45822,8 +45838,8 @@ class ConductorAdmin extends PlaygroundElement {
         this._grid = e$1();
     }
     get activeConductor() {
-        return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors)
-            ?.conductor;
+        var _a;
+        return (_a = selectCell(this.activeDna, this.activeAgentPubKey, this.conductors)) === null || _a === void 0 ? void 0 : _a.conductor;
     }
     renderHelp() {
         return html$1 `
@@ -78507,46 +78523,94 @@ class CellTasks extends PlaygroundElement {
     observedCells() {
         return [this.cell];
     }
-    async beforeWorkflow(cell, task) {
-        if (!this.workflowsToDisplay.includes(task.type))
-            return;
-        if (task.type === WorkflowType.APP_VALIDATION &&
-            cell.conductor.badAgent &&
-            cell.conductor.badAgent.config.pretend_invalid_elements_are_valid) {
-            return;
-        }
-        if (task.type === WorkflowType.CALL_ZOME) {
-            this._callZomeTasks.push(task);
-        }
-        else {
-            if (!this._runningTasks[task.type])
-                this._runningTasks[task.type] = 0;
-            this._runningTasks[task.type] += 1;
-        }
-        this.requestUpdate();
-        if (this.stepByStep) {
-            this.dispatchEvent(new CustomEvent('execution-paused', {
-                detail: { paused: true },
-                composed: true,
-                bubbles: true,
-            }));
-            await new Promise((resolve) => this._resumeObservable.subscribe(() => resolve(null)));
-            this.dispatchEvent(new CustomEvent('execution-paused', {
-                detail: { paused: false },
-                composed: true,
-                bubbles: true,
-            }));
-        }
-        else {
-            await sleep(this.workflowDelay);
-        }
+    beforeWorkflow(cell, task) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.workflowsToDisplay.includes(task.type))
+                return;
+            if (task.type === WorkflowType.APP_VALIDATION &&
+                cell.conductor.badAgent &&
+                cell.conductor.badAgent.config.pretend_invalid_elements_are_valid) {
+                return;
+            }
+            if (task.type === WorkflowType.CALL_ZOME) {
+                this._callZomeTasks.push(task);
+            }
+            else {
+                if (!this._runningTasks[task.type])
+                    this._runningTasks[task.type] = 0;
+                this._runningTasks[task.type] += 1;
+            }
+            this.requestUpdate();
+            if (this.stepByStep) {
+                this.dispatchEvent(new CustomEvent('execution-paused', {
+                    detail: { paused: true },
+                    composed: true,
+                    bubbles: true,
+                }));
+                yield new Promise((resolve) => this._resumeObservable.subscribe(() => resolve(null)));
+                this.dispatchEvent(new CustomEvent('execution-paused', {
+                    detail: { paused: false },
+                    composed: true,
+                    bubbles: true,
+                }));
+            }
+            else {
+                yield sleep(this.workflowDelay);
+            }
+        });
     }
-    async workflowSuccess(cell, task, result) {
-        if (task.type === WorkflowType.CALL_ZOME) {
-            this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
-            if (this.showZomeFnSuccess) {
-                const successInfo = { task, payload: result };
-                this._successes.push(successInfo);
+    workflowSuccess(cell, task, result) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (task.type === WorkflowType.CALL_ZOME) {
+                this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
+                if (this.showZomeFnSuccess) {
+                    const successInfo = { task, payload: result };
+                    this._successes.push(successInfo);
+                    this.requestUpdate();
+                    if (this.stepByStep) {
+                        this.dispatchEvent(new CustomEvent('execution-paused', {
+                            detail: { paused: true },
+                            composed: true,
+                            bubbles: true,
+                        }));
+                        yield new Promise((resolve) => this._resumeObservable.subscribe(() => resolve(null)));
+                        this.dispatchEvent(new CustomEvent('execution-paused', {
+                            detail: { paused: false },
+                            composed: true,
+                            bubbles: true,
+                        }));
+                    }
+                    else {
+                        yield sleep(this.workflowDelay);
+                    }
+                    const index = this._successes.findIndex((e) => e === successInfo);
+                    this._successes.splice(index, 1);
+                }
+            }
+            else if (this._runningTasks[task.type]) {
+                this._runningTasks[task.type] -= 1;
+                if (this._runningTasks[task.type] === 0)
+                    delete this._runningTasks[task.type];
+            }
+            this.requestUpdate();
+        });
+    }
+    workflowError(cell, task, error) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (task.type === WorkflowType.CALL_ZOME) {
+                this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
+            }
+            else if (this._runningTasks[task.type]) {
+                this._runningTasks[task.type] -= 1;
+                if (this._runningTasks[task.type] === 0)
+                    delete this._runningTasks[task.type];
+            }
+            if (!this.hideErrors) {
+                const errorInfo = {
+                    task,
+                    error,
+                };
+                this._workflowErrors.push(errorInfo);
                 this.requestUpdate();
                 if (this.stepByStep) {
                     this.dispatchEvent(new CustomEvent('execution-paused', {
@@ -78554,7 +78618,7 @@ class CellTasks extends PlaygroundElement {
                         composed: true,
                         bubbles: true,
                     }));
-                    await new Promise((resolve) => this._resumeObservable.subscribe(() => resolve(null)));
+                    yield new Promise((resolve) => this._resumeObservable.subscribe(() => resolve(null)));
                     this.dispatchEvent(new CustomEvent('execution-paused', {
                         detail: { paused: false },
                         composed: true,
@@ -78562,84 +78626,44 @@ class CellTasks extends PlaygroundElement {
                     }));
                 }
                 else {
-                    await sleep(this.workflowDelay);
+                    yield sleep(this.workflowDelay);
                 }
-                const index = this._successes.findIndex((e) => e === successInfo);
-                this._successes.splice(index, 1);
+                const index = this._workflowErrors.findIndex((e) => e === errorInfo);
+                this._workflowErrors.splice(index, 1);
             }
-        }
-        else if (this._runningTasks[task.type]) {
-            this._runningTasks[task.type] -= 1;
-            if (this._runningTasks[task.type] === 0)
-                delete this._runningTasks[task.type];
-        }
-        this.requestUpdate();
-    }
-    async workflowError(cell, task, error) {
-        if (task.type === WorkflowType.CALL_ZOME) {
-            this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
-        }
-        else if (this._runningTasks[task.type]) {
-            this._runningTasks[task.type] -= 1;
-            if (this._runningTasks[task.type] === 0)
-                delete this._runningTasks[task.type];
-        }
-        if (!this.hideErrors) {
-            const errorInfo = {
-                task,
-                error,
-            };
-            this._workflowErrors.push(errorInfo);
             this.requestUpdate();
-            if (this.stepByStep) {
-                this.dispatchEvent(new CustomEvent('execution-paused', {
-                    detail: { paused: true },
-                    composed: true,
-                    bubbles: true,
-                }));
-                await new Promise((resolve) => this._resumeObservable.subscribe(() => resolve(null)));
-                this.dispatchEvent(new CustomEvent('execution-paused', {
-                    detail: { paused: false },
-                    composed: true,
-                    bubbles: true,
-                }));
-            }
-            else {
-                await sleep(this.workflowDelay);
-            }
-            const index = this._workflowErrors.findIndex((e) => e === errorInfo);
-            this._workflowErrors.splice(index, 1);
-        }
-        this.requestUpdate();
+        });
     }
-    async networkRequestError(networkRequest, error) {
-        if (!this.hideErrors) {
-            const errorInfo = {
-                networkRequest,
-                error,
-            };
-            this._networkRequestErrors.push(errorInfo);
+    networkRequestError(networkRequest, error) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.hideErrors) {
+                const errorInfo = {
+                    networkRequest,
+                    error,
+                };
+                this._networkRequestErrors.push(errorInfo);
+                this.requestUpdate();
+                if (this.stepByStep) {
+                    this.dispatchEvent(new CustomEvent('execution-paused', {
+                        detail: { paused: true },
+                        composed: true,
+                        bubbles: true,
+                    }));
+                    yield new Promise((resolve) => this._resumeObservable.subscribe(() => resolve(null)));
+                    this.dispatchEvent(new CustomEvent('execution-paused', {
+                        detail: { paused: false },
+                        composed: true,
+                        bubbles: true,
+                    }));
+                }
+                else {
+                    yield sleep(this.workflowDelay);
+                }
+                const index = this._networkRequestErrors.findIndex((e) => e === errorInfo);
+                this._networkRequestErrors.splice(index, 1);
+            }
             this.requestUpdate();
-            if (this.stepByStep) {
-                this.dispatchEvent(new CustomEvent('execution-paused', {
-                    detail: { paused: true },
-                    composed: true,
-                    bubbles: true,
-                }));
-                await new Promise((resolve) => this._resumeObservable.subscribe(() => resolve(null)));
-                this.dispatchEvent(new CustomEvent('execution-paused', {
-                    detail: { paused: false },
-                    composed: true,
-                    bubbles: true,
-                }));
-            }
-            else {
-                await sleep(this.workflowDelay);
-            }
-            const index = this._networkRequestErrors.findIndex((e) => e === errorInfo);
-            this._networkRequestErrors.splice(index, 1);
-        }
-        this.requestUpdate();
+        });
     }
     sortTasks(tasks) {
         return tasks.sort((t1, t2) => workflowPriority(t1[0]) -
@@ -78767,7 +78791,7 @@ function neighborsEdges(cells) {
     // Segmented by originAgentPubKey/targetAgentPubKey
     const allNeighbors = {};
     const edges = [];
-    const cellDict = cells.reduce((acc, next) => ({ ...acc, [next.agentPubKey]: next }), {});
+    const cellDict = cells.reduce((acc, next) => (Object.assign(Object.assign({}, acc), { [next.agentPubKey]: next })), {});
     for (const cell of cells) {
         const cellAgentPubKey = cell.agentPubKey;
         const cellNeighbors = cell.p2p.neighbors;
@@ -78893,45 +78917,47 @@ class DhtCells extends PlaygroundElement {
     observedCells() {
         return selectAllCells(this.activeDna, this.conductors);
     }
-    async firstUpdated() {
-        window.addEventListener('scroll', () => {
-            this._cy.resize();
-            this.requestUpdate();
-        });
-        new ResizeObserver(() => {
-            setTimeout(() => {
+    firstUpdated() {
+        return __awaiter(this, void 0, void 0, function* () {
+            window.addEventListener('scroll', () => {
                 this._cy.resize();
-                if (this._layout)
-                    this._layout.run();
                 this.requestUpdate();
             });
-        }).observe(this);
-        this._cy = cytoscape_cjs({
-            container: this._graph,
-            boxSelectionEnabled: false,
-            autoungrabify: true,
-            userPanningEnabled: false,
-            userZoomingEnabled: false,
-            layout: layoutConfig$1,
-            style: graphStyles$2,
-        });
-        this._cy.on('tap', 'node', (evt) => {
-            this.updatePlayground({
-                activeAgentPubKey: evt.target.id(),
+            new ResizeObserver(() => {
+                setTimeout(() => {
+                    this._cy.resize();
+                    if (this._layout)
+                        this._layout.run();
+                    this.requestUpdate();
+                });
+            }).observe(this);
+            this._cy = cytoscape_cjs({
+                container: this._graph,
+                boxSelectionEnabled: false,
+                autoungrabify: true,
+                userPanningEnabled: false,
+                userZoomingEnabled: false,
+                layout: layoutConfig$1,
+                style: graphStyles$2,
             });
-        });
-        let rendered = false;
-        this._cy.on('render', () => {
-            if (this._cy.width() !== 0) {
-                if (!rendered) {
-                    rendered = true;
-                    // This is needed to render the nodes after the graph itself
-                    // has resized properly so it computes the positions appriopriately
-                    setTimeout(() => {
-                        this.setupGraphNodes();
-                    });
+            this._cy.on('tap', 'node', (evt) => {
+                this.updatePlayground({
+                    activeAgentPubKey: evt.target.id(),
+                });
+            });
+            let rendered = false;
+            this._cy.on('render', () => {
+                if (this._cy.width() !== 0) {
+                    if (!rendered) {
+                        rendered = true;
+                        // This is needed to render the nodes after the graph itself
+                        // has resized properly so it computes the positions appriopriately
+                        setTimeout(() => {
+                            this.setupGraphNodes();
+                        });
+                    }
                 }
-            }
+            });
         });
     }
     highlightNodesWithEntry() {
@@ -78944,63 +78970,65 @@ class DhtCells extends PlaygroundElement {
             }
         }
     }
-    async beforeNetworkRequest(networkRequest) {
-        this.requestUpdate();
-        if (!this.networkRequestsToDisplay.includes(networkRequest.type))
-            return;
-        if (networkRequest.toAgent === networkRequest.fromAgent)
-            return;
-        const fromNode = this._cy.getElementById(networkRequest.fromAgent);
-        if (!fromNode.position())
-            return;
-        const toNode = this._cy.getElementById(networkRequest.toAgent);
-        const fromPosition = fromNode.position();
-        const toPosition = toNode.position();
-        let label = networkRequest.type;
-        if (networkRequest.type === NetworkRequestType.PUBLISH_REQUEST) {
-            const dhtOps = networkRequest
-                .details.dhtOps;
-            const types = Object.values(dhtOps).map((dhtOp) => dhtOp.type);
-            label = `Publish: ${uniq(types).join(', ')}`;
-        }
-        const el = this._cy.add([
-            {
-                group: 'nodes',
-                data: {
-                    networkRequest,
-                    label,
+    beforeNetworkRequest(networkRequest) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.requestUpdate();
+            if (!this.networkRequestsToDisplay.includes(networkRequest.type))
+                return;
+            if (networkRequest.toAgent === networkRequest.fromAgent)
+                return;
+            const fromNode = this._cy.getElementById(networkRequest.fromAgent);
+            if (!fromNode.position())
+                return;
+            const toNode = this._cy.getElementById(networkRequest.toAgent);
+            const fromPosition = fromNode.position();
+            const toPosition = toNode.position();
+            let label = networkRequest.type;
+            if (networkRequest.type === NetworkRequestType.PUBLISH_REQUEST) {
+                const dhtOps = networkRequest
+                    .details.dhtOps;
+                const types = Object.values(dhtOps).map((dhtOp) => dhtOp.type);
+                label = `Publish: ${uniq(types).join(', ')}`;
+            }
+            const el = this._cy.add([
+                {
+                    group: 'nodes',
+                    data: {
+                        networkRequest,
+                        label,
+                    },
+                    position: { x: fromPosition.x + 1, y: fromPosition.y + 1 },
+                    classes: ['network-request'],
                 },
-                position: { x: fromPosition.x + 1, y: fromPosition.y + 1 },
-                classes: ['network-request'],
-            },
-        ]);
-        if (this.stepByStep) {
-            const halfPosition = {
-                x: (toPosition.x - fromPosition.x) / 2 + fromPosition.x,
-                y: (toPosition.y - fromPosition.y) / 2 + fromPosition.y,
-            };
-            el.animate({
-                position: halfPosition,
-                duration: this.animationDelay / 2,
-            });
-            await sleep(this.animationDelay / 2);
-            this._onPause = true;
-            await new Promise((resolve) => this._resumeObservable.subscribe(() => resolve(null)));
-            this._onPause = false;
-            el.animate({
-                position: toPosition,
-                duration: this.animationDelay / 2,
-            });
-            await sleep(this.animationDelay / 2);
-        }
-        else {
-            el.animate({
-                position: toNode.position(),
-                duration: this.animationDelay,
-            });
-            await sleep(this.animationDelay);
-        }
-        this._cy.remove(el);
+            ]);
+            if (this.stepByStep) {
+                const halfPosition = {
+                    x: (toPosition.x - fromPosition.x) / 2 + fromPosition.x,
+                    y: (toPosition.y - fromPosition.y) / 2 + fromPosition.y,
+                };
+                el.animate({
+                    position: halfPosition,
+                    duration: this.animationDelay / 2,
+                });
+                yield sleep(this.animationDelay / 2);
+                this._onPause = true;
+                yield new Promise((resolve) => this._resumeObservable.subscribe(() => resolve(null)));
+                this._onPause = false;
+                el.animate({
+                    position: toPosition,
+                    duration: this.animationDelay / 2,
+                });
+                yield sleep(this.animationDelay / 2);
+            }
+            else {
+                el.animate({
+                    position: toNode.position(),
+                    duration: this.animationDelay,
+                });
+                yield sleep(this.animationDelay);
+            }
+            this._cy.remove(el);
+        });
     }
     onCellsChanged() {
         this.setupGraphNodes();
@@ -79435,50 +79463,52 @@ class DhtStats extends PlaygroundElement {
       </mwc-dialog>
     `;
     }
-    async republish() {
-        const newNodes = parseInt(this.nNodes.value);
-        const currentNodes = this.allCells.length;
-        parseInt(this.rFactor.value);
-        this.activeDna;
-        let conductors = this.conductors;
-        if (newNodes > currentNodes) {
-            const newNodesToCreate = newNodes - currentNodes;
-            conductors = await createConductors(newNodesToCreate, conductors, demoHapp());
-        }
-        else if (newNodes < currentNodes) {
-            const conductorsToRemove = currentNodes - newNodes;
-            const getMaxSourceChainLength = (conductor) => Math.max(...selectCells(this.activeDna, conductor).map((cell) => cell.getState().sourceChain.length));
-            conductors = conductors.sort((c1, c2) => getMaxSourceChainLength(c1) - getMaxSourceChainLength(c2));
-            conductors.splice(0, conductorsToRemove);
-        }
-        /*
-    TODO: handle gossip at the core layer
-        if (changedNodes) {
-          const peers = conductors.map((c) => c.cells[dna].agentId);
-    
-          for (const conductor of conductors) {
-            conductor.cells[dna].peers = peers.filter(
-              (p) => p !== conductor.cells[dna].agentId
-            );
-          }
-        }
+    republish() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const newNodes = parseInt(this.nNodes.value);
+            const currentNodes = this.allCells.length;
+            parseInt(this.rFactor.value);
+            this.activeDna;
+            let conductors = this.conductors;
+            if (newNodes > currentNodes) {
+                const newNodesToCreate = newNodes - currentNodes;
+                conductors = yield createConductors(newNodesToCreate, conductors, demoHapp());
+            }
+            else if (newNodes < currentNodes) {
+                const conductorsToRemove = currentNodes - newNodes;
+                const getMaxSourceChainLength = (conductor) => Math.max(...selectCells(this.activeDna, conductor).map((cell) => cell.getState().sourceChain.length));
+                conductors = conductors.sort((c1, c2) => getMaxSourceChainLength(c1) - getMaxSourceChainLength(c2));
+                conductors.splice(0, conductorsToRemove);
+            }
+            /*
+        TODO: handle gossip at the core layer
+            if (changedNodes) {
+              const peers = conductors.map((c) => c.cells[dna].agentId);
         
-        this.updatePlayground({
-          conductors: conductors,
+              for (const conductor of conductors) {
+                conductor.cells[dna].peers = peers.filter(
+                  (p) => p !== conductor.cells[dna].agentId
+                );
+              }
+            }
+            
+            this.updatePlayground({
+              conductors: conductors,
+            });
+            
+            if (changedNodes || selectRedundancyFactor(this.activeCell) !== rFactor) {
+              const cells = conductors.map((c) => c.cells[dna]);
+              for (const cell of cells) {
+                cell.DHTOpTransforms = {};
+                cell.redundancyFactor = rFactor;
+              }
+              for (const cell of cells) {
+                cell.republish();
+              }
+            }
+            */
+            this.processing = false;
         });
-        
-        if (changedNodes || selectRedundancyFactor(this.activeCell) !== rFactor) {
-          const cells = conductors.map((c) => c.cells[dna]);
-          for (const cell of cells) {
-            cell.DHTOpTransforms = {};
-            cell.redundancyFactor = rFactor;
-          }
-          for (const cell of cells) {
-            cell.republish();
-          }
-        }
-        */
-        this.processing = false;
     }
     updateDHTStats() {
         this.processing = true;
@@ -79586,35 +79616,39 @@ class RunSteps extends PlaygroundElement {
         this._runningStepIndex = undefined;
         this._running = false;
     }
-    async runSteps() {
-        this._running = true;
-        await this.awaitNetworkConsistency();
-        for (let i = 0; i < this.steps.length; i++) {
-            this._runningStepIndex = i;
-            await this.steps[i].run(this);
-            await this.awaitNetworkConsistency();
-        }
-        this._running = false;
-    }
-    async awaitNetworkConsistency() {
-        return new Promise((resolve) => {
-            const cells = selectAllCells(this.activeDna, this.conductors);
-            const checkConsistency = (consistencyCheckCount = 0) => {
-                for (const cell of cells) {
-                    for (const triggers of Object.values(cell._triggers)) {
-                        if (triggers.running || triggers.triggered)
-                            return;
-                    }
-                }
-                if (consistencyCheckCount === 3)
-                    resolve(null);
-                else
-                    setTimeout(() => checkConsistency(consistencyCheckCount + 1), 200);
-            };
-            for (const cell of cells) {
-                cell.workflowExecutor.success(async () => checkConsistency());
-                cell.workflowExecutor.error(async () => checkConsistency());
+    runSteps() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this._running = true;
+            yield this.awaitNetworkConsistency();
+            for (let i = 0; i < this.steps.length; i++) {
+                this._runningStepIndex = i;
+                yield this.steps[i].run(this);
+                yield this.awaitNetworkConsistency();
             }
+            this._running = false;
+        });
+    }
+    awaitNetworkConsistency() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve) => {
+                const cells = selectAllCells(this.activeDna, this.conductors);
+                const checkConsistency = (consistencyCheckCount = 0) => {
+                    for (const cell of cells) {
+                        for (const triggers of Object.values(cell._triggers)) {
+                            if (triggers.running || triggers.triggered)
+                                return;
+                        }
+                    }
+                    if (consistencyCheckCount === 3)
+                        resolve(null);
+                    else
+                        setTimeout(() => checkConsistency(consistencyCheckCount + 1), 200);
+                };
+                for (const cell of cells) {
+                    cell.workflowExecutor.success(() => __awaiter(this, void 0, void 0, function* () { return checkConsistency(); }));
+                    cell.workflowExecutor.error(() => __awaiter(this, void 0, void 0, function* () { return checkConsistency(); }));
+                }
+            });
         });
     }
     renderContent() {
@@ -96761,7 +96795,7 @@ class SelectActiveDna extends PlaygroundElement {
 }
 
 function unwrapEditable(happ) {
-    const slots = happ.slots.reduce((acc, next) => ({ ...acc, [next[0]]: next[1] }), {});
+    const slots = happ.slots.reduce((acc, next) => (Object.assign(Object.assign({}, acc), { [next[0]]: next[1] })), {});
     return {
         name: happ.name,
         description: happ.description,
@@ -97216,11 +97250,7 @@ class HolochainPlaygroundGoldenLayout extends HolochainPlaygroundContainer {
     `;
     }
     static get scopedElements() {
-        return {
-            ...HolochainPlaygroundContainer.scopedElements,
-            'golden-layout': GoldenLayout,
-            'golden-layout-register': GoldenLayoutRegister,
-        };
+        return Object.assign(Object.assign({}, HolochainPlaygroundContainer.scopedElements), { 'golden-layout': GoldenLayout, 'golden-layout-register': GoldenLayoutRegister });
     }
 }
 
