@@ -23,7 +23,7 @@
     "@holochain-playground/core": "github:holochain-playground/core#build",
     "@open-wc/scoped-elements": "^2.0.0-next.4",
     "@power-elements/json-viewer": "^2.1.1",
-    "@scoped-elements/golden-layout": "github:scoped-elements/golden-layout#build",
+    "@scoped-elements/golden-layout": "0.0.2",
     "@scoped-elements/material-web": "^0.0.4",
     "@vaadin/vaadin-grid": "^5.7.12",
     "cytoscape": "^3.17.0",
