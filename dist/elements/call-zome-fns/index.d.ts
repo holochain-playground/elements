@@ -24,9 +24,9 @@ export declare class CallZomeFns extends PlaygroundElement implements CellObserv
     get activeZome(): SimulatedZome;
     observedCells(): Cell[];
     callZomeFunction(fnName: string, args: Dictionary<any>): Promise<void>;
-    renderActiveZomeFns(): import("lit-html").TemplateResult<1>;
-    render(): import("lit-html").TemplateResult<1>;
-    static get styles(): import("lit").CSSResultGroup[];
+    renderActiveZomeFns(): import("lit").TemplateResult<1>;
+    render(): import("lit").TemplateResult<1>;
+    static get styles(): import("lit").CSSResult[];
     static get scopedElements(): {
         'mwc-circular-progress': typeof CircularProgress;
         'mwc-icon': typeof Icon;

@@ -16,7 +16,7 @@ export declare class RunSteps extends PlaygroundElement {
     awaitNetworkConsistency(): Promise<unknown>;
     renderContent(): any;
     render(): any;
-    static get styles(): import("lit").CSSResultGroup[];
+    static get styles(): import("lit").CSSResult[];
     static get scopedElements(): {
         'mwc-circular-progress': typeof CircularProgress;
         'mwc-list-item': typeof ListItem;

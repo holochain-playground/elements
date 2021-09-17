@@ -3,12 +3,12 @@ import { PlaygroundElement } from '../base/playground-element';
 export declare class ConnectToNodes extends PlaygroundElement {
     private open;
     private urlsState;
-    static get styles(): import("lit").CSSResultGroup;
+    static get styles(): import("lit").CSSResult;
     getUrlFields(): TextField[];
     setConnectionValidity(element: any): void;
     updateFields(): void;
-    renderDialog(): import("lit-html").TemplateResult<1>;
-    render(): import("lit-html").TemplateResult<1>;
+    renderDialog(): import("lit").TemplateResult<1>;
+    render(): import("lit").TemplateResult<1>;
     static get scopedElements(): {
         'mwc-button': typeof Button;
         'mwc-dialog': typeof Dialog;

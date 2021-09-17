@@ -23,10 +23,10 @@ export declare class ZomeFnsResults extends PlaygroundElement implements CellObs
     workflowSuccess(cell: Cell, workflowInfo: Workflow<any, any>, result: any): Promise<void>;
     workflowError(cell: Cell, workflowInfo: Workflow<any, any>, error: any): Promise<void>;
     getActiveResults(): Array<[string, ZomeFunctionResult]>;
-    renderResult(result: ZomeFunctionResult): import("lit-html").TemplateResult<1>;
-    renderAgent(): import("lit-html").TemplateResult<1>;
-    render(): import("lit-html").TemplateResult<1>;
-    static get styles(): import("lit").CSSResultGroup[];
+    renderResult(result: ZomeFunctionResult): import("lit").TemplateResult<1>;
+    renderAgent(): import("lit").TemplateResult<1>;
+    render(): import("lit").TemplateResult<1>;
+    static get styles(): import("lit").CSSResult[];
     static get scopedElements(): {
         'mwc-list-item': typeof ListItem;
         'mwc-icon': typeof Icon;

@@ -34,7 +34,7 @@ export declare class CallFns extends CallFns_base {
     callFunction(callableFunction: CallableFn): void;
     renderCallableFunction(callableFunction: CallableFn): TemplateResult<1>;
     render(): TemplateResult<1>;
-    static styles: import("lit").CSSResultGroup[];
+    static styles: import("lit").CSSResult[];
     static get scopedElements(): {
         'mwc-drawer': typeof Drawer;
         'mwc-list': typeof List;

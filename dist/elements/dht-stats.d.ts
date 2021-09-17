@@ -9,13 +9,13 @@ export declare class DhtStats extends PlaygroundElement {
     private rFactor;
     private timeout;
     private processing;
-    static get styles(): import("lit").CSSResultGroup;
+    static get styles(): import("lit").CSSResult;
     get activeCell(): import("@holochain-playground/core").Cell;
     get allCells(): import("@holochain-playground/core").Cell[];
-    renderStatsHelp(): import("lit-html").TemplateResult<1>;
+    renderStatsHelp(): import("lit").TemplateResult<1>;
     republish(): Promise<void>;
     updateDHTStats(): void;
-    render(): import("lit-html").TemplateResult<1>;
+    render(): import("lit").TemplateResult<1>;
     static get scopedElements(): {
         'mwc-linear-progress': typeof LinearProgress;
         'mwc-textfield': typeof TextField;

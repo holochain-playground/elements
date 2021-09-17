@@ -33,10 +33,10 @@ export declare class EntryGraph extends PlaygroundElement implements CellObserve
     firstUpdated(): void;
     updated(changedValues: any): void;
     updatedGraph(): any;
-    static get styles(): import("lit").CSSResultGroup[];
-    renderHelp(): import("lit-html").TemplateResult<1>;
-    renderFilter(): import("lit-html").TemplateResult<1>;
-    render(): import("lit-html").TemplateResult<1>;
+    static get styles(): import("lit").CSSResult[];
+    renderHelp(): import("lit").TemplateResult<1>;
+    renderFilter(): import("lit").TemplateResult<1>;
+    render(): import("lit").TemplateResult<1>;
     static get scopedElements(): {
         'mwc-checkbox': typeof Checkbox;
         'mwc-formfield': typeof Formfield;

@@ -18,14 +18,14 @@ export declare class ConductorAdmin extends PlaygroundElement {
     private _selectedTabIndex;
     private _grid;
     get activeConductor(): Conductor | undefined;
-    renderHelp(): import("lit-html").TemplateResult<1>;
+    renderHelp(): import("lit").TemplateResult<1>;
     updated(changedValues: PropertyValues): void;
     setupGrid(grid: GridElement, conductor: Conductor): void;
-    renderCells(conductor: Conductor): import("lit-html").TemplateResult<1>;
-    renderAdminAPI(conductor: Conductor): import("lit-html").TemplateResult<1>;
-    renderContent(): import("lit-html").TemplateResult<1>;
-    render(): import("lit-html").TemplateResult<1>;
-    static get styles(): import("lit").CSSResultGroup[];
+    renderCells(conductor: Conductor): import("lit").TemplateResult<1>;
+    renderAdminAPI(conductor: Conductor): import("lit").TemplateResult<1>;
+    renderContent(): import("lit").TemplateResult<1>;
+    render(): import("lit").TemplateResult<1>;
+    static get styles(): import("lit").CSSResult[];
     static get scopedElements(): {
         'copyable-hash': typeof CopyableHash;
         'call-functions': typeof CallFns;

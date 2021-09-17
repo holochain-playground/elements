@@ -10,10 +10,10 @@ export declare class EditableField extends EditableField_base {
     cancel(): void;
     firstUpdated(): void;
     setupField(fieldSlot: HTMLSlotElement): void;
-    render(): import("lit-html").TemplateResult<1>;
+    render(): import("lit").TemplateResult<1>;
     static get scopedElements(): {
         'mwc-icon-button': typeof IconButton;
     };
-    static styles: import("lit").CSSResultGroup[];
+    static styles: import("lit").CSSResult[];
 }
 export {};

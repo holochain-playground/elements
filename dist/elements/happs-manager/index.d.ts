@@ -25,14 +25,14 @@ export declare class HappsManager extends PlaygroundElement {
     get _editingHappValid(): boolean;
     firstUpdated(): void;
     update(changedValues: PropertyValues): void;
-    renderDnaSlot(index: number, slotNick: string, dnaSlot: LightDnaSlot): import("lit-html").TemplateResult<1>;
+    renderDnaSlot(index: number, slotNick: string, dnaSlot: LightDnaSlot): import("lit").TemplateResult<1>;
     setupHappNameTextfield(field: TextField): void;
     setupNickField(field: TextField, oldValue: string): void;
     saveHapp(): void;
-    renderBottomBar(): import("lit-html").TemplateResult<1>;
-    renderHappDetail(): import("lit-html").TemplateResult<1>;
-    render(): import("lit-html").TemplateResult<1>;
-    static get styles(): import("lit").CSSResultGroup[];
+    renderBottomBar(): import("lit").TemplateResult<1>;
+    renderHappDetail(): import("lit").TemplateResult<1>;
+    render(): import("lit").TemplateResult<1>;
+    static get styles(): import("lit").CSSResult[];
     static get scopedElements(): {
         'mwc-list-item': typeof ListItem;
         'mwc-icon-button': typeof IconButton;

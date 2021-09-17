@@ -43,12 +43,12 @@ export declare class DhtCells extends PlaygroundElement implements CellObserver 
     setupGraphNodes(): void;
     _neighborEdges: any[];
     updated(changedValues: any): void;
-    renderTimeController(): import("lit-html").TemplateResult<1>;
-    renderHelp(): import("lit-html").TemplateResult<1>;
-    renderTasksTooltips(): import("lit-html").TemplateResult<1>;
-    renderBottomToolbar(): import("lit-html").TemplateResult<1>;
-    render(): import("lit-html").TemplateResult<1>;
-    static get styles(): import("lit").CSSResultGroup[];
+    renderTimeController(): import("lit").TemplateResult<1>;
+    renderHelp(): import("lit").TemplateResult<1>;
+    renderTasksTooltips(): import("lit").TemplateResult<1>;
+    renderBottomToolbar(): import("lit").TemplateResult<1>;
+    render(): import("lit").TemplateResult<1>;
+    static get styles(): import("lit").CSSResult[];
     static get scopedElements(): {
         'mwc-card': typeof Card;
         'mwc-menu-surface': typeof MenuSurface;

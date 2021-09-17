@@ -19,9 +19,9 @@ export declare class SourceChain extends PlaygroundElement implements CellObserv
     firstUpdated(): void;
     setupGraph(): void;
     updated(changedValues: PropertyValues): void;
-    renderHelp(): import("lit-html").TemplateResult<1>;
-    render(): import("lit-html").TemplateResult<1>;
-    static get styles(): import("lit").CSSResultGroup[];
+    renderHelp(): import("lit").TemplateResult<1>;
+    render(): import("lit").TemplateResult<1>;
+    static get styles(): import("lit").CSSResult[];
     static get scopedElements(): {
         'mwc-card': typeof Card;
         'copyable-hash': typeof CopyableHash;

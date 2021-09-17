@@ -18,12 +18,12 @@ export declare class HolochainPlaygroundContainer extends HolochainPlaygroundCon
     dnas: Dictionary<SimulatedDna>;
     conductorsUrls: string[] | undefined;
     static get provide(): string[];
-    static get styles(): import("lit").CSSResultGroup;
+    static get styles(): import("lit").CSSResult;
     update(changedValues: PropertyValues): void;
     firstUpdated(): Promise<void>;
     showMessage(message: string): void;
-    renderSnackbar(): import("lit-html").TemplateResult<1>;
-    render(): import("lit-html").TemplateResult<1>;
+    renderSnackbar(): import("lit").TemplateResult<1>;
+    render(): import("lit").TemplateResult<1>;
     static get scopedElements(): {
         'mwc-circular-progress': typeof CircularProgress;
         'mwc-snackbar': typeof Snackbar;
