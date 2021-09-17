@@ -2,10 +2,10 @@ import { html, css } from 'lit';
 import { property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 
-import { ListItem } from 'scoped-material-components/mwc-list-item';
-import { Card } from 'scoped-material-components/mwc-card';
+import { ListItem } from '@scoped-elements/material-web';
+import { Card } from '@scoped-elements/material-web';
 import { sharedStyles } from '../utils/shared-styles';
-import { Button } from 'scoped-material-components/mwc-button';
+import { Button } from '@scoped-elements/material-web';
 import { ZomeFunctionResult } from './types';
 import { selectAllCells, selectCell } from '../../base/selectors';
 import {
@@ -15,10 +15,10 @@ import {
   WorkflowType,
 } from '@holochain-playground/core';
 import { AgentPubKeyB64, Dictionary } from '@holochain-open-dev/core-types';
-import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
+import { CircularProgress } from '@scoped-elements/material-web';
 import { ExpandableLine } from '../helpers/expandable-line';
 import { JsonViewer } from '@power-elements/json-viewer';
-import { Icon } from 'scoped-material-components/mwc-icon';
+import { Icon } from '@scoped-elements/material-web';
 import { CopyableHash } from '../helpers/copyable-hash';
 import { CellObserver } from '../../base/cell-observer';
 import { PlaygroundElement } from '../../base/playground-element';
@@ -254,14 +254,16 @@ export class ZomeFnsResults extends PlaygroundElement implements CellObserver {
     ];
   }
 
-  static elementDefinitions = {
-    'mwc-list-item': ListItem,
-    'mwc-icon': Icon,
-    'mwc-circular-progress': CircularProgress,
-    'mwc-button': Button,
-    'mwc-card': Card,
-    'json-viewer': JsonViewer,
-    'expandable-line': ExpandableLine,
-    'copyable-hash': CopyableHash,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-list-item': ListItem,
+      'mwc-icon': Icon,
+      'mwc-circular-progress': CircularProgress,
+      'mwc-button': Button,
+      'mwc-card': Card,
+      'json-viewer': JsonViewer,
+      'expandable-line': ExpandableLine,
+      'copyable-hash': CopyableHash,
+    };
+  }
 }

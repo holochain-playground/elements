@@ -1,7 +1,4 @@
-import { TextField } from 'scoped-material-components/mwc-textfield';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { Button } from 'scoped-material-components/mwc-button';
-import { Dialog } from 'scoped-material-components/mwc-dialog';
+import { TextField, IconButton, Button, Dialog } from '@scoped-elements/material-web';
 import { PlaygroundElement } from '../base/playground-element';
 export declare class ConnectToNodes extends PlaygroundElement {
     private open;
@@ -12,7 +9,7 @@ export declare class ConnectToNodes extends PlaygroundElement {
     updateFields(): void;
     renderDialog(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
-    static elementDefinitions: {
+    static get scopedElements(): {
         'mwc-button': typeof Button;
         'mwc-dialog': typeof Dialog;
         'mwc-textfield': typeof TextField;

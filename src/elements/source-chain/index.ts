@@ -14,7 +14,7 @@ import { sharedStyles } from '../utils/shared-styles';
 import { HelpButton } from '../helpers/help-button';
 import { selectCell } from '../../base/selectors';
 import { PlaygroundElement } from '../../base/playground-element';
-import { Card } from 'scoped-material-components/mwc-card';
+import { Card } from '@scoped-elements/material-web';
 import { graphStyles } from './graph';
 import { CellObserver } from '../../base/cell-observer';
 import { CellsController } from '../../base/cells-controller';
@@ -194,9 +194,11 @@ export class SourceChain extends PlaygroundElement implements CellObserver {
     ];
   }
 
-  static elementDefinitions = {
-    'mwc-card': Card,
-    'copyable-hash': CopyableHash,
-    'help-button': HelpButton,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-card': Card,
+      'copyable-hash': CopyableHash,
+      'help-button': HelpButton,
+    };
+  }
 }

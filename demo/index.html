@@ -7,43 +7,32 @@
         background: #fafafa;
         font-family: Arial, Helvetica, sans-serif;
       }
+      html,body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        display: flex;
+      }
     </style>
   </head>
   <body>
-    <holochain-playground-container id="container">
-      <div
-        style="
-          display: flex;
-          flex-direction: row;
-          align-items: start;
-          margin-bottom: 20px;
-        "
-      >
-        <happs-manager style="height: 600px; width: 500px"></happs-manager>
-      </div>
-      <div
-        style="
-          display: flex;
-          height: 400px;
-          flex-direction: row;
-          align-items: start;
-          margin-bottom: 20px;
-        "
-      >
-        <call-zome-fns
-          style="height: 350px; flex: 1"
-          id="call-zome"
-        ></call-zome-fns>
-        <source-chain style="height: 350px; flex: 1"></source-chain>
-        <entry-contents style="height: 350px; flex: 1"></entry-contents>
-      </div>
-    </holochain-playground-container>
+    <holochain-playground-golden-layout>
+      <holochain-playground-golden-layout-menu>
+      </holochain-playground-golden-layout-menu>
+      <golden-layout-root style="flex: 1;">
+        <golden-layout-row>
+          <golden-layout-component
+            component-type="source-chain"
+          ></golden-layout-component>
+        </golden-layout-row>
+      </golden-layout-root>
+    </holochain-playground-golden-layout>
 
     <script type="module">
-      import '@webcomponents/scoped-custom-element-registry';
       import { html, render } from 'lit';
       import {
-        HolochainPlaygroundContainer,
+        HolochainPlaygroundGoldenLayout,
+        HolochainPlaygroundGoldenLayoutMenu,
         CallZomeFns,
         SourceChain,
         SelectActiveDna,
@@ -53,18 +42,30 @@
         EntryGraph,
         EntryContents,
         RunSteps,
-        HappsManager
+        HappsManager,
       } from '../dist';
       import {
         GetStrategy,
         WorkflowType,
         NetworkRequestType,
       } from '@holochain-playground/core';
+      import {
+        GoldenLayoutRoot,
+        GoldenLayoutRow,
+        GoldenLayoutComponent,
+      } from '@scoped-elements/golden-layout';
 
       customElements.define(
-        'holochain-playground-container',
-        HolochainPlaygroundContainer
+        'holochain-playground-golden-layout',
+        HolochainPlaygroundGoldenLayout
       );
+      customElements.define(
+        'holochain-playground-golden-layout-menu',
+        HolochainPlaygroundGoldenLayoutMenu
+      );
+      customElements.define('golden-layout-root', GoldenLayoutRoot);
+      customElements.define('golden-layout-row', GoldenLayoutRow);
+      customElements.define('golden-layout-component', GoldenLayoutComponent);
       customElements.define('run-steps', RunSteps);
       customElements.define('dht-cells', DhtCells);
       customElements.define('select-active-dna', SelectActiveDna);
@@ -75,10 +76,6 @@
       customElements.define('entry-contents', EntryContents);
       customElements.define('conductor-admin', ConductorAdmin);
       customElements.define('happs-manager', HappsManager);
-
-      const container = document.getElementById('container');
-      container.numberOfSimulatedConductors = 10;
-
     </script>
   </body>
 </html>

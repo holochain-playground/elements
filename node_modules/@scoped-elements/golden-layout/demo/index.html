@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        background: #fafafa;
+      }
+      html,
+      body,
+      #layout {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <golden-layout id="layout">
+      <golden-layout-register component-type="hello">
+        <template> <div>hi</div></template></golden-layout-register
+      >
+      <div style="display: flex; flex-direction: row; flex: 1">
+        <ul>
+          <golden-layout-drag-source component-type="hello"
+            ><li>hii</li></golden-layout-drag-source
+          >
+        </ul>
+
+        <golden-layout-root style="flex: 1">
+          <golden-layout-row>
+            <golden-layout-row width="50">
+              <golden-layout-component component-type="hello" title="hi2">
+              </golden-layout-component>
+            </golden-layout-row>
+            <golden-layout-column width="10">
+              <golden-layout-component title="hi" unclosable>
+                <div><span>Custom Thing2</span></div>
+              </golden-layout-component>
+            </golden-layout-column>
+          </golden-layout-row>
+        </golden-layout-root>
+      </div>
+    </golden-layout>
+
+    <script type="module">
+      import {
+        GoldenLayout,
+        GoldenLayoutRow,
+        GoldenLayoutColumn,
+        GoldenLayoutComponent,
+        GoldenLayoutRegister,
+        GoldenLayoutDragSource,
+        GoldenLayoutRoot,
+      } from '../dist/index.js';
+
+      customElements.define('golden-layout', GoldenLayout);
+      customElements.define('golden-layout-row', GoldenLayoutRow);
+      customElements.define('golden-layout-column', GoldenLayoutColumn);
+      customElements.define('golden-layout-component', GoldenLayoutComponent);
+      customElements.define('golden-layout-register', GoldenLayoutRegister);
+      customElements.define('golden-layout-root', GoldenLayoutRoot);
+      customElements.define(
+        'golden-layout-drag-source',
+        GoldenLayoutDragSource
+      );
+    </script>
+  </body>
+</html>

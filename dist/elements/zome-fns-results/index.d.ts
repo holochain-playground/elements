@@ -1,13 +1,13 @@
-import { ListItem } from 'scoped-material-components/mwc-list-item';
-import { Card } from 'scoped-material-components/mwc-card';
-import { Button } from 'scoped-material-components/mwc-button';
+import { ListItem } from '@scoped-elements/material-web';
+import { Card } from '@scoped-elements/material-web';
+import { Button } from '@scoped-elements/material-web';
 import { ZomeFunctionResult } from './types';
 import { Cell, Workflow } from '@holochain-playground/core';
 import { AgentPubKeyB64 } from '@holochain-open-dev/core-types';
-import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
+import { CircularProgress } from '@scoped-elements/material-web';
 import { ExpandableLine } from '../helpers/expandable-line';
 import { JsonViewer } from '@power-elements/json-viewer';
-import { Icon } from 'scoped-material-components/mwc-icon';
+import { Icon } from '@scoped-elements/material-web';
 import { CopyableHash } from '../helpers/copyable-hash';
 import { CellObserver } from '../../base/cell-observer';
 import { PlaygroundElement } from '../../base/playground-element';
@@ -27,7 +27,7 @@ export declare class ZomeFnsResults extends PlaygroundElement implements CellObs
     renderAgent(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
     static get styles(): import("lit").CSSResultGroup[];
-    static elementDefinitions: {
+    static get scopedElements(): {
         'mwc-list-item': typeof ListItem;
         'mwc-icon': typeof Icon;
         'mwc-circular-progress': typeof CircularProgress;

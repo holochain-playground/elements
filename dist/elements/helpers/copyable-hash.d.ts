@@ -1,7 +1,7 @@
 import { LitElement } from 'lit';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { Snackbar } from 'scoped-material-components/mwc-snackbar';
-declare const CopyableHash_base: typeof LitElement;
+import { IconButton } from '@scoped-elements/material-web';
+import { Snackbar } from '@scoped-elements/material-web';
+declare const CopyableHash_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types/src/types").ScopedElementsHost>;
 export declare class CopyableHash extends CopyableHash_base {
     hash: string;
     sliceLength: number;
@@ -9,7 +9,7 @@ export declare class CopyableHash extends CopyableHash_base {
     copyHash(): Promise<void>;
     render(): import("lit-html").TemplateResult<1>;
     static get styles(): import("lit").CSSResultGroup;
-    static elementDefinitions: {
+    static get scopedElements(): {
         'mwc-icon-button': typeof IconButton;
         'mwc-snackbar': typeof Snackbar;
     };

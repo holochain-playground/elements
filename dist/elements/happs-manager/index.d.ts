@@ -1,15 +1,15 @@
 import { PropertyValues } from 'lit';
 import { PlaygroundElement } from '../../base/playground-element';
-import { Select } from 'scoped-material-components/mwc-select';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
-import { Card } from 'scoped-material-components/mwc-card';
-import { Drawer } from 'scoped-material-components/mwc-drawer';
-import { List } from 'scoped-material-components/mwc-list';
+import { Select } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
+import { Card } from '@scoped-elements/material-web';
+import { Drawer } from '@scoped-elements/material-web';
+import { List } from '@scoped-elements/material-web';
 import { LightDnaSlot, LightHappBundle } from '../../base/context';
-import { TextField } from 'scoped-material-components/mwc-textfield';
-import { Button } from 'scoped-material-components/mwc-button';
+import { TextField } from '@scoped-elements/material-web';
+import { Button } from '@scoped-elements/material-web';
 import { CopyableHash } from '../helpers/copyable-hash';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import { IconButton } from '@scoped-elements/material-web';
 export interface EditingHappBundle {
     name: string;
     description: string;
@@ -33,7 +33,7 @@ export declare class HappsManager extends PlaygroundElement {
     renderHappDetail(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
     static get styles(): import("lit").CSSResultGroup[];
-    static elementDefinitions: {
+    static get scopedElements(): {
         'mwc-list-item': typeof ListItem;
         'mwc-icon-button': typeof IconButton;
         'mwc-textfield': typeof TextField;

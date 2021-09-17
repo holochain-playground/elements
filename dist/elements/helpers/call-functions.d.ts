@@ -1,11 +1,11 @@
 import { Dictionary } from '@holochain-open-dev/core-types';
-import { LitElement, PropertyValues, TemplateResult } from 'lit-element';
-import { Button } from 'scoped-material-components/mwc-button';
-import { Drawer } from 'scoped-material-components/mwc-drawer';
-import { List } from 'scoped-material-components/mwc-list';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
-import { Select } from 'scoped-material-components/mwc-select';
-import { TextField } from 'scoped-material-components/mwc-textfield';
+import { LitElement, PropertyValues, TemplateResult } from 'lit';
+import { Button } from '@scoped-elements/material-web';
+import { Drawer } from '@scoped-elements/material-web';
+import { List } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
+import { Select } from '@scoped-elements/material-web';
+import { TextField } from '@scoped-elements/material-web';
 export declare type CallableFnArgument = {
     name: string;
     required?: boolean;
@@ -21,7 +21,7 @@ export interface CallableFn {
     args: CallableFnArgument[];
     call: (args: Dictionary<any>) => void;
 }
-declare const CallFns_base: typeof LitElement;
+declare const CallFns_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types/src/types").ScopedElementsHost>;
 export declare class CallFns extends CallFns_base {
     callableFns: CallableFn[];
     selectedFnName: string | undefined;
@@ -35,7 +35,7 @@ export declare class CallFns extends CallFns_base {
     renderCallableFunction(callableFunction: CallableFn): TemplateResult<1>;
     render(): TemplateResult<1>;
     static styles: import("lit").CSSResultGroup[];
-    static elementDefinitions: {
+    static get scopedElements(): {
         'mwc-drawer': typeof Drawer;
         'mwc-list': typeof List;
         'mwc-list-item': typeof ListItem;

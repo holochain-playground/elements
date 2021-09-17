@@ -1,11 +1,11 @@
-import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
+import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { html, LitElement } from 'lit';
 import { styleMap } from 'lit/directives/style-map.js';
 import { property } from 'lit/decorators.js';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import { IconButton } from '@scoped-elements/material-web';
 import { sharedStyles } from '../utils/shared-styles';
 
-export class ExpandableLine extends ScopedRegistryHost(LitElement) {
+export class ExpandableLine extends ScopedElementsMixin(LitElement) {
   @property({ type: Boolean })
   _expanded = false;
 
@@ -57,7 +57,9 @@ export class ExpandableLine extends ScopedRegistryHost(LitElement) {
     return sharedStyles;
   }
 
-  static elementDefinitions = {
-    'mwc-icon-button': IconButton,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-icon-button': IconButton,
+    };
+  }
 }

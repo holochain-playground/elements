@@ -1,33 +1,14 @@
-import { Snackbar } from 'scoped-material-components/mwc-snackbar';
-import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import { CircularProgress, Snackbar, IconButton, Drawer, List as List$1, ListItem, Button, TextField, Select, Icon, Tab, TabBar, Card, Dialog, LinearProgress, MenuSurface, Menu, Slider, Switch, Formfield, Checkbox } from '@scoped-elements/material-web';
 import { ProviderMixin, ConsumerMixin } from 'lit-element-context';
 import { LitElement, css as css$1, html as html$1 } from 'lit';
 import { getHashType, HashType, isHoldingEntry, isHoldingElement, demoHapp, createConductors, hash, WorkflowType, sleep, workflowPriority, Cell, location, NetworkRequestType, getDhtShard, getAllHeldEntries, getEntryDetails, getLinksForEntry, getEntryTypeString, getAllHeldHeaders, getHeaderModifiers, getAppEntryType, getLiveLinks } from '@holochain-playground/core';
-import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
-import { Icon } from 'scoped-material-components/mwc-icon';
-import { Tab } from 'scoped-material-components/mwc-tab';
-import { TabBar } from 'scoped-material-components/mwc-tab-bar';
-import { Card } from 'scoped-material-components/mwc-card';
-import { Button } from 'scoped-material-components/mwc-button';
-import { Drawer } from 'scoped-material-components/mwc-drawer';
-import { List as List$1 } from 'scoped-material-components/mwc-list';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
-import { Select } from 'scoped-material-components/mwc-select';
-import { TextField } from 'scoped-material-components/mwc-textfield';
+import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { styleMap } from 'lit/directives/style-map.js';
-import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { classMap } from 'lit/directives/class-map.js';
-import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
-import { Slider } from 'scoped-material-components/mwc-slider';
-import { Switch } from 'scoped-material-components/mwc-switch';
-import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
-import { Formfield } from 'scoped-material-components/mwc-formfield';
 import { Subject } from 'rxjs';
-import { Menu } from 'scoped-material-components/mwc-menu';
 import { uniq, isEqual, cloneDeep as cloneDeep$1 } from 'lodash-es';
-import { Checkbox } from 'scoped-material-components/mwc-checkbox';
 import { EntryDhtStatus, timestampToMillis } from '@holochain-open-dev/core-types';
+import { GoldenLayout, GoldenLayoutRegister, GoldenLayoutDragSource } from '@scoped-elements/golden-layout';
 
 function buildHappBundle(context, happId) {
     const slots = {};
@@ -78,7 +59,7 @@ function __metadata(metadataKey, metadataValue) {
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const i$7=(i,e)=>"method"===e.kind&&e.descriptor&&!("value"in e.descriptor)?{...e,finisher(n){n.createProperty(e.key,i);}}:{kind:"field",key:Symbol(),placement:"own",descriptor:{},originalKey:e.key,initializer(){"function"==typeof e.initializer&&(this[e.key]=e.initializer.call(this));},finisher(n){n.createProperty(e.key,i);}};function e$5(e){return (n,t)=>void 0!==t?((i,e,n)=>{e.constructor.createProperty(n,i);})(e,n,t):i$7(e,n)}
+const i$6=(i,e)=>"method"===e.kind&&e.descriptor&&!("value"in e.descriptor)?{...e,finisher(n){n.createProperty(e.key,i);}}:{kind:"field",key:Symbol(),placement:"own",descriptor:{},originalKey:e.key,initializer(){"function"==typeof e.initializer&&(this[e.key]=e.initializer.call(this));},finisher(n){n.createProperty(e.key,i);}};function e$5(e){return (n,t)=>void 0!==t?((i,e,n)=>{e.constructor.createProperty(n,i);})(e,n,t):i$6(e,n)}
 
 /**
  * @license
@@ -91,13 +72,13 @@ const i$7=(i,e)=>"method"===e.kind&&e.descriptor&&!("value"in e.descriptor)?{...
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const o$7=({finisher:e,descriptor:t})=>(o,n)=>{var r;if(void 0===n){const n=null!==(r=o.originalKey)&&void 0!==r?r:o.key,i=null!=t?{kind:"method",placement:"prototype",key:n,descriptor:t(o.key)}:{...o,key:n};return null!=e&&(i.finisher=function(t){e(t,n);}),i}{const r=o.constructor;void 0!==t&&Object.defineProperty(o,n,t(n)),null==e||e(r,n);}};
+const o$5=({finisher:e,descriptor:t})=>(o,n)=>{var r;if(void 0===n){const n=null!==(r=o.originalKey)&&void 0!==r?r:o.key,i=null!=t?{kind:"method",placement:"prototype",key:n,descriptor:t(o.key)}:{...o,key:n};return null!=e&&(i.finisher=function(t){e(t,n);}),i}{const r=o.constructor;void 0!==t&&Object.defineProperty(o,n,t(n)),null==e||e(r,n);}};
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */function o$6(o,r){return o$7({descriptor:t=>{const i={get(){var t;return null===(t=this.renderRoot)||void 0===t?void 0:t.querySelector(o)},enumerable:!0,configurable:!0};if(r){const r="symbol"==typeof t?Symbol():"__"+t;i.get=function(){var t;return void 0===this[r]&&(this[r]=null===(t=this.renderRoot)||void 0===t?void 0:t.querySelector(o)),this[r]};}return i}})}
+ */function o$4(o,r){return o$5({descriptor:t=>{const i={get(){var t;return null===(t=this.renderRoot)||void 0===t?void 0:t.querySelector(o)},enumerable:!0,configurable:!0};if(r){const r="symbol"==typeof t?Symbol():"__"+t;i.get=function(){var t;return void 0===this[r]&&(this[r]=null===(t=this.renderRoot)||void 0===t?void 0:t.querySelector(o)),this[r]};}return i}})}
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -17383,7 +17364,7 @@ function selectRedundancyFactor(cell) {
     return cell.p2p.redundancyFactor;
 }
 
-class HolochainPlaygroundContainer extends ScopedRegistryHost(ProviderMixin(LitElement)) {
+class HolochainPlaygroundContainer extends ScopedElementsMixin(ProviderMixin(LitElement)) {
     constructor() {
         super(...arguments);
         this.numberOfSimulatedConductors = 10;
@@ -17483,12 +17464,14 @@ class HolochainPlaygroundContainer extends ScopedRegistryHost(ProviderMixin(LitE
             : html$1 ` <mwc-circular-progress></mwc-circular-progress>`}
     `;
     }
+    static get scopedElements() {
+        return {
+            'mwc-circular-progress': CircularProgress,
+            'mwc-snackbar': Snackbar,
+            'mwc-icon-button': IconButton,
+        };
+    }
 }
-HolochainPlaygroundContainer.elementDefinitions = {
-    'mwc-circular-progress': CircularProgress,
-    'mwc-snackbar': Snackbar,
-    'mwc-icon-button': IconButton,
-};
 __decorate([
     e$5({ type: Number }),
     __metadata("design:type", Number)
@@ -17498,7 +17481,7 @@ __decorate([
     __metadata("design:type", Object)
 ], HolochainPlaygroundContainer.prototype, "simulatedHapp", void 0);
 __decorate([
-    o$6('#snackbar'),
+    o$4('#snackbar'),
     __metadata("design:type", Snackbar)
 ], HolochainPlaygroundContainer.prototype, "snackbar", void 0);
 __decorate([
@@ -17599,7 +17582,7 @@ class CellsController {
     }
 }
 
-class PlaygroundElement extends ScopedRegistryHost(ConsumerMixin(LitElement)) {
+class PlaygroundElement extends ScopedElementsMixin(ConsumerMixin(LitElement)) {
     constructor() {
         super(...arguments);
         this.conductors = [];
@@ -17721,7 +17704,8 @@ const sharedStyles = css$1 `
   }
 
   .block-card {
-    width: auto;
+    width: 100%;
+    height: 100%;
     position: relative;
     flex: 1;
   }
@@ -17752,7 +17736,7 @@ const sharedStyles = css$1 `
   }
 `;
 
-class CopyableHash extends ScopedRegistryHost(LitElement) {
+class CopyableHash extends ScopedElementsMixin(LitElement) {
     constructor() {
         super(...arguments);
         this.sliceLength = 8;
@@ -17782,11 +17766,13 @@ class CopyableHash extends ScopedRegistryHost(LitElement) {
     static get styles() {
         return sharedStyles;
     }
+    static get scopedElements() {
+        return {
+            'mwc-icon-button': IconButton,
+            'mwc-snackbar': Snackbar,
+        };
+    }
 }
-CopyableHash.elementDefinitions = {
-    'mwc-icon-button': IconButton,
-    'mwc-snackbar': Snackbar,
-};
 __decorate([
     e$5({ type: String }),
     __metadata("design:type", String)
@@ -17796,50 +17782,11 @@ __decorate([
     __metadata("design:type", Number)
 ], CopyableHash.prototype, "sliceLength", void 0);
 __decorate([
-    o$6('#copy-notification'),
+    o$4('#copy-notification'),
     __metadata("design:type", Snackbar)
 ], CopyableHash.prototype, "_copyNotification", void 0);
 
-/**
- * @license
- * Copyright 2019 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */
-const t$2=window.ShadowRoot&&(void 0===window.ShadyCSS||window.ShadyCSS.nativeShadow)&&"adoptedStyleSheets"in Document.prototype&&"replace"in CSSStyleSheet.prototype,e$4=Symbol();class s$4{constructor(t,s){if(s!==e$4)throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");this.cssText=t;}get styleSheet(){return t$2&&void 0===this.t&&(this.t=new CSSStyleSheet,this.t.replaceSync(this.cssText)),this.t}toString(){return this.cssText}}const n$5=new Map,o$5=t=>{let o=n$5.get(t);return void 0===o&&n$5.set(t,o=new s$4(t,e$4)),o},r$3=t=>o$5("string"==typeof t?t:t+""),i$6=(t,...e)=>{const n=1===t.length?t[0]:e.reduce(((e,n,o)=>e+(t=>{if(t instanceof s$4)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(n)+t[o+1]),t[0]);return o$5(n)},S$1=(e,s)=>{t$2?e.adoptedStyleSheets=s.map((t=>t instanceof CSSStyleSheet?t:t.styleSheet)):s.forEach((t=>{const s=document.createElement("style");s.textContent=t.cssText,e.appendChild(s);}));},u$1=t$2?t=>t:t=>t instanceof CSSStyleSheet?(t=>{let e="";for(const s of t.cssRules)e+=s.cssText;return r$3(e)})(t):t;
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */var s$3,e$3,h$4,r$2;const o$4={toAttribute(t,i){switch(i){case Boolean:t=t?"":null;break;case Object:case Array:t=null==t?t:JSON.stringify(t);}return t},fromAttribute(t,i){let s=t;switch(i){case Boolean:s=null!==t;break;case Number:s=null===t?null:Number(t);break;case Object:case Array:try{s=JSON.parse(t);}catch(t){s=null;}}return s}},n$4=(t,i)=>i!==t&&(i==i||t==t),l$3={attribute:!0,type:String,converter:o$4,reflect:!1,hasChanged:n$4};class a$2 extends HTMLElement{constructor(){super(),this.Πi=new Map,this.Πo=void 0,this.Πl=void 0,this.isUpdatePending=!1,this.hasUpdated=!1,this.Πh=null,this.u();}static addInitializer(t){var i;null!==(i=this.v)&&void 0!==i||(this.v=[]),this.v.push(t);}static get observedAttributes(){this.finalize();const t=[];return this.elementProperties.forEach(((i,s)=>{const e=this.Πp(s,i);void 0!==e&&(this.Πm.set(e,s),t.push(e));})),t}static createProperty(t,i=l$3){if(i.state&&(i.attribute=!1),this.finalize(),this.elementProperties.set(t,i),!i.noAccessor&&!this.prototype.hasOwnProperty(t)){const s="symbol"==typeof t?Symbol():"__"+t,e=this.getPropertyDescriptor(t,s,i);void 0!==e&&Object.defineProperty(this.prototype,t,e);}}static getPropertyDescriptor(t,i,s){return {get(){return this[i]},set(e){const h=this[t];this[i]=e,this.requestUpdate(t,h,s);},configurable:!0,enumerable:!0}}static getPropertyOptions(t){return this.elementProperties.get(t)||l$3}static finalize(){if(this.hasOwnProperty("finalized"))return !1;this.finalized=!0;const t=Object.getPrototypeOf(this);if(t.finalize(),this.elementProperties=new Map(t.elementProperties),this.Πm=new Map,this.hasOwnProperty("properties")){const t=this.properties,i=[...Object.getOwnPropertyNames(t),...Object.getOwnPropertySymbols(t)];for(const s of i)this.createProperty(s,t[s]);}return this.elementStyles=this.finalizeStyles(this.styles),!0}static finalizeStyles(i){const s=[];if(Array.isArray(i)){const e=new Set(i.flat(1/0).reverse());for(const i of e)s.unshift(u$1(i));}else void 0!==i&&s.push(u$1(i));return s}static Πp(t,i){const s=i.attribute;return !1===s?void 0:"string"==typeof s?s:"string"==typeof t?t.toLowerCase():void 0}u(){var t;this.Πg=new Promise((t=>this.enableUpdating=t)),this.L=new Map,this.Π_(),this.requestUpdate(),null===(t=this.constructor.v)||void 0===t||t.forEach((t=>t(this)));}addController(t){var i,s;(null!==(i=this.ΠU)&&void 0!==i?i:this.ΠU=[]).push(t),void 0!==this.renderRoot&&this.isConnected&&(null===(s=t.hostConnected)||void 0===s||s.call(t));}removeController(t){var i;null===(i=this.ΠU)||void 0===i||i.splice(this.ΠU.indexOf(t)>>>0,1);}Π_(){this.constructor.elementProperties.forEach(((t,i)=>{this.hasOwnProperty(i)&&(this.Πi.set(i,this[i]),delete this[i]);}));}createRenderRoot(){var t;const s=null!==(t=this.shadowRoot)&&void 0!==t?t:this.attachShadow(this.constructor.shadowRootOptions);return S$1(s,this.constructor.elementStyles),s}connectedCallback(){var t;void 0===this.renderRoot&&(this.renderRoot=this.createRenderRoot()),this.enableUpdating(!0),null===(t=this.ΠU)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostConnected)||void 0===i?void 0:i.call(t)})),this.Πl&&(this.Πl(),this.Πo=this.Πl=void 0);}enableUpdating(t){}disconnectedCallback(){var t;null===(t=this.ΠU)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostDisconnected)||void 0===i?void 0:i.call(t)})),this.Πo=new Promise((t=>this.Πl=t));}attributeChangedCallback(t,i,s){this.K(t,s);}Πj(t,i,s=l$3){var e,h;const r=this.constructor.Πp(t,s);if(void 0!==r&&!0===s.reflect){const n=(null!==(h=null===(e=s.converter)||void 0===e?void 0:e.toAttribute)&&void 0!==h?h:o$4.toAttribute)(i,s.type);this.Πh=t,null==n?this.removeAttribute(r):this.setAttribute(r,n),this.Πh=null;}}K(t,i){var s,e,h;const r=this.constructor,n=r.Πm.get(t);if(void 0!==n&&this.Πh!==n){const t=r.getPropertyOptions(n),l=t.converter,a=null!==(h=null!==(e=null===(s=l)||void 0===s?void 0:s.fromAttribute)&&void 0!==e?e:"function"==typeof l?l:null)&&void 0!==h?h:o$4.fromAttribute;this.Πh=n,this[n]=a(i,t.type),this.Πh=null;}}requestUpdate(t,i,s){let e=!0;void 0!==t&&(((s=s||this.constructor.getPropertyOptions(t)).hasChanged||n$4)(this[t],i)?(this.L.has(t)||this.L.set(t,i),!0===s.reflect&&this.Πh!==t&&(void 0===this.Πk&&(this.Πk=new Map),this.Πk.set(t,s))):e=!1),!this.isUpdatePending&&e&&(this.Πg=this.Πq());}async Πq(){this.isUpdatePending=!0;try{for(await this.Πg;this.Πo;)await this.Πo;}catch(t){Promise.reject(t);}const t=this.performUpdate();return null!=t&&await t,!this.isUpdatePending}performUpdate(){var t;if(!this.isUpdatePending)return;this.hasUpdated,this.Πi&&(this.Πi.forEach(((t,i)=>this[i]=t)),this.Πi=void 0);let i=!1;const s=this.L;try{i=this.shouldUpdate(s),i?(this.willUpdate(s),null===(t=this.ΠU)||void 0===t||t.forEach((t=>{var i;return null===(i=t.hostUpdate)||void 0===i?void 0:i.call(t)})),this.update(s)):this.Π$();}catch(t){throw i=!1,this.Π$(),t}i&&this.E(s);}willUpdate(t){}E(t){var i;null===(i=this.ΠU)||void 0===i||i.forEach((t=>{var i;return null===(i=t.hostUpdated)||void 0===i?void 0:i.call(t)})),this.hasUpdated||(this.hasUpdated=!0,this.firstUpdated(t)),this.updated(t);}Π$(){this.L=new Map,this.isUpdatePending=!1;}get updateComplete(){return this.getUpdateComplete()}getUpdateComplete(){return this.Πg}shouldUpdate(t){return !0}update(t){void 0!==this.Πk&&(this.Πk.forEach(((t,i)=>this.Πj(i,this[i],t))),this.Πk=void 0),this.Π$();}updated(t){}firstUpdated(t){}}a$2.finalized=!0,a$2.elementProperties=new Map,a$2.elementStyles=[],a$2.shadowRootOptions={mode:"open"},null===(e$3=(s$3=globalThis).reactiveElementPlatformSupport)||void 0===e$3||e$3.call(s$3,{ReactiveElement:a$2}),(null!==(h$4=(r$2=globalThis).reactiveElementVersions)&&void 0!==h$4?h$4:r$2.reactiveElementVersions=[]).push("1.0.0-rc.2");
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */
-var t$1,i$5,s$2,e$2;const o$3=globalThis.trustedTypes,l$2=o$3?o$3.createPolicy("lit-html",{createHTML:t=>t}):void 0,n$3=`lit$${(Math.random()+"").slice(9)}$`,h$3="?"+n$3,r$1=`<${h$3}>`,u=document,c$1=(t="")=>u.createComment(t),d$2=t=>null===t||"object"!=typeof t&&"function"!=typeof t,v=Array.isArray,a$1=t=>{var i;return v(t)||"function"==typeof(null===(i=t)||void 0===i?void 0:i[Symbol.iterator])},f=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,_=/-->/g,m=/>/g,p$2=/>|[ 	\n\r](?:([^\s"'>=/]+)([ 	\n\r]*=[ 	\n\r]*(?:[^ 	\n\r"'`<>=]|("|')|))|$)/g,$=/'/g,g=/"/g,y=/^(?:script|style|textarea)$/i,w=Symbol.for("lit-noChange"),A=Symbol.for("lit-nothing"),P=new WeakMap,V=(t,i,s)=>{var e,o;const l=null!==(e=null==s?void 0:s.renderBefore)&&void 0!==e?e:i;let n=l._$litPart$;if(void 0===n){const t=null!==(o=null==s?void 0:s.renderBefore)&&void 0!==o?o:null;l._$litPart$=n=new C(i.insertBefore(c$1(),t),t,void 0,s);}return n.I(t),n},E=u.createTreeWalker(u,129,null,!1),M=(t,i)=>{const s=t.length-1,e=[];let o,h=2===i?"<svg>":"",u=f;for(let i=0;i<s;i++){const s=t[i];let l,c,d=-1,v=0;for(;v<s.length&&(u.lastIndex=v,c=u.exec(s),null!==c);)v=u.lastIndex,u===f?"!--"===c[1]?u=_:void 0!==c[1]?u=m:void 0!==c[2]?(y.test(c[2])&&(o=RegExp("</"+c[2],"g")),u=p$2):void 0!==c[3]&&(u=p$2):u===p$2?">"===c[0]?(u=null!=o?o:f,d=-1):void 0===c[1]?d=-2:(d=u.lastIndex-c[2].length,l=c[1],u=void 0===c[3]?p$2:'"'===c[3]?g:$):u===g||u===$?u=p$2:u===_||u===m?u=f:(u=p$2,o=void 0);const a=u===p$2&&t[i+1].startsWith("/>")?" ":"";h+=u===f?s+r$1:d>=0?(e.push(l),s.slice(0,d)+"$lit$"+s.slice(d)+n$3+a):s+n$3+(-2===d?(e.push(void 0),i):a);}const c=h+(t[s]||"<?>")+(2===i?"</svg>":"");return [void 0!==l$2?l$2.createHTML(c):c,e]};class N{constructor({strings:t,_$litType$:i},s){let e;this.parts=[];let l=0,r=0;const u=t.length-1,d=this.parts,[v,a]=M(t,i);if(this.el=N.createElement(v,s),E.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(e=E.nextNode())&&d.length<u;){if(1===e.nodeType){if(e.hasAttributes()){const t=[];for(const i of e.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(n$3)){const s=a[r++];if(t.push(i),void 0!==s){const t=e.getAttribute(s.toLowerCase()+"$lit$").split(n$3),i=/([.?@])?(.*)/.exec(s);d.push({type:1,index:l,name:i[2],strings:t,ctor:"."===i[1]?I:"?"===i[1]?L:"@"===i[1]?R:H});}else d.push({type:6,index:l});}for(const i of t)e.removeAttribute(i);}if(y.test(e.tagName)){const t=e.textContent.split(n$3),i=t.length-1;if(i>0){e.textContent=o$3?o$3.emptyScript:"";for(let s=0;s<i;s++)e.append(t[s],c$1()),E.nextNode(),d.push({type:2,index:++l});e.append(t[i],c$1());}}}else if(8===e.nodeType)if(e.data===h$3)d.push({type:2,index:l});else {let t=-1;for(;-1!==(t=e.data.indexOf(n$3,t+1));)d.push({type:7,index:l}),t+=n$3.length-1;}l++;}}static createElement(t,i){const s=u.createElement("template");return s.innerHTML=t,s}}function S(t,i,s=t,e){var o,l,n,h;if(i===w)return i;let r=void 0!==e?null===(o=s.Σi)||void 0===o?void 0:o[e]:s.Σo;const u=d$2(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(l=null==r?void 0:r.O)||void 0===l||l.call(r,!1),void 0===u?r=void 0:(r=new u(t),r.T(t,s,e)),void 0!==e?(null!==(n=(h=s).Σi)&&void 0!==n?n:h.Σi=[])[e]=r:s.Σo=r),void 0!==r&&(i=S(t,r.S(t,i.values),r,e)),i}class k{constructor(t,i){this.l=[],this.N=void 0,this.D=t,this.M=i;}u(t){var i;const{el:{content:s},parts:e}=this.D,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:u).importNode(s,!0);E.currentNode=o;let l=E.nextNode(),n=0,h=0,r=e[0];for(;void 0!==r;){if(n===r.index){let i;2===r.type?i=new C(l,l.nextSibling,this,t):1===r.type?i=new r.ctor(l,r.name,r.strings,this,t):6===r.type&&(i=new z(l,this,t)),this.l.push(i),r=e[++h];}n!==(null==r?void 0:r.index)&&(l=E.nextNode(),n++);}return o}v(t){let i=0;for(const s of this.l)void 0!==s&&(void 0!==s.strings?(s.I(t,s,i),i+=s.strings.length-2):s.I(t[i])),i++;}}class C{constructor(t,i,s,e){this.type=2,this.N=void 0,this.A=t,this.B=i,this.M=s,this.options=e;}setConnected(t){var i;null===(i=this.P)||void 0===i||i.call(this,t);}get parentNode(){return this.A.parentNode}get startNode(){return this.A}get endNode(){return this.B}I(t,i=this){t=S(this,t,i),d$2(t)?t===A||null==t||""===t?(this.H!==A&&this.R(),this.H=A):t!==this.H&&t!==w&&this.m(t):void 0!==t._$litType$?this._(t):void 0!==t.nodeType?this.$(t):a$1(t)?this.g(t):this.m(t);}k(t,i=this.B){return this.A.parentNode.insertBefore(t,i)}$(t){this.H!==t&&(this.R(),this.H=this.k(t));}m(t){const i=this.A.nextSibling;null!==i&&3===i.nodeType&&(null===this.B?null===i.nextSibling:i===this.B.previousSibling)?i.data=t:this.$(u.createTextNode(t)),this.H=t;}_(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this.C(t):(void 0===e.el&&(e.el=N.createElement(e.h,this.options)),e);if((null===(i=this.H)||void 0===i?void 0:i.D)===o)this.H.v(s);else {const t=new k(o,this),i=t.u(this.options);t.v(s),this.$(i),this.H=t;}}C(t){let i=P.get(t.strings);return void 0===i&&P.set(t.strings,i=new N(t)),i}g(t){v(this.H)||(this.H=[],this.R());const i=this.H;let s,e=0;for(const o of t)e===i.length?i.push(s=new C(this.k(c$1()),this.k(c$1()),this,this.options)):s=i[e],s.I(o),e++;e<i.length&&(this.R(s&&s.B.nextSibling,e),i.length=e);}R(t=this.A.nextSibling,i){var s;for(null===(s=this.P)||void 0===s||s.call(this,!1,!0,i);t&&t!==this.B;){const i=t.nextSibling;t.remove(),t=i;}}}class H{constructor(t,i,s,e,o){this.type=1,this.H=A,this.N=void 0,this.V=void 0,this.element=t,this.name=i,this.M=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this.H=Array(s.length-1).fill(A),this.strings=s):this.H=A;}get tagName(){return this.element.tagName}I(t,i=this,s,e){const o=this.strings;let l=!1;if(void 0===o)t=S(this,t,i,0),l=!d$2(t)||t!==this.H&&t!==w,l&&(this.H=t);else {const e=t;let n,h;for(t=o[0],n=0;n<o.length-1;n++)h=S(this,e[s+n],i,n),h===w&&(h=this.H[n]),l||(l=!d$2(h)||h!==this.H[n]),h===A?t=A:t!==A&&(t+=(null!=h?h:"")+o[n+1]),this.H[n]=h;}l&&!e&&this.W(t);}W(t){t===A?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class I extends H{constructor(){super(...arguments),this.type=3;}W(t){this.element[this.name]=t===A?void 0:t;}}class L extends H{constructor(){super(...arguments),this.type=4;}W(t){t&&t!==A?this.element.setAttribute(this.name,""):this.element.removeAttribute(this.name);}}class R extends H{constructor(){super(...arguments),this.type=5;}I(t,i=this){var s;if((t=null!==(s=S(this,t,i,0))&&void 0!==s?s:A)===w)return;const e=this.H,o=t===A&&e!==A||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,l=t!==A&&(e===A||o);o&&this.element.removeEventListener(this.name,this,e),l&&this.element.addEventListener(this.name,this,t),this.H=t;}handleEvent(t){var i,s;"function"==typeof this.H?this.H.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this.H.handleEvent(t);}}class z{constructor(t,i,s){this.element=t,this.type=6,this.N=void 0,this.V=void 0,this.M=i,this.options=s;}I(t){S(this,t);}}null===(i$5=(t$1=globalThis).litHtmlPlatformSupport)||void 0===i$5||i$5.call(t$1,N,C),(null!==(s$2=(e$2=globalThis).litHtmlVersions)&&void 0!==s$2?s$2:e$2.litHtmlVersions=[]).push("2.0.0-rc.3");
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */var i$4,l$1,o$2,s$1,n$2,a;(null!==(i$4=(a=globalThis).litElementVersions)&&void 0!==i$4?i$4:a.litElementVersions=[]).push("3.0.0-rc.2");class h$2 extends a$2{constructor(){super(...arguments),this.renderOptions={host:this},this.Φt=void 0;}createRenderRoot(){var t,e;const r=super.createRenderRoot();return null!==(t=(e=this.renderOptions).renderBefore)&&void 0!==t||(e.renderBefore=r.firstChild),r}update(t){const r=this.render();super.update(t),this.Φt=V(r,this.renderRoot,this.renderOptions);}connectedCallback(){var t;super.connectedCallback(),null===(t=this.Φt)||void 0===t||t.setConnected(!0);}disconnectedCallback(){var t;super.disconnectedCallback(),null===(t=this.Φt)||void 0===t||t.setConnected(!1);}render(){return w}}h$2.finalized=!0,h$2._$litElement$=!0,null===(o$2=(l$1=globalThis).litElementHydrateSupport)||void 0===o$2||o$2.call(l$1,{LitElement:h$2}),null===(n$2=(s$1=globalThis).litElementPlatformSupport)||void 0===n$2||n$2.call(s$1,{LitElement:h$2});
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */
-const i$3=(i,e)=>"method"===e.kind&&e.descriptor&&!("value"in e.descriptor)?{...e,finisher(n){n.createProperty(e.key,i);}}:{kind:"field",key:Symbol(),placement:"own",descriptor:{},originalKey:e.key,initializer(){"function"==typeof e.initializer&&(this[e.key]=e.initializer.call(this));},finisher(n){n.createProperty(e.key,i);}};function e$1(e){return (n,t)=>void 0!==t?((i,e,n)=>{e.constructor.createProperty(n,i);})(e,n,t):i$3(e,n)}
-
-/**
- * @license
- * Copyright 2017 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */console.warn("The main 'lit-element' module entrypoint is deprecated. Please update your imports to use the 'lit' package: 'lit' and 'lit/decorators.ts' or import from 'lit-element/lit-element.ts'.");
-
-class CallFns extends ScopedRegistryHost(h$2) {
+class CallFns extends ScopedElementsMixin(LitElement) {
     constructor() {
         super(...arguments);
         // Segmented by fnName/argName
@@ -17950,30 +17897,32 @@ class CallFns extends ScopedRegistryHost(h$2) {
       </div>
     `;
     }
+    static get scopedElements() {
+        return {
+            'mwc-drawer': Drawer,
+            'mwc-list': List$1,
+            'mwc-list-item': ListItem,
+            'mwc-button': Button,
+            'mwc-textfield': TextField,
+            'mwc-select': Select,
+        };
+    }
 }
 CallFns.styles = [
     sharedStyles,
-    i$6 `
+    css$1 `
       :host {
         display: flex;
         flex: 1;
       }
     `,
 ];
-CallFns.elementDefinitions = {
-    'mwc-drawer': Drawer,
-    'mwc-list': List$1,
-    'mwc-list-item': ListItem,
-    'mwc-button': Button,
-    'mwc-textfield': TextField,
-    'mwc-select': Select,
-};
 __decorate([
-    e$1(),
+    e$5(),
     __metadata("design:type", Array)
 ], CallFns.prototype, "callableFns", void 0);
 __decorate([
-    e$1(),
+    e$5(),
     __metadata("design:type", String)
 ], CallFns.prototype, "selectedFnName", void 0);
 
@@ -18091,16 +18040,18 @@ class CallZomeFns extends PlaygroundElement {
       `,
         ];
     }
+    static get scopedElements() {
+        return {
+            'mwc-circular-progress': CircularProgress,
+            'mwc-icon': Icon,
+            'mwc-tab': Tab,
+            'mwc-tab-bar': TabBar,
+            'mwc-card': Card,
+            'copyable-hash': CopyableHash,
+            'call-functions': CallFns,
+        };
+    }
 }
-CallZomeFns.elementDefinitions = {
-    'mwc-circular-progress': CircularProgress,
-    'mwc-icon': Icon,
-    'mwc-tab': Tab,
-    'mwc-tab-bar': TabBar,
-    'mwc-card': Card,
-    'copyable-hash': CopyableHash,
-    'call-functions': CallFns,
-};
 __decorate([
     e$5({ type: Boolean, attribute: 'hide-zome-selector' }),
     __metadata("design:type", Object)
@@ -18118,7 +18069,7 @@ __decorate([
     __metadata("design:type", Number)
 ], CallZomeFns.prototype, "_selectedZomeIndex", void 0);
 
-class ExpandableLine extends ScopedRegistryHost(LitElement) {
+class ExpandableLine extends ScopedElementsMixin(LitElement) {
     constructor() {
         super(...arguments);
         this._expanded = false;
@@ -18169,10 +18120,12 @@ class ExpandableLine extends ScopedRegistryHost(LitElement) {
     static get styles() {
         return sharedStyles;
     }
+    static get scopedElements() {
+        return {
+            'mwc-icon-button': IconButton,
+        };
+    }
 }
-ExpandableLine.elementDefinitions = {
-    'mwc-icon-button': IconButton,
-};
 __decorate([
     e$5({ type: Boolean }),
     __metadata("design:type", Object)
@@ -18727,17 +18680,19 @@ class ZomeFnsResults extends PlaygroundElement {
             sharedStyles,
         ];
     }
+    static get scopedElements() {
+        return {
+            'mwc-list-item': ListItem,
+            'mwc-icon': Icon,
+            'mwc-circular-progress': CircularProgress,
+            'mwc-button': Button,
+            'mwc-card': Card,
+            'json-viewer': JsonViewer,
+            'expandable-line': ExpandableLine,
+            'copyable-hash': CopyableHash,
+        };
+    }
 }
-ZomeFnsResults.elementDefinitions = {
-    'mwc-list-item': ListItem,
-    'mwc-icon': Icon,
-    'mwc-circular-progress': CircularProgress,
-    'mwc-button': Button,
-    'mwc-card': Card,
-    'json-viewer': JsonViewer,
-    'expandable-line': ExpandableLine,
-    'copyable-hash': CopyableHash,
-};
 __decorate([
     e$5({ type: Boolean, attribute: 'hide-agent-pub-key' }),
     __metadata("design:type", Object)
@@ -18752,25 +18707,32 @@ __decorate([
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const t={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},i$2=t=>(...i)=>({_$litDirective$:t,values:i});class s{constructor(t){}T(t,i,s){this.Σdt=t,this.M=i,this.Σct=s;}S(t,i){return this.update(t,i)}update(t,i){return this.render(...i)}}
+var t$3,i$5;const s$2=globalThis.trustedTypes,e$4=s$2?s$2.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$3=`lit$${(Math.random()+"").slice(9)}$`,n$3="?"+o$3,l$2=`<${n$3}>`,h$3=document,r$3=(t="")=>h$3.createComment(t),d$2=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u$1=Array.isArray,c$1=t=>{var i;return u$1(t)||"function"==typeof(null===(i=t)||void 0===i?void 0:i[Symbol.iterator])},v$1=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,a$1=/-->/g,f$1=/>/g,_$1=/>|[ 	\n\r](?:([^\s"'>=/]+)([ 	\n\r]*=[ 	\n\r]*(?:[^ 	\n\r"'`<>=]|("|')|))|$)/g,g$1=/'/g,m$1=/"/g,$$1=/^(?:script|style|textarea)$/i,T=Symbol.for("lit-noChange"),x=Symbol.for("lit-nothing"),w$1=new WeakMap,C$1=h$3.createTreeWalker(h$3,129,null,!1),P$1=(t,i)=>{const s=t.length-1,n=[];let h,r=2===i?"<svg>":"",d=v$1;for(let i=0;i<s;i++){const s=t[i];let e,u,c=-1,p=0;for(;p<s.length&&(d.lastIndex=p,u=d.exec(s),null!==u);)p=d.lastIndex,d===v$1?"!--"===u[1]?d=a$1:void 0!==u[1]?d=f$1:void 0!==u[2]?($$1.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=_$1):void 0!==u[3]&&(d=_$1):d===_$1?">"===u[0]?(d=null!=h?h:v$1,c=-1):void 0===u[1]?c=-2:(c=d.lastIndex-u[2].length,e=u[1],d=void 0===u[3]?_$1:'"'===u[3]?m$1:g$1):d===m$1||d===g$1?d=_$1:d===a$1||d===f$1?d=v$1:(d=_$1,h=void 0);const y=d===_$1&&t[i+1].startsWith("/>")?" ":"";r+=d===v$1?s+l$2:c>=0?(n.push(e),s.slice(0,c)+"$lit$"+s.slice(c)+o$3+y):s+o$3+(-2===c?(n.push(void 0),i):y);}const u=r+(t[s]||"<?>")+(2===i?"</svg>":"");return [void 0!==e$4?e$4.createHTML(u):u,n]};class V{constructor({strings:t,_$litType$:i},e){let l;this.parts=[];let h=0,d=0;const u=t.length-1,c=this.parts,[v,a]=P$1(t,i);if(this.el=V.createElement(v,e),C$1.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=C$1.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(o$3)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(o$3),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:h,name:i[2],strings:t,ctor:"."===i[1]?k$1:"?"===i[1]?H$1:"@"===i[1]?I$1:M$1});}else c.push({type:6,index:h});}for(const i of t)l.removeAttribute(i);}if($$1.test(l.tagName)){const t=l.textContent.split(o$3),i=t.length-1;if(i>0){l.textContent=s$2?s$2.emptyScript:"";for(let s=0;s<i;s++)l.append(t[s],r$3()),C$1.nextNode(),c.push({type:2,index:++h});l.append(t[i],r$3());}}}else if(8===l.nodeType)if(l.data===n$3)c.push({type:2,index:h});else {let t=-1;for(;-1!==(t=l.data.indexOf(o$3,t+1));)c.push({type:7,index:h}),t+=o$3.length-1;}h++;}}static createElement(t,i){const s=h$3.createElement("template");return s.innerHTML=t,s}}function E$1(t,i,s=t,e){var o,n,l,h;if(i===T)return i;let r=void 0!==e?null===(o=s._$Cl)||void 0===o?void 0:o[e]:s._$Cu;const u=d$2(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Cl)&&void 0!==l?l:h._$Cl=[])[e]=r:s._$Cu=r),void 0!==r&&(i=E$1(t,r._$AS(t,i.values),r,e)),i}class N$1{constructor(t,i){this.v=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}p(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:h$3).importNode(s,!0);C$1.currentNode=o;let n=C$1.nextNode(),l=0,r=0,d=e[0];for(;void 0!==d;){if(l===d.index){let i;2===d.type?i=new S$1(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new L$1(n,this,t)),this.v.push(i),d=e[++r];}l!==(null==d?void 0:d.index)&&(n=C$1.nextNode(),l++);}return o}m(t){let i=0;for(const s of this.v)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class S$1{constructor(t,i,s,e){var o;this.type=2,this._$AH=x,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cg=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cg}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=E$1(this,t,i),d$2(t)?t===x||null==t||""===t?(this._$AH!==x&&this._$AR(),this._$AH=x):t!==this._$AH&&t!==T&&this.$(t):void 0!==t._$litType$?this.T(t):void 0!==t.nodeType?this.S(t):c$1(t)?this.M(t):this.$(t);}A(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}S(t){this._$AH!==t&&(this._$AR(),this._$AH=this.A(t));}$(t){this._$AH!==x&&d$2(this._$AH)?this._$AA.nextSibling.data=t:this.S(h$3.createTextNode(t)),this._$AH=t;}T(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=V.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.m(s);else {const t=new N$1(o,this),i=t.p(this.options);t.m(s),this.S(i),this._$AH=t;}}_$AC(t){let i=w$1.get(t.strings);return void 0===i&&w$1.set(t.strings,i=new V(t)),i}M(t){u$1(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new S$1(this.A(r$3()),this.A(r$3()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cg=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class M$1{constructor(t,i,s,e,o){this.type=1,this._$AH=x,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=x;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=E$1(this,t,i,0),n=!d$2(t)||t!==this._$AH&&t!==T,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=E$1(this,e[s+l],i,l),h===T&&(h=this._$AH[l]),n||(n=!d$2(h)||h!==this._$AH[l]),h===x?t=x:t!==x&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.k(t);}k(t){t===x?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class k$1 extends M$1{constructor(){super(...arguments),this.type=3;}k(t){this.element[this.name]=t===x?void 0:t;}}class H$1 extends M$1{constructor(){super(...arguments),this.type=4;}k(t){t&&t!==x?this.element.setAttribute(this.name,""):this.element.removeAttribute(this.name);}}class I$1 extends M$1{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=E$1(this,t,i,0))&&void 0!==s?s:x)===T)return;const e=this._$AH,o=t===x&&e!==x||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==x&&(e===x||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class L$1{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){E$1(this,t);}}null===(t$3=globalThis.litHtmlPlatformSupport)||void 0===t$3||t$3.call(globalThis,V,S$1),(null!==(i$5=globalThis.litHtmlVersions)&&void 0!==i$5?i$5:globalThis.litHtmlVersions=[]).push("2.0.0-rc.5");
 
 /**
  * @license
  * Copyright 2020 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */const d$1=o=>void 0===o.strings;
+ */const r$2=o=>void 0===o.strings;
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */const r=(i,t)=>{var s,e;const o=i.N;if(void 0===o)return !1;for(const i of o)null===(e=(s=i).O)||void 0===e||e.call(s,t,!1),r(i,t);return !0},o$1=i=>{let t,s;do{if(void 0===(t=i.M))break;s=t.N,s.delete(i),i=t;}while(0===(null==s?void 0:s.size))},h$1=i=>{for(let t;t=i.M;i=t){let s=t.N;if(void 0===s)t.N=s=new Set;else if(s.has(i))break;s.add(i),d(t);}};function n$1(i){void 0!==this.N?(o$1(this),this.M=i,h$1(this)):this.M=i;}function l(i,t=!1,s=0){const e=this.H,h=this.N;if(void 0!==h&&0!==h.size)if(t)if(Array.isArray(e))for(let i=s;i<e.length;i++)r(e[i],!1),o$1(e[i]);else null!=e&&(r(e,!1),o$1(e));else r(this,i);}const d=i=>{var t$1,e,r,o;i.type==t.CHILD&&(null!==(t$1=(r=i).P)&&void 0!==t$1||(r.P=l),null!==(e=(o=i).Q)&&void 0!==e||(o.Q=n$1));};class c extends s{constructor(){super(...arguments),this.isConnected=!0,this.ut=w,this.N=void 0;}T(i,t,s){super.T(i,t,s),h$1(this);}O(i,t=!0){this.at(i),t&&(r(this,i),o$1(this));}at(t){var s,e;t!==this.isConnected&&(t?(this.isConnected=!0,this.ut!==w&&(this.setValue(this.ut),this.ut=w),null===(s=this.reconnected)||void 0===s||s.call(this)):(this.isConnected=!1,null===(e=this.disconnected)||void 0===e||e.call(this)));}S(i,t){if(!this.isConnected)throw Error(`AsyncDirective ${this.constructor.name} was rendered while its tree was disconnected.`);return super.S(i,t)}setValue(i){if(this.isConnected)if(d$1(this.Σdt))this.Σdt.I(i,this);else {const t=[...this.Σdt.H];t[this.Σct]=i,this.Σdt.I(t,this,0);}else this.ut=i;}disconnected(){}reconnected(){}}
+ */
+const t$2={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},e$3=t=>(...e)=>({_$litDirective$:t,values:e});class i$4{constructor(t){}get _$AU(){return this._$AM._$AU}_$AT(t,e,i){this._$Ct=t,this._$AM=e,this._$Ci=i;}_$AS(t,e){return this.update(t,e)}update(t,e){return this.render(...e)}}
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */const e$2=(i,t)=>{var s,o;const n=i._$AN;if(void 0===n)return !1;for(const i of n)null===(o=(s=i)._$AO)||void 0===o||o.call(s,t,!1),e$2(i,t);return !0},o$2=i=>{let t,s;do{if(void 0===(t=i._$AM))break;s=t._$AN,s.delete(i),i=t;}while(0===(null==s?void 0:s.size))},n$2=i=>{for(let t;t=i._$AM;i=t){let s=t._$AN;if(void 0===s)t._$AN=s=new Set;else if(s.has(i))break;s.add(i),l$1(t);}};function r$1(i){void 0!==this._$AN?(o$2(this),this._$AM=i,n$2(this)):this._$AM=i;}function h$2(i,t=!1,s=0){const n=this._$AH,r=this._$AN;if(void 0!==r&&0!==r.size)if(t)if(Array.isArray(n))for(let i=s;i<n.length;i++)e$2(n[i],!1),o$2(n[i]);else null!=n&&(e$2(n,!1),o$2(n));else e$2(this,i);}const l$1=i=>{var t,e,o,n;i.type==t$2.CHILD&&(null!==(t=(o=i)._$AP)&&void 0!==t||(o._$AP=h$2),null!==(e=(n=i)._$AQ)&&void 0!==e||(n._$AQ=r$1));};class d$1 extends i$4{constructor(){super(...arguments),this._$AN=void 0;}_$AT(i,t,s){super._$AT(i,t,s),n$2(this),this.isConnected=i._$AU;}_$AO(i,t=!0){var s,n;i!==this.isConnected&&(this.isConnected=i,i?null===(s=this.reconnected)||void 0===s||s.call(this):null===(n=this.disconnected)||void 0===n||n.call(this)),t&&(e$2(this,i),o$2(this));}setValue(t){if(r$2(this._$Ct))this._$Ct._$AI(t,this);else {const i=[...this._$Ct._$AH];i[this._$Ci]=t,this._$Ct._$AI(i,this,0);}}disconnected(){}reconnected(){}}
 
 /**
  * @license
  * Copyright 2020 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */const e=()=>new o;class o{}const h=new WeakMap,n=i$2(class extends c{render(i){return A}update(i,[s]){var e;const o=s!==this.gt;return o&&void 0!==this.gt&&this.xt(void 0),(o||this.Tt!==this.Et)&&(this.gt=s,this.At=null===(e=i.options)||void 0===e?void 0:e.host,this.xt(this.Et=i.element)),A}xt(t){"function"==typeof this.gt?(void 0!==h.get(this.gt)&&this.gt.call(this.At,void 0),h.set(this.gt,t),void 0!==t&&this.gt.call(this.At,t)):this.gt.value=t;}get Tt(){var t;return "function"==typeof this.gt?h.get(this.gt):null===(t=this.gt)||void 0===t?void 0:t.value}disconnected(){this.Tt===this.Et&&this.xt(void 0);}reconnected(){this.xt(this.Et);}});
+ */const e$1=()=>new o$1;class o$1{}const h$1=new WeakMap,n$1=e$3(class extends d$1{render(i){return x}update(i,[s]){var e;const o=s!==this.U;return o&&void 0!==this.U&&this.nt(void 0),(o||this.rt!==this.lt)&&(this.U=s,this.ht=null===(e=i.options)||void 0===e?void 0:e.host,this.nt(this.lt=i.element)),x}nt(t){"function"==typeof this.U?(void 0!==h$1.get(this.U)&&this.U.call(this.ht,void 0),h$1.set(this.U,t),void 0!==t&&this.U.call(this.ht,t)):this.U.value=t;}get rt(){var t;return "function"==typeof this.U?h$1.get(this.U):null===(t=this.U)||void 0===t?void 0:t.value}disconnected(){this.rt===this.lt&&this.nt(void 0);}reconnected(){this.nt(this.lt);}});
 
 class HelpButton extends PlaygroundElement {
     renderHelpDialog() {
@@ -18792,18 +18754,20 @@ class HelpButton extends PlaygroundElement {
       ></mwc-icon-button>
     `;
     }
+    static get scopedElements() {
+        return {
+            'mwc-icon-button': IconButton,
+            'mwc-button': Button,
+            'mwc-dialog': Dialog,
+        };
+    }
 }
-HelpButton.elementDefinitions = {
-    'mwc-icon-button': IconButton,
-    'mwc-button': Button,
-    'mwc-dialog': Dialog,
-};
 __decorate([
     e$5({ type: String }),
     __metadata("design:type", String)
 ], HelpButton.prototype, "heading", void 0);
 __decorate([
-    o$6('#help-dialog'),
+    o$4('#help-dialog'),
     __metadata("design:type", Dialog)
 ], HelpButton.prototype, "_helpDialog", void 0);
 
@@ -32813,13 +32777,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 /* eslint-enable no-unused-vars */
 
-const p$1 = Element.prototype;
+const p$2 = Element.prototype;
 /**
  * @const {function(this:Node, string): boolean}
  */
-const normalizedMatchesSelector = p$1.matches || p$1.matchesSelector ||
-  p$1.mozMatchesSelector || p$1.msMatchesSelector ||
-  p$1.oMatchesSelector || p$1.webkitMatchesSelector;
+const normalizedMatchesSelector = p$2.matches || p$2.matchesSelector ||
+  p$2.mozMatchesSelector || p$2.msMatchesSelector ||
+  p$2.oMatchesSelector || p$2.webkitMatchesSelector;
 
 /**
  * Cross-platform `element.matches` shim.
@@ -45855,7 +45819,7 @@ class ConductorAdmin extends PlaygroundElement {
     constructor() {
         super(...arguments);
         this._selectedTabIndex = 0;
-        this._grid = e();
+        this._grid = e$1();
     }
     get activeConductor() {
         return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors)
@@ -45982,8 +45946,8 @@ class ConductorAdmin extends PlaygroundElement {
         return html$1 `
       <vaadin-grid
         .items=${items}
-        ${n(this._grid)}
-        ${n((el) => this.setupGrid(el, conductor))}
+        ${n$1(this._grid)}
+        ${n$1((el) => this.setupGrid(el, conductor))}
       >
         <vaadin-grid-column
           path="dna"
@@ -46065,22 +46029,24 @@ class ConductorAdmin extends PlaygroundElement {
       `,
         ];
     }
+    static get scopedElements() {
+        return {
+            'copyable-hash': CopyableHash,
+            'call-functions': CallFns,
+            'mwc-tab': Tab,
+            'vaadin-grid': GridElement,
+            'vaadin-grid-column': GridColumnElement,
+            'mwc-tab-bar': TabBar,
+            'mwc-list': List$1,
+            'json-viewer': JsonViewer,
+            'mwc-list-item': ListItem,
+            'mwc-card': Card,
+            'mwc-button': Button,
+            'mwc-icon-button': IconButton,
+            'help-button': HelpButton,
+        };
+    }
 }
-ConductorAdmin.elementDefinitions = {
-    'copyable-hash': CopyableHash,
-    'call-functions': CallFns,
-    'mwc-tab': Tab,
-    'vaadin-grid': GridElement,
-    'vaadin-grid-column': GridColumnElement,
-    'mwc-tab-bar': TabBar,
-    'mwc-list': List$1,
-    'json-viewer': JsonViewer,
-    'mwc-list-item': ListItem,
-    'mwc-card': Card,
-    'mwc-button': Button,
-    'mwc-icon-button': IconButton,
-    'help-button': HelpButton,
-};
 __decorate([
     r$4(),
     __metadata("design:type", Number)
@@ -57143,7 +57109,7 @@ function Emitter() {
   this.emitting = 0;
 }
 
-var p = Emitter.prototype;
+var p$1 = Emitter.prototype;
 
 var forEachEvent = function forEachEvent(self, handler, events, qualifier, callback, conf, confOverrides) {
   if (fn(qualifier)) {
@@ -57221,7 +57187,7 @@ var forEachEventObj = function forEachEventObj(self, handler, events) {
   }
 };
 
-p.on = p.addListener = function (events, qualifier, callback, conf, confOverrides) {
+p$1.on = p$1.addListener = function (events, qualifier, callback, conf, confOverrides) {
   forEachEvent(this, function (self, event, type, namespace, qualifier, callback, conf) {
     if (fn(callback)) {
       self.listeners.push({
@@ -57243,13 +57209,13 @@ p.on = p.addListener = function (events, qualifier, callback, conf, confOverride
   return this;
 };
 
-p.one = function (events, qualifier, callback, conf) {
+p$1.one = function (events, qualifier, callback, conf) {
   return this.on(events, qualifier, callback, conf, {
     one: true
   });
 };
 
-p.removeListener = p.off = function (events, qualifier, callback, conf) {
+p$1.removeListener = p$1.off = function (events, qualifier, callback, conf) {
   var _this = this;
 
   if (this.emitting !== 0) {
@@ -57277,11 +57243,11 @@ p.removeListener = p.off = function (events, qualifier, callback, conf) {
   return this;
 };
 
-p.removeAllListeners = function () {
+p$1.removeAllListeners = function () {
   return this.removeListener('*');
 };
 
-p.emit = p.trigger = function (events, extraParams, manualCallback) {
+p$1.emit = p$1.trigger = function (events, extraParams, manualCallback) {
   var listeners = this.listeners;
   var numListenersBeforeEmit = listeners.length;
   this.emitting++;
@@ -77526,9 +77492,9 @@ var sin = {};
 var cos = {};
 var ellipseStepSize = Math.PI / 40;
 
-for (var i$1 = 0 * Math.PI; i$1 < 2 * Math.PI; i$1 += ellipseStepSize) {
-  sin[i$1] = Math.sin(i$1);
-  cos[i$1] = Math.cos(i$1);
+for (var i$3 = 0 * Math.PI; i$3 < 2 * Math.PI; i$3 += ellipseStepSize) {
+  sin[i$3] = Math.sin(i$3);
+  cos[i$3] = Math.cos(i$3);
 }
 
 CRp$7.drawEllipsePath = function (context, centerX, centerY, width, height) {
@@ -78493,9 +78459,23 @@ var cytoscape_cjs = cytoscape$1;
 
 /**
  * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+var t$1,i$2,s$1,e;const o=globalThis.trustedTypes,l=o?o.createPolicy("lit-html",{createHTML:t=>t}):void 0,n=`lit$${(Math.random()+"").slice(9)}$`,h="?"+n,r=`<${h}>`,u=document,c=(t="")=>u.createComment(t),d=t=>null===t||"object"!=typeof t&&"function"!=typeof t,v=Array.isArray,a=t=>{var i;return v(t)||"function"==typeof(null===(i=t)||void 0===i?void 0:i[Symbol.iterator])},f=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,_=/-->/g,m=/>/g,p=/>|[ 	\n\r](?:([^\s"'>=/]+)([ 	\n\r]*=[ 	\n\r]*(?:[^ 	\n\r"'`<>=]|("|')|))|$)/g,$=/'/g,g=/"/g,y=/^(?:script|style|textarea)$/i,w=Symbol.for("lit-noChange"),A=Symbol.for("lit-nothing"),P=new WeakMap,E=u.createTreeWalker(u,129,null,!1),M=(t,i)=>{const s=t.length-1,e=[];let o,h=2===i?"<svg>":"",u=f;for(let i=0;i<s;i++){const s=t[i];let l,c,d=-1,v=0;for(;v<s.length&&(u.lastIndex=v,c=u.exec(s),null!==c);)v=u.lastIndex,u===f?"!--"===c[1]?u=_:void 0!==c[1]?u=m:void 0!==c[2]?(y.test(c[2])&&(o=RegExp("</"+c[2],"g")),u=p):void 0!==c[3]&&(u=p):u===p?">"===c[0]?(u=null!=o?o:f,d=-1):void 0===c[1]?d=-2:(d=u.lastIndex-c[2].length,l=c[1],u=void 0===c[3]?p:'"'===c[3]?g:$):u===g||u===$?u=p:u===_||u===m?u=f:(u=p,o=void 0);const a=u===p&&t[i+1].startsWith("/>")?" ":"";h+=u===f?s+r:d>=0?(e.push(l),s.slice(0,d)+"$lit$"+s.slice(d)+n+a):s+n+(-2===d?(e.push(void 0),i):a);}const c=h+(t[s]||"<?>")+(2===i?"</svg>":"");return [void 0!==l?l.createHTML(c):c,e]};class N{constructor({strings:t,_$litType$:i},s){let e;this.parts=[];let l=0,r=0;const u=t.length-1,d=this.parts,[v,a]=M(t,i);if(this.el=N.createElement(v,s),E.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(e=E.nextNode())&&d.length<u;){if(1===e.nodeType){if(e.hasAttributes()){const t=[];for(const i of e.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(n)){const s=a[r++];if(t.push(i),void 0!==s){const t=e.getAttribute(s.toLowerCase()+"$lit$").split(n),i=/([.?@])?(.*)/.exec(s);d.push({type:1,index:l,name:i[2],strings:t,ctor:"."===i[1]?I:"?"===i[1]?L:"@"===i[1]?R:H});}else d.push({type:6,index:l});}for(const i of t)e.removeAttribute(i);}if(y.test(e.tagName)){const t=e.textContent.split(n),i=t.length-1;if(i>0){e.textContent=o?o.emptyScript:"";for(let s=0;s<i;s++)e.append(t[s],c()),E.nextNode(),d.push({type:2,index:++l});e.append(t[i],c());}}}else if(8===e.nodeType)if(e.data===h)d.push({type:2,index:l});else {let t=-1;for(;-1!==(t=e.data.indexOf(n,t+1));)d.push({type:7,index:l}),t+=n.length-1;}l++;}}static createElement(t,i){const s=u.createElement("template");return s.innerHTML=t,s}}function S(t,i,s=t,e){var o,l,n,h;if(i===w)return i;let r=void 0!==e?null===(o=s.Σi)||void 0===o?void 0:o[e]:s.Σo;const u=d(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(l=null==r?void 0:r.O)||void 0===l||l.call(r,!1),void 0===u?r=void 0:(r=new u(t),r.T(t,s,e)),void 0!==e?(null!==(n=(h=s).Σi)&&void 0!==n?n:h.Σi=[])[e]=r:s.Σo=r),void 0!==r&&(i=S(t,r.S(t,i.values),r,e)),i}class k{constructor(t,i){this.l=[],this.N=void 0,this.D=t,this.M=i;}u(t){var i;const{el:{content:s},parts:e}=this.D,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:u).importNode(s,!0);E.currentNode=o;let l=E.nextNode(),n=0,h=0,r=e[0];for(;void 0!==r;){if(n===r.index){let i;2===r.type?i=new C(l,l.nextSibling,this,t):1===r.type?i=new r.ctor(l,r.name,r.strings,this,t):6===r.type&&(i=new z(l,this,t)),this.l.push(i),r=e[++h];}n!==(null==r?void 0:r.index)&&(l=E.nextNode(),n++);}return o}v(t){let i=0;for(const s of this.l)void 0!==s&&(void 0!==s.strings?(s.I(t,s,i),i+=s.strings.length-2):s.I(t[i])),i++;}}class C{constructor(t,i,s,e){this.type=2,this.N=void 0,this.A=t,this.B=i,this.M=s,this.options=e;}setConnected(t){var i;null===(i=this.P)||void 0===i||i.call(this,t);}get parentNode(){return this.A.parentNode}get startNode(){return this.A}get endNode(){return this.B}I(t,i=this){t=S(this,t,i),d(t)?t===A||null==t||""===t?(this.H!==A&&this.R(),this.H=A):t!==this.H&&t!==w&&this.m(t):void 0!==t._$litType$?this._(t):void 0!==t.nodeType?this.$(t):a(t)?this.g(t):this.m(t);}k(t,i=this.B){return this.A.parentNode.insertBefore(t,i)}$(t){this.H!==t&&(this.R(),this.H=this.k(t));}m(t){const i=this.A.nextSibling;null!==i&&3===i.nodeType&&(null===this.B?null===i.nextSibling:i===this.B.previousSibling)?i.data=t:this.$(u.createTextNode(t)),this.H=t;}_(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this.C(t):(void 0===e.el&&(e.el=N.createElement(e.h,this.options)),e);if((null===(i=this.H)||void 0===i?void 0:i.D)===o)this.H.v(s);else {const t=new k(o,this),i=t.u(this.options);t.v(s),this.$(i),this.H=t;}}C(t){let i=P.get(t.strings);return void 0===i&&P.set(t.strings,i=new N(t)),i}g(t){v(this.H)||(this.H=[],this.R());const i=this.H;let s,e=0;for(const o of t)e===i.length?i.push(s=new C(this.k(c()),this.k(c()),this,this.options)):s=i[e],s.I(o),e++;e<i.length&&(this.R(s&&s.B.nextSibling,e),i.length=e);}R(t=this.A.nextSibling,i){var s;for(null===(s=this.P)||void 0===s||s.call(this,!1,!0,i);t&&t!==this.B;){const i=t.nextSibling;t.remove(),t=i;}}}class H{constructor(t,i,s,e,o){this.type=1,this.H=A,this.N=void 0,this.V=void 0,this.element=t,this.name=i,this.M=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this.H=Array(s.length-1).fill(A),this.strings=s):this.H=A;}get tagName(){return this.element.tagName}I(t,i=this,s,e){const o=this.strings;let l=!1;if(void 0===o)t=S(this,t,i,0),l=!d(t)||t!==this.H&&t!==w,l&&(this.H=t);else {const e=t;let n,h;for(t=o[0],n=0;n<o.length-1;n++)h=S(this,e[s+n],i,n),h===w&&(h=this.H[n]),l||(l=!d(h)||h!==this.H[n]),h===A?t=A:t!==A&&(t+=(null!=h?h:"")+o[n+1]),this.H[n]=h;}l&&!e&&this.W(t);}W(t){t===A?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class I extends H{constructor(){super(...arguments),this.type=3;}W(t){this.element[this.name]=t===A?void 0:t;}}class L extends H{constructor(){super(...arguments),this.type=4;}W(t){t&&t!==A?this.element.setAttribute(this.name,""):this.element.removeAttribute(this.name);}}class R extends H{constructor(){super(...arguments),this.type=5;}I(t,i=this){var s;if((t=null!==(s=S(this,t,i,0))&&void 0!==s?s:A)===w)return;const e=this.H,o=t===A&&e!==A||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,l=t!==A&&(e===A||o);o&&this.element.removeEventListener(this.name,this,e),l&&this.element.addEventListener(this.name,this,t),this.H=t;}handleEvent(t){var i,s;"function"==typeof this.H?this.H.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this.H.handleEvent(t);}}class z{constructor(t,i,s){this.element=t,this.type=6,this.N=void 0,this.V=void 0,this.M=i,this.options=s;}I(t){S(this,t);}}null===(i$2=(t$1=globalThis).litHtmlPlatformSupport)||void 0===i$2||i$2.call(t$1,N,C),(null!==(s$1=(e=globalThis).litHtmlVersions)&&void 0!==s$1?s$1:e.litHtmlVersions=[]).push("2.0.0-rc.3");
+
+/**
+ * @license
+ * Copyright 2017 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+const t={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},i$1=t=>(...i)=>({_$litDirective$:t,values:i});class s{constructor(t){}T(t,i,s){this.Σdt=t,this.M=i,this.Σct=s;}S(t,i){return this.update(t,i)}update(t,i){return this.render(...i)}}
+
+/**
+ * @license
  * Copyright 2018 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */const i=i$2(class extends s{constructor(t$1){var e;if(super(t$1),t$1.type!==t.ATTRIBUTE||"style"!==t$1.name||(null===(e=t$1.strings)||void 0===e?void 0:e.length)>2)throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.")}render(t){return Object.keys(t).reduce(((e,r)=>{const s=t[r];return null==s?e:e+`${r=r.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g,"-$&").toLowerCase()}:${s};`}),"")}update(e,[r]){const{style:s}=e.element;if(void 0===this.St){this.St=new Set;for(const t in r)this.St.add(t);return this.render(r)}this.St.forEach((t=>{null==r[t]&&(this.St.delete(t),t.includes("-")?s.removeProperty(t):s[t]="");}));for(const t in r){const e=r[t];null!=e&&(this.St.add(t),t.includes("-")?s.setProperty(t,e):s[t]=e);}return w}});
+ */const i=i$1(class extends s{constructor(t$1){var e;if(super(t$1),t$1.type!==t.ATTRIBUTE||"style"!==t$1.name||(null===(e=t$1.strings)||void 0===e?void 0:e.length)>2)throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.")}render(t){return Object.keys(t).reduce(((e,r)=>{const s=t[r];return null==s?e:e+`${r=r.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g,"-$&").toLowerCase()}:${s};`}),"")}update(e,[r]){const{style:s}=e.element;if(void 0===this.St){this.St=new Set;for(const t in r)this.St.add(t);return this.render(r)}this.St.forEach((t=>{null==r[t]&&(this.St.delete(t),t.includes("-")?s.removeProperty(t):s[t]="");}));for(const t in r){const e=r[t];null!=e&&(this.St.add(t),t.includes("-")?s.setProperty(t,e):s[t]=e);}return w}});
 
 class CellTasks extends PlaygroundElement {
     constructor() {
@@ -78717,14 +78697,16 @@ class CellTasks extends PlaygroundElement {
       `,
         ];
     }
+    static get scopedElements() {
+        return {
+            'mwc-card': Card,
+            'mwc-list': List$1,
+            'mwc-icon': Icon,
+            'mwc-list-item': ListItem,
+            'mwc-linear-progress': LinearProgress,
+        };
+    }
 }
-CellTasks.elementDefinitions = {
-    'mwc-card': Card,
-    'mwc-list': List$1,
-    'mwc-icon': Icon,
-    'mwc-list-item': ListItem,
-    'mwc-linear-progress': LinearProgress,
-};
 __decorate([
     e$5({ type: Object }),
     __metadata("design:type", Cell)
@@ -78916,6 +78898,14 @@ class DhtCells extends PlaygroundElement {
             this._cy.resize();
             this.requestUpdate();
         });
+        new ResizeObserver(() => {
+            setTimeout(() => {
+                this._cy.resize();
+                if (this._layout)
+                    this._layout.run();
+                this.requestUpdate();
+            });
+        }).observe(this);
         this._cy = cytoscape_cjs({
             container: this._graph,
             boxSelectionEnabled: false,
@@ -79016,13 +79006,16 @@ class DhtCells extends PlaygroundElement {
         this.setupGraphNodes();
     }
     setupGraphNodes() {
-        const nodes = dhtCellsNodes(this.cellsController.observedCells);
+        if (!this._cy)
+            return;
+        const observedCells = this.cellsController.observedCells;
+        const nodes = dhtCellsNodes(observedCells);
         if (this._layout)
             this._layout.stop();
         this._cy.remove('node');
         this._cy.remove('edge');
         this._cy.add(nodes);
-        const neighbors = neighborsEdges(this.cellsController.observedCells);
+        const neighbors = neighborsEdges(observedCells);
         this._cy.add(neighbors);
         this._layout = this._cy.elements().makeLayout(layoutConfig$1);
         this._layout.run();
@@ -79032,7 +79025,7 @@ class DhtCells extends PlaygroundElement {
     updated(changedValues) {
         super.updated(changedValues);
         const neighbors = neighborsEdges(this.cellsController.observedCells);
-        if (this._neighborEdges.length != neighbors.length) {
+        if (this._neighborEdges.length != neighbors.length && this._cy.nodes().length > 0) {
             this._neighborEdges = neighbors;
             this._cy.remove('edge');
             this._cy.add(neighbors);
@@ -79277,22 +79270,24 @@ class DhtCells extends PlaygroundElement {
       `,
         ];
     }
+    static get scopedElements() {
+        return {
+            'mwc-card': Card,
+            'mwc-menu-surface': MenuSurface,
+            'mwc-button': Button,
+            'mwc-icon': Icon,
+            'mwc-menu': Menu,
+            'mwc-list-item': ListItem,
+            'mwc-slider': Slider,
+            'mwc-switch': Switch,
+            'mwc-formfield': Formfield,
+            'mwc-icon-button': IconButton,
+            'copyable-hash': CopyableHash,
+            'holochain-playground-help-button': HelpButton,
+            'holochain-playground-cell-tasks': CellTasks,
+        };
+    }
 }
-DhtCells.elementDefinitions = {
-    'mwc-card': Card,
-    'mwc-menu-surface': MenuSurface,
-    'mwc-button': Button,
-    'mwc-icon': Icon,
-    'mwc-menu': Menu,
-    'mwc-list-item': ListItem,
-    'mwc-slider': Slider,
-    'mwc-switch': Switch,
-    'mwc-formfield': Formfield,
-    'mwc-icon-button': IconButton,
-    'copyable-hash': CopyableHash,
-    'holochain-playground-help-button': HelpButton,
-    'holochain-playground-cell-tasks': CellTasks,
-};
 __decorate([
     e$5({ type: Number }),
     __metadata("design:type", Number)
@@ -79322,23 +79317,23 @@ __decorate([
     __metadata("design:type", Object)
 ], DhtCells.prototype, "showZomeFnSuccess", void 0);
 __decorate([
-    o$6('#graph'),
+    o$4('#graph'),
     __metadata("design:type", Object)
 ], DhtCells.prototype, "_graph", void 0);
 __decorate([
-    o$6('#active-workflows-button'),
+    o$4('#active-workflows-button'),
     __metadata("design:type", Button)
 ], DhtCells.prototype, "_activeWorkflowsButton", void 0);
 __decorate([
-    o$6('#active-workflows-menu'),
+    o$4('#active-workflows-menu'),
     __metadata("design:type", Menu)
 ], DhtCells.prototype, "_activeWorkflowsMenu", void 0);
 __decorate([
-    o$6('#network-requests-button'),
+    o$4('#network-requests-button'),
     __metadata("design:type", Button)
 ], DhtCells.prototype, "_networkRequestsButton", void 0);
 __decorate([
-    o$6('#network-requests-menu'),
+    o$4('#network-requests-menu'),
     __metadata("design:type", Menu)
 ], DhtCells.prototype, "_networkRequestsMenu", void 0);
 __decorate([
@@ -79384,10 +79379,12 @@ class DhtShard extends PlaygroundElement {
       </div>
     `;
     }
+    static get scopedElements() {
+        return {
+            'json-viewer': JsonViewer,
+        };
+    }
 }
-DhtShard.elementDefinitions = {
-    'json-viewer': JsonViewer,
-};
 __decorate([
     e$5({ type: Object }),
     __metadata("design:type", Object)
@@ -79557,23 +79554,25 @@ class DhtStats extends PlaygroundElement {
       </div>
     `;
     }
+    static get scopedElements() {
+        return {
+            'mwc-linear-progress': LinearProgress,
+            'mwc-textfield': TextField,
+            'mwc-icon-button': IconButton,
+            'mwc-dialog': Dialog,
+        };
+    }
 }
-DhtStats.elementDefinitions = {
-    'mwc-linear-progress': LinearProgress,
-    'mwc-textfield': TextField,
-    'mwc-icon-button': IconButton,
-    'mwc-dialog': Dialog,
-};
 __decorate([
-    o$6('#stats-help'),
+    o$4('#stats-help'),
     __metadata("design:type", Dialog)
 ], DhtStats.prototype, "statsHelp", void 0);
 __decorate([
-    o$6('#number-of-nodes'),
+    o$4('#number-of-nodes'),
     __metadata("design:type", TextField)
 ], DhtStats.prototype, "nNodes", void 0);
 __decorate([
-    o$6('#r-factor'),
+    o$4('#r-factor'),
     __metadata("design:type", TextField)
 ], DhtStats.prototype, "rFactor", void 0);
 __decorate([
@@ -79672,14 +79671,16 @@ class RunSteps extends PlaygroundElement {
             sharedStyles,
         ];
     }
+    static get scopedElements() {
+        return {
+            'mwc-circular-progress': CircularProgress,
+            'mwc-list-item': ListItem,
+            'mwc-list': List$1,
+            'mwc-button': Button,
+            'mwc-card': Card,
+        };
+    }
 }
-RunSteps.elementDefinitions = {
-    'mwc-circular-progress': CircularProgress,
-    'mwc-list-item': ListItem,
-    'mwc-list': List$1,
-    'mwc-button': Button,
-    'mwc-card': Card,
-};
 __decorate([
     e$5({ type: Array }),
     __metadata("design:type", Array)
@@ -79771,12 +79772,14 @@ class EntryContents extends PlaygroundElement {
       </mwc-card>
     `;
     }
+    static get scopedElements() {
+        return {
+            'json-viewer': JsonViewer,
+            'mwc-card': Card,
+            'copyable-hash': CopyableHash,
+        };
+    }
 }
-EntryContents.elementDefinitions = {
-    'json-viewer': JsonViewer,
-    'mwc-card': Card,
-    'copyable-hash': CopyableHash,
-};
 
 function allEntries(cells, showEntryContents, showHeaders, excludedEntryTypes) {
     const details = {};
@@ -85546,19 +85549,21 @@ class EntryGraph extends PlaygroundElement {
       </mwc-card>
     `;
     }
+    static get scopedElements() {
+        return {
+            'mwc-checkbox': Checkbox,
+            'mwc-formfield': Formfield,
+            'mwc-icon-button': IconButton,
+            'copyable-hash': CopyableHash,
+            'mwc-card': Card,
+            'mwc-menu': Menu,
+            'mwc-icon': Icon,
+            'mwc-list-item': ListItem,
+            'mwc-button': Button,
+            'holochain-playground-help-button': HelpButton,
+        };
+    }
 }
-EntryGraph.elementDefinitions = {
-    'mwc-checkbox': Checkbox,
-    'mwc-formfield': Formfield,
-    'mwc-icon-button': IconButton,
-    'copyable-hash': CopyableHash,
-    'mwc-card': Card,
-    'mwc-menu': Menu,
-    'mwc-icon': Icon,
-    'mwc-list-item': ListItem,
-    'mwc-button': Button,
-    'holochain-playground-help-button': HelpButton,
-};
 __decorate([
     e$5({ type: Boolean, attribute: 'hide-filter' }),
     __metadata("design:type", Boolean)
@@ -85580,7 +85585,7 @@ __decorate([
     __metadata("design:type", Array)
 ], EntryGraph.prototype, "excludedEntryTypes", void 0);
 __decorate([
-    o$6('#entry-graph'),
+    o$4('#entry-graph'),
     __metadata("design:type", HTMLElement)
 ], EntryGraph.prototype, "entryGraph", void 0);
 __decorate([
@@ -85588,11 +85593,11 @@ __decorate([
     __metadata("design:type", Object)
 ], EntryGraph.prototype, "_entryTypes", void 0);
 __decorate([
-    o$6('#visible-entries-button'),
+    o$4('#visible-entries-button'),
     __metadata("design:type", Button)
 ], EntryGraph.prototype, "_visibleEntriesButton", void 0);
 __decorate([
-    o$6('#visible-entries-menu'),
+    o$4('#visible-entries-menu'),
     __metadata("design:type", Menu)
 ], EntryGraph.prototype, "_visibleEntriesMenu", void 0);
 
@@ -96691,14 +96696,16 @@ class SourceChain extends PlaygroundElement {
       `,
         ];
     }
+    static get scopedElements() {
+        return {
+            'mwc-card': Card,
+            'copyable-hash': CopyableHash,
+            'help-button': HelpButton,
+        };
+    }
 }
-SourceChain.elementDefinitions = {
-    'mwc-card': Card,
-    'copyable-hash': CopyableHash,
-    'help-button': HelpButton,
-};
 __decorate([
-    o$6('#source-chain-graph'),
+    o$4('#source-chain-graph'),
     __metadata("design:type", HTMLElement)
 ], SourceChain.prototype, "graph", void 0);
 
@@ -96744,12 +96751,14 @@ class SelectActiveDna extends PlaygroundElement {
             sharedStyles,
         ];
     }
+    static get scopedElements() {
+        return {
+            'mwc-list-item': ListItem,
+            'mwc-select': Select,
+            'mwc-card': Card,
+        };
+    }
 }
-SelectActiveDna.elementDefinitions = {
-    'mwc-list-item': ListItem,
-    'mwc-select': Select,
-    'mwc-card': Card,
-};
 
 function unwrapEditable(happ) {
     const slots = happ.slots.reduce((acc, next) => ({ ...acc, [next[0]]: next[1] }), {});
@@ -96829,7 +96838,7 @@ class HappsManager extends PlaygroundElement {
                 this._editingHapp.slots[index][0] = e.target.value;
                 this.requestUpdate();
             }}
-              ${n((f) => this.setupNickField(f, slotNick))}
+              ${n$1((f) => this.setupNickField(f, slotNick))}
             ></mwc-textfield>`
             : html$1 ` <span style="width: 8em;">${slotNick}</span> `}
       ${this._editingHapp
@@ -96991,7 +97000,7 @@ class HappsManager extends PlaygroundElement {
                     label="Name"
                     autoValidate
                     validationMessage="hApp name already exists"
-                    ${n(this.setupHappNameTextfield)}
+                    ${n$1(this.setupHappNameTextfield)}
                     @input=${(e) => {
                 this._editingHapp.name = e.target.value;
                 this.requestUpdate();
@@ -97123,18 +97132,20 @@ class HappsManager extends PlaygroundElement {
             sharedStyles,
         ];
     }
+    static get scopedElements() {
+        return {
+            'mwc-list-item': ListItem,
+            'mwc-icon-button': IconButton,
+            'mwc-textfield': TextField,
+            'mwc-list': List$1,
+            'copyable-hash': CopyableHash,
+            'mwc-select': Select,
+            'mwc-card': Card,
+            'mwc-button': Button,
+            'mwc-drawer': Drawer,
+        };
+    }
 }
-HappsManager.elementDefinitions = {
-    'mwc-list-item': ListItem,
-    'mwc-icon-button': IconButton,
-    'mwc-textfield': TextField,
-    'mwc-list': List$1,
-    'copyable-hash': CopyableHash,
-    'mwc-select': Select,
-    'mwc-card': Card,
-    'mwc-button': Button,
-    'mwc-drawer': Drawer,
-};
 __decorate([
     r$4(),
     __metadata("design:type", String)
@@ -97144,5 +97155,137 @@ __decorate([
     __metadata("design:type", Object)
 ], HappsManager.prototype, "_editingHapp", void 0);
 
-export { CallFns, CallZomeFns, CellTasks, CellsController, ConductorAdmin, CopyableHash, DhtCells, DhtShard, DhtStats, EntryContents, EntryGraph, HappsManager, HelpButton, HolochainPlaygroundContainer, PlaygroundElement, RunSteps, SelectActiveDna, SourceChain, ZomeFnsResults, buildHappBundle, selectAllCells, selectAllDNAs, selectCell, selectCells, selectConductorByAgent, selectFromCAS, selectGlobalDHTOpsCount, selectHeaderEntry, selectHoldingCells, selectMedianHoldingDHTOps, selectRedundancyFactor, selectUniqueDHTOpsCount };
+class HolochainPlaygroundGoldenLayout extends HolochainPlaygroundContainer {
+    render() {
+        return html$1 `
+      <golden-layout
+        .scopedElements=${{
+            'source-chain': SourceChain,
+            'dht-cells': DhtCells,
+            'conductor-admin': ConductorAdmin,
+            'call-zome-fns': CallZomeFns,
+            'entry-contents': EntryContents,
+            'entry-graph': EntryGraph,
+            'happs-manager': HappsManager,
+            'zome-fns-results': ZomeFnsResults,
+        }}
+      >
+        <golden-layout-register component-type="source-chain">
+          <template>
+            <source-chain style="height: 100%; width: 100%;"></source-chain>
+          </template>
+        </golden-layout-register>
+        <golden-layout-register component-type="dht-cells">
+          <template>
+            <dht-cells style="height: 100%; width: 100%;"></dht-cells>
+          </template>
+        </golden-layout-register>
+        <golden-layout-register component-type="conductor-admin">
+          <template>
+            <conductor-admin style="height: 100%; width: 100%;"></conductor-admin>
+          </template>
+        </golden-layout-register>
+        <golden-layout-register component-type="call-zome-fns">
+          <template>
+            <call-zome-fns style="height: 100%; width: 100%;"></call-zome-fns>
+          </template>
+        </golden-layout-register>
+        <golden-layout-register component-type="entry-contents">
+          <template>
+            <entry-contents style="height: 100%; width: 100%;"></entry-contents>
+          </template>
+        </golden-layout-register>
+        <golden-layout-register component-type="entry-graph">
+          <template>
+            <entry-graph style="height: 100%; width: 100%;"></entry-graph>
+          </template>
+        </golden-layout-register>
+        <golden-layout-register component-type="happs-manager">
+          <template>
+            <happs-manager style="height: 100%; width: 100%;"></happs-manager>
+          </template>
+        </golden-layout-register>
+        <golden-layout-register component-type="zome-fns-results">
+          <template>
+            <zome-fns-results style="height: 100%; width: 100%;"></zome-fns-results>
+          </template>
+        </golden-layout-register>
+
+        ${super.render()}
+      </golden-layout>
+    `;
+    }
+    static get scopedElements() {
+        return {
+            ...HolochainPlaygroundContainer.scopedElements,
+            'golden-layout': GoldenLayout,
+            'golden-layout-register': GoldenLayoutRegister,
+        };
+    }
+}
+
+const GOLDEN_LAYOUT_COMPONENTS = [
+    {
+        name: 'Source Chain',
+        tag: 'source-chain',
+    },
+    {
+        name: 'Dht Cells',
+        tag: 'dht-cells',
+    },
+    {
+        name: 'Conductor Admin',
+        tag: 'conductor-admin',
+    },
+    {
+        name: 'Call Zome Fns',
+        tag: 'call-zome-fns',
+    },
+    {
+        name: 'Entry Contents',
+        tag: 'entry-contents',
+    },
+    {
+        name: 'Entry Graph',
+        tag: 'entry-graph',
+    },
+    {
+        name: 'Happs Manager',
+        tag: 'happs-manager',
+    },
+    {
+        name: 'Zome Fns Results',
+        tag: 'zome-fns-results',
+    },
+];
+
+class HolochainPlaygroundGoldenLayoutMenu extends ScopedElementsMixin(LitElement) {
+    renderItem(label, componentType) {
+        return html$1 `
+      <golden-layout-drag-source component-type="${componentType}">
+        <mwc-list-item>${label}</mwc-list-item>
+      </golden-layout-drag-source>
+    `;
+    }
+    render() {
+        return html$1 `
+      <span class="title">Blocks</span>
+      <mwc-list
+        >${GOLDEN_LAYOUT_COMPONENTS.map((component) => this.renderItem(component.name, component.tag))}</mwc-list
+      >
+    `;
+    }
+    static get scopedElements() {
+        return {
+            'mwc-list': List$1,
+            'mwc-list-item': ListItem,
+            'golden-layout-drag-source': GoldenLayoutDragSource,
+        };
+    }
+    static get styles() {
+        return [sharedStyles];
+    }
+}
+
+export { CallFns, CallZomeFns, CellTasks, CellsController, ConductorAdmin, CopyableHash, DhtCells, DhtShard, DhtStats, EntryContents, EntryGraph, GOLDEN_LAYOUT_COMPONENTS, HappsManager, HelpButton, HolochainPlaygroundContainer, HolochainPlaygroundGoldenLayout, HolochainPlaygroundGoldenLayoutMenu, PlaygroundElement, RunSteps, SelectActiveDna, SourceChain, ZomeFnsResults, buildHappBundle, selectAllCells, selectAllDNAs, selectCell, selectCells, selectConductorByAgent, selectFromCAS, selectGlobalDHTOpsCount, selectHeaderEntry, selectHoldingCells, selectMedianHoldingDHTOps, selectRedundancyFactor, selectUniqueDHTOpsCount };
 //# sourceMappingURL=index.js.map

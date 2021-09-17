@@ -1,10 +1,10 @@
 import { Cell, Workflow, WorkflowType, NetworkRequestInfo } from '@holochain-playground/core';
 import { Subject } from 'rxjs';
-import { Card } from 'scoped-material-components/mwc-card';
-import { Icon } from 'scoped-material-components/mwc-icon';
-import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
-import { List } from 'scoped-material-components/mwc-list';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { Card } from '@scoped-elements/material-web';
+import { Icon } from '@scoped-elements/material-web';
+import { LinearProgress } from '@scoped-elements/material-web';
+import { List } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
 import { CellObserver } from '../../base/cell-observer';
 import { PlaygroundElement } from '../../base/playground-element';
 export declare class CellTasks extends PlaygroundElement implements CellObserver {
@@ -34,7 +34,7 @@ export declare class CellTasks extends PlaygroundElement implements CellObserver
     renderListItem(icon: string, primary: string, secondary: string, color?: string): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
     static get styles(): import("lit").CSSResultGroup[];
-    static elementDefinitions: {
+    static get scopedElements(): {
         'mwc-card': typeof Card;
         'mwc-list': typeof List;
         'mwc-icon': typeof Icon;

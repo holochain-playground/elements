@@ -1,12 +1,12 @@
-import { Checkbox } from 'scoped-material-components/mwc-checkbox';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { Formfield } from 'scoped-material-components/mwc-formfield';
-import { Card } from 'scoped-material-components/mwc-card';
+import { Checkbox } from '@scoped-elements/material-web';
+import { IconButton } from '@scoped-elements/material-web';
+import { Formfield } from '@scoped-elements/material-web';
+import { Card } from '@scoped-elements/material-web';
 import { HelpButton } from '../helpers/help-button';
-import { Menu } from 'scoped-material-components/mwc-menu';
-import { Button } from 'scoped-material-components/mwc-button';
-import { Icon } from 'scoped-material-components/mwc-icon';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { Menu } from '@scoped-elements/material-web';
+import { Button } from '@scoped-elements/material-web';
+import { Icon } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CellObserver } from '../../base/cell-observer';
 import { CellsController } from '../../base/cells-controller';
@@ -37,7 +37,7 @@ export declare class EntryGraph extends PlaygroundElement implements CellObserve
     renderHelp(): import("lit-html").TemplateResult<1>;
     renderFilter(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
-    static elementDefinitions: {
+    static get scopedElements(): {
         'mwc-checkbox': typeof Checkbox;
         'mwc-formfield': typeof Formfield;
         'mwc-icon-button': typeof IconButton;

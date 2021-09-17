@@ -1,7 +1,7 @@
-import { Dialog } from 'scoped-material-components/mwc-dialog';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { TextField } from 'scoped-material-components/mwc-textfield';
-import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
+import { Dialog } from '@scoped-elements/material-web';
+import { IconButton } from '@scoped-elements/material-web';
+import { TextField } from '@scoped-elements/material-web';
+import { LinearProgress } from '@scoped-elements/material-web';
 import { PlaygroundElement } from '../base/playground-element';
 export declare class DhtStats extends PlaygroundElement {
     private statsHelp;
@@ -16,7 +16,7 @@ export declare class DhtStats extends PlaygroundElement {
     republish(): Promise<void>;
     updateDHTStats(): void;
     render(): import("lit-html").TemplateResult<1>;
-    static elementDefinitions: {
+    static get scopedElements(): {
         'mwc-linear-progress': typeof LinearProgress;
         'mwc-textfield': typeof TextField;
         'mwc-icon-button': typeof IconButton;

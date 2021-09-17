@@ -1,16 +1,16 @@
-import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
-import { Button } from 'scoped-material-components/mwc-button';
+import { MenuSurface } from '@scoped-elements/material-web';
+import { Button } from '@scoped-elements/material-web';
 import { NetworkRequestType, WorkflowType, NetworkRequestInfo } from '@holochain-playground/core';
-import { Card } from 'scoped-material-components/mwc-card';
-import { Slider } from 'scoped-material-components/mwc-slider';
-import { Switch } from 'scoped-material-components/mwc-switch';
+import { Card } from '@scoped-elements/material-web';
+import { Slider } from '@scoped-elements/material-web';
+import { Switch } from '@scoped-elements/material-web';
 import { CellTasks } from '../helpers/cell-tasks';
 import { HelpButton } from '../helpers/help-button';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { Formfield } from 'scoped-material-components/mwc-formfield';
-import { Icon } from 'scoped-material-components/mwc-icon';
-import { Menu } from 'scoped-material-components/mwc-menu';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { IconButton } from '@scoped-elements/material-web';
+import { Formfield } from '@scoped-elements/material-web';
+import { Icon } from '@scoped-elements/material-web';
+import { Menu } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CellObserver } from '../../base/cell-observer';
 import { CopyableHash } from '../helpers/copyable-hash';
@@ -49,7 +49,7 @@ export declare class DhtCells extends PlaygroundElement implements CellObserver 
     renderBottomToolbar(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
     static get styles(): import("lit").CSSResultGroup[];
-    static elementDefinitions: {
+    static get scopedElements(): {
         'mwc-card': typeof Card;
         'mwc-menu-surface': typeof MenuSurface;
         'mwc-button': typeof Button;

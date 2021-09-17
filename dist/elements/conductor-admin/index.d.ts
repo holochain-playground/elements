@@ -1,14 +1,14 @@
 import { PropertyValues } from 'lit';
-import { Card } from 'scoped-material-components/mwc-card';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { Tab } from 'scoped-material-components/mwc-tab';
-import { TabBar } from 'scoped-material-components/mwc-tab-bar';
+import { Card } from '@scoped-elements/material-web';
+import { IconButton } from '@scoped-elements/material-web';
+import { Tab } from '@scoped-elements/material-web';
+import { TabBar } from '@scoped-elements/material-web';
 import { PlaygroundElement } from '../../base/playground-element';
 import { Conductor } from '@holochain-playground/core';
-import { List } from 'scoped-material-components/mwc-list';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { List } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
 import { CopyableHash } from '../helpers/copyable-hash';
-import { Button } from 'scoped-material-components/mwc-button';
+import { Button } from '@scoped-elements/material-web';
 import { HelpButton } from '../helpers/help-button';
 import { CallFns } from '../helpers/call-functions';
 import { GridElement } from '@vaadin/vaadin-grid';
@@ -26,7 +26,7 @@ export declare class ConductorAdmin extends PlaygroundElement {
     renderContent(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
     static get styles(): import("lit").CSSResultGroup[];
-    static elementDefinitions: {
+    static get scopedElements(): {
         'copyable-hash': typeof CopyableHash;
         'call-functions': typeof CallFns;
         'mwc-tab': typeof Tab;

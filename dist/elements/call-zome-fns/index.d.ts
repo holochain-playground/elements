@@ -1,10 +1,10 @@
 import { Dictionary } from '@holochain-open-dev/core-types';
 import { SimulatedZome, Cell } from '@holochain-playground/core';
-import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
-import { Icon } from 'scoped-material-components/mwc-icon';
-import { Tab } from 'scoped-material-components/mwc-tab';
-import { TabBar } from 'scoped-material-components/mwc-tab-bar';
-import { Card } from 'scoped-material-components/mwc-card';
+import { CircularProgress } from '@scoped-elements/material-web';
+import { Icon } from '@scoped-elements/material-web';
+import { Tab } from '@scoped-elements/material-web';
+import { TabBar } from '@scoped-elements/material-web';
+import { Card } from '@scoped-elements/material-web';
 import { CopyableHash } from '../helpers/copyable-hash';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CellsController } from '../../base/cells-controller';
@@ -27,7 +27,7 @@ export declare class CallZomeFns extends PlaygroundElement implements CellObserv
     renderActiveZomeFns(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
     static get styles(): import("lit").CSSResultGroup[];
-    static elementDefinitions: {
+    static get scopedElements(): {
         'mwc-circular-progress': typeof CircularProgress;
         'mwc-icon': typeof Icon;
         'mwc-tab': typeof Tab;

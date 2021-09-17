@@ -1,9 +1,9 @@
 import { html, css } from 'lit';
 import { PlaygroundElement } from '../../base/playground-element';
 import { selectAllDNAs } from '../../base/selectors';
-import { Select } from 'scoped-material-components/mwc-select';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
-import { Card } from 'scoped-material-components/mwc-card';
+import { Select } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
+import { Card } from '@scoped-elements/material-web';
 import { sharedStyles } from '../utils/shared-styles';
 
 export class SelectActiveDna extends PlaygroundElement {
@@ -54,9 +54,11 @@ export class SelectActiveDna extends PlaygroundElement {
     ];
   }
 
-  static elementDefinitions = {
-    'mwc-list-item': ListItem,
-    'mwc-select': Select,
-    'mwc-card': Card,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-list-item': ListItem,
+      'mwc-select': Select,
+      'mwc-card': Card,
+    };
+  }
 }

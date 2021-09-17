@@ -1,6 +1,6 @@
 import { LitElement } from 'lit';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
-declare const EditableField_base: typeof LitElement;
+import { IconButton } from '@scoped-elements/material-web';
+declare const EditableField_base: typeof LitElement & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types/src/types").ScopedElementsHost>;
 export declare class EditableField extends EditableField_base {
     value: any;
     _editing: boolean;
@@ -11,7 +11,7 @@ export declare class EditableField extends EditableField_base {
     firstUpdated(): void;
     setupField(fieldSlot: HTMLSlotElement): void;
     render(): import("lit-html").TemplateResult<1>;
-    static elementDefinitions: {
+    static get scopedElements(): {
         'mwc-icon-button': typeof IconButton;
     };
     static styles: import("lit").CSSResultGroup[];

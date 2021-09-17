@@ -1,6 +1,8 @@
-import { Snackbar } from 'scoped-material-components/mwc-snackbar';
-import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import {
+  IconButton,
+  Snackbar,
+  CircularProgress,
+} from '@scoped-elements/material-web';
 import { ProviderMixin } from 'lit-element-context';
 
 import { LitElement, html, css, PropertyValues } from 'lit';
@@ -19,7 +21,7 @@ import {
   Dictionary,
   DnaHashB64,
 } from '@holochain-open-dev/core-types';
-import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
+import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import {
   selectAllCells,
   selectCell,
@@ -28,7 +30,7 @@ import {
 } from './selectors';
 import { LightDnaSlot, LightHappBundle } from './context';
 
-export class HolochainPlaygroundContainer extends ScopedRegistryHost(
+export class HolochainPlaygroundContainer extends ScopedElementsMixin(
   ProviderMixin(LitElement) as new () => LitElement
 ) {
   @property({ type: Number })
@@ -181,9 +183,11 @@ export class HolochainPlaygroundContainer extends ScopedRegistryHost(
     `;
   }
 
-  static elementDefinitions = {
-    'mwc-circular-progress': CircularProgress,
-    'mwc-snackbar': Snackbar,
-    'mwc-icon-button': IconButton,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-circular-progress': CircularProgress,
+      'mwc-snackbar': Snackbar,
+      'mwc-icon-button': IconButton,
+    };
+  }
 }

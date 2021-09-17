@@ -1,11 +1,11 @@
-import { ScopedRegistryHost } from '@lit-labs/scoped-registry-mixin';
+import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { html, LitElement } from 'lit';
 import { property, query } from 'lit/decorators.js';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { Snackbar } from 'scoped-material-components/mwc-snackbar';
+import { IconButton } from '@scoped-elements/material-web';
+import { Snackbar } from '@scoped-elements/material-web';
 import { sharedStyles } from '../utils/shared-styles';
 
-export class CopyableHash extends ScopedRegistryHost(LitElement) {
+export class CopyableHash extends ScopedElementsMixin(LitElement) {
   @property({ type: String })
   hash!: string;
   @property({ type: Number })
@@ -42,8 +42,10 @@ export class CopyableHash extends ScopedRegistryHost(LitElement) {
     return sharedStyles;
   }
 
-  static elementDefinitions = {
-    'mwc-icon-button': IconButton,
-    'mwc-snackbar': Snackbar,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-icon-button': IconButton,
+      'mwc-snackbar': Snackbar,
+    };
+  }
 }

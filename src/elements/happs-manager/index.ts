@@ -1,18 +1,18 @@
 import { html, css, PropertyValues } from 'lit';
 import { PlaygroundElement } from '../../base/playground-element';
-import { Select } from 'scoped-material-components/mwc-select';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
-import { Card } from 'scoped-material-components/mwc-card';
+import { Select } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
+import { Card } from '@scoped-elements/material-web';
 import { sharedStyles } from '../utils/shared-styles';
-import { Drawer } from 'scoped-material-components/mwc-drawer';
+import { Drawer } from '@scoped-elements/material-web';
 import { state } from 'lit/decorators.js';
-import { List } from 'scoped-material-components/mwc-list';
+import { List } from '@scoped-elements/material-web';
 import { LightDnaSlot, LightHappBundle } from '../../base/context';
-import { TextField } from 'scoped-material-components/mwc-textfield';
-import { Button } from 'scoped-material-components/mwc-button';
+import { TextField } from '@scoped-elements/material-web';
+import { Button } from '@scoped-elements/material-web';
 import { ref } from 'lit/directives/ref.js';
 import { CopyableHash } from '../helpers/copyable-hash';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import { IconButton } from '@scoped-elements/material-web';
 import { cloneDeep, uniq } from 'lodash-es';
 import { classMap } from 'lit/directives/class-map.js';
 
@@ -429,15 +429,17 @@ export class HappsManager extends PlaygroundElement {
     ];
   }
 
-  static elementDefinitions = {
-    'mwc-list-item': ListItem,
-    'mwc-icon-button': IconButton,
-    'mwc-textfield': TextField,
-    'mwc-list': List,
-    'copyable-hash': CopyableHash,
-    'mwc-select': Select,
-    'mwc-card': Card,
-    'mwc-button': Button,
-    'mwc-drawer': Drawer,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-list-item': ListItem,
+      'mwc-icon-button': IconButton,
+      'mwc-textfield': TextField,
+      'mwc-list': List,
+      'copyable-hash': CopyableHash,
+      'mwc-select': Select,
+      'mwc-card': Card,
+      'mwc-button': Button,
+      'mwc-drawer': Drawer,
+    };
+  }
 }

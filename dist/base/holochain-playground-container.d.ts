@@ -1,11 +1,9 @@
-import { Snackbar } from 'scoped-material-components/mwc-snackbar';
-import { CircularProgress } from 'scoped-material-components/mwc-circular-progress';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import { IconButton, Snackbar, CircularProgress } from '@scoped-elements/material-web';
 import { LitElement, PropertyValues } from 'lit';
 import { Conductor, SimulatedDna, SimulatedHappBundle } from '@holochain-playground/core';
 import { AgentPubKeyB64, Dictionary, DnaHashB64 } from '@holochain-open-dev/core-types';
 import { LightHappBundle } from './context';
-declare const HolochainPlaygroundContainer_base: new () => LitElement;
+declare const HolochainPlaygroundContainer_base: (new () => LitElement) & import("@open-wc/dedupe-mixin").Constructor<import("@open-wc/scoped-elements/types/src/types").ScopedElementsHost>;
 export declare class HolochainPlaygroundContainer extends HolochainPlaygroundContainer_base {
     numberOfSimulatedConductors: number;
     simulatedHapp: SimulatedHappBundle;
@@ -26,7 +24,7 @@ export declare class HolochainPlaygroundContainer extends HolochainPlaygroundCon
     showMessage(message: string): void;
     renderSnackbar(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
-    static elementDefinitions: {
+    static get scopedElements(): {
         'mwc-circular-progress': typeof CircularProgress;
         'mwc-snackbar': typeof Snackbar;
         'mwc-icon-button': typeof IconButton;

@@ -11,10 +11,10 @@ import {
   selectCells,
 } from '../base/selectors';
 import { sharedStyles } from './utils/shared-styles';
-import { Dialog } from 'scoped-material-components/mwc-dialog';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { TextField } from 'scoped-material-components/mwc-textfield';
-import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
+import { Dialog } from '@scoped-elements/material-web';
+import { IconButton } from '@scoped-elements/material-web';
+import { TextField } from '@scoped-elements/material-web';
+import { LinearProgress } from '@scoped-elements/material-web';
 import {
   createConductors,
   Conductor,
@@ -218,10 +218,12 @@ TODO: handle gossip at the core layer
     `;
   }
 
-  static elementDefinitions = {
-    'mwc-linear-progress': LinearProgress,
-    'mwc-textfield': TextField,
-    'mwc-icon-button': IconButton,
-    'mwc-dialog': Dialog,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-linear-progress': LinearProgress,
+      'mwc-textfield': TextField,
+      'mwc-icon-button': IconButton,
+      'mwc-dialog': Dialog,
+    };
+  }
 }

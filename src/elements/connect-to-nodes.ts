@@ -1,10 +1,12 @@
 import { html, css } from 'lit';
 import { state } from 'lit/decorators.js';
 
-import { TextField } from 'scoped-material-components/mwc-textfield';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { Button } from 'scoped-material-components/mwc-button';
-import { Dialog } from 'scoped-material-components/mwc-dialog';
+import {
+  TextField,
+  IconButton,
+  Button,
+  Dialog,
+} from '@scoped-elements/material-web';
 import { PlaygroundElement } from '../base/playground-element';
 //import { checkConnection } from '../processors/connect-to-conductors';
 
@@ -153,10 +155,12 @@ export class ConnectToNodes extends PlaygroundElement {
     `;
   }
 
-  static elementDefinitions = {
-    'mwc-button': Button,
-    'mwc-dialog': Dialog,
-    'mwc-textfield': TextField,
-    'mwc-icon-button': IconButton,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-button': Button,
+      'mwc-dialog': Dialog,
+      'mwc-textfield': TextField,
+      'mwc-icon-button': IconButton,
+    };
+  }
 }

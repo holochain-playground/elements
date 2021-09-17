@@ -2,7 +2,7 @@ import { PropertyValues } from 'lit';
 import { Cell } from '@holochain-playground/core';
 import { HelpButton } from '../helpers/help-button';
 import { PlaygroundElement } from '../../base/playground-element';
-import { Card } from 'scoped-material-components/mwc-card';
+import { Card } from '@scoped-elements/material-web';
 import { CellObserver } from '../../base/cell-observer';
 import { CellsController } from '../../base/cells-controller';
 import { CopyableHash } from '../helpers/copyable-hash';
@@ -22,7 +22,7 @@ export declare class SourceChain extends PlaygroundElement implements CellObserv
     renderHelp(): import("lit-html").TemplateResult<1>;
     render(): import("lit-html").TemplateResult<1>;
     static get styles(): import("lit").CSSResultGroup[];
-    static elementDefinitions: {
+    static get scopedElements(): {
         'mwc-card': typeof Card;
         'copyable-hash': typeof CopyableHash;
         'help-button': typeof HelpButton;

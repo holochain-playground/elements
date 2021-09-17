@@ -4,8 +4,8 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import cytoscape from 'cytoscape';
-import { MenuSurface } from 'scoped-material-components/mwc-menu-surface';
-import { Button } from 'scoped-material-components/mwc-button';
+import { MenuSurface } from '@scoped-elements/material-web';
+import { Button } from '@scoped-elements/material-web';
 import { DHTOp, Dictionary } from '@holochain-open-dev/core-types';
 import {
   sleep,
@@ -14,9 +14,9 @@ import {
   PublishRequestInfo,
   NetworkRequestInfo,
 } from '@holochain-playground/core';
-import { Card } from 'scoped-material-components/mwc-card';
-import { Slider } from 'scoped-material-components/mwc-slider';
-import { Switch } from 'scoped-material-components/mwc-switch';
+import { Card } from '@scoped-elements/material-web';
+import { Slider } from '@scoped-elements/material-web';
+import { Switch } from '@scoped-elements/material-web';
 import { CellTasks } from '../helpers/cell-tasks';
 import { HelpButton } from '../helpers/help-button';
 import { CellsController } from '../../base/cells-controller';
@@ -24,12 +24,12 @@ import { selectAllCells, selectHoldingCells } from '../../base/selectors';
 import { sharedStyles } from '../utils/shared-styles';
 import { dhtCellsNodes, neighborsEdges } from './processors';
 import { graphStyles, layoutConfig } from './graph';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { Formfield } from 'scoped-material-components/mwc-formfield';
-import { Icon } from 'scoped-material-components/mwc-icon';
+import { IconButton } from '@scoped-elements/material-web';
+import { Formfield } from '@scoped-elements/material-web';
+import { Icon } from '@scoped-elements/material-web';
 import { Subject } from 'rxjs';
-import { Menu } from 'scoped-material-components/mwc-menu';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { Menu } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
 import { uniq } from 'lodash-es';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CellObserver } from '../../base/cell-observer';
@@ -101,6 +101,14 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
       this._cy.resize();
       this.requestUpdate();
     });
+
+    new ResizeObserver(() => {
+      setTimeout(() => {
+        this._cy.resize();
+        if (this._layout) this._layout.run();
+        this.requestUpdate();
+      });
+    }).observe(this);
 
     this._cy = cytoscape({
       container: this._graph,
@@ -224,14 +232,18 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
   }
 
   setupGraphNodes() {
-    const nodes = dhtCellsNodes(this.cellsController.observedCells);
+    if (!this._cy) return;
+
+    const observedCells = this.cellsController.observedCells
+
+    const nodes = dhtCellsNodes(observedCells);
 
     if (this._layout) this._layout.stop();
     this._cy.remove('node');
     this._cy.remove('edge');
 
     this._cy.add(nodes);
-    const neighbors = neighborsEdges(this.cellsController.observedCells);
+    const neighbors = neighborsEdges(observedCells);
     this._cy.add(neighbors);
 
     this._layout = this._cy.elements().makeLayout(layoutConfig);
@@ -247,7 +259,7 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
     super.updated(changedValues);
 
     const neighbors = neighborsEdges(this.cellsController.observedCells);
-    if (this._neighborEdges.length != neighbors.length) {
+    if (this._neighborEdges.length != neighbors.length && this._cy.nodes().length > 0) {
       this._neighborEdges = neighbors;
       this._cy.remove('edge');
       this._cy.add(neighbors);
@@ -530,19 +542,21 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
     ];
   }
 
-  static elementDefinitions = {
-    'mwc-card': Card,
-    'mwc-menu-surface': MenuSurface,
-    'mwc-button': Button,
-    'mwc-icon': Icon,
-    'mwc-menu': Menu,
-    'mwc-list-item': ListItem,
-    'mwc-slider': Slider,
-    'mwc-switch': Switch,
-    'mwc-formfield': Formfield,
-    'mwc-icon-button': IconButton,
-    'copyable-hash': CopyableHash,
-    'holochain-playground-help-button': HelpButton,
-    'holochain-playground-cell-tasks': CellTasks,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-card': Card,
+      'mwc-menu-surface': MenuSurface,
+      'mwc-button': Button,
+      'mwc-icon': Icon,
+      'mwc-menu': Menu,
+      'mwc-list-item': ListItem,
+      'mwc-slider': Slider,
+      'mwc-switch': Switch,
+      'mwc-formfield': Formfield,
+      'mwc-icon-button': IconButton,
+      'copyable-hash': CopyableHash,
+      'holochain-playground-help-button': HelpButton,
+      'holochain-playground-cell-tasks': CellTasks,
+    };
+  }
 }

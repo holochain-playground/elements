@@ -3,20 +3,20 @@ import { state, property, query } from 'lit/decorators.js';
 
 import cytoscape from 'cytoscape';
 
-import { Checkbox } from 'scoped-material-components/mwc-checkbox';
-import { IconButton } from 'scoped-material-components/mwc-icon-button';
-import { Formfield } from 'scoped-material-components/mwc-formfield';
-import { Card } from 'scoped-material-components/mwc-card';
+import { Checkbox } from '@scoped-elements/material-web';
+import { IconButton } from '@scoped-elements/material-web';
+import { Formfield } from '@scoped-elements/material-web';
+import { Card } from '@scoped-elements/material-web';
 
 import { allEntries } from './processors';
 import { selectAllCells, selectCell } from '../../base/selectors';
 import { sharedStyles } from '../utils/shared-styles';
 import { isEqual } from 'lodash-es';
 import { HelpButton } from '../helpers/help-button';
-import { Menu } from 'scoped-material-components/mwc-menu';
-import { Button } from 'scoped-material-components/mwc-button';
-import { Icon } from 'scoped-material-components/mwc-icon';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { Menu } from '@scoped-elements/material-web';
+import { Button } from '@scoped-elements/material-web';
+import { Icon } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
 import cola from 'cytoscape-cola';
 import { graphStyles } from './graph';
 import { PlaygroundElement } from '../../base/playground-element';
@@ -288,16 +288,18 @@ export class EntryGraph extends PlaygroundElement implements CellObserver {
     `;
   }
 
-  static elementDefinitions = {
-    'mwc-checkbox': Checkbox,
-    'mwc-formfield': Formfield,
-    'mwc-icon-button': IconButton,
-    'copyable-hash': CopyableHash,
-    'mwc-card': Card,
-    'mwc-menu': Menu,
-    'mwc-icon': Icon,
-    'mwc-list-item': ListItem,
-    'mwc-button': Button,
-    'holochain-playground-help-button': HelpButton,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-checkbox': Checkbox,
+      'mwc-formfield': Formfield,
+      'mwc-icon-button': IconButton,
+      'copyable-hash': CopyableHash,
+      'mwc-card': Card,
+      'mwc-menu': Menu,
+      'mwc-icon': Icon,
+      'mwc-list-item': ListItem,
+      'mwc-button': Button,
+      'holochain-playground-help-button': HelpButton,
+    };
+  }
 }

@@ -13,11 +13,11 @@ import { styleMap } from 'lit-html/directives/style-map.js';
 import { property, state } from 'lit/decorators.js';
 
 import { Subject } from 'rxjs';
-import { Card } from 'scoped-material-components/mwc-card';
-import { Icon } from 'scoped-material-components/mwc-icon';
-import { LinearProgress } from 'scoped-material-components/mwc-linear-progress';
-import { List } from 'scoped-material-components/mwc-list';
-import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { Card } from '@scoped-elements/material-web';
+import { Icon } from '@scoped-elements/material-web';
+import { LinearProgress } from '@scoped-elements/material-web';
+import { List } from '@scoped-elements/material-web';
+import { ListItem } from '@scoped-elements/material-web';
 import { CellObserver } from '../../base/cell-observer';
 import { CellsController } from '../../base/cells-controller';
 import { PlaygroundElement } from '../../base/playground-element';
@@ -358,11 +358,13 @@ export class CellTasks extends PlaygroundElement implements CellObserver {
     ];
   }
 
-  static elementDefinitions = {
-    'mwc-card': Card,
-    'mwc-list': List,
-    'mwc-icon': Icon,
-    'mwc-list-item': ListItem,
-    'mwc-linear-progress': LinearProgress,
-  };
+  static get scopedElements() {
+    return {
+      'mwc-card': Card,
+      'mwc-list': List,
+      'mwc-icon': Icon,
+      'mwc-list-item': ListItem,
+      'mwc-linear-progress': LinearProgress,
+    };
+  }
 }
