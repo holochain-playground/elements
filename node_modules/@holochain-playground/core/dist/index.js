@@ -2,6 +2,31 @@ import { serializeHash, getSysMetaValHeaderHash, DHTOpType, HeaderType, EntryDht
 import { uniq, isEqual, cloneDeep } from 'lodash-es';
 import { uniqueNamesGenerator, names } from 'unique-names-generator';
 
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+
+function __awaiter(thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+}
+
 var ERROR_MSG_INPUT = 'Input must be an string, Buffer or Uint8Array';
 
 // For convenience, let people hash a string, not just a Uint8Array
@@ -935,212 +960,228 @@ function query_dht_ops(integratedDHTOps, from, to, dht_arc) {
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain_cascade/src/authority.rs
 class Authority {
-    state;
-    p2p;
     constructor(state, p2p) {
         this.state = state;
         this.p2p = p2p;
     }
-    async handle_get_entry(entry_hash, options) {
-        const entry = this.state.CAS[entry_hash];
-        if (!entry)
-            return undefined;
-        const allHeaders = getHeadersForEntry(this.state, entry_hash);
-        const entryDetails = getEntryDetails(this.state, entry_hash);
-        const createHeader = allHeaders.find(header => header.header.content.entry_type);
-        let entry_type = undefined;
-        if (createHeader)
-            entry_type = createHeader.header.content.entry_type;
-        return {
-            entry,
-            entry_type: entry_type,
-            deletes: entryDetails.deletes,
-            updates: entryDetails.updates,
-            live_headers: entryDetails.headers,
-        };
+    handle_get_entry(entry_hash, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const entry = this.state.CAS[entry_hash];
+            if (!entry)
+                return undefined;
+            const allHeaders = getHeadersForEntry(this.state, entry_hash);
+            const entryDetails = getEntryDetails(this.state, entry_hash);
+            const createHeader = allHeaders.find(header => header.header.content.entry_type);
+            let entry_type = undefined;
+            if (createHeader)
+                entry_type = createHeader.header.content.entry_type;
+            return {
+                entry,
+                entry_type: entry_type,
+                deletes: entryDetails.deletes,
+                updates: entryDetails.updates,
+                live_headers: entryDetails.headers,
+            };
+        });
     }
-    async handle_get_element(header_hash, options) {
-        if (this.state.metadata.misc_meta[header_hash] !== 'StoreElement') {
-            return undefined;
-        }
-        const header = this.state.CAS[header_hash];
-        let maybe_entry = undefined;
-        let validation_status = ValidationStatus.Valid;
-        if (header) {
-            if (header.header.content.entry_hash) {
-                const entryHash = header.header
-                    .content.entry_hash;
-                maybe_entry = this.state.CAS[entryHash];
+    handle_get_element(header_hash, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.state.metadata.misc_meta[header_hash] !== 'StoreElement') {
+                return undefined;
             }
-        }
-        else {
-            validation_status = ValidationStatus.Rejected;
-        }
-        const modifiers = getHeaderModifiers(this.state, header_hash);
-        return {
-            deletes: modifiers.deletes,
-            updates: modifiers.updates,
-            signed_header: header,
-            validation_status,
-            maybe_entry,
-        };
+            const header = this.state.CAS[header_hash];
+            let maybe_entry = undefined;
+            let validation_status = ValidationStatus.Valid;
+            if (header) {
+                if (header.header.content.entry_hash) {
+                    const entryHash = header.header
+                        .content.entry_hash;
+                    maybe_entry = this.state.CAS[entryHash];
+                }
+            }
+            else {
+                validation_status = ValidationStatus.Rejected;
+            }
+            const modifiers = getHeaderModifiers(this.state, header_hash);
+            return {
+                deletes: modifiers.deletes,
+                updates: modifiers.updates,
+                signed_header: header,
+                validation_status,
+                maybe_entry,
+            };
+        });
     }
-    async handle_get_links(base_address, options) {
-        return getLinksForEntry(this.state, base_address);
+    handle_get_links(base_address, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return getLinksForEntry(this.state, base_address);
+        });
     }
 }
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain_cascade/src/lib.rs#L1523
 // TODO: refactor Cascade when sqlite gets merged
 class Cascade {
-    state;
-    p2p;
     constructor(state, p2p) {
         this.state = state;
         this.p2p = p2p;
     }
     // TODO refactor when sqlite gets merged
-    async retrieve_header(hash, options) {
-        if (getHashType(hash) !== HashType.HEADER)
-            throw new Error(`Trying to retrieve a header with a hash of another type`);
-        const isPresent = this.state.CAS[hash];
-        // TODO only return local if GetOptions::content() is given
-        if (isPresent && options.strategy === GetStrategy.Contents) {
-            const signed_header = this.state.CAS[hash];
-            return signed_header;
-        }
-        const result = await this.p2p.get(hash, options);
-        if (result && result.signed_header) {
-            return result.signed_header;
-        }
-        else
-            return undefined;
-    }
-    async retrieve_entry(hash, options) {
-        const hashType = getHashType(hash);
-        if (hashType !== HashType.ENTRY && hashType !== HashType.AGENT)
-            throw new Error(`Trying to retrieve a entry with a hash of another type`);
-        const isPresent = this.state.CAS[hash];
-        if (isPresent && options.strategy === GetStrategy.Contents) {
-            const entry = this.state.CAS[hash];
-            return entry;
-        }
-        const result = await this.p2p.get(hash, options);
-        if (result && result.entry) {
-            return result.entry;
-        }
-        else
-            return undefined;
-    }
-    async dht_get(hash, options) {
-        // TODO rrDHT arcs
-        new Authority(this.state, this.p2p);
-        const isPresent = this.state.CAS[hash];
-        // TODO only return local if GetOptions::content() is given
-        if (isPresent && options.strategy === GetStrategy.Contents) {
-            const hashType = getHashType(hash);
-            if (hashType === HashType.ENTRY) {
-                const entry = this.state.CAS[hash];
-                const signed_header = Object.values(this.state.CAS).find(header => header.header &&
-                    header.header.content
-                        .entry_hash === hash);
-                return {
-                    entry,
-                    signed_header,
-                };
-            }
-            if (hashType === HashType.HEADER) {
+    retrieve_header(hash, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (getHashType(hash) !== HashType.HEADER)
+                throw new Error(`Trying to retrieve a header with a hash of another type`);
+            const isPresent = this.state.CAS[hash];
+            // TODO only return local if GetOptions::content() is given
+            if (isPresent && options.strategy === GetStrategy.Contents) {
                 const signed_header = this.state.CAS[hash];
-                const entry = this.state.CAS[signed_header.header.content
-                    .entry_hash];
+                return signed_header;
+            }
+            const result = yield this.p2p.get(hash, options);
+            if (result && result.signed_header) {
+                return result.signed_header;
+            }
+            else
+                return undefined;
+        });
+    }
+    retrieve_entry(hash, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const hashType = getHashType(hash);
+            if (hashType !== HashType.ENTRY && hashType !== HashType.AGENT)
+                throw new Error(`Trying to retrieve a entry with a hash of another type`);
+            const isPresent = this.state.CAS[hash];
+            if (isPresent && options.strategy === GetStrategy.Contents) {
+                const entry = this.state.CAS[hash];
+                return entry;
+            }
+            const result = yield this.p2p.get(hash, options);
+            if (result && result.entry) {
+                return result.entry;
+            }
+            else
+                return undefined;
+        });
+    }
+    dht_get(hash, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // TODO rrDHT arcs
+            new Authority(this.state, this.p2p);
+            const isPresent = this.state.CAS[hash];
+            // TODO only return local if GetOptions::content() is given
+            if (isPresent && options.strategy === GetStrategy.Contents) {
+                const hashType = getHashType(hash);
+                if (hashType === HashType.ENTRY) {
+                    const entry = this.state.CAS[hash];
+                    const signed_header = Object.values(this.state.CAS).find(header => header.header &&
+                        header.header.content
+                            .entry_hash === hash);
+                    return {
+                        entry,
+                        signed_header,
+                    };
+                }
+                if (hashType === HashType.HEADER) {
+                    const signed_header = this.state.CAS[hash];
+                    const entry = this.state.CAS[signed_header.header.content
+                        .entry_hash];
+                    return {
+                        entry,
+                        signed_header,
+                    };
+                }
+            }
+            const result = yield this.p2p.get(hash, options);
+            if (!result)
+                return undefined;
+            if (result.signed_header) {
                 return {
-                    entry,
-                    signed_header,
+                    entry: result.maybe_entry,
+                    signed_header: result.signed_header,
                 };
             }
-        }
-        const result = await this.p2p.get(hash, options);
-        if (!result)
-            return undefined;
-        if (result.signed_header) {
-            return {
-                entry: result.maybe_entry,
-                signed_header: result.signed_header,
-            };
-        }
-        else {
-            return {
-                signed_header: result.live_headers[0],
-                entry: result.entry,
-            };
-        }
+            else {
+                return {
+                    signed_header: result.live_headers[0],
+                    entry: result.entry,
+                };
+            }
+        });
     }
-    async dht_get_details(hash, options) {
-        if (getHashType(hash) === HashType.ENTRY) {
-            const entryDetails = await this.getEntryDetails(hash, options);
-            if (!entryDetails)
+    dht_get_details(hash, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (getHashType(hash) === HashType.ENTRY) {
+                const entryDetails = yield this.getEntryDetails(hash, options);
+                if (!entryDetails)
+                    return undefined;
+                return {
+                    type: DetailsType.Entry,
+                    content: entryDetails,
+                };
+            }
+            else if (getHashType(hash) === HashType.HEADER) {
+                const elementDetails = yield this.getHeaderDetails(hash, options);
+                if (!elementDetails)
+                    return undefined;
+                return {
+                    type: DetailsType.Element,
+                    content: elementDetails,
+                };
+            }
+            return undefined;
+        });
+    }
+    dht_get_links(base_address, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // TODO: check if we are an authority
+            const linksResponses = yield this.p2p.get_links(base_address, options);
+            return getLiveLinks(linksResponses);
+        });
+    }
+    getEntryDetails(entryHash, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // TODO: check if we are an authority
+            const result = yield this.p2p.get(entryHash, options);
+            if (!result)
                 return undefined;
+            if (result.live_headers === undefined)
+                throw new Error('Unreachable');
+            const getEntryFull = result;
+            const allHeaders = [
+                ...getEntryFull.deletes,
+                ...getEntryFull.updates,
+                ...getEntryFull.live_headers,
+            ];
+            const { rejected_headers, entry_dht_status } = computeDhtStatus(allHeaders);
             return {
-                type: DetailsType.Entry,
-                content: entryDetails,
+                entry: getEntryFull.entry,
+                headers: getEntryFull.live_headers,
+                deletes: getEntryFull.deletes,
+                updates: getEntryFull.updates,
+                rejected_headers,
+                entry_dht_status,
             };
-        }
-        else if (getHashType(hash) === HashType.HEADER) {
-            const elementDetails = await this.getHeaderDetails(hash, options);
-            if (!elementDetails)
+        });
+    }
+    getHeaderDetails(headerHash, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield this.p2p.get(headerHash, options);
+            if (!result)
                 return undefined;
-            return {
-                type: DetailsType.Element,
-                content: elementDetails,
+            if (result.validation_status === undefined)
+                throw new Error('Unreachable');
+            const response = result;
+            const element = {
+                entry: response.maybe_entry,
+                signed_header: response.signed_header,
             };
-        }
-        return undefined;
-    }
-    async dht_get_links(base_address, options) {
-        // TODO: check if we are an authority
-        const linksResponses = await this.p2p.get_links(base_address, options);
-        return getLiveLinks(linksResponses);
-    }
-    async getEntryDetails(entryHash, options) {
-        // TODO: check if we are an authority
-        const result = await this.p2p.get(entryHash, options);
-        if (!result)
-            return undefined;
-        if (result.live_headers === undefined)
-            throw new Error('Unreachable');
-        const getEntryFull = result;
-        const allHeaders = [
-            ...getEntryFull.deletes,
-            ...getEntryFull.updates,
-            ...getEntryFull.live_headers,
-        ];
-        const { rejected_headers, entry_dht_status } = computeDhtStatus(allHeaders);
-        return {
-            entry: getEntryFull.entry,
-            headers: getEntryFull.live_headers,
-            deletes: getEntryFull.deletes,
-            updates: getEntryFull.updates,
-            rejected_headers,
-            entry_dht_status,
-        };
-    }
-    async getHeaderDetails(headerHash, options) {
-        const result = await this.p2p.get(headerHash, options);
-        if (!result)
-            return undefined;
-        if (result.validation_status === undefined)
-            throw new Error('Unreachable');
-        const response = result;
-        const element = {
-            entry: response.maybe_entry,
-            signed_header: response.signed_header,
-        };
-        return {
-            element,
-            deletes: response.deletes,
-            updates: response.updates,
-            validation_status: response.validation_status,
-        };
+            return {
+                element,
+                deletes: response.deletes,
+                updates: response.updates,
+                validation_status: response.validation_status,
+            };
+        });
     }
 }
 
@@ -1458,62 +1499,36 @@ function buildDna(dnaHash, agentId) {
     return dna;
 }
 function buildAgentValidationPkg(state, membrane_proof) {
-    const pkg = {
-        ...buildCommon(state),
-        membrane_proof,
-        type: HeaderType.AgentValidationPkg,
-    };
+    const pkg = Object.assign(Object.assign({}, buildCommon(state)), { membrane_proof, type: HeaderType.AgentValidationPkg });
     return pkg;
 }
 function buildCreate(state, entry, entry_type) {
     const entry_hash = hashEntry(entry);
-    const create = {
-        ...buildCommon(state),
-        entry_hash,
-        entry_type,
-        type: HeaderType.Create,
-    };
+    const create = Object.assign(Object.assign({}, buildCommon(state)), { entry_hash,
+        entry_type, type: HeaderType.Create });
     return create;
 }
 function buildCreateLink(state, zome_id, base, target, tag) {
-    const create_link = {
-        ...buildCommon(state),
-        base_address: base,
-        target_address: target,
-        tag,
-        zome_id,
-        type: HeaderType.CreateLink,
-    };
+    const create_link = Object.assign(Object.assign({}, buildCommon(state)), { base_address: base, target_address: target, tag,
+        zome_id, type: HeaderType.CreateLink });
     return create_link;
 }
 function buildUpdate(state, entry, entry_type, original_entry_address, original_header_address) {
     const entry_hash = hashEntry(entry);
-    const update = {
-        ...buildCommon(state),
-        entry_hash,
+    const update = Object.assign(Object.assign({}, buildCommon(state)), { entry_hash,
         entry_type,
         original_entry_address,
-        original_header_address,
-        type: HeaderType.Update,
-    };
+        original_header_address, type: HeaderType.Update });
     return update;
 }
 function buildDelete(state, deletes_address, deletes_entry_address) {
-    const deleteHeader = {
-        ...buildCommon(state),
-        type: HeaderType.Delete,
-        deletes_address,
-        deletes_entry_address,
-    };
+    const deleteHeader = Object.assign(Object.assign({}, buildCommon(state)), { type: HeaderType.Delete, deletes_address,
+        deletes_entry_address });
     return deleteHeader;
 }
 function buildDeleteLink(state, base_address, link_add_address) {
-    const deleteHeader = {
-        ...buildCommon(state),
-        type: HeaderType.DeleteLink,
-        base_address,
-        link_add_address,
-    };
+    const deleteHeader = Object.assign(Object.assign({}, buildCommon(state)), { type: HeaderType.DeleteLink, base_address,
+        link_add_address });
     return deleteHeader;
 }
 /** Helpers */
@@ -1610,7 +1625,7 @@ function getBadAgents(state) {
 }
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/integrate_dht_ops_workflow.rs
-const validation_receipt = async (workspace) => {
+const validation_receipt = (workspace) => __awaiter(void 0, void 0, void 0, function* () {
     const integratedOpsWithoutReceipt = getIntegratedDhtOpsWithoutReceipt(workspace.state);
     const pretendIsValid = workspace.badAgentConfig &&
         workspace.badAgentConfig.pretend_invalid_elements_are_valid;
@@ -1639,7 +1654,7 @@ const validation_receipt = async (workspace) => {
         result: undefined,
         triggers: [],
     };
-};
+});
 function validation_receipt_task() {
     return {
         type: WorkflowType.VALIDATION_RECEIPT,
@@ -1649,7 +1664,7 @@ function validation_receipt_task() {
 }
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/integrate_dht_ops_workflow.rs
-const integrate_dht_ops = async (worskpace) => {
+const integrate_dht_ops = (worskpace) => __awaiter(void 0, void 0, void 0, function* () {
     const opsToIntegrate = pullAllIntegrationLimboDhtOps(worskpace.state);
     for (const dhtOpHash of Object.keys(opsToIntegrate)) {
         const integrationLimboValue = opsToIntegrate[dhtOpHash];
@@ -1673,7 +1688,7 @@ const integrate_dht_ops = async (worskpace) => {
         result: undefined,
         triggers: [validation_receipt_task()],
     };
-};
+});
 function integrate_dht_ops_task() {
     return {
         type: WorkflowType.INTEGRATE_DHT_OPS,
@@ -1693,16 +1708,16 @@ function common_create(worskpace, entry, entry_type) {
 }
 
 // Creates a new Create header and its entry in the source chain
-const create_cap_grant = (worskpace) => async (cap_grant) => {
+const create_cap_grant = (worskpace) => (cap_grant) => __awaiter(void 0, void 0, void 0, function* () {
     if (cap_grant.access.Assigned.assignees.find(a => !!a && typeof a !== 'string')) {
         throw new Error('Tried to assign a capability to an invalid agent');
     }
     const entry = { entry_type: 'CapGrant', content: cap_grant };
     return common_create(worskpace, entry, 'CapGrant');
-};
+});
 
 // Creates a new Create header and its entry in the source chain
-const create_entry = (workspace, zome_index) => async (args) => {
+const create_entry = (workspace, zome_index) => (args) => __awaiter(void 0, void 0, void 0, function* () {
     const entry = { entry_type: 'App', content: args.content };
     const entryDefIndex = workspace.dna.zomes[zome_index].entry_defs.findIndex(entry_def => entry_def.id === args.entry_def_id);
     if (entryDefIndex < 0) {
@@ -1716,10 +1731,10 @@ const create_entry = (workspace, zome_index) => async (args) => {
         },
     };
     return common_create(workspace, entry, entry_type);
-};
+});
 
 // Creates a new CreateLink header in the source chain
-const create_link = (worskpace, zome_id) => async (args) => {
+const create_link = (worskpace, zome_id) => (args) => __awaiter(void 0, void 0, void 0, function* () {
     const createLink = buildCreateLink(worskpace.state, zome_id, args.base, args.target, args.tag);
     const element = {
         signed_header: buildShh(createLink),
@@ -1727,40 +1742,42 @@ const create_link = (worskpace, zome_id) => async (args) => {
     };
     putElement(element)(worskpace.state);
     return element.signed_header.header.hash;
-};
+});
 
-async function common_delete(worskpace, header_hash) {
-    const headerToDelete = await worskpace.cascade.retrieve_header(header_hash, {
-        strategy: GetStrategy.Contents,
+function common_delete(worskpace, header_hash) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const headerToDelete = yield worskpace.cascade.retrieve_header(header_hash, {
+            strategy: GetStrategy.Contents,
+        });
+        if (!headerToDelete)
+            throw new Error('Could not find element to be deleted');
+        const deletesEntryAddress = headerToDelete.header.content
+            .entry_hash;
+        if (!deletesEntryAddress)
+            throw new Error(`Trying to delete an element with no entry`);
+        const deleteHeader = buildDelete(worskpace.state, header_hash, deletesEntryAddress);
+        const element = {
+            signed_header: buildShh(deleteHeader),
+            entry: undefined,
+        };
+        putElement(element)(worskpace.state);
+        return element.signed_header.header.hash;
     });
-    if (!headerToDelete)
-        throw new Error('Could not find element to be deleted');
-    const deletesEntryAddress = headerToDelete.header.content
-        .entry_hash;
-    if (!deletesEntryAddress)
-        throw new Error(`Trying to delete an element with no entry`);
-    const deleteHeader = buildDelete(worskpace.state, header_hash, deletesEntryAddress);
-    const element = {
-        signed_header: buildShh(deleteHeader),
-        entry: undefined,
-    };
-    putElement(element)(worskpace.state);
-    return element.signed_header.header.hash;
 }
 
 // Creates a new Create header and its entry in the source chain
-const delete_cap_grant = (worskpace) => async (deletes_address) => {
+const delete_cap_grant = (worskpace) => (deletes_address) => __awaiter(void 0, void 0, void 0, function* () {
     return common_delete(worskpace, deletes_address);
-};
+});
 
 // Creates a new Create header and its entry in the source chain
-const delete_entry = (worskpace) => async (deletes_address) => {
+const delete_entry = (worskpace) => (deletes_address) => __awaiter(void 0, void 0, void 0, function* () {
     return common_delete(worskpace, deletes_address);
-};
+});
 
 // Creates a new Create header and its entry in the source chain
-const delete_link = (worskpace) => async (deletes_address) => {
-    const elementToDelete = await worskpace.cascade.dht_get(deletes_address, {
+const delete_link = (worskpace) => (deletes_address) => __awaiter(void 0, void 0, void 0, function* () {
+    const elementToDelete = yield worskpace.cascade.dht_get(deletes_address, {
         strategy: GetStrategy.Contents,
     });
     if (!elementToDelete)
@@ -1776,29 +1793,31 @@ const delete_link = (worskpace) => async (deletes_address) => {
     };
     putElement(element)(worskpace.state);
     return element.signed_header.header.hash;
-};
+});
 
-async function common_update(worskpace, original_header_hash, entry, entry_type) {
-    const headerToUpdate = await worskpace.cascade.retrieve_header(original_header_hash, {
-        strategy: GetStrategy.Contents,
+function common_update(worskpace, original_header_hash, entry, entry_type) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const headerToUpdate = yield worskpace.cascade.retrieve_header(original_header_hash, {
+            strategy: GetStrategy.Contents,
+        });
+        if (!headerToUpdate)
+            throw new Error('Could not find element to be updated');
+        const original_entry_hash = headerToUpdate.header.content
+            .entry_hash;
+        if (!original_entry_hash)
+            throw new Error(`Trying to update an element with no entry`);
+        const updateHeader = buildUpdate(worskpace.state, entry, entry_type, original_entry_hash, original_header_hash);
+        const element = {
+            signed_header: buildShh(updateHeader),
+            entry,
+        };
+        putElement(element)(worskpace.state);
+        return element.signed_header.header.hash;
     });
-    if (!headerToUpdate)
-        throw new Error('Could not find element to be updated');
-    const original_entry_hash = headerToUpdate.header.content
-        .entry_hash;
-    if (!original_entry_hash)
-        throw new Error(`Trying to update an element with no entry`);
-    const updateHeader = buildUpdate(worskpace.state, entry, entry_type, original_entry_hash, original_header_hash);
-    const element = {
-        signed_header: buildShh(updateHeader),
-        entry,
-    };
-    putElement(element)(worskpace.state);
-    return element.signed_header.header.hash;
 }
 
 // Creates a new Create header and its entry in the source chain
-const update_entry = (workspace, zome_index) => async (original_header_address, newEntry) => {
+const update_entry = (workspace, zome_index) => (original_header_address, newEntry) => __awaiter(void 0, void 0, void 0, function* () {
     const entry = { entry_type: 'App', content: newEntry.content };
     const entryDefIndex = workspace.dna.zomes[zome_index].entry_defs.findIndex(entry_def => entry_def.id === newEntry.entry_def_id);
     if (entryDefIndex < 0) {
@@ -1812,55 +1831,55 @@ const update_entry = (workspace, zome_index) => async (original_header_address, 
         },
     };
     return common_update(workspace, original_header_address, entry, entry_type);
-};
+});
 
 // Creates a new Create header and its entry in the source chain
-const agent_info = (worskpace) => async () => {
+const agent_info = (worskpace) => () => __awaiter(void 0, void 0, void 0, function* () {
     const cellId = getCellId(worskpace.state);
     const agentPubKey = cellId[1];
     return {
         agent_initial_pubkey: agentPubKey,
         agent_latest_pubkey: agentPubKey,
     };
-};
+});
 
 // Creates a new Create header and its entry in the source chain
-const call_remote = (workspace) => async (args) => {
+const call_remote = (workspace) => (args) => __awaiter(void 0, void 0, void 0, function* () {
     return workspace.p2p.call_remote(args.agent, args.zome, args.fn_name, args.cap_secret, args.payload);
-};
+});
 
 // Creates a new Create header and its entry in the source chain
-const get = (workspace) => async (hash, options) => {
+const get = (workspace) => (hash, options) => __awaiter(void 0, void 0, void 0, function* () {
     if (!hash)
         throw new Error(`Cannot get with undefined hash`);
     options = options || { strategy: GetStrategy.Contents };
     return workspace.cascade.dht_get(hash, options);
-};
+});
 
 // Creates a new Create header and its entry in the source chain
-const get_details = (workspace) => async (hash, options) => {
+const get_details = (workspace) => (hash, options) => __awaiter(void 0, void 0, void 0, function* () {
     if (!hash)
         throw new Error(`Cannot get with undefined hash`);
     options = options || { strategy: GetStrategy.Contents };
     return workspace.cascade.dht_get_details(hash, options);
-};
+});
 
 // Creates a new Create header and its entry in the source chain
-const get_links = (workspace) => async (base_address, options) => {
+const get_links = (workspace) => (base_address, options) => __awaiter(void 0, void 0, void 0, function* () {
     if (!base_address)
         throw new Error(`Cannot get with undefined hash`);
     options = options || { strategy: GetStrategy.Contents };
     return workspace.cascade.dht_get_links(base_address, options);
-};
+});
 
 // Creates a new Create header and its entry in the source chain
-const hash_entry = (worskpace) => async (args) => {
+const hash_entry = (worskpace) => (args) => __awaiter(void 0, void 0, void 0, function* () {
     const entry = { entry_type: 'App', content: args.content };
     return hashEntry(entry);
-};
+});
 
 // Creates a new Create header and its entry in the source chain
-const query = (workspace) => async (filter) => {
+const query = (workspace) => (filter) => __awaiter(void 0, void 0, void 0, function* () {
     const authoredHeaders = getAllAuthoredHeaders(workspace.state);
     return authoredHeaders.map(header => {
         let entry = undefined;
@@ -1873,10 +1892,10 @@ const query = (workspace) => async (filter) => {
             entry,
         };
     });
-};
+});
 
-const ensure = (hdk) => async (path) => {
-    await hdk.create_entry({
+const ensure = (hdk) => (path) => __awaiter(void 0, void 0, void 0, function* () {
+    yield hdk.create_entry({
         content: path,
         entry_def_id: 'path',
     });
@@ -1884,12 +1903,12 @@ const ensure = (hdk) => async (path) => {
     if (components.length > 1) {
         components.splice(components.length - 1, 1);
         const parent = components.join('.');
-        await ensure(hdk)(parent);
-        const pathHash = await hdk.hash_entry({ content: path });
-        const parentHash = await hdk.hash_entry({ content: parent });
-        await hdk.create_link({ base: parentHash, target: pathHash, tag: path });
+        yield ensure(hdk)(parent);
+        const pathHash = yield hdk.hash_entry({ content: path });
+        const parentHash = yield hdk.hash_entry({ content: parent });
+        yield hdk.create_link({ base: parentHash, target: pathHash, tag: path });
     }
-};
+});
 
 function buildValidationFunctionContext(workspace, zome_index) {
     return {
@@ -1900,29 +1919,14 @@ function buildValidationFunctionContext(workspace, zome_index) {
     };
 }
 function buildZomeFunctionContext(workspace, zome_index) {
-    const hdk = {
-        ...buildValidationFunctionContext(workspace),
-        create_entry: create_entry(workspace, zome_index),
-        delete_entry: delete_entry(workspace),
-        update_entry: update_entry(workspace, zome_index),
-        create_link: create_link(workspace, zome_index),
-        delete_link: delete_link(workspace),
-        create_cap_grant: create_cap_grant(workspace),
-        delete_cap_grant: delete_cap_grant(workspace),
-        call_remote: call_remote(workspace),
-        agent_info: agent_info(workspace),
-        query: query(workspace),
-    };
-    return {
-        ...hdk,
-        path: {
+    const hdk = Object.assign(Object.assign({}, buildValidationFunctionContext(workspace)), { create_entry: create_entry(workspace, zome_index), delete_entry: delete_entry(workspace), update_entry: update_entry(workspace, zome_index), create_link: create_link(workspace, zome_index), delete_link: delete_link(workspace), create_cap_grant: create_cap_grant(workspace), delete_cap_grant: delete_cap_grant(workspace), call_remote: call_remote(workspace), agent_info: agent_info(workspace), query: query(workspace) });
+    return Object.assign(Object.assign({}, hdk), { path: {
             ensure: ensure(hdk),
-        },
-    };
+        } });
 }
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/app_validation_workflow.rs
-const app_validation = async (workspace) => {
+const app_validation = (workspace) => __awaiter(void 0, void 0, void 0, function* () {
     let integrateDhtOps = false;
     const pendingDhtOps = getValidationLimboDhtOps(workspace.state, [
         ValidationLimboStatus.SysValidated,
@@ -1934,7 +1938,7 @@ const app_validation = async (workspace) => {
         // If we are a bad agent, we don't validate our stuff
         let outcome = { resolved: true, valid: true };
         if (shouldValidate(workspace.state.agentPubKey, validationLimboValue.op, workspace.badAgentConfig)) {
-            outcome = await validate_op(validationLimboValue.op, validationLimboValue.from_agent, workspace);
+            outcome = yield validate_op(validationLimboValue.op, validationLimboValue.from_agent, workspace);
         }
         if (!outcome.resolved) {
             validationLimboValue.status = ValidationLimboStatus.AwaitingAppDeps;
@@ -1955,7 +1959,7 @@ const app_validation = async (workspace) => {
         result: undefined,
         triggers: integrateDhtOps ? [integrate_dht_ops_task()] : [],
     };
-};
+});
 function app_validation_task(agent = false) {
     return {
         type: agent ? WorkflowType.AGENT_VALIDATION : WorkflowType.APP_VALIDATION,
@@ -1968,54 +1972,56 @@ function shouldValidate(agentPubKey, dhtOp, badAgentConfig) {
         return true;
     return dhtOp.header.header.content.author !== agentPubKey;
 }
-async function validate_op(op, from_agent, workspace) {
-    const element = dht_ops_to_element(op);
-    const entry_type = element.signed_header.header.content
-        .entry_type;
-    if (entry_type === 'CapClaim' || entry_type === 'CapGrant')
-        return {
-            valid: true,
-            resolved: true,
-        };
-    // TODO: implement validation package
-    const maybeEntryDef = await get_associated_entry_def(element, workspace.dna, workspace);
-    if (maybeEntryDef && maybeEntryDef.depsHashes)
-        return {
-            resolved: false,
-            depsHashes: maybeEntryDef.depsHashes,
-        };
-    const zomes_to_invoke = await get_zomes_to_invoke(element, workspace);
-    if (zomes_to_invoke && zomes_to_invoke.depsHashes)
-        return {
-            resolved: false,
-            depsHashes: zomes_to_invoke.depsHashes,
-        };
-    const zomes = zomes_to_invoke;
-    const header = element.signed_header.header.content;
-    if (header.type === HeaderType.DeleteLink) {
-        return run_delete_link_validation_callback(zomes[0], header, workspace);
-    }
-    else if (header.type === HeaderType.CreateLink) {
-        const cascade = new Cascade(workspace.state, workspace.p2p);
-        const maybeBaseEntry = await cascade.retrieve_entry(header.base_address, {
-            strategy: GetStrategy.Contents,
-        });
-        if (!maybeBaseEntry)
+function validate_op(op, from_agent, workspace) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const element = dht_ops_to_element(op);
+        const entry_type = element.signed_header.header.content
+            .entry_type;
+        if (entry_type === 'CapClaim' || entry_type === 'CapGrant')
+            return {
+                valid: true,
+                resolved: true,
+            };
+        // TODO: implement validation package
+        const maybeEntryDef = yield get_associated_entry_def(element, workspace.dna, workspace);
+        if (maybeEntryDef && maybeEntryDef.depsHashes)
             return {
                 resolved: false,
-                depsHashes: [header.base_address],
+                depsHashes: maybeEntryDef.depsHashes,
             };
-        const maybeTargetEntry = await cascade.retrieve_entry(header.target_address, { strategy: GetStrategy.Contents });
-        if (!maybeTargetEntry)
+        const zomes_to_invoke = yield get_zomes_to_invoke(element, workspace);
+        if (zomes_to_invoke && zomes_to_invoke.depsHashes)
             return {
                 resolved: false,
-                depsHashes: [header.target_address],
+                depsHashes: zomes_to_invoke.depsHashes,
             };
-        return run_create_link_validation_callback(zomes[0], header, maybeBaseEntry, maybeTargetEntry, workspace);
-    }
-    else {
-        return run_validation_callback_inner(zomes, element, maybeEntryDef, workspace);
-    }
+        const zomes = zomes_to_invoke;
+        const header = element.signed_header.header.content;
+        if (header.type === HeaderType.DeleteLink) {
+            return run_delete_link_validation_callback(zomes[0], header, workspace);
+        }
+        else if (header.type === HeaderType.CreateLink) {
+            const cascade = new Cascade(workspace.state, workspace.p2p);
+            const maybeBaseEntry = yield cascade.retrieve_entry(header.base_address, {
+                strategy: GetStrategy.Contents,
+            });
+            if (!maybeBaseEntry)
+                return {
+                    resolved: false,
+                    depsHashes: [header.base_address],
+                };
+            const maybeTargetEntry = yield cascade.retrieve_entry(header.target_address, { strategy: GetStrategy.Contents });
+            if (!maybeTargetEntry)
+                return {
+                    resolved: false,
+                    depsHashes: [header.target_address],
+                };
+            return run_create_link_validation_callback(zomes[0], header, maybeBaseEntry, maybeTargetEntry, workspace);
+        }
+        else {
+            return run_validation_callback_inner(zomes, element, maybeEntryDef, workspace);
+        }
+    });
 }
 function dht_ops_to_element(op) {
     const header = op.header;
@@ -2028,156 +2034,176 @@ function dht_ops_to_element(op) {
         signed_header: header,
     };
 }
-async function run_validation_callback_direct(zome, dna, element, workspace) {
-    const maybeEntryDef = await get_associated_entry_def(element, dna, workspace);
-    if (maybeEntryDef && maybeEntryDef.depsHashes)
-        return {
-            resolved: false,
-            depsHashes: maybeEntryDef.depsHashes,
-        };
-    // TODO: implement validation package
-    return run_validation_callback_inner([zome], element, maybeEntryDef, workspace);
-}
-async function get_associated_entry_def(element, dna, workspace) {
-    const cascade = new Cascade(workspace.state, workspace.p2p);
-    const maybeAppEntryType = await get_app_entry_type(element, cascade);
-    if (!maybeAppEntryType)
-        return undefined;
-    if (maybeAppEntryType.depsHashes)
-        return maybeAppEntryType;
-    const appEntryType = maybeAppEntryType;
-    return dna.zomes[appEntryType.zome_id].entry_defs[appEntryType.id];
-}
-async function get_app_entry_type(element, cascade) {
-    if (element.signed_header.header.content.type === HeaderType.Delete)
-        return get_app_entry_type_from_dep(element, cascade);
-    const entryType = element.signed_header.header.content
-        .entry_type;
-    if (!entryType)
-        return undefined;
-    if (entryType === 'CapGrant' ||
-        entryType === 'CapClaim' ||
-        entryType === 'Agent')
-        return undefined;
-    return entryType.App;
-}
-async function get_app_entry_type_from_dep(element, cascade) {
-    if (element.signed_header.header.content.type !== HeaderType.Delete)
-        return undefined;
-    const deletedHeaderHash = element.signed_header.header.content.deletes_address;
-    const header = await cascade.retrieve_header(deletedHeaderHash, {
-        strategy: GetStrategy.Contents,
+function run_validation_callback_direct(zome, dna, element, workspace) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const maybeEntryDef = yield get_associated_entry_def(element, dna, workspace);
+        if (maybeEntryDef && maybeEntryDef.depsHashes)
+            return {
+                resolved: false,
+                depsHashes: maybeEntryDef.depsHashes,
+            };
+        // TODO: implement validation package
+        return run_validation_callback_inner([zome], element, maybeEntryDef, workspace);
     });
-    if (!header)
-        return { depsHashes: [deletedHeaderHash] };
-    const entryType = header.header.content.entry_type;
-    if (!entryType ||
-        entryType === 'Agent' ||
-        entryType === 'CapClaim' ||
-        entryType === 'CapGrant')
-        return undefined;
-    return entryType.App;
 }
-async function get_zomes_to_invoke(element, workspace) {
-    const cascade = new Cascade(workspace.state, workspace.p2p);
-    const maybeAppEntryType = await get_app_entry_type(element, cascade);
-    if (maybeAppEntryType && maybeAppEntryType.depsHashes)
-        return maybeAppEntryType;
-    if (maybeAppEntryType) {
-        // It's a newEntryHeader
-        return [workspace.dna.zomes[maybeAppEntryType.zome_id]];
-    }
-    else {
-        const header = element.signed_header.header.content;
-        if (header.type === HeaderType.CreateLink) {
-            return [workspace.dna.zomes[header.zome_id]];
+function get_associated_entry_def(element, dna, workspace) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const cascade = new Cascade(workspace.state, workspace.p2p);
+        const maybeAppEntryType = yield get_app_entry_type(element, cascade);
+        if (!maybeAppEntryType)
+            return undefined;
+        if (maybeAppEntryType.depsHashes)
+            return maybeAppEntryType;
+        const appEntryType = maybeAppEntryType;
+        return dna.zomes[appEntryType.zome_id].entry_defs[appEntryType.id];
+    });
+}
+function get_app_entry_type(element, cascade) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (element.signed_header.header.content.type === HeaderType.Delete)
+            return get_app_entry_type_from_dep(element, cascade);
+        const entryType = element.signed_header.header.content
+            .entry_type;
+        if (!entryType)
+            return undefined;
+        if (entryType === 'CapGrant' ||
+            entryType === 'CapClaim' ||
+            entryType === 'Agent')
+            return undefined;
+        return entryType.App;
+    });
+}
+function get_app_entry_type_from_dep(element, cascade) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (element.signed_header.header.content.type !== HeaderType.Delete)
+            return undefined;
+        const deletedHeaderHash = element.signed_header.header.content.deletes_address;
+        const header = yield cascade.retrieve_header(deletedHeaderHash, {
+            strategy: GetStrategy.Contents,
+        });
+        if (!header)
+            return { depsHashes: [deletedHeaderHash] };
+        const entryType = header.header.content.entry_type;
+        if (!entryType ||
+            entryType === 'Agent' ||
+            entryType === 'CapClaim' ||
+            entryType === 'CapGrant')
+            return undefined;
+        return entryType.App;
+    });
+}
+function get_zomes_to_invoke(element, workspace) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const cascade = new Cascade(workspace.state, workspace.p2p);
+        const maybeAppEntryType = yield get_app_entry_type(element, cascade);
+        if (maybeAppEntryType && maybeAppEntryType.depsHashes)
+            return maybeAppEntryType;
+        if (maybeAppEntryType) {
+            // It's a newEntryHeader
+            return [workspace.dna.zomes[maybeAppEntryType.zome_id]];
         }
-        else if (header.type === HeaderType.DeleteLink) {
-            const maybeHeader = await cascade.retrieve_header(header.link_add_address, { strategy: GetStrategy.Contents });
-            if (!maybeHeader)
-                return {
-                    depsHashes: [header.link_add_address],
-                };
-            return [
-                workspace.dna.zomes[maybeHeader.header.content.zome_id],
-            ];
+        else {
+            const header = element.signed_header.header.content;
+            if (header.type === HeaderType.CreateLink) {
+                return [workspace.dna.zomes[header.zome_id]];
+            }
+            else if (header.type === HeaderType.DeleteLink) {
+                const maybeHeader = yield cascade.retrieve_header(header.link_add_address, { strategy: GetStrategy.Contents });
+                if (!maybeHeader)
+                    return {
+                        depsHashes: [header.link_add_address],
+                    };
+                return [
+                    workspace.dna.zomes[maybeHeader.header.content.zome_id],
+                ];
+            }
+            return workspace.dna.zomes;
         }
-        return workspace.dna.zomes;
-    }
+    });
 }
-async function run_validation_callback_inner(zomes_to_invoke, element, entry_def, workspace) {
-    const fnsToCall = get_element_validate_functions_to_invoke(element, entry_def);
-    return invoke_validation_fns(zomes_to_invoke, fnsToCall, { element }, workspace);
+function run_validation_callback_inner(zomes_to_invoke, element, entry_def, workspace) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const fnsToCall = get_element_validate_functions_to_invoke(element, entry_def);
+        return invoke_validation_fns(zomes_to_invoke, fnsToCall, { element }, workspace);
+    });
 }
-async function invoke_validation_fns(zomes_to_invoke, fnsToCall, payload, workspace) {
-    const cascade = new Cascade(workspace.state, workspace.p2p);
-    const hostFnWorkspace = {
-        cascade,
-        state: workspace.state,
-        dna: workspace.dna,
-        p2p: workspace.p2p,
-    };
-    for (const zome of zomes_to_invoke) {
-        for (const validateFn of fnsToCall) {
-            if (zome.validation_functions[validateFn]) {
-                const context = buildValidationFunctionContext(hostFnWorkspace, workspace.dna.zomes.findIndex(z => z === zome));
-                const outcome = await zome.validation_functions[validateFn](context)(payload);
-                if (!outcome.resolved)
-                    return outcome;
-                else if (!outcome.valid)
-                    return outcome;
+function invoke_validation_fns(zomes_to_invoke, fnsToCall, payload, workspace) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const cascade = new Cascade(workspace.state, workspace.p2p);
+        const hostFnWorkspace = {
+            cascade,
+            state: workspace.state,
+            dna: workspace.dna,
+            p2p: workspace.p2p,
+        };
+        for (const zome of zomes_to_invoke) {
+            for (const validateFn of fnsToCall) {
+                if (zome.validation_functions[validateFn]) {
+                    const context = buildValidationFunctionContext(hostFnWorkspace, workspace.dna.zomes.findIndex(z => z === zome));
+                    const outcome = yield zome.validation_functions[validateFn](context)(payload);
+                    if (!outcome.resolved)
+                        return outcome;
+                    else if (!outcome.valid)
+                        return outcome;
+                }
             }
         }
-    }
-    return { resolved: true, valid: true };
+        return { resolved: true, valid: true };
+    });
 }
-async function run_agent_validation_callback(workspace, elements) {
-    const create_agent_element = elements[2];
-    const fnsToCall = ['validate_create_agent'];
-    const zomes_to_invoke = await get_zomes_to_invoke(create_agent_element, workspace);
-    const membrane_proof = elements[1].signed_header.header
-        .content.membrane_proof;
-    return invoke_validation_fns(zomes_to_invoke, fnsToCall, {
-        element: elements[2],
-        membrane_proof,
-        agent_pub_key: create_agent_element.signed_header.header.content.author,
-    }, workspace);
+function run_agent_validation_callback(workspace, elements) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const create_agent_element = elements[2];
+        const fnsToCall = ['validate_create_agent'];
+        const zomes_to_invoke = yield get_zomes_to_invoke(create_agent_element, workspace);
+        const membrane_proof = elements[1].signed_header.header
+            .content.membrane_proof;
+        return invoke_validation_fns(zomes_to_invoke, fnsToCall, {
+            element: elements[2],
+            membrane_proof,
+            agent_pub_key: create_agent_element.signed_header.header.content.author,
+        }, workspace);
+    });
 }
-async function run_create_link_validation_callback(zome, link_add, base, target, workspace) {
-    const validateCreateLink = 'validate_create_link';
-    if (zome.validation_functions[validateCreateLink]) {
-        const hostFnWorkspace = {
-            cascade: new Cascade(workspace.state, workspace.p2p),
-            state: workspace.state,
-            dna: workspace.dna,
-            p2p: workspace.p2p,
+function run_create_link_validation_callback(zome, link_add, base, target, workspace) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const validateCreateLink = 'validate_create_link';
+        if (zome.validation_functions[validateCreateLink]) {
+            const hostFnWorkspace = {
+                cascade: new Cascade(workspace.state, workspace.p2p),
+                state: workspace.state,
+                dna: workspace.dna,
+                p2p: workspace.p2p,
+            };
+            const context = buildValidationFunctionContext(hostFnWorkspace, workspace.dna.zomes.findIndex(z => z === zome));
+            const outcome = yield zome.validation_functions[validateCreateLink](context)({ link_add, base, target });
+            return outcome;
+        }
+        return {
+            resolved: true,
+            valid: true,
         };
-        const context = buildValidationFunctionContext(hostFnWorkspace, workspace.dna.zomes.findIndex(z => z === zome));
-        const outcome = await zome.validation_functions[validateCreateLink](context)({ link_add, base, target });
-        return outcome;
-    }
-    return {
-        resolved: true,
-        valid: true,
-    };
+    });
 }
-async function run_delete_link_validation_callback(zome, delete_link, workspace) {
-    const validateCreateLink = 'validate_delete_link';
-    if (zome.validation_functions[validateCreateLink]) {
-        const hostFnWorkspace = {
-            cascade: new Cascade(workspace.state, workspace.p2p),
-            state: workspace.state,
-            dna: workspace.dna,
-            p2p: workspace.p2p,
+function run_delete_link_validation_callback(zome, delete_link, workspace) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const validateCreateLink = 'validate_delete_link';
+        if (zome.validation_functions[validateCreateLink]) {
+            const hostFnWorkspace = {
+                cascade: new Cascade(workspace.state, workspace.p2p),
+                state: workspace.state,
+                dna: workspace.dna,
+                p2p: workspace.p2p,
+            };
+            const context = buildValidationFunctionContext(hostFnWorkspace, workspace.dna.zomes.findIndex(z => z === zome));
+            const outcome = yield zome.validation_functions[validateCreateLink](context)({ delete_link });
+            return outcome;
+        }
+        return {
+            resolved: true,
+            valid: true,
         };
-        const context = buildValidationFunctionContext(hostFnWorkspace, workspace.dna.zomes.findIndex(z => z === zome));
-        const outcome = await zome.validation_functions[validateCreateLink](context)({ delete_link });
-        return outcome;
-    }
-    return {
-        resolved: true,
-        valid: true,
-    };
+    });
 }
 function get_element_validate_functions_to_invoke(element, maybeEntryDef) {
     const fnsComponents = ['validate'];
@@ -2208,7 +2234,7 @@ function unpackValidateFnsComponents(fnsComponents) {
 }
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/publish_dht_ops_workflow.rs
-const publish_dht_ops = async (workspace) => {
+const publish_dht_ops = (workspace) => __awaiter(void 0, void 0, void 0, function* () {
     const dhtOps = getNonPublishedDhtOps(workspace.state);
     const dhtOpsByBasis = {};
     for (const dhtOpHash of Object.keys(dhtOps)) {
@@ -2218,19 +2244,19 @@ const publish_dht_ops = async (workspace) => {
             dhtOpsByBasis[basis] = {};
         dhtOpsByBasis[basis][dhtOpHash] = dhtOp;
     }
-    const promises = Object.entries(dhtOpsByBasis).map(async ([basis, dhtOps]) => {
+    const promises = Object.entries(dhtOpsByBasis).map(([basis, dhtOps]) => __awaiter(void 0, void 0, void 0, function* () {
         // Publish the operations
-        await workspace.p2p.publish(basis, dhtOps);
+        yield workspace.p2p.publish(basis, dhtOps);
         for (const dhtOpHash of Object.keys(dhtOps)) {
             workspace.state.authoredDHTOps[dhtOpHash].last_publish_time = Date.now();
         }
-    });
-    await Promise.all(promises);
+    }));
+    yield Promise.all(promises);
     return {
         result: undefined,
         triggers: [],
     };
-};
+});
 function publish_dht_ops_task() {
     return {
         type: WorkflowType.PUBLISH_DHT_OPS,
@@ -2240,7 +2266,7 @@ function publish_dht_ops_task() {
 }
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/produce_dht_ops_workflow.rs
-const produce_dht_ops = async (worskpace) => {
+const produce_dht_ops = (worskpace) => __awaiter(void 0, void 0, void 0, function* () {
     const newHeaderHashes = getNewHeaders(worskpace.state);
     for (const newHeaderHash of newHeaderHashes) {
         const element = getElement(worskpace.state, newHeaderHash);
@@ -2259,7 +2285,7 @@ const produce_dht_ops = async (worskpace) => {
         result: undefined,
         triggers: [publish_dht_ops_task()],
     };
-};
+});
 function produce_dht_ops_task() {
     return {
         type: WorkflowType.PRODUCE_DHT_OPS,
@@ -2270,14 +2296,18 @@ function produce_dht_ops_task() {
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/sys_validate.rs
 /// Verify the signature for this header
-async function verify_header_signature(sig, header) {
-    return true; // TODO: actually implement signatures
+function verify_header_signature(sig, header) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return true; // TODO: actually implement signatures
+    });
 }
 /// Verify the author key was valid at the time
 /// of signing with dpki
 /// TODO: This is just a stub until we have dpki.
-async function author_key_is_valid(author) {
-    return true;
+function author_key_is_valid(author) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return true;
+    });
 }
 function check_prev_header(header) {
     if (header.type === HeaderType.Dna)
@@ -2347,7 +2377,7 @@ function check_update_reference(update, original_entry_header) {
 }
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/sys_validation_workflow.rs
-const sys_validation = async (worskpace) => {
+const sys_validation = (worskpace) => __awaiter(void 0, void 0, void 0, function* () {
     const pendingDhtOps = getValidationLimboDhtOps(worskpace.state, [
         ValidationLimboStatus.Pending,
         ValidationLimboStatus.AwaitingSysDeps,
@@ -2362,7 +2392,7 @@ const sys_validation = async (worskpace) => {
         result: undefined,
         triggers: [app_validation_task()],
     };
-};
+});
 function sys_validation_task() {
     return {
         type: WorkflowType.SYS_VALIDATION,
@@ -2370,70 +2400,78 @@ function sys_validation_task() {
         task: worskpace => sys_validation(worskpace),
     };
 }
-async function sys_validate_element(element, workspace, network) {
-    try {
-        const isNotCounterfeit = await counterfeit_check(element.signed_header.signature, element.signed_header.header.content);
-        if (!isNotCounterfeit)
+function sys_validate_element(element, workspace, network) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const isNotCounterfeit = yield counterfeit_check(element.signed_header.signature, element.signed_header.header.content);
+            if (!isNotCounterfeit)
+                throw new Error(`Trying to validate counterfeited element`);
+        }
+        catch (e) {
             throw new Error(`Trying to validate counterfeited element`);
-    }
-    catch (e) {
-        throw new Error(`Trying to validate counterfeited element`);
-    }
-    let maybeDepsMissing = await store_element(element.signed_header.header.content, workspace);
-    if (maybeDepsMissing)
-        return maybeDepsMissing;
-    const entry_type = element.signed_header.header.content
-        .entry_type;
-    if (element.entry &&
-        entry_type.App &&
-        entry_type.App.visibility === 'Public') {
-        maybeDepsMissing = await store_entry(element.signed_header.header.content, element.entry, workspace);
+        }
+        let maybeDepsMissing = yield store_element(element.signed_header.header.content, workspace);
         if (maybeDepsMissing)
             return maybeDepsMissing;
-    }
-    // TODO: implement register_* when cache is in place
+        const entry_type = element.signed_header.header.content
+            .entry_type;
+        if (element.entry &&
+            entry_type.App &&
+            entry_type.App.visibility === 'Public') {
+            maybeDepsMissing = yield store_entry(element.signed_header.header.content, element.entry, workspace);
+            if (maybeDepsMissing)
+                return maybeDepsMissing;
+        }
+        // TODO: implement register_* when cache is in place
+    });
 }
 /// Check if the op has valid signature and author.
 /// Ops that fail this check should be dropped.
-async function counterfeit_check(signature, header) {
-    return ((await verify_header_signature()) &&
-        (await author_key_is_valid(header.author)));
+function counterfeit_check(signature, header) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return ((yield verify_header_signature()) &&
+            (yield author_key_is_valid(header.author)));
+    });
 }
-async function store_element(header, workspace, network) {
-    check_prev_header(header);
-    const prev_header_hash = header.prev_header;
-    if (prev_header_hash) {
-        const prev_header = await new Cascade(workspace.state, workspace.p2p).retrieve_header(prev_header_hash, {
-            strategy: GetStrategy.Contents,
-        });
-        if (!prev_header)
-            return {
-                depsHashes: [prev_header_hash],
-            };
-        check_prev_timestamp(header, prev_header.header.content);
-        check_prev_seq(header, prev_header.header.content);
-    }
-}
-async function store_entry(header, entry, workspace, network) {
-    check_entry_type(header.entry_type, entry);
-    const appEntryType = header.entry_type.App;
-    if (appEntryType) {
-        const entry_def = check_app_entry_type(appEntryType, workspace.dna);
-        check_not_private(entry_def);
-    }
-    check_entry_hash(header.entry_hash, entry);
-    check_entry_size(entry);
-    if (header.type === HeaderType.Update) {
-        const signed_header = await new Cascade(workspace.state, workspace.p2p).retrieve_header(header.original_header_address, {
-            strategy: GetStrategy.Contents,
-        });
-        if (!signed_header) {
-            return {
-                depsHashes: [header.original_header_address],
-            };
+function store_element(header, workspace, network) {
+    return __awaiter(this, void 0, void 0, function* () {
+        check_prev_header(header);
+        const prev_header_hash = header.prev_header;
+        if (prev_header_hash) {
+            const prev_header = yield new Cascade(workspace.state, workspace.p2p).retrieve_header(prev_header_hash, {
+                strategy: GetStrategy.Contents,
+            });
+            if (!prev_header)
+                return {
+                    depsHashes: [prev_header_hash],
+                };
+            check_prev_timestamp(header, prev_header.header.content);
+            check_prev_seq(header, prev_header.header.content);
         }
-        update_check(header, signed_header.header.content);
-    }
+    });
+}
+function store_entry(header, entry, workspace, network) {
+    return __awaiter(this, void 0, void 0, function* () {
+        check_entry_type(header.entry_type, entry);
+        const appEntryType = header.entry_type.App;
+        if (appEntryType) {
+            const entry_def = check_app_entry_type(appEntryType, workspace.dna);
+            check_not_private(entry_def);
+        }
+        check_entry_hash(header.entry_hash, entry);
+        check_entry_size(entry);
+        if (header.type === HeaderType.Update) {
+            const signed_header = yield new Cascade(workspace.state, workspace.p2p).retrieve_header(header.original_header_address, {
+                strategy: GetStrategy.Contents,
+            });
+            if (!signed_header) {
+                return {
+                    depsHashes: [header.original_header_address],
+                };
+            }
+            update_check(header, signed_header.header.content);
+        }
+    });
 }
 function update_check(entry_update, original_header) {
     check_new_entry_header(original_header);
@@ -2446,7 +2484,7 @@ function update_check(entry_update, original_header) {
  * Calls the zome function of the cell DNA
  * This can only be called in the simulated mode: we can assume that cell.simulatedDna exists
  */
-const callZomeFn = (zomeName, fnName, payload, provenance, cap) => async (workspace) => {
+const callZomeFn = (zomeName, fnName, payload, provenance, cap) => (workspace) => __awaiter(void 0, void 0, void 0, function* () {
     if (!valid_cap_grant(workspace.state, zomeName, fnName, provenance, cap))
         throw new Error('Unauthorized Zome Call');
     const currentHeader = getTipOfChain(workspace.state);
@@ -2465,7 +2503,7 @@ const callZomeFn = (zomeName, fnName, payload, provenance, cap) => async (worksp
         p2p: workspace.p2p,
     };
     const zomeFnContext = buildZomeFunctionContext(hostFnWorkspace, zomeIndex);
-    const result = await zome.zome_functions[fnName].call(zomeFnContext)(payload);
+    const result = yield zome.zome_functions[fnName].call(zomeFnContext)(payload);
     let triggers = [];
     if (getTipOfChain(contextState) !== currentHeader) {
         // Do validation
@@ -2480,7 +2518,7 @@ const callZomeFn = (zomeName, fnName, payload, provenance, cap) => async (worksp
                 entry: entry_hash ? contextState.CAS[entry_hash] : undefined,
                 signed_header,
             };
-            const depsMissing = await sys_validate_element(element, { ...workspace, state: contextState }, workspace.p2p);
+            const depsMissing = yield sys_validate_element(element, Object.assign(Object.assign({}, workspace), { state: contextState }), workspace.p2p);
             if (depsMissing)
                 throw new Error(`Could not validate a new element due to missing dependencies`);
             elementsToAppValidate.push(element);
@@ -2488,7 +2526,7 @@ const callZomeFn = (zomeName, fnName, payload, provenance, cap) => async (worksp
         }
         if (shouldValidateBeforePublishing(workspace.badAgentConfig)) {
             for (const element of elementsToAppValidate) {
-                const outcome = await run_app_validation(zome, element, contextState, workspace);
+                const outcome = yield run_app_validation(zome, element, contextState, workspace);
                 if (!outcome.resolved)
                     throw new Error('Error creating a new element: missing dependencies');
                 if (!outcome.valid)
@@ -2503,7 +2541,7 @@ const callZomeFn = (zomeName, fnName, payload, provenance, cap) => async (worksp
         result: cloneDeep(result),
         triggers,
     };
-};
+});
 function call_zome_fn_workflow(zome, fnName, payload, provenance) {
     return {
         type: WorkflowType.CALL_ZOME,
@@ -2520,45 +2558,47 @@ function shouldValidateBeforePublishing(badAgentConfig) {
         return true;
     return !badAgentConfig.disable_validation_before_publish;
 }
-async function run_app_validation(zome, element, contextState, workspace) {
-    const header = element.signed_header.header.content;
-    if (header.type === HeaderType.CreateLink) {
-        const cascade = new Cascade(contextState, workspace.p2p);
-        const baseEntry = await cascade.retrieve_entry(header.base_address, {
-            strategy: GetStrategy.Contents,
-        });
-        if (!baseEntry) {
-            return {
-                resolved: false,
-                depsHashes: [header.base_address],
-            };
+function run_app_validation(zome, element, contextState, workspace) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const header = element.signed_header.header.content;
+        if (header.type === HeaderType.CreateLink) {
+            const cascade = new Cascade(contextState, workspace.p2p);
+            const baseEntry = yield cascade.retrieve_entry(header.base_address, {
+                strategy: GetStrategy.Contents,
+            });
+            if (!baseEntry) {
+                return {
+                    resolved: false,
+                    depsHashes: [header.base_address],
+                };
+            }
+            const targetEntry = yield cascade.retrieve_entry(header.target_address, {
+                strategy: GetStrategy.Contents,
+            });
+            if (!targetEntry) {
+                return {
+                    resolved: false,
+                    depsHashes: [header.target_address],
+                };
+            }
+            return run_create_link_validation_callback(zome, header, baseEntry, targetEntry, workspace);
         }
-        const targetEntry = await cascade.retrieve_entry(header.target_address, {
-            strategy: GetStrategy.Contents,
-        });
-        if (!targetEntry) {
-            return {
-                resolved: false,
-                depsHashes: [header.target_address],
-            };
+        else if (header.type === HeaderType.DeleteLink) {
+            return run_delete_link_validation_callback(zome, header, workspace);
         }
-        return run_create_link_validation_callback(zome, header, baseEntry, targetEntry, workspace);
-    }
-    else if (header.type === HeaderType.DeleteLink) {
-        return run_delete_link_validation_callback(zome, header, workspace);
-    }
-    else if (header.type === HeaderType.Create ||
-        header.type === HeaderType.Update ||
-        header.type === HeaderType.Delete) {
-        return run_validation_callback_direct(zome, workspace.dna, element, workspace);
-    }
-    return {
-        valid: true,
-        resolved: true,
-    };
+        else if (header.type === HeaderType.Create ||
+            header.type === HeaderType.Update ||
+            header.type === HeaderType.Delete) {
+            return run_validation_callback_direct(zome, workspace.dna, element, workspace);
+        }
+        return {
+            valid: true,
+            resolved: true,
+        };
+    });
 }
 
-const genesis = (agentId, dnaHash, membrane_proof) => async (worskpace) => {
+const genesis = (agentId, dnaHash, membrane_proof) => (worskpace) => __awaiter(void 0, void 0, void 0, function* () {
     const dna = buildDna(dnaHash, agentId);
     putElement({ signed_header: buildShh(dna), entry: undefined })(worskpace.state);
     const pkg = buildAgentValidationPkg(worskpace.state, membrane_proof);
@@ -2575,7 +2615,7 @@ const genesis = (agentId, dnaHash, membrane_proof) => async (worskpace) => {
     if (!(worskpace.badAgentConfig &&
         worskpace.badAgentConfig.disable_validation_before_publish)) {
         const firstElements = getSourceChainElements(worskpace.state, 0, 3);
-        const result = await run_agent_validation_callback(worskpace, firstElements);
+        const result = yield run_agent_validation_callback(worskpace, firstElements);
         if (!result.resolved)
             throw new Error('Unresolved in agent validate?');
         else if (!result.valid)
@@ -2585,7 +2625,7 @@ const genesis = (agentId, dnaHash, membrane_proof) => async (worskpace) => {
         result: undefined,
         triggers: [produce_dht_ops_task()],
     };
-};
+});
 function genesis_task(cellId, membrane_proof) {
     return {
         type: WorkflowType.GENESIS,
@@ -2598,7 +2638,7 @@ function genesis_task(cellId, membrane_proof) {
 }
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/incoming_dht_ops_workflow.rs
-const incoming_dht_ops = (dhtOps, request_validation_receipt, from_agent) => async (workspace) => {
+const incoming_dht_ops = (dhtOps, request_validation_receipt, from_agent) => (workspace) => __awaiter(void 0, void 0, void 0, function* () {
     let sysValidate = false;
     for (const dhtOpHash of Object.keys(dhtOps)) {
         if (!hasDhtOpBeenProcessed(workspace.state, dhtOpHash)) {
@@ -2622,7 +2662,7 @@ const incoming_dht_ops = (dhtOps, request_validation_receipt, from_agent) => asy
         result: undefined,
         triggers: sysValidate ? [sys_validation_task()] : [],
     };
-};
+});
 function incoming_dht_ops_task(from_agent, request_validation_receipt, ops) {
     return {
         type: WorkflowType.INCOMING_DHT_OPS,
@@ -2654,26 +2694,30 @@ function triggeredWorkflowFromType(type) {
 }
 
 class MiddlewareExecutor {
-    _beforeMiddlewares = [];
-    _successMiddlewares = [];
-    _errorMiddlewares = [];
-    async execute(task, payload) {
-        for (const middleware of this._beforeMiddlewares) {
-            await middleware(payload);
-        }
-        try {
-            const result = await task();
-            for (const middleware of this._successMiddlewares) {
-                await middleware(payload, result);
+    constructor() {
+        this._beforeMiddlewares = [];
+        this._successMiddlewares = [];
+        this._errorMiddlewares = [];
+    }
+    execute(task, payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            for (const middleware of this._beforeMiddlewares) {
+                yield middleware(payload);
             }
-            return result;
-        }
-        catch (e) {
-            for (const middleware of this._errorMiddlewares) {
-                await middleware(payload, e);
+            try {
+                const result = yield task();
+                for (const middleware of this._successMiddlewares) {
+                    yield middleware(payload, result);
+                }
+                return result;
             }
-            throw e;
-        }
+            catch (e) {
+                for (const middleware of this._errorMiddlewares) {
+                    yield middleware(payload, e);
+                }
+                throw e;
+            }
+        });
     }
     before(callback) {
         return this._addListener(callback, this._beforeMiddlewares);
@@ -2696,20 +2740,18 @@ class MiddlewareExecutor {
 }
 
 class Cell {
-    _state;
-    conductor;
-    _triggers = {
-        [WorkflowType.INTEGRATE_DHT_OPS]: { running: false, triggered: true },
-        [WorkflowType.PRODUCE_DHT_OPS]: { running: false, triggered: true },
-        [WorkflowType.PUBLISH_DHT_OPS]: { running: false, triggered: true },
-        [WorkflowType.SYS_VALIDATION]: { running: false, triggered: true },
-        [WorkflowType.APP_VALIDATION]: { running: false, triggered: true },
-        [WorkflowType.VALIDATION_RECEIPT]: { running: false, triggered: true },
-    };
-    workflowExecutor = new MiddlewareExecutor();
     constructor(_state, conductor) {
         this._state = _state;
         this.conductor = conductor;
+        this._triggers = {
+            [WorkflowType.INTEGRATE_DHT_OPS]: { running: false, triggered: true },
+            [WorkflowType.PRODUCE_DHT_OPS]: { running: false, triggered: true },
+            [WorkflowType.PUBLISH_DHT_OPS]: { running: false, triggered: true },
+            [WorkflowType.SYS_VALIDATION]: { running: false, triggered: true },
+            [WorkflowType.APP_VALIDATION]: { running: false, triggered: true },
+            [WorkflowType.VALIDATION_RECEIPT]: { running: false, triggered: true },
+        };
+        this.workflowExecutor = new MiddlewareExecutor();
         // Let genesis be run before actually joining
     }
     get cellId() {
@@ -2730,29 +2772,31 @@ class Cell {
     getSimulatedDna() {
         return this.conductor.registeredDnas[this.dnaHash];
     }
-    static async create(conductor, cellId, membrane_proof) {
-        const newCellState = {
-            dnaHash: cellId[0],
-            agentPubKey: cellId[1],
-            CAS: {},
-            integrationLimbo: {},
-            metadata: {
-                link_meta: [],
-                misc_meta: {},
-                system_meta: {},
-            },
-            validationLimbo: {},
-            integratedDHTOps: {},
-            authoredDHTOps: {},
-            validationReceipts: {},
-            sourceChain: [],
-            badAgents: [],
-        };
-        const cell = new Cell(newCellState, conductor);
-        conductor.network.createP2pCell(cell);
-        await cell._runWorkflow(genesis_task(cellId, membrane_proof));
-        await cell.p2p.join(cell);
-        return cell;
+    static create(conductor, cellId, membrane_proof) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const newCellState = {
+                dnaHash: cellId[0],
+                agentPubKey: cellId[1],
+                CAS: {},
+                integrationLimbo: {},
+                metadata: {
+                    link_meta: [],
+                    misc_meta: {},
+                    system_meta: {},
+                },
+                validationLimbo: {},
+                integratedDHTOps: {},
+                authoredDHTOps: {},
+                validationReceipts: {},
+                sourceChain: [],
+                badAgents: [],
+            };
+            const cell = new Cell(newCellState, conductor);
+            conductor.network.createP2pCell(cell);
+            yield cell._runWorkflow(genesis_task(cellId, membrane_proof));
+            yield cell.p2p.join(cell);
+            return cell;
+        });
     }
     /** Workflows */
     callZomeFn(args) {
@@ -2763,28 +2807,34 @@ class Cell {
     handle_publish(from_agent, request_validation_receipt, ops) {
         return this._runWorkflow(incoming_dht_ops_task(from_agent, request_validation_receipt, ops));
     }
-    async handle_get(dht_hash, options) {
-        const authority = new Authority(this._state, this.p2p);
-        const hashType = getHashType(dht_hash);
-        if (hashType === HashType.ENTRY || hashType === HashType.AGENT) {
-            return authority.handle_get_entry(dht_hash, options);
-        }
-        else if (hashType === HashType.HEADER) {
-            return authority.handle_get_element(dht_hash, options);
-        }
-        return undefined;
+    handle_get(dht_hash, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const authority = new Authority(this._state, this.p2p);
+            const hashType = getHashType(dht_hash);
+            if (hashType === HashType.ENTRY || hashType === HashType.AGENT) {
+                return authority.handle_get_entry(dht_hash, options);
+            }
+            else if (hashType === HashType.HEADER) {
+                return authority.handle_get_element(dht_hash, options);
+            }
+            return undefined;
+        });
     }
-    async handle_get_links(base_address, options) {
-        const authority = new Authority(this._state, this.p2p);
-        return authority.handle_get_links(base_address, options);
+    handle_get_links(base_address, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const authority = new Authority(this._state, this.p2p);
+            return authority.handle_get_links(base_address, options);
+        });
     }
-    async handle_call_remote(from_agent, zome_name, fn_name, cap, payload) {
-        return this.callZomeFn({
-            zome: zome_name,
-            cap: cap,
-            fnName: fn_name,
-            payload,
-            provenance: from_agent,
+    handle_call_remote(from_agent, zome_name, fn_name, cap, payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.callZomeFn({
+                zome: zome_name,
+                cap: cap,
+                fnName: fn_name,
+                payload,
+                provenance: from_agent,
+            });
         });
     }
     /** Gossips */
@@ -2811,70 +2861,78 @@ class Cell {
         }
         return result;
     }
-    async handle_gossip(from_agent, gossip) {
-        const dhtOpsToProcess = {};
-        for (const badAction of gossip.badActions) {
-            const dhtOpHash = hash(badAction.op, HashType.DHTOP);
-            if (!hasDhtOpBeenProcessed(this._state, dhtOpHash)) {
-                dhtOpsToProcess[dhtOpHash] = badAction.op;
+    handle_gossip(from_agent, gossip) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const dhtOpsToProcess = {};
+            for (const badAction of gossip.badActions) {
+                const dhtOpHash = hash(badAction.op, HashType.DHTOP);
+                if (!hasDhtOpBeenProcessed(this._state, dhtOpHash)) {
+                    dhtOpsToProcess[dhtOpHash] = badAction.op;
+                }
+                for (const receipt of badAction.receipts) {
+                    putValidationReceipt(dhtOpHash, receipt)(this._state);
+                }
             }
-            for (const receipt of badAction.receipts) {
-                putValidationReceipt(dhtOpHash, receipt)(this._state);
+            for (const [dhtOpHash, validatedOp] of Object.entries(gossip.validated_dht_ops)) {
+                for (const receipt of validatedOp.validation_receipts) {
+                    putValidationReceipt(dhtOpHash, receipt)(this._state);
+                }
+                // TODO: fix for when sharding is implemented
+                if (this.p2p.shouldWeHold(getDHTOpBasis(validatedOp.op))) {
+                    dhtOpsToProcess[dhtOpHash] = validatedOp.op;
+                }
             }
-        }
-        for (const [dhtOpHash, validatedOp] of Object.entries(gossip.validated_dht_ops)) {
-            for (const receipt of validatedOp.validation_receipts) {
-                putValidationReceipt(dhtOpHash, receipt)(this._state);
+            if (Object.keys(dhtOpsToProcess).length > 0) {
+                yield this.handle_publish(from_agent, false, dhtOpsToProcess);
             }
-            // TODO: fix for when sharding is implemented
-            if (this.p2p.shouldWeHold(getDHTOpBasis(validatedOp.op))) {
-                dhtOpsToProcess[dhtOpHash] = validatedOp.op;
+            const previousCount = this._state.badAgents.length;
+            const badAgents = getBadAgents(this._state);
+            this._state.badAgents = uniq([...this._state.badAgents, ...badAgents]);
+            if (this._state.badAgents.length > previousCount) {
+                // We have added bad agents: resync the neighbors
+                yield this.p2p.syncNeighbors();
             }
-        }
-        if (Object.keys(dhtOpsToProcess).length > 0) {
-            await this.handle_publish(from_agent, false, dhtOpsToProcess);
-        }
-        const previousCount = this._state.badAgents.length;
-        const badAgents = getBadAgents(this._state);
-        this._state.badAgents = uniq([...this._state.badAgents, ...badAgents]);
-        if (this._state.badAgents.length > previousCount) {
-            // We have added bad agents: resync the neighbors
-            await this.p2p.syncNeighbors();
-        }
+        });
     }
     // Check if the agent we are trying to connect with passes the membrane rules for this Dna
-    async handle_check_agent(firstElements) {
-        const result = await this.workflowExecutor.execute(() => run_agent_validation_callback(this.buildWorkspace(), firstElements), app_validation_task(true));
-        if (!result.resolved)
-            throw new Error('Unresolved in agent validate?');
-        else if (!result.valid)
-            throw new Error('Agent is invalid in this Dna');
+    handle_check_agent(firstElements) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield this.workflowExecutor.execute(() => run_agent_validation_callback(this.buildWorkspace(), firstElements), app_validation_task(true));
+            if (!result.resolved)
+                throw new Error('Unresolved in agent validate?');
+            else if (!result.valid)
+                throw new Error('Agent is invalid in this Dna');
+        });
     }
     /** Workflow internal execution */
     triggerWorkflow(workflow) {
         this._triggers[workflow.type].triggered = true;
         setTimeout(() => this._runPendingWorkflows());
     }
-    async _runPendingWorkflows() {
-        const pendingWorkflows = Object.entries(this._triggers)
-            .filter(([type, t]) => t.triggered && !t.running)
-            .map(([type, t]) => type);
-        const workflowsToRun = pendingWorkflows.map(triggeredWorkflowFromType);
-        const promises = Object.values(workflowsToRun).map(async (w) => {
-            if (!this._triggers[w.type])
-                console.log(w);
-            this._triggers[w.type].triggered = false;
-            this._triggers[w.type].running = true;
-            await this._runWorkflow(w);
-            this._triggers[w.type].running = false;
-            this._runPendingWorkflows();
+    _runPendingWorkflows() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const pendingWorkflows = Object.entries(this._triggers)
+                .filter(([type, t]) => t.triggered && !t.running)
+                .map(([type, t]) => type);
+            const workflowsToRun = pendingWorkflows.map(triggeredWorkflowFromType);
+            const promises = Object.values(workflowsToRun).map((w) => __awaiter(this, void 0, void 0, function* () {
+                if (!this._triggers[w.type])
+                    console.log(w);
+                this._triggers[w.type].triggered = false;
+                this._triggers[w.type].running = true;
+                yield this._runWorkflow(w);
+                this._triggers[w.type].running = false;
+                this._runPendingWorkflows();
+            }));
+            yield Promise.all(promises);
         });
-        await Promise.all(promises);
     }
-    async _runWorkflow(workflow) {
-        const result = await this.workflowExecutor.execute(() => workflow.task(this.buildWorkspace()), workflow);
-        result.triggers.forEach(triggeredWorkflow => this.triggerWorkflow(triggeredWorkflow));
-        return result.result;
+    _runWorkflow(workflow) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield this.workflowExecutor.execute(() => workflow.task(this.buildWorkspace()), workflow);
+            result.triggers.forEach(triggeredWorkflow => this.triggerWorkflow(triggeredWorkflow));
+            return result.result;
+        });
     }
     /** Private helpers */
     buildWorkspace() {
@@ -2897,22 +2955,20 @@ class Cell {
 }
 
 class Connection {
-    opener;
-    receiver;
-    _closed = false;
+    constructor(opener, receiver) {
+        this.opener = opener;
+        this.receiver = receiver;
+        this._closed = false;
+        if (opener.p2p.badAgents.includes(receiver.agentPubKey) ||
+            receiver.p2p.badAgents.includes(opener.agentPubKey)) {
+            throw new Error('Connection closed!');
+        }
+    }
     get closed() {
         return this._closed;
     }
     close() {
         this._closed = false;
-    }
-    constructor(opener, receiver) {
-        this.opener = opener;
-        this.receiver = receiver;
-        if (opener.p2p.badAgents.includes(receiver.agentPubKey) ||
-            receiver.p2p.badAgents.includes(opener.agentPubKey)) {
-            throw new Error('Connection closed!');
-        }
     }
     sendRequest(fromAgent, networkRequest) {
         if (this.closed)
@@ -2937,61 +2993,64 @@ const DelayMiddleware = (ms) => () => sleep(ms);
 
 const GOSSIP_INTERVAL_MS = 500;
 class SimpleBloomMod {
-    p2pCell;
-    gossip_on = true;
-    lastBadActions = 0;
     constructor(p2pCell) {
         this.p2pCell = p2pCell;
+        this.gossip_on = true;
+        this.lastBadActions = 0;
         this.loop();
     }
-    async loop() {
-        while (true) {
-            if (this.gossip_on) {
-                try {
-                    await this.run_one_iteration();
+    loop() {
+        return __awaiter(this, void 0, void 0, function* () {
+            while (true) {
+                if (this.gossip_on) {
+                    try {
+                        yield this.run_one_iteration();
+                    }
+                    catch (e) {
+                        console.warn('Connection closed');
+                    }
                 }
-                catch (e) {
-                    console.warn('Connection closed');
-                }
+                yield sleep(GOSSIP_INTERVAL_MS);
             }
-            await sleep(GOSSIP_INTERVAL_MS);
-        }
+        });
     }
-    async run_one_iteration() {
-        const localDhtOpsHashes = Object.keys(this.p2pCell.cell._state.integratedDHTOps);
-        const localDhtOps = this.p2pCell.cell.handle_fetch_op_hash_data(localDhtOpsHashes);
-        const state = this.p2pCell.cell._state;
-        const dhtOpData = {};
-        for (const dhtOpHash of Object.keys(localDhtOps)) {
-            const receipts = getValidationReceipts(dhtOpHash)(state);
-            dhtOpData[dhtOpHash] = {
-                op: localDhtOps[dhtOpHash],
-                validation_receipts: receipts,
-            };
-        }
-        const pretendValid = this.p2pCell.cell.conductor.badAgent &&
-            this.p2pCell.cell.conductor.badAgent.config
-                .pretend_invalid_elements_are_valid;
-        const badActions = pretendValid ? [] : getBadActions(state);
-        const gossips = {
-            badActions,
-            neighbors: [],
-            validated_dht_ops: dhtOpData,
-        };
-        let warrant = badActions.length > 0 && badActions.length !== this.lastBadActions;
-        this.lastBadActions = badActions.length;
-        if (warrant) {
-            const promises = [
-                ...this.p2pCell.neighbors,
-                ...this.p2pCell.farKnownPeers,
-            ].map(peer => this.p2pCell.outgoing_gossip(peer, gossips, warrant));
-            await Promise.all(promises);
-        }
-        else {
-            for (const neighbor of this.p2pCell.neighbors) {
-                await this.p2pCell.outgoing_gossip(neighbor, gossips, warrant);
+    run_one_iteration() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const localDhtOpsHashes = Object.keys(this.p2pCell.cell._state.integratedDHTOps);
+            const localDhtOps = this.p2pCell.cell.handle_fetch_op_hash_data(localDhtOpsHashes);
+            const state = this.p2pCell.cell._state;
+            const dhtOpData = {};
+            for (const dhtOpHash of Object.keys(localDhtOps)) {
+                const receipts = getValidationReceipts(dhtOpHash)(state);
+                dhtOpData[dhtOpHash] = {
+                    op: localDhtOps[dhtOpHash],
+                    validation_receipts: receipts,
+                };
             }
-        }
+            const pretendValid = this.p2pCell.cell.conductor.badAgent &&
+                this.p2pCell.cell.conductor.badAgent.config
+                    .pretend_invalid_elements_are_valid;
+            const badActions = pretendValid ? [] : getBadActions(state);
+            const gossips = {
+                badActions,
+                neighbors: [],
+                validated_dht_ops: dhtOpData,
+            };
+            let warrant = badActions.length > 0 && badActions.length !== this.lastBadActions;
+            this.lastBadActions = badActions.length;
+            if (warrant) {
+                const promises = [
+                    ...this.p2pCell.neighbors,
+                    ...this.p2pCell.farKnownPeers,
+                ].map(peer => this.p2pCell.outgoing_gossip(peer, gossips, warrant));
+                yield Promise.all(promises);
+            }
+            else {
+                for (const neighbor of this.p2pCell.neighbors) {
+                    yield this.p2pCell.outgoing_gossip(neighbor, gossips, warrant);
+                }
+            }
+        });
     }
 }
 
@@ -3007,18 +3066,12 @@ var NetworkRequestType;
 
 // From: https://github.com/holochain/holochain/blob/develop/crates/holochain_p2p/src/lib.rs
 class P2pCell {
-    cell;
-    network;
-    farKnownPeers;
-    storageArc;
-    neighborNumber;
-    redundancyFactor = 3;
-    _gossipLoop;
-    networkRequestsExecutor = new MiddlewareExecutor();
-    neighborConnections = {};
     constructor(state, cell, network) {
         this.cell = cell;
         this.network = network;
+        this.redundancyFactor = 3;
+        this.networkRequestsExecutor = new MiddlewareExecutor();
+        this.neighborConnections = {};
         this.farKnownPeers = state.farKnownPeers;
         this.redundancyFactor = state.redundancyFactor;
         this.neighborNumber = state.neighborNumber;
@@ -3047,46 +3100,62 @@ class P2pCell {
         return this.cell._state.badAgents;
     }
     /** P2p actions */
-    async join(containerCell) {
-        this.network.bootstrapService.announceCell(this.cellId, containerCell);
-        this._gossipLoop = new SimpleBloomMod(this);
-        await this.syncNeighbors();
+    join(containerCell) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.network.bootstrapService.announceCell(this.cellId, containerCell);
+            this._gossipLoop = new SimpleBloomMod(this);
+            yield this.syncNeighbors();
+        });
     }
-    async leave() { }
-    async publish(dht_hash, ops) {
-        await this.network.kitsune.rpc_multi(this.cellId[0], this.cellId[1], dht_hash, this.redundancyFactor, this.badAgents, (cell) => this._executeNetworkRequest(cell, NetworkRequestType.PUBLISH_REQUEST, { dhtOps: ops }, (cell) => cell.handle_publish(this.cellId[1], true, ops)));
+    leave() {
+        return __awaiter(this, void 0, void 0, function* () { });
     }
-    async get(dht_hash, options) {
-        const gets = await this.network.kitsune.rpc_multi(this.cellId[0], this.cellId[1], dht_hash, 1, // TODO: what about this?
-        this.badAgents, (cell) => this._executeNetworkRequest(cell, NetworkRequestType.GET_REQUEST, { hash: dht_hash, options }, (cell) => cell.handle_get(dht_hash, options)));
-        return gets.find(get => !!get);
+    publish(dht_hash, ops) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.network.kitsune.rpc_multi(this.cellId[0], this.cellId[1], dht_hash, this.redundancyFactor, this.badAgents, (cell) => this._executeNetworkRequest(cell, NetworkRequestType.PUBLISH_REQUEST, { dhtOps: ops }, (cell) => cell.handle_publish(this.cellId[1], true, ops)));
+        });
     }
-    async get_links(base_address, options) {
-        return this.network.kitsune.rpc_multi(this.cellId[0], this.cellId[1], base_address, 1, // TODO: what about this?
-        this.badAgents, (cell) => this._executeNetworkRequest(cell, NetworkRequestType.GET_REQUEST, { hash: base_address, options }, (cell) => cell.handle_get_links(base_address, options)));
+    get(dht_hash, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const gets = yield this.network.kitsune.rpc_multi(this.cellId[0], this.cellId[1], dht_hash, 1, // TODO: what about this?
+            this.badAgents, (cell) => this._executeNetworkRequest(cell, NetworkRequestType.GET_REQUEST, { hash: dht_hash, options }, (cell) => cell.handle_get(dht_hash, options)));
+            return gets.find(get => !!get);
+        });
     }
-    async call_remote(agent, zome, fnName, cap, payload) {
-        return this.network.kitsune.rpc_single(this.cellId[0], this.cellId[1], agent, (cell) => this._executeNetworkRequest(cell, NetworkRequestType.CALL_REMOTE, {}, (cell) => cell.handle_call_remote(this.cellId[1], zome, fnName, cap, payload)));
+    get_links(base_address, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.network.kitsune.rpc_multi(this.cellId[0], this.cellId[1], base_address, 1, // TODO: what about this?
+            this.badAgents, (cell) => this._executeNetworkRequest(cell, NetworkRequestType.GET_REQUEST, { hash: base_address, options }, (cell) => cell.handle_get_links(base_address, options)));
+        });
+    }
+    call_remote(agent, zome, fnName, cap, payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.network.kitsune.rpc_single(this.cellId[0], this.cellId[1], agent, (cell) => this._executeNetworkRequest(cell, NetworkRequestType.CALL_REMOTE, {}, (cell) => cell.handle_call_remote(this.cellId[1], zome, fnName, cap, payload)));
+        });
     }
     /** Neighbor handling */
     get neighbors() {
         return Object.keys(this.neighborConnections);
     }
-    async connectWith(peer) {
-        if (this.neighborConnections[peer.agentPubKey])
-            return this.neighborConnections[peer.agentPubKey];
-        return new Connection(this.cell, peer);
+    connectWith(peer) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.neighborConnections[peer.agentPubKey])
+                return this.neighborConnections[peer.agentPubKey];
+            return new Connection(this.cell, peer);
+        });
     }
-    async check_agent_valid(peer) {
-        const peerFirst3Elements = getSourceChainElements(peer._state, 0, 3);
-        try {
-            await this.cell.handle_check_agent(peerFirst3Elements);
-        }
-        catch (e) {
-            if (!this.cell._state.badAgents.includes(peer.agentPubKey))
-                this.cell._state.badAgents.push(peer.agentPubKey);
-            throw new Error('Invalid agent');
-        }
+    check_agent_valid(peer) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const peerFirst3Elements = getSourceChainElements(peer._state, 0, 3);
+            try {
+                yield this.cell.handle_check_agent(peerFirst3Elements);
+            }
+            catch (e) {
+                if (!this.cell._state.badAgents.includes(peer.agentPubKey))
+                    this.cell._state.badAgents.push(peer.agentPubKey);
+                throw new Error('Invalid agent');
+            }
+        });
     }
     handleOpenNeighborConnection(from, connection) {
         this.neighborConnections[from.agentPubKey] = connection;
@@ -3096,26 +3165,28 @@ class P2pCell {
         delete this.neighborConnections[from.agentPubKey];
         this.syncNeighbors();
     }
-    async openNeighborConnection(withPeer) {
-        if (!this.neighborConnections[withPeer.agentPubKey]) {
-            // Try to connect: can fail due to validation
-            // TODO: uncomment
-            /*       await this._executeNetworkRequest(
-              withPeer,
-              NetworkRequestType.CONNECT,
-              {},
-              peer =>
-                Promise.all([
-                  this.check_agent_valid(withPeer),
-                  withPeer.p2p.check_agent_valid(this.cell),
-                ])
-            );
-       */
-            const connection = await this.connectWith(withPeer);
-            this.neighborConnections[withPeer.agentPubKey] = connection;
-            withPeer.p2p.handleOpenNeighborConnection(this.cell, connection);
-        }
-        return this.neighborConnections[withPeer.agentPubKey];
+    openNeighborConnection(withPeer) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.neighborConnections[withPeer.agentPubKey]) {
+                // Try to connect: can fail due to validation
+                // TODO: uncomment
+                /*       await this._executeNetworkRequest(
+                  withPeer,
+                  NetworkRequestType.CONNECT,
+                  {},
+                  peer =>
+                    Promise.all([
+                      this.check_agent_valid(withPeer),
+                      withPeer.p2p.check_agent_valid(this.cell),
+                    ])
+                );
+           */
+                const connection = yield this.connectWith(withPeer);
+                this.neighborConnections[withPeer.agentPubKey] = connection;
+                withPeer.p2p.handleOpenNeighborConnection(this.cell, connection);
+            }
+            return this.neighborConnections[withPeer.agentPubKey];
+        });
     }
     closeNeighborConnection(withPeer) {
         if (this.neighborConnections[withPeer]) {
@@ -3128,36 +3199,38 @@ class P2pCell {
                 .p2p.handleCloseNeighborConnection(this.cell);
         }
     }
-    async syncNeighbors() {
-        const dnaHash = this.cellId[0];
-        const agentPubKey = this.cellId[1];
-        const badAgents = this.badAgents;
-        for (const badAgent of badAgents) {
-            if (this.neighborConnections[badAgent]) {
-                this.closeNeighborConnection(badAgent);
+    syncNeighbors() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const dnaHash = this.cellId[0];
+            const agentPubKey = this.cellId[1];
+            const badAgents = this.badAgents;
+            for (const badAgent of badAgents) {
+                if (this.neighborConnections[badAgent]) {
+                    this.closeNeighborConnection(badAgent);
+                }
             }
-        }
-        this.farKnownPeers = this.network.bootstrapService
-            .getFarKnownPeers(dnaHash, agentPubKey, badAgents)
-            .map(p => p.agentPubKey);
-        const neighbors = this.network.bootstrapService
-            .getNeighborhood(dnaHash, agentPubKey, this.neighborNumber, badAgents)
-            .filter(cell => cell.agentPubKey != agentPubKey);
-        const newNeighbors = neighbors.filter(cell => !this.neighbors.includes(cell.agentPubKey));
-        const neighborsToForget = this.neighbors.filter(n => !neighbors.find(c => c.agentPubKey === n));
-        neighborsToForget.forEach(n => this.closeNeighborConnection(n));
-        const promises = newNeighbors.map(async (neighbor) => {
-            try {
-                await this.openNeighborConnection(neighbor);
-            }
-            catch (e) {
-                // Couldn't open connection
+            this.farKnownPeers = this.network.bootstrapService
+                .getFarKnownPeers(dnaHash, agentPubKey, badAgents)
+                .map(p => p.agentPubKey);
+            const neighbors = this.network.bootstrapService
+                .getNeighborhood(dnaHash, agentPubKey, this.neighborNumber, badAgents)
+                .filter(cell => cell.agentPubKey != agentPubKey);
+            const newNeighbors = neighbors.filter(cell => !this.neighbors.includes(cell.agentPubKey));
+            const neighborsToForget = this.neighbors.filter(n => !neighbors.find(c => c.agentPubKey === n));
+            neighborsToForget.forEach(n => this.closeNeighborConnection(n));
+            const promises = newNeighbors.map((neighbor) => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    yield this.openNeighborConnection(neighbor);
+                }
+                catch (e) {
+                    // Couldn't open connection
+                }
+            }));
+            yield Promise.all(promises);
+            if (Object.keys(this.neighborConnections).length < this.neighborNumber) {
+                setTimeout(() => this.syncNeighbors(), 400);
             }
         });
-        await Promise.all(promises);
-        if (Object.keys(this.neighborConnections).length < this.neighborNumber) {
-            setTimeout(() => this.syncNeighbors(), 400);
-        }
     }
     // TODO: fix when sharding is implemented
     shouldWeHold(dhtOpBasis) {
@@ -3166,67 +3239,73 @@ class P2pCell {
         return index >= 0 && index < this.redundancyFactor;
     }
     /** Gossip */
-    async outgoing_gossip(to_agent, gossips, warrant = false) {
-        // TODO: remove peer discovery?
-        await this.network.kitsune.rpc_single(this.cellId[0], this.cellId[1], to_agent, (cell) => this._executeNetworkRequest(cell, warrant ? NetworkRequestType.WARRANT : NetworkRequestType.GOSSIP, {}, (cell) => cell.handle_gossip(this.cellId[1], gossips)));
+    outgoing_gossip(to_agent, gossips, warrant = false) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // TODO: remove peer discovery?
+            yield this.network.kitsune.rpc_single(this.cellId[0], this.cellId[1], to_agent, (cell) => this._executeNetworkRequest(cell, warrant ? NetworkRequestType.WARRANT : NetworkRequestType.GOSSIP, {}, (cell) => cell.handle_gossip(this.cellId[1], gossips)));
+        });
     }
     /** Executors */
-    async _executeNetworkRequest(toCell, type, details, request) {
-        const networkRequest = {
-            fromAgent: this.cellId[1],
-            toAgent: toCell.agentPubKey,
-            dnaHash: this.cellId[0],
-            type,
-            details,
-        };
-        const connection = await this.connectWith(toCell);
-        const result = await this.networkRequestsExecutor.execute(() => connection.sendRequest(this.cellId[1], request), networkRequest);
-        return result;
+    _executeNetworkRequest(toCell, type, details, request) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const networkRequest = {
+                fromAgent: this.cellId[1],
+                toAgent: toCell.agentPubKey,
+                dnaHash: this.cellId[0],
+                type,
+                details,
+            };
+            const connection = yield this.connectWith(toCell);
+            const result = yield this.networkRequestsExecutor.execute(() => connection.sendRequest(this.cellId[1], request), networkRequest);
+            return result;
+        });
     }
 }
 
 class KitsuneP2p {
-    network;
-    discover;
     constructor(network) {
         this.network = network;
         this.discover = new Discover(network);
     }
-    async rpc_single(dna_hash, from_agent, to_agent, networkRequest) {
-        const peer = await this.discover.peer_discover(dna_hash, from_agent, to_agent);
-        return networkRequest(peer);
+    rpc_single(dna_hash, from_agent, to_agent, networkRequest) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const peer = yield this.discover.peer_discover(dna_hash, from_agent, to_agent);
+            return networkRequest(peer);
+        });
     }
-    async rpc_multi(dna_hash, from_agent, basis, remote_agent_count, filtered_agents, networkRequest) {
-        // Discover neighbors
-        return this.discover.message_neighborhood(dna_hash, from_agent, basis, remote_agent_count, filtered_agents, networkRequest);
+    rpc_multi(dna_hash, from_agent, basis, remote_agent_count, filtered_agents, networkRequest) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Discover neighbors
+            return this.discover.message_neighborhood(dna_hash, from_agent, basis, remote_agent_count, filtered_agents, networkRequest);
+        });
     }
 }
 // From https://github.com/holochain/holochain/blob/develop/crates/kitsune_p2p/kitsune_p2p/src/spawn/actor/discover.rs
 class Discover {
-    network;
     constructor(network) {
         this.network = network;
     }
     // TODO fix this
-    async peer_discover(dna_hash, from_agent, to_agent) {
-        return this.network.bootstrapService.cells[dna_hash][to_agent];
+    peer_discover(dna_hash, from_agent, to_agent) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.network.bootstrapService.cells[dna_hash][to_agent];
+        });
     }
-    async message_neighborhood(dna_hash, from_agent, basis, remote_agent_count, filtered_agents, networkRequest) {
-        const agents = await this.search_for_agents(dna_hash, basis, remote_agent_count, filtered_agents);
-        const promises = agents.map(cell => networkRequest(cell));
-        return Promise.all(promises);
+    message_neighborhood(dna_hash, from_agent, basis, remote_agent_count, filtered_agents, networkRequest) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const agents = yield this.search_for_agents(dna_hash, basis, remote_agent_count, filtered_agents);
+            const promises = agents.map(cell => networkRequest(cell));
+            return Promise.all(promises);
+        });
     }
-    async search_for_agents(dna_hash, basis, remote_agent_count, filtered_agents) {
-        return this.network.bootstrapService.getNeighborhood(dna_hash, basis, remote_agent_count, filtered_agents);
+    search_for_agents(dna_hash, basis, remote_agent_count, filtered_agents) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.network.bootstrapService.getNeighborhood(dna_hash, basis, remote_agent_count, filtered_agents);
+        });
     }
 }
 
 class Network {
-    conductor;
-    bootstrapService;
-    // P2pCells contained in this conductor
-    p2pCells;
-    kitsune;
     constructor(state, conductor, bootstrapService) {
         this.conductor = conductor;
         this.bootstrapService = bootstrapService;
@@ -3282,12 +3361,6 @@ class Network {
 }
 
 class Conductor {
-    cells;
-    registeredDnas;
-    installedHapps;
-    network;
-    name;
-    badAgent; // If undefined, this is an honest agent
     constructor(state, bootstrapService) {
         this.network = new Network(state.networkState, this, bootstrapService);
         this.registeredDnas = state.registeredDnas;
@@ -3302,18 +3375,20 @@ class Conductor {
             }
         }
     }
-    static async create(bootstrapService, name) {
-        const state = {
-            cellsState: {},
-            networkState: {
-                p2pCellsState: {},
-            },
-            registeredDnas: {},
-            installedHapps: {},
-            name,
-            badAgent: undefined,
-        };
-        return new Conductor(state, bootstrapService);
+    static create(bootstrapService, name) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const state = {
+                cellsState: {},
+                networkState: {
+                    p2pCellsState: {},
+                },
+                registeredDnas: {},
+                installedHapps: {},
+                name,
+                badAgent: undefined,
+            };
+            return new Conductor(state, bootstrapService);
+        });
     }
     getState() {
         const cellsState = {};
@@ -3365,72 +3440,78 @@ class Conductor {
       this.registeredDnas[templateHash] = dna_template;
       return templateHash;
     } */
-    async cloneCell(installedAppId, slotNick, uid, properties, membraneProof) {
-        if (!this.installedHapps[installedAppId])
-            throw new Error(`Given app id doesn't exist`);
-        const installedApp = this.installedHapps[installedAppId];
-        if (!installedApp.slots[slotNick])
-            throw new Error(`The slot nick doesn't exist for the given app id`);
-        const slotToClone = installedApp.slots[slotNick];
-        const hashOfDnaToClone = slotToClone.base_cell_id[0];
-        const dnaToClone = this.registeredDnas[hashOfDnaToClone];
-        if (!dnaToClone) {
-            throw new Error(`The dna to be cloned is not registered on this conductor`);
-        }
-        const dna = { ...dnaToClone };
-        if (uid)
-            dna.uid = uid;
-        if (properties)
-            dna.properties = properties;
-        const newDnaHash = hash(dna, HashType.DNA);
-        if (newDnaHash === hashOfDnaToClone)
-            throw new Error(`Trying to clone a dna would create exactly the same DNA`);
-        this.registeredDnas[newDnaHash] = dna;
-        const cell = await this.createCell(dna, installedApp.agent_pub_key, membraneProof);
-        this.installedHapps[installedAppId].slots[slotNick].clones.push(cell.cellId);
-        return cell;
+    cloneCell(installedAppId, slotNick, uid, properties, membraneProof) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.installedHapps[installedAppId])
+                throw new Error(`Given app id doesn't exist`);
+            const installedApp = this.installedHapps[installedAppId];
+            if (!installedApp.slots[slotNick])
+                throw new Error(`The slot nick doesn't exist for the given app id`);
+            const slotToClone = installedApp.slots[slotNick];
+            const hashOfDnaToClone = slotToClone.base_cell_id[0];
+            const dnaToClone = this.registeredDnas[hashOfDnaToClone];
+            if (!dnaToClone) {
+                throw new Error(`The dna to be cloned is not registered on this conductor`);
+            }
+            const dna = Object.assign({}, dnaToClone);
+            if (uid)
+                dna.uid = uid;
+            if (properties)
+                dna.properties = properties;
+            const newDnaHash = hash(dna, HashType.DNA);
+            if (newDnaHash === hashOfDnaToClone)
+                throw new Error(`Trying to clone a dna would create exactly the same DNA`);
+            this.registeredDnas[newDnaHash] = dna;
+            const cell = yield this.createCell(dna, installedApp.agent_pub_key, membraneProof);
+            this.installedHapps[installedAppId].slots[slotNick].clones.push(cell.cellId);
+            return cell;
+        });
     }
-    async installHapp(happ, membrane_proofs // segmented by CellNick
+    installHapp(happ, membrane_proofs // segmented by CellNick
     ) {
-        const rand = `${Math.random().toString()}/${Date.now()}`;
-        const agentId = hash(rand, HashType.AGENT);
-        this.installedHapps[happ.name] = {
-            agent_pub_key: agentId,
-            app_id: happ.name,
-            slots: {},
-        };
-        for (const [cellNick, dnaSlot] of Object.entries(happ.slots)) {
-            let dnaHash = undefined;
-            if (typeof dnaSlot.dna === 'string') {
-                dnaHash = dnaSlot.dna;
-                if (!this.registeredDnas[dnaHash])
-                    throw new Error(`Trying to reference a Dna that this conductor doesn't have registered`);
-            }
-            else if (typeof dnaSlot.dna === 'object') {
-                dnaHash = hash(dnaSlot.dna, HashType.DNA);
-                this.registeredDnas[dnaHash] = dnaSlot.dna;
-            }
-            else {
-                throw new Error('Bad DNA Slot: you must pass in the hash of the dna or the simulated Dna object');
-            }
-            this.installedHapps[happ.name].slots[cellNick] = {
-                base_cell_id: [dnaHash, agentId],
-                is_provisioned: !dnaSlot.deferred,
-                clones: [],
+        return __awaiter(this, void 0, void 0, function* () {
+            const rand = `${Math.random().toString()}/${Date.now()}`;
+            const agentId = hash(rand, HashType.AGENT);
+            this.installedHapps[happ.name] = {
+                agent_pub_key: agentId,
+                app_id: happ.name,
+                slots: {},
             };
-            if (!dnaSlot.deferred) {
-                await this.createCell(this.registeredDnas[dnaHash], agentId, membrane_proofs[cellNick]);
+            for (const [cellNick, dnaSlot] of Object.entries(happ.slots)) {
+                let dnaHash = undefined;
+                if (typeof dnaSlot.dna === 'string') {
+                    dnaHash = dnaSlot.dna;
+                    if (!this.registeredDnas[dnaHash])
+                        throw new Error(`Trying to reference a Dna that this conductor doesn't have registered`);
+                }
+                else if (typeof dnaSlot.dna === 'object') {
+                    dnaHash = hash(dnaSlot.dna, HashType.DNA);
+                    this.registeredDnas[dnaHash] = dnaSlot.dna;
+                }
+                else {
+                    throw new Error('Bad DNA Slot: you must pass in the hash of the dna or the simulated Dna object');
+                }
+                this.installedHapps[happ.name].slots[cellNick] = {
+                    base_cell_id: [dnaHash, agentId],
+                    is_provisioned: !dnaSlot.deferred,
+                    clones: [],
+                };
+                if (!dnaSlot.deferred) {
+                    yield this.createCell(this.registeredDnas[dnaHash], agentId, membrane_proofs[cellNick]);
+                }
             }
-        }
+        });
     }
-    async createCell(dna, agentPubKey, membraneProof) {
-        const newDnaHash = hash(dna, HashType.DNA);
-        const cellId = [newDnaHash, agentPubKey];
-        const cell = await Cell.create(this, cellId, membraneProof);
-        if (!this.cells[cell.dnaHash])
-            this.cells[cell.dnaHash] = {};
-        this.cells[cell.dnaHash][cell.agentPubKey] = cell;
-        return cell;
+    createCell(dna, agentPubKey, membraneProof) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const newDnaHash = hash(dna, HashType.DNA);
+            const cellId = [newDnaHash, agentPubKey];
+            const cell = yield Cell.create(this, cellId, membraneProof);
+            if (!this.cells[cell.dnaHash])
+                this.cells[cell.dnaHash] = {};
+            this.cells[cell.dnaHash][cell.agentPubKey] = cell;
+            return cell;
+        });
     }
     /** App API */
     callZomeFn(args) {
@@ -3450,10 +3531,10 @@ class Conductor {
 }
 
 var index = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  create_entry: create_entry,
-  buildValidationFunctionContext: buildValidationFunctionContext,
-  buildZomeFunctionContext: buildZomeFunctionContext
+    __proto__: null,
+    create_entry: create_entry,
+    buildValidationFunctionContext: buildValidationFunctionContext,
+    buildZomeFunctionContext: buildZomeFunctionContext
 });
 
 const demoEntriesZome = {
@@ -3466,15 +3547,15 @@ const demoEntriesZome = {
     ],
     zome_functions: {
         create_entry: {
-            call: ({ create_entry }) => async ({ content }) => {
+            call: ({ create_entry }) => ({ content }) => __awaiter(void 0, void 0, void 0, function* () {
                 return create_entry({ content, entry_def_id: 'demo_entry' });
-            },
+            }),
             arguments: [{ name: 'content', type: 'any' }],
         },
         hash_entry: {
-            call: ({ hash_entry }) => async ({ entry }) => {
+            call: ({ hash_entry }) => ({ entry }) => __awaiter(void 0, void 0, void 0, function* () {
                 return hash_entry(entry);
-            },
+            }),
             arguments: [{ name: 'entry', type: 'any' }],
         },
         get: {
@@ -3509,10 +3590,10 @@ const demoEntriesZome = {
         },
     },
     validation_functions: {
-        validate_update_entry_demo_entry: hdk => async ({ element }) => {
+        validate_update_entry_demo_entry: hdk => ({ element }) => __awaiter(void 0, void 0, void 0, function* () {
             const update = element.signed_header.header.content;
             const updateAuthor = update.author;
-            const originalHeader = await hdk.get(update.original_header_address);
+            const originalHeader = yield hdk.get(update.original_header_address);
             if (!originalHeader)
                 return {
                     resolved: false,
@@ -3524,7 +3605,7 @@ const demoEntriesZome = {
                     resolved: true,
                 };
             return { valid: true, resolved: true };
-        },
+        }),
     },
 };
 const demoLinksZome = {
@@ -3596,7 +3677,9 @@ function demoHapp() {
 }
 
 class BootstrapService {
-    cells = {};
+    constructor() {
+        this.cells = {};
+    }
     announceCell(cellId, cell) {
         const dnaHash = cellId[0];
         const agentPubKey = cellId[1];
@@ -3619,20 +3702,22 @@ class BootstrapService {
 const config = {
     dictionaries: [names],
 };
-async function createConductors(conductorsToCreate, currentConductors, happ) {
-    const bootstrapService = currentConductors.length === 0
-        ? new BootstrapService()
-        : currentConductors[0].network.bootstrapService;
-    const newConductorsPromises = [];
-    for (let i = 0; i < conductorsToCreate; i++) {
-        const characterName = uniqueNamesGenerator(config);
-        const conductor = Conductor.create(bootstrapService, characterName);
-        newConductorsPromises.push(conductor);
-    }
-    const newConductors = await Promise.all(newConductorsPromises);
-    const allConductors = [...currentConductors, ...newConductors];
-    await Promise.all(allConductors.map(async (c) => c.installHapp(happ, {})));
-    return allConductors;
+function createConductors(conductorsToCreate, currentConductors, happ) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const bootstrapService = currentConductors.length === 0
+            ? new BootstrapService()
+            : currentConductors[0].network.bootstrapService;
+        const newConductorsPromises = [];
+        for (let i = 0; i < conductorsToCreate; i++) {
+            const characterName = uniqueNamesGenerator(config);
+            const conductor = Conductor.create(bootstrapService, characterName);
+            newConductorsPromises.push(conductor);
+        }
+        const newConductors = yield Promise.all(newConductorsPromises);
+        const allConductors = [...currentConductors, ...newConductors];
+        yield Promise.all(allConductors.map((c) => __awaiter(this, void 0, void 0, function* () { return c.installHapp(happ, {}); })));
+        return allConductors;
+    });
 }
 
 export { AGENT_PREFIX, Authority, Cascade, Cell, Conductor, DHTOP_PREFIX, DNA_PREFIX, DelayMiddleware, Discover, ENTRY_PREFIX, GetStrategy, HEADER_PREFIX, HashType, index as Hdk, KitsuneP2p, MiddlewareExecutor, Network, NetworkRequestType, P2pCell, ValidationLimboStatus, ValidationStatus, WorkflowType, app_validation, app_validation_task, buildAgentValidationPkg, buildCreate, buildCreateLink, buildDelete, buildDeleteLink, buildDna, buildShh, buildUpdate, callZomeFn, call_zome_fn_workflow, computeDhtStatus, counterfeit_check, createConductors, deleteValidationLimboValue, demoDna, demoEntriesZome, demoHapp, demoLinksZome, demoPathsZome, distance, genesis, genesis_task, getAllAuthoredEntries, getAllAuthoredHeaders, getAllHeldEntries, getAllHeldHeaders, getAppEntryType, getAuthor, getBadActions, getBadAgents, getCellId, getClosestNeighbors, getCreateLinksForEntry, getDHTOpBasis, getDhtShard, getDnaHash, getElement, getEntryDetails, getEntryDhtStatus, getEntryTypeString, getFarthestNeighbors, getHashType, getHeaderAt, getHeaderModifiers, getHeadersForEntry, getIntegratedDhtOpsWithoutReceipt, getLinksForEntry, getLiveLinks, getNewHeaders, getNextHeaderSeq, getNonPublishedDhtOps, getRemovesOnLinkAdd, getSourceChainElement, getSourceChainElements, getTipOfChain, getValidationLimboDhtOps, getValidationReceipts, hasDhtOpBeenProcessed, hash, hashEntry, incoming_dht_ops, incoming_dht_ops_task, integrate_dht_ops, integrate_dht_ops_task, isHoldingDhtOp, isHoldingElement, isHoldingEntry, location, produce_dht_ops, produce_dht_ops_task, publish_dht_ops, publish_dht_ops_task, pullAllIntegrationLimboDhtOps, putDhtOpData, putDhtOpMetadata, putDhtOpToIntegrated, putElement, putIntegrationLimboValue, putSystemMetadata, putValidationLimboValue, putValidationReceipt, query_dht_ops, register_header_on_basis, run_agent_validation_callback, run_create_link_validation_callback, run_delete_link_validation_callback, run_validation_callback_direct, shortest_arc_distance, sleep, store_element, store_entry, sys_validate_element, sys_validation, sys_validation_task, valid_cap_grant, validate_op, workflowPriority, wrap };
