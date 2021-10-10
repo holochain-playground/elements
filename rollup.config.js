@@ -34,7 +34,6 @@ export default {
         !key.includes('json-viewer') &&
         !key.includes('@vaadin')
     ),
-    /scoped-material-components/,
     'lit/directives/style-map.js',
     'lit/directives/class-map.js',
     'lodash-es',
