@@ -20,7 +20,6 @@ export class HolochainPlaygroundGoldenLayoutMenu extends ScopedElementsMixin(
 
   render() {
     return html`
-      <span class="title">Blocks</span>
       <mwc-list
         >${GOLDEN_LAYOUT_COMPONENTS.map((component) =>
           this.renderItem(component.name, component.tag)

@@ -97575,7 +97575,6 @@ class HolochainPlaygroundGoldenLayoutMenu extends ScopedElementsMixin(LitElement
     }
     render() {
         return html$1 `
-      <span class="title">Blocks</span>
       <mwc-list
         >${GOLDEN_LAYOUT_COMPONENTS.map((component) => this.renderItem(component.name, component.tag))}</mwc-list
       >
