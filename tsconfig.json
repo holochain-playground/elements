@@ -16,7 +16,8 @@
     "alwaysStrict": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "useDefineForClassFields": false
   },
   "include": ["src"],
   "exclude": ["node_modules/!(@open-wc)"]

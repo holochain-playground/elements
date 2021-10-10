@@ -8,7 +8,7 @@ import { PlaygroundElement } from '../../base/playground-element';
 export declare class EntryContents extends PlaygroundElement {
     static get styles(): import("lit").CSSResult[];
     get activeHashedContent(): any;
-    render(): import("lit").TemplateResult<1>;
+    render(): import("lit-html").TemplateResult<1>;
     static get scopedElements(): {
         'json-viewer': typeof JsonViewer;
         'mwc-card': typeof Card;

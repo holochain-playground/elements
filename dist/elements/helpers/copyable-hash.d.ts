@@ -7,7 +7,7 @@ export declare class CopyableHash extends CopyableHash_base {
     sliceLength: number;
     _copyNotification: Snackbar;
     copyHash(): Promise<void>;
-    render(): import("lit").TemplateResult<1>;
+    render(): import("lit-html").TemplateResult<1>;
     static get styles(): import("lit").CSSResult;
     static get scopedElements(): {
         'mwc-icon-button': typeof IconButton;

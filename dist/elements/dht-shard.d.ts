@@ -7,7 +7,7 @@ export declare class DhtShard extends PlaygroundElement {
     };
     static style(): import("lit").CSSResult;
     get activeCell(): import("@holochain-playground/core").Cell;
-    render(): import("lit").TemplateResult<1>;
+    render(): import("lit-html").TemplateResult<1>;
     static get scopedElements(): {
         'json-viewer': typeof JsonViewer;
     };

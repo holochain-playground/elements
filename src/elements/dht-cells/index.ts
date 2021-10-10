@@ -2,6 +2,7 @@ import { html, css } from 'lit';
 import { state, query, property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { classMap } from 'lit/directives/class-map.js';
+import ResizeObserver from 'resize-observer-polyfill';
 
 import cytoscape from 'cytoscape';
 import { MenuSurface } from '@scoped-elements/material-web';
@@ -14,9 +15,17 @@ import {
   PublishRequestInfo,
   NetworkRequestInfo,
 } from '@holochain-playground/core';
-import { Card } from '@scoped-elements/material-web';
-import { Slider } from '@scoped-elements/material-web';
-import { Switch } from '@scoped-elements/material-web';
+import {
+  Card,
+  Slider,
+  Switch,
+  IconButton,
+  Formfield,
+  Icon,
+  Menu,
+  ListItem,
+} from '@scoped-elements/material-web';
+
 import { CellTasks } from '../helpers/cell-tasks';
 import { HelpButton } from '../helpers/help-button';
 import { CellsController } from '../../base/cells-controller';
@@ -24,26 +33,21 @@ import { selectAllCells, selectHoldingCells } from '../../base/selectors';
 import { sharedStyles } from '../utils/shared-styles';
 import { dhtCellsNodes, neighborsEdges } from './processors';
 import { graphStyles, layoutConfig } from './graph';
-import { IconButton } from '@scoped-elements/material-web';
-import { Formfield } from '@scoped-elements/material-web';
-import { Icon } from '@scoped-elements/material-web';
 import { Subject } from 'rxjs';
-import { Menu } from '@scoped-elements/material-web';
-import { ListItem } from '@scoped-elements/material-web';
 import { uniq } from 'lodash-es';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CellObserver } from '../../base/cell-observer';
 import { CopyableHash } from '../helpers/copyable-hash';
 
-const MIN_ANIMATION_DELAY = 1000;
-const MAX_ANIMATION_DELAY = 7000;
+const MIN_ANIMATION_DELAY = 1;
+const MAX_ANIMATION_DELAY = 7;
 
 /**
  * @element dht-cells
  */
 export class DhtCells extends PlaygroundElement implements CellObserver {
   @property({ type: Number })
-  animationDelay: number = 2000;
+  animationDelay: number = 2;
 
   @property({ type: Array })
   workflowsToDisplay: WorkflowType[] = [
@@ -192,6 +196,7 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
       },
     ]);
 
+    const delay = this.animationDelay * 1000;
     if (this.stepByStep) {
       const halfPosition = {
         x: (toPosition.x - fromPosition.x) / 2 + fromPosition.x,
@@ -199,10 +204,10 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
       };
       el.animate({
         position: halfPosition,
-        duration: this.animationDelay / 2,
+        duration: delay / 2,
       });
 
-      await sleep(this.animationDelay / 2);
+      await sleep(delay / 2);
 
       this._onPause = true;
       await new Promise((resolve) =>
@@ -212,17 +217,17 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
 
       el.animate({
         position: toPosition,
-        duration: this.animationDelay / 2,
+        duration: delay / 2,
       });
 
-      await sleep(this.animationDelay / 2);
+      await sleep(delay / 2);
     } else {
       el.animate({
         position: toNode.position(),
-        duration: this.animationDelay,
+        duration: delay,
       });
 
-      await sleep(this.animationDelay);
+      await sleep(delay);
     }
     this._cy.remove(el);
   }
@@ -234,7 +239,7 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
   setupGraphNodes() {
     if (!this._cy) return;
 
-    const observedCells = this.cellsController.observedCells
+    const observedCells = this.cellsController.observedCells;
 
     const nodes = dhtCellsNodes(observedCells);
 
@@ -259,7 +264,10 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
     super.updated(changedValues);
 
     const neighbors = neighborsEdges(this.cellsController.observedCells);
-    if (this._neighborEdges.length != neighbors.length && this._cy.nodes().length > 0) {
+    if (
+      this._neighborEdges.length != neighbors.length &&
+      this._cy.nodes().length > 0
+    ) {
       this._neighborEdges = neighbors;
       this._cy.remove('edge');
       this._cy.add(neighbors);
@@ -301,9 +309,11 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
             `
           : html`
               <mwc-slider
-                style="margin-right: 16px;"
+                style="margin-right: 16px; width: 150px;"
+                discrete
+                withTickMarks
                 .value=${MAX_ANIMATION_DELAY - this.animationDelay}
-                pin
+                .valueEnd=${MAX_ANIMATION_DELAY - this.animationDelay}
                 .min=${MIN_ANIMATION_DELAY}
                 .max=${MAX_ANIMATION_DELAY}
                 @change=${(e) =>
@@ -382,7 +392,7 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
 
       return html`<holochain-playground-cell-tasks
         .workflowsToDisplay=${this.workflowsToDisplay}
-        .workflowDelay=${this.animationDelay}
+        .workflowDelay=${this.animationDelay * 1000}
         .cell=${cell}
         style=${styleMap({
           top: `${finalY}px`,
@@ -532,6 +542,8 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
       sharedStyles,
       css`
         :host {
+          min-height: 600px;
+          min-width: 600px;
           display: flex;
         }
 

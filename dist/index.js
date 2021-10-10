@@ -3,8 +3,9 @@ import { ProviderMixin, ConsumerMixin } from 'lit-element-context';
 import { LitElement, css as css$1, html as html$1 } from 'lit';
 import { getHashType, HashType, isHoldingEntry, isHoldingElement, demoHapp, createConductors, hash, WorkflowType, sleep, workflowPriority, Cell, location, NetworkRequestType, getDhtShard, getAllHeldEntries, getEntryDetails, getLinksForEntry, getEntryTypeString, getAllHeldHeaders, getHeaderModifiers, getAppEntryType, getLiveLinks } from '@holochain-playground/core';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
-import { styleMap as styleMap$1 } from 'lit/directives/style-map.js';
+import { styleMap } from 'lit/directives/style-map.js';
 import { classMap } from 'lit/directives/class-map.js';
+import ResizeObserver$1 from 'resize-observer-polyfill';
 import { Subject } from 'rxjs';
 import { uniq, isEqual, cloneDeep as cloneDeep$1 } from 'lodash-es';
 import { EntryDhtStatus, timestampToMillis } from '@holochain-open-dev/core-types';
@@ -66,7 +67,7 @@ function __awaiter(thisArg, _arguments, P, generator) {
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const i$4=(i,e)=>"method"===e.kind&&e.descriptor&&!("value"in e.descriptor)?{...e,finisher(n){n.createProperty(e.key,i);}}:{kind:"field",key:Symbol(),placement:"own",descriptor:{},originalKey:e.key,initializer(){"function"==typeof e.initializer&&(this[e.key]=e.initializer.call(this));},finisher(n){n.createProperty(e.key,i);}};function e$4(e){return (n,t)=>void 0!==t?((i,e,n)=>{e.constructor.createProperty(n,i);})(e,n,t):i$4(e,n)}
+const i$5=(i,e)=>"method"===e.kind&&e.descriptor&&!("value"in e.descriptor)?{...e,finisher(n){n.createProperty(e.key,i);}}:{kind:"field",key:Symbol(),placement:"own",descriptor:{},originalKey:e.key,initializer(){"function"==typeof e.initializer&&(this[e.key]=e.initializer.call(this));},finisher(n){n.createProperty(e.key,i);}};function e$4(e){return (n,t)=>void 0!==t?((i,e,n)=>{e.constructor.createProperty(n,i);})(e,n,t):i$5(e,n)}
 
 /**
  * @license
@@ -85,7 +86,7 @@ const o$3=({finisher:e,descriptor:t})=>(o,n)=>{var r;if(void 0===n){const n=null
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */function i$3(i,n){return o$3({descriptor:o=>{const t={get(){var o,n;return null!==(n=null===(o=this.renderRoot)||void 0===o?void 0:o.querySelector(i))&&void 0!==n?n:null},enumerable:!0,configurable:!0};if(n){const n="symbol"==typeof o?Symbol():"__"+o;t.get=function(){var o,t;return void 0===this[n]&&(this[n]=null!==(t=null===(o=this.renderRoot)||void 0===o?void 0:o.querySelector(i))&&void 0!==t?t:null),this[n]};}return t}})}
+ */function i$4(i,n){return o$3({descriptor:o=>{const t={get(){var o,n;return null!==(n=null===(o=this.renderRoot)||void 0===o?void 0:o.querySelector(i))&&void 0!==n?n:null},enumerable:!0,configurable:!0};if(n){const n="symbol"==typeof o?Symbol():"__"+o;t.get=function(){var o,t;return void 0===this[n]&&(this[n]=null!==(t=null===(o=this.renderRoot)||void 0===o?void 0:o.querySelector(i))&&void 0!==t?t:null),this[n]};}return t}})}
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -17392,11 +17393,13 @@ class HolochainPlaygroundContainer extends ScopedElementsMixin(ProviderMixin(Lit
         ];
     }
     static get styles() {
-        return css$1 `
-      :host {
-        display: contents;
-      }
-    `;
+        return [
+            css$1 `
+        :host {
+          display: contents;
+        }
+      `,
+        ];
     }
     update(changedValues) {
         super.update(changedValues);
@@ -17487,7 +17490,7 @@ __decorate([
     __metadata("design:type", Object)
 ], HolochainPlaygroundContainer.prototype, "simulatedHapp", void 0);
 __decorate([
-    i$3('#snackbar'),
+    i$4('#snackbar'),
     __metadata("design:type", Snackbar)
 ], HolochainPlaygroundContainer.prototype, "snackbar", void 0);
 __decorate([
@@ -17660,6 +17663,7 @@ const sharedStyles = css$1 `
     flex-direction: column;
   }
   .fill {
+    height: 100%;
     flex: 1;
   }
 
@@ -17790,7 +17794,7 @@ __decorate([
     __metadata("design:type", Number)
 ], CopyableHash.prototype, "sliceLength", void 0);
 __decorate([
-    i$3('#copy-notification'),
+    i$4('#copy-notification'),
     __metadata("design:type", Snackbar)
 ], CopyableHash.prototype, "_copyNotification", void 0);
 
@@ -18094,14 +18098,14 @@ class ExpandableLine extends ScopedElementsMixin(LitElement) {
         ></mwc-icon-button>
 
         <div
-          style=${styleMap$1({
+          style=${styleMap({
             position: this._expanded ? 'unset' : 'relative',
             flex: '1',
             display: 'flex',
         })}
         >
           <div
-            style=${styleMap$1({
+            style=${styleMap({
             display: this._expanded ? 'none' : 'block',
             'z-index': '3',
             position: this._expanded ? 'unset' : 'absolute',
@@ -18113,7 +18117,7 @@ class ExpandableLine extends ScopedElementsMixin(LitElement) {
         })}
           ></div>
           <div
-            style=${styleMap$1({
+            style=${styleMap({
             height: this._expanded ? 'auto' : '30px',
             width: this._expanded ? 'auto' : '100%',
             overflow: this._expanded ? 'auto' : 'hidden',
@@ -18621,7 +18625,7 @@ class ZomeFnsResults extends PlaygroundElement {
                                 ${result.result
                 ? html$1 `
                                       <mwc-icon
-                                        style=${styleMap$1({
+                                        style=${styleMap({
                     color: result.result.success
                         ? 'green'
                         : 'red',
@@ -18723,7 +18727,7 @@ __decorate([
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-var t$1,i$2;const s=globalThis.trustedTypes,e$3=s?s.createPolicy("lit-html",{createHTML:t=>t}):void 0,o$2=`lit$${(Math.random()+"").slice(9)}$`,n$2="?"+o$2,l$1=`<${n$2}>`,h$2=document,r$2=(t="")=>h$2.createComment(t),d$1=t=>null===t||"object"!=typeof t&&"function"!=typeof t,u=Array.isArray,c=t=>{var i;return u(t)||"function"==typeof(null===(i=t)||void 0===i?void 0:i[Symbol.iterator])},v=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,a=/-->/g,f=/>/g,_=/>|[ 	\n\r](?:([^\s"'>=/]+)([ 	\n\r]*=[ 	\n\r]*(?:[^ 	\n\r"'`<>=]|("|')|))|$)/g,g=/'/g,m=/"/g,$=/^(?:script|style|textarea)$/i,T=Symbol.for("lit-noChange"),x=Symbol.for("lit-nothing"),w=new WeakMap,C=h$2.createTreeWalker(h$2,129,null,!1),P=(t,i)=>{const s=t.length-1,n=[];let h,r=2===i?"<svg>":"",d=v;for(let i=0;i<s;i++){const s=t[i];let e,u,c=-1,p=0;for(;p<s.length&&(d.lastIndex=p,u=d.exec(s),null!==u);)p=d.lastIndex,d===v?"!--"===u[1]?d=a:void 0!==u[1]?d=f:void 0!==u[2]?($.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=_):void 0!==u[3]&&(d=_):d===_?">"===u[0]?(d=null!=h?h:v,c=-1):void 0===u[1]?c=-2:(c=d.lastIndex-u[2].length,e=u[1],d=void 0===u[3]?_:'"'===u[3]?m:g):d===m||d===g?d=_:d===a||d===f?d=v:(d=_,h=void 0);const y=d===_&&t[i+1].startsWith("/>")?" ":"";r+=d===v?s+l$1:c>=0?(n.push(e),s.slice(0,c)+"$lit$"+s.slice(c)+o$2+y):s+o$2+(-2===c?(n.push(void 0),i):y);}const u=r+(t[s]||"<?>")+(2===i?"</svg>":"");return [void 0!==e$3?e$3.createHTML(u):u,n]};class V{constructor({strings:t,_$litType$:i},e){let l;this.parts=[];let h=0,d=0;const u=t.length-1,c=this.parts,[v,a]=P(t,i);if(this.el=V.createElement(v,e),C.currentNode=this.el.content,2===i){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=C.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(o$2)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(o$2),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:h,name:i[2],strings:t,ctor:"."===i[1]?k:"?"===i[1]?H:"@"===i[1]?I:M});}else c.push({type:6,index:h});}for(const i of t)l.removeAttribute(i);}if($.test(l.tagName)){const t=l.textContent.split(o$2),i=t.length-1;if(i>0){l.textContent=s?s.emptyScript:"";for(let s=0;s<i;s++)l.append(t[s],r$2()),C.nextNode(),c.push({type:2,index:++h});l.append(t[i],r$2());}}}else if(8===l.nodeType)if(l.data===n$2)c.push({type:2,index:h});else {let t=-1;for(;-1!==(t=l.data.indexOf(o$2,t+1));)c.push({type:7,index:h}),t+=o$2.length-1;}h++;}}static createElement(t,i){const s=h$2.createElement("template");return s.innerHTML=t,s}}function E(t,i,s=t,e){var o,n,l,h;if(i===T)return i;let r=void 0!==e?null===(o=s._$Cl)||void 0===o?void 0:o[e]:s._$Cu;const u=d$1(i)?void 0:i._$litDirective$;return (null==r?void 0:r.constructor)!==u&&(null===(n=null==r?void 0:r._$AO)||void 0===n||n.call(r,!1),void 0===u?r=void 0:(r=new u(t),r._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Cl)&&void 0!==l?l:h._$Cl=[])[e]=r:s._$Cu=r),void 0!==r&&(i=E(t,r._$AS(t,i.values),r,e)),i}class N{constructor(t,i){this.v=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}p(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:h$2).importNode(s,!0);C.currentNode=o;let n=C.nextNode(),l=0,r=0,d=e[0];for(;void 0!==d;){if(l===d.index){let i;2===d.type?i=new S(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new L(n,this,t)),this.v.push(i),d=e[++r];}l!==(null==d?void 0:d.index)&&(n=C.nextNode(),l++);}return o}m(t){let i=0;for(const s of this.v)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class S{constructor(t,i,s,e){var o;this.type=2,this._$AH=x,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cg=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cg}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=E(this,t,i),d$1(t)?t===x||null==t||""===t?(this._$AH!==x&&this._$AR(),this._$AH=x):t!==this._$AH&&t!==T&&this.$(t):void 0!==t._$litType$?this.T(t):void 0!==t.nodeType?this.S(t):c(t)?this.M(t):this.$(t);}A(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}S(t){this._$AH!==t&&(this._$AR(),this._$AH=this.A(t));}$(t){this._$AH!==x&&d$1(this._$AH)?this._$AA.nextSibling.data=t:this.S(h$2.createTextNode(t)),this._$AH=t;}T(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=V.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.m(s);else {const t=new N(o,this),i=t.p(this.options);t.m(s),this.S(i),this._$AH=t;}}_$AC(t){let i=w.get(t.strings);return void 0===i&&w.set(t.strings,i=new V(t)),i}M(t){u(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new S(this.A(r$2()),this.A(r$2()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cg=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class M{constructor(t,i,s,e,o){this.type=1,this._$AH=x,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=x;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=E(this,t,i,0),n=!d$1(t)||t!==this._$AH&&t!==T,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=E(this,e[s+l],i,l),h===T&&(h=this._$AH[l]),n||(n=!d$1(h)||h!==this._$AH[l]),h===x?t=x:t!==x&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.k(t);}k(t){t===x?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class k extends M{constructor(){super(...arguments),this.type=3;}k(t){this.element[this.name]=t===x?void 0:t;}}class H extends M{constructor(){super(...arguments),this.type=4;}k(t){t&&t!==x?this.element.setAttribute(this.name,""):this.element.removeAttribute(this.name);}}class I extends M{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=E(this,t,i,0))&&void 0!==s?s:x)===T)return;const e=this._$AH,o=t===x&&e!==x||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==x&&(e===x||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class L{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){E(this,t);}}null===(t$1=globalThis.litHtmlPlatformSupport)||void 0===t$1||t$1.call(globalThis,V,S),(null!==(i$2=globalThis.litHtmlVersions)&&void 0!==i$2?i$2:globalThis.litHtmlVersions=[]).push("2.0.0-rc.5");
+var t$1;const i$3=globalThis.trustedTypes,s=i$3?i$3.createPolicy("lit-html",{createHTML:t=>t}):void 0,e$3=`lit$${(Math.random()+"").slice(9)}$`,o$2="?"+e$3,n$2=`<${o$2}>`,l$1=document,h$2=(t="")=>l$1.createComment(t),r$2=t=>null===t||"object"!=typeof t&&"function"!=typeof t,d$1=Array.isArray,u=t=>{var i;return d$1(t)||"function"==typeof(null===(i=t)||void 0===i?void 0:i[Symbol.iterator])},c=/<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g,v=/-->/g,a=/>/g,f=/>|[ 	\n\r](?:([^\s"'>=/]+)([ 	\n\r]*=[ 	\n\r]*(?:[^ 	\n\r"'`<>=]|("|')|))|$)/g,_=/'/g,m=/"/g,g=/^(?:script|style|textarea)$/i,b=Symbol.for("lit-noChange"),T=Symbol.for("lit-nothing"),x=new WeakMap,A=l$1.createTreeWalker(l$1,129,null,!1),C=(t,i)=>{const o=t.length-1,l=[];let h,r=2===i?"<svg>":"",d=c;for(let i=0;i<o;i++){const s=t[i];let o,u,$=-1,p=0;for(;p<s.length&&(d.lastIndex=p,u=d.exec(s),null!==u);)p=d.lastIndex,d===c?"!--"===u[1]?d=v:void 0!==u[1]?d=a:void 0!==u[2]?(g.test(u[2])&&(h=RegExp("</"+u[2],"g")),d=f):void 0!==u[3]&&(d=f):d===f?">"===u[0]?(d=null!=h?h:c,$=-1):void 0===u[1]?$=-2:($=d.lastIndex-u[2].length,o=u[1],d=void 0===u[3]?f:'"'===u[3]?m:_):d===m||d===_?d=f:d===v||d===a?d=c:(d=f,h=void 0);const y=d===f&&t[i+1].startsWith("/>")?" ":"";r+=d===c?s+n$2:$>=0?(l.push(o),s.slice(0,$)+"$lit$"+s.slice($)+e$3+y):s+e$3+(-2===$?(l.push(void 0),i):y);}const u=r+(t[o]||"<?>")+(2===i?"</svg>":"");return [void 0!==s?s.createHTML(u):u,l]};class P{constructor({strings:t,_$litType$:s},n){let l;this.parts=[];let r=0,d=0;const u=t.length-1,c=this.parts,[v,a]=C(t,s);if(this.el=P.createElement(v,n),A.currentNode=this.el.content,2===s){const t=this.el.content,i=t.firstChild;i.remove(),t.append(...i.childNodes);}for(;null!==(l=A.nextNode())&&c.length<u;){if(1===l.nodeType){if(l.hasAttributes()){const t=[];for(const i of l.getAttributeNames())if(i.endsWith("$lit$")||i.startsWith(e$3)){const s=a[d++];if(t.push(i),void 0!==s){const t=l.getAttribute(s.toLowerCase()+"$lit$").split(e$3),i=/([.?@])?(.*)/.exec(s);c.push({type:1,index:r,name:i[2],strings:t,ctor:"."===i[1]?M:"?"===i[1]?k:"@"===i[1]?H:S});}else c.push({type:6,index:r});}for(const i of t)l.removeAttribute(i);}if(g.test(l.tagName)){const t=l.textContent.split(e$3),s=t.length-1;if(s>0){l.textContent=i$3?i$3.emptyScript:"";for(let i=0;i<s;i++)l.append(t[i],h$2()),A.nextNode(),c.push({type:2,index:++r});l.append(t[s],h$2());}}}else if(8===l.nodeType)if(l.data===o$2)c.push({type:2,index:r});else {let t=-1;for(;-1!==(t=l.data.indexOf(e$3,t+1));)c.push({type:7,index:r}),t+=e$3.length-1;}r++;}}static createElement(t,i){const s=l$1.createElement("template");return s.innerHTML=t,s}}function V(t,i,s=t,e){var o,n,l,h;if(i===b)return i;let d=void 0!==e?null===(o=s._$Cl)||void 0===o?void 0:o[e]:s._$Cu;const u=r$2(i)?void 0:i._$litDirective$;return (null==d?void 0:d.constructor)!==u&&(null===(n=null==d?void 0:d._$AO)||void 0===n||n.call(d,!1),void 0===u?d=void 0:(d=new u(t),d._$AT(t,s,e)),void 0!==e?(null!==(l=(h=s)._$Cl)&&void 0!==l?l:h._$Cl=[])[e]=d:s._$Cu=d),void 0!==d&&(i=V(t,d._$AS(t,i.values),d,e)),i}class E{constructor(t,i){this.v=[],this._$AN=void 0,this._$AD=t,this._$AM=i;}get parentNode(){return this._$AM.parentNode}get _$AU(){return this._$AM._$AU}p(t){var i;const{el:{content:s},parts:e}=this._$AD,o=(null!==(i=null==t?void 0:t.creationScope)&&void 0!==i?i:l$1).importNode(s,!0);A.currentNode=o;let n=A.nextNode(),h=0,r=0,d=e[0];for(;void 0!==d;){if(h===d.index){let i;2===d.type?i=new N(n,n.nextSibling,this,t):1===d.type?i=new d.ctor(n,d.name,d.strings,this,t):6===d.type&&(i=new I(n,this,t)),this.v.push(i),d=e[++r];}h!==(null==d?void 0:d.index)&&(n=A.nextNode(),h++);}return o}m(t){let i=0;for(const s of this.v)void 0!==s&&(void 0!==s.strings?(s._$AI(t,s,i),i+=s.strings.length-2):s._$AI(t[i])),i++;}}class N{constructor(t,i,s,e){var o;this.type=2,this._$AH=T,this._$AN=void 0,this._$AA=t,this._$AB=i,this._$AM=s,this.options=e,this._$Cg=null===(o=null==e?void 0:e.isConnected)||void 0===o||o;}get _$AU(){var t,i;return null!==(i=null===(t=this._$AM)||void 0===t?void 0:t._$AU)&&void 0!==i?i:this._$Cg}get parentNode(){let t=this._$AA.parentNode;const i=this._$AM;return void 0!==i&&11===t.nodeType&&(t=i.parentNode),t}get startNode(){return this._$AA}get endNode(){return this._$AB}_$AI(t,i=this){t=V(this,t,i),r$2(t)?t===T||null==t||""===t?(this._$AH!==T&&this._$AR(),this._$AH=T):t!==this._$AH&&t!==b&&this.$(t):void 0!==t._$litType$?this.T(t):void 0!==t.nodeType?this.S(t):u(t)?this.M(t):this.$(t);}A(t,i=this._$AB){return this._$AA.parentNode.insertBefore(t,i)}S(t){this._$AH!==t&&(this._$AR(),this._$AH=this.A(t));}$(t){this._$AH!==T&&r$2(this._$AH)?this._$AA.nextSibling.data=t:this.S(l$1.createTextNode(t)),this._$AH=t;}T(t){var i;const{values:s,_$litType$:e}=t,o="number"==typeof e?this._$AC(t):(void 0===e.el&&(e.el=P.createElement(e.h,this.options)),e);if((null===(i=this._$AH)||void 0===i?void 0:i._$AD)===o)this._$AH.m(s);else {const t=new E(o,this),i=t.p(this.options);t.m(s),this.S(i),this._$AH=t;}}_$AC(t){let i=x.get(t.strings);return void 0===i&&x.set(t.strings,i=new P(t)),i}M(t){d$1(this._$AH)||(this._$AH=[],this._$AR());const i=this._$AH;let s,e=0;for(const o of t)e===i.length?i.push(s=new N(this.A(h$2()),this.A(h$2()),this,this.options)):s=i[e],s._$AI(o),e++;e<i.length&&(this._$AR(s&&s._$AB.nextSibling,e),i.length=e);}_$AR(t=this._$AA.nextSibling,i){var s;for(null===(s=this._$AP)||void 0===s||s.call(this,!1,!0,i);t&&t!==this._$AB;){const i=t.nextSibling;t.remove(),t=i;}}setConnected(t){var i;void 0===this._$AM&&(this._$Cg=t,null===(i=this._$AP)||void 0===i||i.call(this,t));}}class S{constructor(t,i,s,e,o){this.type=1,this._$AH=T,this._$AN=void 0,this.element=t,this.name=i,this._$AM=e,this.options=o,s.length>2||""!==s[0]||""!==s[1]?(this._$AH=Array(s.length-1).fill(new String),this.strings=s):this._$AH=T;}get tagName(){return this.element.tagName}get _$AU(){return this._$AM._$AU}_$AI(t,i=this,s,e){const o=this.strings;let n=!1;if(void 0===o)t=V(this,t,i,0),n=!r$2(t)||t!==this._$AH&&t!==b,n&&(this._$AH=t);else {const e=t;let l,h;for(t=o[0],l=0;l<o.length-1;l++)h=V(this,e[s+l],i,l),h===b&&(h=this._$AH[l]),n||(n=!r$2(h)||h!==this._$AH[l]),h===T?t=T:t!==T&&(t+=(null!=h?h:"")+o[l+1]),this._$AH[l]=h;}n&&!e&&this.k(t);}k(t){t===T?this.element.removeAttribute(this.name):this.element.setAttribute(this.name,null!=t?t:"");}}class M extends S{constructor(){super(...arguments),this.type=3;}k(t){this.element[this.name]=t===T?void 0:t;}}class k extends S{constructor(){super(...arguments),this.type=4;}k(t){t&&t!==T?this.element.setAttribute(this.name,""):this.element.removeAttribute(this.name);}}class H extends S{constructor(t,i,s,e,o){super(t,i,s,e,o),this.type=5;}_$AI(t,i=this){var s;if((t=null!==(s=V(this,t,i,0))&&void 0!==s?s:T)===b)return;const e=this._$AH,o=t===T&&e!==T||t.capture!==e.capture||t.once!==e.once||t.passive!==e.passive,n=t!==T&&(e===T||o);o&&this.element.removeEventListener(this.name,this,e),n&&this.element.addEventListener(this.name,this,t),this._$AH=t;}handleEvent(t){var i,s;"function"==typeof this._$AH?this._$AH.call(null!==(s=null===(i=this.options)||void 0===i?void 0:i.host)&&void 0!==s?s:this.element,t):this._$AH.handleEvent(t);}}class I{constructor(t,i,s){this.element=t,this.type=6,this._$AN=void 0,this._$AM=i,this.options=s;}get _$AU(){return this._$AM._$AU}_$AI(t){V(this,t);}}const R=window.litHtmlPolyfillSupport;null==R||R(P,N),(null!==(t$1=globalThis.litHtmlVersions)&&void 0!==t$1?t$1:globalThis.litHtmlVersions=[]).push("2.0.1");
 
 /**
  * @license
@@ -18736,19 +18740,19 @@ var t$1,i$2;const s=globalThis.trustedTypes,e$3=s?s.createPolicy("lit-html",{cre
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const t={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},e$2=t=>(...e)=>({_$litDirective$:t,values:e});class i$1{constructor(t){}get _$AU(){return this._$AM._$AU}_$AT(t,e,i){this._$Ct=t,this._$AM=e,this._$Ci=i;}_$AS(t,e){return this.update(t,e)}update(t,e){return this.render(...e)}}
+const t={ATTRIBUTE:1,CHILD:2,PROPERTY:3,BOOLEAN_ATTRIBUTE:4,EVENT:5,ELEMENT:6},e$2=t=>(...e)=>({_$litDirective$:t,values:e});class i$2{constructor(t){}get _$AU(){return this._$AM._$AU}_$AT(t,e,i){this._$Ct=t,this._$AM=e,this._$Ci=i;}_$AS(t,e){return this.update(t,e)}update(t,e){return this.render(...e)}}
 
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */const e$1=(i,t)=>{var s,o;const n=i._$AN;if(void 0===n)return !1;for(const i of n)null===(o=(s=i)._$AO)||void 0===o||o.call(s,t,!1),e$1(i,t);return !0},o$1=i=>{let t,s;do{if(void 0===(t=i._$AM))break;s=t._$AN,s.delete(i),i=t;}while(0===(null==s?void 0:s.size))},n$1=i=>{for(let t;t=i._$AM;i=t){let s=t._$AN;if(void 0===s)t._$AN=s=new Set;else if(s.has(i))break;s.add(i),l(t);}};function r(i){void 0!==this._$AN?(o$1(this),this._$AM=i,n$1(this)):this._$AM=i;}function h$1(i,t=!1,s=0){const n=this._$AH,r=this._$AN;if(void 0!==r&&0!==r.size)if(t)if(Array.isArray(n))for(let i=s;i<n.length;i++)e$1(n[i],!1),o$1(n[i]);else null!=n&&(e$1(n,!1),o$1(n));else e$1(this,i);}const l=i=>{var t$1,e,o,n;i.type==t.CHILD&&(null!==(t$1=(o=i)._$AP)&&void 0!==t$1||(o._$AP=h$1),null!==(e=(n=i)._$AQ)&&void 0!==e||(n._$AQ=r));};class d extends i$1{constructor(){super(...arguments),this._$AN=void 0;}_$AT(i,t,s){super._$AT(i,t,s),n$1(this),this.isConnected=i._$AU;}_$AO(i,t=!0){var s,n;i!==this.isConnected&&(this.isConnected=i,i?null===(s=this.reconnected)||void 0===s||s.call(this):null===(n=this.disconnected)||void 0===n||n.call(this)),t&&(e$1(this,i),o$1(this));}setValue(t){if(r$1(this._$Ct))this._$Ct._$AI(t,this);else {const i=[...this._$Ct._$AH];i[this._$Ci]=t,this._$Ct._$AI(i,this,0);}}disconnected(){}reconnected(){}}
+ */const e$1=(i,t)=>{var s,o;const n=i._$AN;if(void 0===n)return !1;for(const i of n)null===(o=(s=i)._$AO)||void 0===o||o.call(s,t,!1),e$1(i,t);return !0},o$1=i=>{let t,s;do{if(void 0===(t=i._$AM))break;s=t._$AN,s.delete(i),i=t;}while(0===(null==s?void 0:s.size))},n$1=i=>{for(let t;t=i._$AM;i=t){let s=t._$AN;if(void 0===s)t._$AN=s=new Set;else if(s.has(i))break;s.add(i),l(t);}};function r(i){void 0!==this._$AN?(o$1(this),this._$AM=i,n$1(this)):this._$AM=i;}function h$1(i,t=!1,s=0){const n=this._$AH,r=this._$AN;if(void 0!==r&&0!==r.size)if(t)if(Array.isArray(n))for(let i=s;i<n.length;i++)e$1(n[i],!1),o$1(n[i]);else null!=n&&(e$1(n,!1),o$1(n));else e$1(this,i);}const l=i=>{var t$1,e,o,n;i.type==t.CHILD&&(null!==(t$1=(o=i)._$AP)&&void 0!==t$1||(o._$AP=h$1),null!==(e=(n=i)._$AQ)&&void 0!==e||(n._$AQ=r));};class d extends i$2{constructor(){super(...arguments),this._$AN=void 0;}_$AT(i,t,s){super._$AT(i,t,s),n$1(this),this.isConnected=i._$AU;}_$AO(i,t=!0){var s,n;i!==this.isConnected&&(this.isConnected=i,i?null===(s=this.reconnected)||void 0===s||s.call(this):null===(n=this.disconnected)||void 0===n||n.call(this)),t&&(e$1(this,i),o$1(this));}setValue(t){if(r$1(this._$Ct))this._$Ct._$AI(t,this);else {const i=[...this._$Ct._$AH];i[this._$Ci]=t,this._$Ct._$AI(i,this,0);}}disconnected(){}reconnected(){}}
 
 /**
  * @license
  * Copyright 2020 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */const e=()=>new o;class o{}const h=new WeakMap,n=e$2(class extends d{render(i){return x}update(i,[s]){var e;const o=s!==this.U;return o&&void 0!==this.U&&this.nt(void 0),(o||this.rt!==this.lt)&&(this.U=s,this.ht=null===(e=i.options)||void 0===e?void 0:e.host,this.nt(this.lt=i.element)),x}nt(t){"function"==typeof this.U?(void 0!==h.get(this.U)&&this.U.call(this.ht,void 0),h.set(this.U,t),void 0!==t&&this.U.call(this.ht,t)):this.U.value=t;}get rt(){var t;return "function"==typeof this.U?h.get(this.U):null===(t=this.U)||void 0===t?void 0:t.value}disconnected(){this.rt===this.lt&&this.nt(void 0);}reconnected(){this.nt(this.lt);}});
+ */const e=()=>new o;class o{}const h=new WeakMap,n=e$2(class extends d{render(i){return T}update(i,[s]){var e;const o=s!==this.U;return o&&void 0!==this.U&&this.nt(void 0),(o||this.rt!==this.lt)&&(this.U=s,this.ht=null===(e=i.options)||void 0===e?void 0:e.host,this.nt(this.lt=i.element)),T}nt(t){"function"==typeof this.U?(void 0!==h.get(this.U)&&this.U.call(this.ht,void 0),h.set(this.U,t),void 0!==t&&this.U.call(this.ht,t)):this.U.value=t;}get rt(){var t;return "function"==typeof this.U?h.get(this.U):null===(t=this.U)||void 0===t?void 0:t.value}disconnected(){this.rt===this.lt&&this.nt(void 0);}reconnected(){this.nt(this.lt);}});
 
 class HelpButton extends PlaygroundElement {
     renderHelpDialog() {
@@ -18783,7 +18787,7 @@ __decorate([
     __metadata("design:type", String)
 ], HelpButton.prototype, "heading", void 0);
 __decorate([
-    i$3('#help-dialog'),
+    i$4('#help-dialog'),
     __metadata("design:type", Dialog)
 ], HelpButton.prototype, "_helpDialog", void 0);
 
@@ -77730,9 +77734,9 @@ var sin = {};
 var cos = {};
 var ellipseStepSize = Math.PI / 40;
 
-for (var i = 0 * Math.PI; i < 2 * Math.PI; i += ellipseStepSize) {
-  sin[i] = Math.sin(i);
-  cos[i] = Math.cos(i);
+for (var i$1 = 0 * Math.PI; i$1 < 2 * Math.PI; i$1 += ellipseStepSize) {
+  sin[i$1] = Math.sin(i$1);
+  cos[i$1] = Math.cos(i$1);
 }
 
 CRp$7.drawEllipsePath = function (context, centerX, centerY, width, height) {
@@ -78697,300 +78701,9 @@ var cytoscape_cjs = cytoscape$1;
 
 /**
  * @license
- * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-const directives = new WeakMap();
-/**
- * Brands a function as a directive factory function so that lit-html will call
- * the function during template rendering, rather than passing as a value.
- *
- * A _directive_ is a function that takes a Part as an argument. It has the
- * signature: `(part: Part) => void`.
- *
- * A directive _factory_ is a function that takes arguments for data and
- * configuration and returns a directive. Users of directive usually refer to
- * the directive factory as the directive. For example, "The repeat directive".
- *
- * Usually a template author will invoke a directive factory in their template
- * with relevant arguments, which will then return a directive function.
- *
- * Here's an example of using the `repeat()` directive factory that takes an
- * array and a function to render an item:
- *
- * ```js
- * html`<ul><${repeat(items, (item) => html`<li>${item}</li>`)}</ul>`
- * ```
- *
- * When `repeat` is invoked, it returns a directive function that closes over
- * `items` and the template function. When the outer template is rendered, the
- * return directive function is called with the Part for the expression.
- * `repeat` then performs it's custom logic to render multiple items.
- *
- * @param f The directive factory function. Must be a function that returns a
- * function of the signature `(part: Part) => void`. The returned function will
- * be called with the part object.
- *
- * @example
- *
- * import {directive, html} from 'lit-html';
- *
- * const immutable = directive((v) => (part) => {
- *   if (part.value !== v) {
- *     part.setValue(v)
- *   }
- * });
- */
-const directive = (f) => ((...args) => {
-    const d = f(...args);
-    directives.set(d, true);
-    return d;
-});
-const isDirective = (o) => {
-    return typeof o === 'function' && directives.has(o);
-};
-
-/**
- * @license
- * Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-/**
- * A sentinel value that signals that a value was handled by a directive and
- * should not be written to the DOM.
- */
-const noChange = {};
-
-/**
- * @license
- * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-/**
- * An expression marker with embedded unique key to avoid collision with
- * possible text in templates.
- */
-`{{lit-${String(Math.random()).slice(2)}}}`;
-
-/**
- * @license
- * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-/**
- * Our TrustedTypePolicy for HTML which is declared using the html template
- * tag function.
- *
- * That HTML is a developer-authored constant, and is parsed with innerHTML
- * before any untrusted expressions have been mixed in. Therefor it is
- * considered safe by construction.
- */
-window.trustedTypes &&
-    trustedTypes.createPolicy('lit-html', { createHTML: (s) => s });
-
-/**
- * @license
- * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-const isPrimitive = (value) => {
-    return (value === null ||
-        !(typeof value === 'object' || typeof value === 'function'));
-};
-/**
- * A Part that controls all or part of an attribute value.
- */
-class AttributePart {
-    constructor(committer) {
-        this.value = undefined;
-        this.committer = committer;
-    }
-    setValue(value) {
-        if (value !== noChange && (!isPrimitive(value) || value !== this.value)) {
-            this.value = value;
-            // If the value is a not a directive, dirty the committer so that it'll
-            // call setAttribute. If the value is a directive, it'll dirty the
-            // committer if it calls setValue().
-            if (!isDirective(value)) {
-                this.committer.dirty = true;
-            }
-        }
-    }
-    commit() {
-        while (isDirective(this.value)) {
-            const directive = this.value;
-            this.value = noChange;
-            directive(this);
-        }
-        if (this.value === noChange) {
-            return;
-        }
-        this.committer.commit();
-    }
-}
-class PropertyPart extends AttributePart {
-}
-// Detect event listener options support. If the `capture` property is read
-// from the options object, then options are supported. If not, then the third
-// argument to add/removeEventListener is interpreted as the boolean capture
-// value so we should only pass the `capture` property.
-let eventOptionsSupported = false;
-// Wrap into an IIFE because MS Edge <= v41 does not support having try/catch
-// blocks right into the body of a module
-(() => {
-    try {
-        const options = {
-            get capture() {
-                eventOptionsSupported = true;
-                return false;
-            }
-        };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        window.addEventListener('test', options, options);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        window.removeEventListener('test', options, options);
-    }
-    catch (_e) {
-        // event options not supported
-    }
-})();
-
-/**
- * @license
- * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-// IMPORTANT: do not change the property name or the assignment expression.
-// This line will be used in regexes to search for lit-html usage.
-// TODO(justinfagnani): inject version number at build time
-if (typeof window !== 'undefined') {
-    (window['litHtmlVersions'] || (window['litHtmlVersions'] = [])).push('1.4.1');
-}
-
-/**
- * @license
- * Copyright (c) 2018 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at
- * http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at
- * http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at
- * http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at
- * http://polymer.github.io/PATENTS.txt
- */
-/**
- * Stores the StyleInfo object applied to a given AttributePart.
- * Used to unset existing values when a new StyleInfo object is applied.
- */
-const previousStylePropertyCache = new WeakMap();
-/**
- * A directive that applies CSS properties to an element.
- *
- * `styleMap` can only be used in the `style` attribute and must be the only
- * expression in the attribute. It takes the property names in the `styleInfo`
- * object and adds the property values as CSS properties. Property names with
- * dashes (`-`) are assumed to be valid CSS property names and set on the
- * element's style object using `setProperty()`. Names without dashes are
- * assumed to be camelCased JavaScript property names and set on the element's
- * style object using property assignment, allowing the style object to
- * translate JavaScript-style names to CSS property names.
- *
- * For example `styleMap({backgroundColor: 'red', 'border-top': '5px', '--size':
- * '0'})` sets the `background-color`, `border-top` and `--size` properties.
- *
- * @param styleInfo {StyleInfo}
- */
-const styleMap = directive((styleInfo) => (part) => {
-    if (!(part instanceof AttributePart) || (part instanceof PropertyPart) ||
-        part.committer.name !== 'style' || part.committer.parts.length > 1) {
-        throw new Error('The `styleMap` directive must be used in the style attribute ' +
-            'and must be the only part in the attribute.');
-    }
-    const { committer } = part;
-    const { style } = committer.element;
-    let previousStyleProperties = previousStylePropertyCache.get(part);
-    if (previousStyleProperties === undefined) {
-        // Write static styles once
-        style.cssText = committer.strings.join(' ');
-        previousStylePropertyCache.set(part, previousStyleProperties = new Set());
-    }
-    // Remove old properties that no longer exist in styleInfo
-    // We use forEach() instead of for-of so that re don't require down-level
-    // iteration.
-    previousStyleProperties.forEach((name) => {
-        if (!(name in styleInfo)) {
-            previousStyleProperties.delete(name);
-            if (name.indexOf('-') === -1) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                style[name] = null;
-            }
-            else {
-                style.removeProperty(name);
-            }
-        }
-    });
-    // Add or update properties
-    for (const name in styleInfo) {
-        previousStyleProperties.add(name);
-        if (name.indexOf('-') === -1) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            style[name] = styleInfo[name];
-        }
-        else {
-            style.setProperty(name, styleInfo[name]);
-        }
-    }
-});
+ * Copyright 2018 Google LLC
+ * SPDX-License-Identifier: BSD-3-Clause
+ */const i=e$2(class extends i$2{constructor(t$1){var e;if(super(t$1),t$1.type!==t.ATTRIBUTE||"style"!==t$1.name||(null===(e=t$1.strings)||void 0===e?void 0:e.length)>2)throw Error("The `styleMap` directive must be used in the `style` attribute and must be the only part in the attribute.")}render(t){return Object.keys(t).reduce(((e,r)=>{const s=t[r];return null==s?e:e+`${r=r.replace(/(?:^(webkit|moz|ms|o)|)(?=[A-Z])/g,"-$&").toLowerCase()}:${s};`}),"")}update(e,[r]){const{style:s}=e.element;if(void 0===this.ut){this.ut=new Set;for(const t in r)this.ut.add(t);return this.render(r)}this.ut.forEach((t=>{null==r[t]&&(this.ut.delete(t),t.includes("-")?s.removeProperty(t):s[t]="");}));for(const t in r){const e=r[t];null!=e&&(this.ut.add(t),t.includes("-")?s.setProperty(t,e):s[t]=e);}return b}});
 
 class CellTasks extends PlaygroundElement {
     constructor() {
@@ -79181,7 +78894,7 @@ class CellTasks extends PlaygroundElement {
         graphic="icon"
         style="--mdc-list-item-graphic-margin: 4px;"
       >
-        <mwc-icon slot="graphic" style=${styleMap({ color: color })}
+        <mwc-icon slot="graphic" style=${i({ color: color })}
           >${icon}</mwc-icon
         >
         <span>${primary}</span>
@@ -79386,15 +79099,15 @@ const graphStyles$2 = `
 
 `;
 
-const MIN_ANIMATION_DELAY = 1000;
-const MAX_ANIMATION_DELAY = 7000;
+const MIN_ANIMATION_DELAY = 1;
+const MAX_ANIMATION_DELAY = 7;
 /**
  * @element dht-cells
  */
 class DhtCells extends PlaygroundElement {
     constructor() {
         super(...arguments);
-        this.animationDelay = 2000;
+        this.animationDelay = 2;
         this.workflowsToDisplay = [
             WorkflowType.CALL_ZOME,
             WorkflowType.APP_VALIDATION,
@@ -79422,7 +79135,7 @@ class DhtCells extends PlaygroundElement {
                 this._cy.resize();
                 this.requestUpdate();
             });
-            new ResizeObserver(() => {
+            new ResizeObserver$1(() => {
                 setTimeout(() => {
                     this._cy.resize();
                     if (this._layout)
@@ -79500,6 +79213,7 @@ class DhtCells extends PlaygroundElement {
                     classes: ['network-request'],
                 },
             ]);
+            const delay = this.animationDelay * 1000;
             if (this.stepByStep) {
                 const halfPosition = {
                     x: (toPosition.x - fromPosition.x) / 2 + fromPosition.x,
@@ -79507,24 +79221,24 @@ class DhtCells extends PlaygroundElement {
                 };
                 el.animate({
                     position: halfPosition,
-                    duration: this.animationDelay / 2,
+                    duration: delay / 2,
                 });
-                yield sleep(this.animationDelay / 2);
+                yield sleep(delay / 2);
                 this._onPause = true;
                 yield new Promise((resolve) => this._resumeObservable.subscribe(() => resolve(null)));
                 this._onPause = false;
                 el.animate({
                     position: toPosition,
-                    duration: this.animationDelay / 2,
+                    duration: delay / 2,
                 });
-                yield sleep(this.animationDelay / 2);
+                yield sleep(delay / 2);
             }
             else {
                 el.animate({
                     position: toNode.position(),
-                    duration: this.animationDelay,
+                    duration: delay,
                 });
-                yield sleep(this.animationDelay);
+                yield sleep(delay);
             }
             this._cy.remove(el);
         });
@@ -79552,7 +79266,8 @@ class DhtCells extends PlaygroundElement {
     updated(changedValues) {
         super.updated(changedValues);
         const neighbors = neighborsEdges(this.cellsController.observedCells);
-        if (this._neighborEdges.length != neighbors.length && this._cy.nodes().length > 0) {
+        if (this._neighborEdges.length != neighbors.length &&
+            this._cy.nodes().length > 0) {
             this._neighborEdges = neighbors;
             this._cy.remove('edge');
             this._cy.add(neighbors);
@@ -79579,7 +79294,7 @@ class DhtCells extends PlaygroundElement {
               <mwc-icon-button
                 .disabled=${!this._onPause}
                 icon="play_arrow"
-                style=${styleMap$1({
+                style=${styleMap({
                 'background-color': this._onPause ? '#dbdbdb' : 'white',
                 'border-radius': '50%',
             })}
@@ -79588,9 +79303,11 @@ class DhtCells extends PlaygroundElement {
             `
             : html$1 `
               <mwc-slider
-                style="margin-right: 16px;"
+                style="margin-right: 16px; width: 150px;"
+                discrete
+                withTickMarks
                 .value=${MAX_ANIMATION_DELAY - this.animationDelay}
-                pin
+                .valueEnd=${MAX_ANIMATION_DELAY - this.animationDelay}
                 .min=${MIN_ANIMATION_DELAY}
                 .max=${MAX_ANIMATION_DELAY}
                 @change=${(e) => (this.animationDelay = MAX_ANIMATION_DELAY - e.target.value)}
@@ -79661,9 +79378,9 @@ class DhtCells extends PlaygroundElement {
             const finalY = position.y + (upSide ? -50 : 50);
             return html$1 `<holochain-playground-cell-tasks
         .workflowsToDisplay=${this.workflowsToDisplay}
-        .workflowDelay=${this.animationDelay}
+        .workflowDelay=${this.animationDelay * 1000}
         .cell=${cell}
-        style=${styleMap$1({
+        style=${styleMap({
                 top: `${finalY}px`,
                 left: `${finalX}px`,
                 position: 'absolute',
@@ -79788,6 +79505,8 @@ class DhtCells extends PlaygroundElement {
             sharedStyles,
             css$1 `
         :host {
+          min-height: 600px;
+          min-width: 600px;
           display: flex;
         }
 
@@ -79844,23 +79563,23 @@ __decorate([
     __metadata("design:type", Object)
 ], DhtCells.prototype, "showZomeFnSuccess", void 0);
 __decorate([
-    i$3('#graph'),
+    i$4('#graph'),
     __metadata("design:type", Object)
 ], DhtCells.prototype, "_graph", void 0);
 __decorate([
-    i$3('#active-workflows-button'),
+    i$4('#active-workflows-button'),
     __metadata("design:type", Button)
 ], DhtCells.prototype, "_activeWorkflowsButton", void 0);
 __decorate([
-    i$3('#active-workflows-menu'),
+    i$4('#active-workflows-menu'),
     __metadata("design:type", Menu)
 ], DhtCells.prototype, "_activeWorkflowsMenu", void 0);
 __decorate([
-    i$3('#network-requests-button'),
+    i$4('#network-requests-button'),
     __metadata("design:type", Button)
 ], DhtCells.prototype, "_networkRequestsButton", void 0);
 __decorate([
-    i$3('#network-requests-menu'),
+    i$4('#network-requests-menu'),
     __metadata("design:type", Menu)
 ], DhtCells.prototype, "_networkRequestsMenu", void 0);
 __decorate([
@@ -80093,15 +79812,15 @@ class DhtStats extends PlaygroundElement {
     }
 }
 __decorate([
-    i$3('#stats-help'),
+    i$4('#stats-help'),
     __metadata("design:type", Dialog)
 ], DhtStats.prototype, "statsHelp", void 0);
 __decorate([
-    i$3('#number-of-nodes'),
+    i$4('#number-of-nodes'),
     __metadata("design:type", TextField)
 ], DhtStats.prototype, "nNodes", void 0);
 __decorate([
-    i$3('#r-factor'),
+    i$4('#r-factor'),
     __metadata("design:type", TextField)
 ], DhtStats.prototype, "rFactor", void 0);
 __decorate([
@@ -80312,274 +80031,6 @@ class EntryContents extends PlaygroundElement {
             'copyable-hash': CopyableHash,
         };
     }
-}
-
-function allEntries(cells, showEntryContents, showHeaders, excludedEntryTypes) {
-    const details = {};
-    const links = {};
-    const entryTypes = {};
-    for (const cell of cells) {
-        const state = cell._state;
-        for (const entryHash of getAllHeldEntries(state)) {
-            details[entryHash] = getEntryDetails(state, entryHash);
-            if (!links[entryHash])
-                links[entryHash] = [];
-            links[entryHash].push(getLinksForEntry(state, entryHash));
-            const firstEntryHeader = details[entryHash].headers[0];
-            if (firstEntryHeader &&
-                firstEntryHeader.header.content.entry_type) {
-                entryTypes[entryHash] = getEntryTypeString(cell, firstEntryHeader.header.content.entry_type);
-            }
-        }
-    }
-    for (const cell of cells) {
-        const state = cell._state;
-        for (const headerHash of getAllHeldHeaders(state)) {
-            const header = state.CAS[headerHash];
-            const entryHash = header && header.header.content.entry_hash;
-            if (entryHash && !details[entryHash]) {
-                const { updates, deletes } = getHeaderModifiers(state, headerHash);
-                details[entryHash] = {
-                    deletes,
-                    updates,
-                    entry: state.CAS[entryHash],
-                    entry_dht_status: updates.length === 0 && deletes.length === 0
-                        ? EntryDhtStatus.Live
-                        : EntryDhtStatus.Dead,
-                    headers: [header],
-                    rejected_headers: [],
-                };
-                entryTypes[entryHash] = getEntryTypeString(cell, header.header.content.entry_type);
-            }
-        }
-    }
-    const sortedEntries = sortEntries(Object.keys(details), details);
-    const linksEdges = [];
-    const entryNodes = [];
-    const entryTypeCount = {};
-    for (const entryHash of sortedEntries) {
-        const detail = details[entryHash];
-        const entry = detail.entry;
-        // Get base nodes and edges
-        const newEntryHeader = detail
-            .headers[0];
-        const entryType = entryTypes[entryHash];
-        if (!entryTypeCount[entryType])
-            entryTypeCount[entryType] = 0;
-        if (!excludedEntryTypes.includes(entryType)) {
-            entryNodes.push({
-                data: {
-                    id: entryHash,
-                    data: entry,
-                    label: `${entryType}${entryTypeCount[entryType]}`,
-                },
-                classes: [entryType, 'entry'],
-            });
-            if (showHeaders) {
-                // NewEntryHeaders
-                for (const header of detail.headers.filter((h) => h.header.content.entry_hash === entryHash)) {
-                    entryNodes.push({
-                        data: {
-                            id: header.header.hash,
-                            data: header,
-                            label: header.header.content.type,
-                        },
-                        classes: [header.header.content.type, 'header'],
-                    });
-                    linksEdges.push({
-                        data: {
-                            id: `${header.header.hash}->${entryHash}`,
-                            source: header.header.hash,
-                            target: entryHash,
-                            label: 'creates',
-                            headerReference: true,
-                        },
-                        classes: ['embedded-reference', 'header-reference'],
-                    });
-                }
-                // Delete headers
-                for (const deleteHeader of detail.deletes) {
-                    const deletedHeader = deleteHeader.header.content
-                        .deletes_address;
-                    entryNodes.push({
-                        data: {
-                            id: deleteHeader.header.hash,
-                            data: deleteHeader,
-                            label: deleteHeader.header.content.type,
-                        },
-                        classes: [deleteHeader.header.content.type, 'header'],
-                    });
-                    linksEdges.push({
-                        data: {
-                            id: `${deleteHeader.header.hash}->${deletedHeader}`,
-                            source: deleteHeader.header.hash,
-                            target: deletedHeader,
-                            label: 'deletes',
-                            headerReference: true,
-                        },
-                        classes: ['embedded-reference', 'header-reference'],
-                    });
-                }
-            }
-            if (showEntryContents) {
-                const content = shortenStrRec(entry.content);
-                if (typeof content === 'object') {
-                    const properties = Object.keys(entry.content);
-                    for (const property of properties) {
-                        const propertyParentId = `${entryHash}:${property}`;
-                        entryNodes.push({
-                            data: {
-                                id: propertyParentId,
-                                parent: entryHash,
-                            },
-                        });
-                        entryNodes.push({
-                            data: {
-                                id: `${propertyParentId}:key`,
-                                label: property,
-                                parent: propertyParentId,
-                            },
-                        });
-                        entryNodes.push({
-                            data: {
-                                id: `${propertyParentId}:value`,
-                                label: content[property],
-                                parent: propertyParentId,
-                            },
-                        });
-                    }
-                }
-                else {
-                    entryNodes.push({
-                        data: {
-                            id: `${entryHash}:content`,
-                            label: content,
-                            parent: entryHash,
-                        },
-                    });
-                }
-            }
-            // Get implicit links from the entry
-            if (getAppEntryType(newEntryHeader.header.content.entry_type)) {
-                const implicitLinks = getImplicitLinks(Object.keys(details), entry.content);
-                for (const implicitLink of implicitLinks) {
-                    if (!excludedEntryTypes.includes(entryTypes[implicitLink.target])) {
-                        linksEdges.push({
-                            data: {
-                                id: `${entryHash}->${implicitLink.target}`,
-                                source: entryHash,
-                                target: implicitLink.target,
-                                label: implicitLink.label,
-                            },
-                            classes: ['embedded-reference'],
-                        });
-                    }
-                }
-            }
-            // Get the explicit links from the entry
-            const linksResponses = links[entryHash];
-            if (linksResponses) {
-                const links = getLiveLinks(linksResponses);
-                for (const link of links) {
-                    const tag = !link.tag || typeof link.tag === 'string'
-                        ? link.tag
-                        : JSON.stringify(link.tag);
-                    const target = link.target;
-                    if (!excludedEntryTypes.includes(entryTypes[target])) {
-                        const edgeData = {
-                            data: {
-                                id: `${entryHash}->${target}`,
-                                source: entryHash,
-                                target,
-                            },
-                            classes: ['explicit-link'],
-                        };
-                        if (tag) {
-                            edgeData.data['label'] = tag;
-                        }
-                        linksEdges.push(edgeData);
-                    }
-                }
-            }
-            // Get the updates edges for the entry
-            const updateHeaders = detail.headers.filter((h) => h.header.content.original_header_address &&
-                h.header.content.original_entry_address === entryHash);
-            for (const update of updateHeaders) {
-                const strUpdateEntryHash = update.header.content.entry_hash;
-                let source = strUpdateEntryHash;
-                let target = entryHash;
-                if (showHeaders) {
-                    source = update.header.hash;
-                    target = update.header.content.original_header_address;
-                }
-                linksEdges.push({
-                    data: {
-                        id: `${entryHash}-updates-${strUpdateEntryHash}`,
-                        source,
-                        target,
-                        label: 'updates',
-                    },
-                    classes: ['embedded-reference'],
-                });
-            }
-            // Add deleted class if is deleted
-            const node = entryNodes.find((node) => node.data.id === entryHash);
-            if (detail.entry_dht_status === EntryDhtStatus.Dead) {
-                node.classes.push('updated');
-            }
-        }
-        entryTypeCount[entryType] += 1;
-    }
-    return {
-        entries: [...entryNodes, ...linksEdges],
-        entryTypes: Object.keys(entryTypeCount),
-    };
-}
-function getImplicitLinks(allEntryIds, value) {
-    if (!value)
-        return [];
-    if (typeof value === 'string') {
-        return allEntryIds.includes(value)
-            ? [{ label: undefined, target: value }]
-            : [];
-    }
-    if (Array.isArray(value) &&
-        value.length > 0 &&
-        typeof value[0] === 'string') {
-        return value
-            .filter((v) => allEntryIds.includes(v))
-            .map((v) => ({ target: v, label: undefined }));
-    }
-    if (typeof value === 'object') {
-        const values = Object.entries(value).map(([key, v]) => {
-            const implicitLinks = getImplicitLinks(allEntryIds, v);
-            for (const implicitLink of implicitLinks) {
-                if (!implicitLink.label) {
-                    implicitLink.label = key;
-                }
-            }
-            return implicitLinks;
-        });
-        return [].concat(...values);
-    }
-    return [];
-}
-/** Helper functions  */
-function sortEntries(entryHashes, details) {
-    return entryHashes.sort((keyA, keyB) => compareEntries(details, keyA, keyB));
-}
-function compareHeader(headerA, headerB) {
-    return (timestampToMillis(headerA.header.content.timestamp) -
-        timestampToMillis(headerB.header.content.timestamp));
-}
-function compareEntries(details, hashA, hashB) {
-    const headersA = Object.values(details[hashA].headers).sort(compareHeader);
-    const headersB = Object.values(details[hashB].headers).sort(compareHeader);
-    return headersA.length > 0
-        ? timestampToMillis(headersA[0].header.content.timestamp)
-        : 0 - headersB.length > 0
-            ? timestampToMillis(headersB[0].header.content.timestamp)
-            : 0;
 }
 
 var powergraph = createCommonjsModule(function (module, exports) {
@@ -85770,6 +85221,274 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_5__;
 });
 });
 
+function allEntries(cells, showEntryContents, showHeaders, excludedEntryTypes) {
+    const details = {};
+    const links = {};
+    const entryTypes = {};
+    for (const cell of cells) {
+        const state = cell._state;
+        for (const entryHash of getAllHeldEntries(state)) {
+            details[entryHash] = getEntryDetails(state, entryHash);
+            if (!links[entryHash])
+                links[entryHash] = [];
+            links[entryHash].push(getLinksForEntry(state, entryHash));
+            const firstEntryHeader = details[entryHash].headers[0];
+            if (firstEntryHeader &&
+                firstEntryHeader.header.content.entry_type) {
+                entryTypes[entryHash] = getEntryTypeString(cell, firstEntryHeader.header.content.entry_type);
+            }
+        }
+    }
+    for (const cell of cells) {
+        const state = cell._state;
+        for (const headerHash of getAllHeldHeaders(state)) {
+            const header = state.CAS[headerHash];
+            const entryHash = header && header.header.content.entry_hash;
+            if (entryHash && !details[entryHash]) {
+                const { updates, deletes } = getHeaderModifiers(state, headerHash);
+                details[entryHash] = {
+                    deletes,
+                    updates,
+                    entry: state.CAS[entryHash],
+                    entry_dht_status: updates.length === 0 && deletes.length === 0
+                        ? EntryDhtStatus.Live
+                        : EntryDhtStatus.Dead,
+                    headers: [header],
+                    rejected_headers: [],
+                };
+                entryTypes[entryHash] = getEntryTypeString(cell, header.header.content.entry_type);
+            }
+        }
+    }
+    const sortedEntries = sortEntries(Object.keys(details), details);
+    const linksEdges = [];
+    const entryNodes = [];
+    const entryTypeCount = {};
+    for (const entryHash of sortedEntries) {
+        const detail = details[entryHash];
+        const entry = detail.entry;
+        // Get base nodes and edges
+        const newEntryHeader = detail
+            .headers[0];
+        const entryType = entryTypes[entryHash];
+        if (!entryTypeCount[entryType])
+            entryTypeCount[entryType] = 0;
+        if (!excludedEntryTypes.includes(entryType)) {
+            entryNodes.push({
+                data: {
+                    id: entryHash,
+                    data: entry,
+                    label: `${entryType}${entryTypeCount[entryType]}`,
+                },
+                classes: [entryType, 'entry'],
+            });
+            if (showHeaders) {
+                // NewEntryHeaders
+                for (const header of detail.headers.filter((h) => h.header.content.entry_hash === entryHash)) {
+                    entryNodes.push({
+                        data: {
+                            id: header.header.hash,
+                            data: header,
+                            label: header.header.content.type,
+                        },
+                        classes: [header.header.content.type, 'header'],
+                    });
+                    linksEdges.push({
+                        data: {
+                            id: `${header.header.hash}->${entryHash}`,
+                            source: header.header.hash,
+                            target: entryHash,
+                            label: 'creates',
+                            headerReference: true,
+                        },
+                        classes: ['embedded-reference', 'header-reference'],
+                    });
+                }
+                // Delete headers
+                for (const deleteHeader of detail.deletes) {
+                    const deletedHeader = deleteHeader.header.content
+                        .deletes_address;
+                    entryNodes.push({
+                        data: {
+                            id: deleteHeader.header.hash,
+                            data: deleteHeader,
+                            label: deleteHeader.header.content.type,
+                        },
+                        classes: [deleteHeader.header.content.type, 'header'],
+                    });
+                    linksEdges.push({
+                        data: {
+                            id: `${deleteHeader.header.hash}->${deletedHeader}`,
+                            source: deleteHeader.header.hash,
+                            target: deletedHeader,
+                            label: 'deletes',
+                            headerReference: true,
+                        },
+                        classes: ['embedded-reference', 'header-reference'],
+                    });
+                }
+            }
+            if (showEntryContents) {
+                const content = shortenStrRec(entry.content);
+                if (typeof content === 'object') {
+                    const properties = Object.keys(entry.content);
+                    for (const property of properties) {
+                        const propertyParentId = `${entryHash}:${property}`;
+                        entryNodes.push({
+                            data: {
+                                id: propertyParentId,
+                                parent: entryHash,
+                            },
+                        });
+                        entryNodes.push({
+                            data: {
+                                id: `${propertyParentId}:key`,
+                                label: property,
+                                parent: propertyParentId,
+                            },
+                        });
+                        entryNodes.push({
+                            data: {
+                                id: `${propertyParentId}:value`,
+                                label: content[property],
+                                parent: propertyParentId,
+                            },
+                        });
+                    }
+                }
+                else {
+                    entryNodes.push({
+                        data: {
+                            id: `${entryHash}:content`,
+                            label: content,
+                            parent: entryHash,
+                        },
+                    });
+                }
+            }
+            // Get implicit links from the entry
+            if (getAppEntryType(newEntryHeader.header.content.entry_type)) {
+                const implicitLinks = getImplicitLinks(Object.keys(details), entry.content);
+                for (const implicitLink of implicitLinks) {
+                    if (!excludedEntryTypes.includes(entryTypes[implicitLink.target])) {
+                        linksEdges.push({
+                            data: {
+                                id: `${entryHash}->${implicitLink.target}`,
+                                source: entryHash,
+                                target: implicitLink.target,
+                                label: implicitLink.label,
+                            },
+                            classes: ['embedded-reference'],
+                        });
+                    }
+                }
+            }
+            // Get the explicit links from the entry
+            const linksResponses = links[entryHash];
+            if (linksResponses) {
+                const links = getLiveLinks(linksResponses);
+                for (const link of links) {
+                    const tag = !link.tag || typeof link.tag === 'string'
+                        ? link.tag
+                        : JSON.stringify(link.tag);
+                    const target = link.target;
+                    if (!excludedEntryTypes.includes(entryTypes[target])) {
+                        const edgeData = {
+                            data: {
+                                id: `${entryHash}->${target}`,
+                                source: entryHash,
+                                target,
+                            },
+                            classes: ['explicit-link'],
+                        };
+                        if (tag) {
+                            edgeData.data['label'] = tag;
+                        }
+                        linksEdges.push(edgeData);
+                    }
+                }
+            }
+            // Get the updates edges for the entry
+            const updateHeaders = detail.headers.filter((h) => h.header.content.original_header_address &&
+                h.header.content.original_entry_address === entryHash);
+            for (const update of updateHeaders) {
+                const strUpdateEntryHash = update.header.content.entry_hash;
+                let source = strUpdateEntryHash;
+                let target = entryHash;
+                if (showHeaders) {
+                    source = update.header.hash;
+                    target = update.header.content.original_header_address;
+                }
+                linksEdges.push({
+                    data: {
+                        id: `${entryHash}-updates-${strUpdateEntryHash}`,
+                        source,
+                        target,
+                        label: 'updates',
+                    },
+                    classes: ['embedded-reference'],
+                });
+            }
+            // Add deleted class if is deleted
+            const node = entryNodes.find((node) => node.data.id === entryHash);
+            if (detail.entry_dht_status === EntryDhtStatus.Dead) {
+                node.classes.push('updated');
+            }
+        }
+        entryTypeCount[entryType] += 1;
+    }
+    return {
+        entries: [...entryNodes, ...linksEdges],
+        entryTypes: Object.keys(entryTypeCount),
+    };
+}
+function getImplicitLinks(allEntryIds, value) {
+    if (!value)
+        return [];
+    if (typeof value === 'string') {
+        return allEntryIds.includes(value)
+            ? [{ label: undefined, target: value }]
+            : [];
+    }
+    if (Array.isArray(value) &&
+        value.length > 0 &&
+        typeof value[0] === 'string') {
+        return value
+            .filter((v) => allEntryIds.includes(v))
+            .map((v) => ({ target: v, label: undefined }));
+    }
+    if (typeof value === 'object') {
+        const values = Object.entries(value).map(([key, v]) => {
+            const implicitLinks = getImplicitLinks(allEntryIds, v);
+            for (const implicitLink of implicitLinks) {
+                if (!implicitLink.label) {
+                    implicitLink.label = key;
+                }
+            }
+            return implicitLinks;
+        });
+        return [].concat(...values);
+    }
+    return [];
+}
+/** Helper functions  */
+function sortEntries(entryHashes, details) {
+    return entryHashes.sort((keyA, keyB) => compareEntries(details, keyA, keyB));
+}
+function compareHeader(headerA, headerB) {
+    return (timestampToMillis(headerA.header.content.timestamp) -
+        timestampToMillis(headerB.header.content.timestamp));
+}
+function compareEntries(details, hashA, hashB) {
+    const headersA = Object.values(details[hashA].headers).sort(compareHeader);
+    const headersB = Object.values(details[hashB].headers).sort(compareHeader);
+    return headersA.length > 0
+        ? timestampToMillis(headersA[0].header.content.timestamp)
+        : 0 - headersB.length > 0
+            ? timestampToMillis(headersB[0].header.content.timestamp)
+            : 0;
+}
+
 const commonGraphStyles = `
 .header {
 }
@@ -85913,6 +85632,14 @@ class EntryGraph extends PlaygroundElement {
         return selectAllCells(this.activeDna, this.conductors);
     }
     firstUpdated() {
+        new ResizeObserver$1(() => {
+            setTimeout(() => {
+                this.cy.resize();
+                if (this.layout)
+                    this.layout.run();
+                this.requestUpdate();
+            });
+        }).observe(this);
         window.addEventListener('scroll', () => {
             this.cy.resize();
         });
@@ -85971,6 +85698,8 @@ class EntryGraph extends PlaygroundElement {
             css$1 `
         :host {
           display: flex;
+          min-height: 300px;
+          min-width: 300px;
         }
       `,
         ];
@@ -85996,7 +85725,7 @@ class EntryGraph extends PlaygroundElement {
     renderFilter() {
         return html$1 ` <div
       class="row"
-      style="align-items: center; justify-content: start; position: relative;"
+      style="align-items: center; justify-content: start;"
     >
       <mwc-formfield label="Show Entry Contents" style="margin-right: 16px">
         <mwc-checkbox
@@ -86025,43 +85754,45 @@ class EntryGraph extends PlaygroundElement {
 
       <span class="vertical-divider"></span>
 
-      <mwc-button
-        label="Visible entries"
-        style="--mdc-theme-primary: rgba(0,0,0,0.7); margin-left: 16px;"
-        icon="arrow_drop_down"
-        id="visible-entries-button"
-        trailingIcon
-        @click=${() => this._visibleEntriesMenu.show()}
-      ></mwc-button>
-      <mwc-menu
-        corner="BOTTOM_END"
-        multi
-        activatable
-        id="visible-entries-menu"
-        .anchor=${this._visibleEntriesButton}
-        @selected=${(e) => {
+      <div class="row" style="position: relative;">
+        <mwc-button
+          label="Visible entries"
+          style="--mdc-theme-primary: rgba(0,0,0,0.7); margin-left: 16px;"
+          icon="arrow_drop_down"
+          id="visible-entries-button"
+          trailingIcon
+          @click=${() => this._visibleEntriesMenu.show()}
+        ></mwc-button>
+        <mwc-menu
+          corner="BOTTOM_RIGHT"
+          multi
+          activatable
+          id="visible-entries-menu"
+          .anchor=${this._visibleEntriesButton}
+          @selected=${(e) => {
             const includedEntryTypes = [...e.detail.index];
             this.excludedEntryTypes = this._entryTypes.filter((type, index) => !includedEntryTypes.includes(index));
         }}
-      >
-        ${this._entryTypes.map((type) => html$1 `
-            <mwc-list-item
-              graphic="icon"
-              .selected=${!this.excludedEntryTypes.includes(type)}
-              .activated=${!this.excludedEntryTypes.includes(type)}
-            >
-              ${!this.excludedEntryTypes.includes(type)
+        >
+          ${this._entryTypes.map((type) => html$1 `
+              <mwc-list-item
+                graphic="icon"
+                .selected=${!this.excludedEntryTypes.includes(type)}
+                .activated=${!this.excludedEntryTypes.includes(type)}
+              >
+                ${!this.excludedEntryTypes.includes(type)
             ? html$1 ` <mwc-icon slot="graphic">check</mwc-icon> `
             : html$1 ``}
-              ${type}
-            </mwc-list-item>
-          `)}
-      </mwc-menu>
+                ${type}
+              </mwc-list-item>
+            `)}
+        </mwc-menu>
+      </div>
     </div>`;
     }
     render() {
         return html$1 `
-      <mwc-card class="block-card">
+      <mwc-card class="block-card" style="position: relative;">
         <div class="column fill" style="margin: 16px;">
           <span class="block-title row"
             >Entry
@@ -86122,7 +85853,7 @@ __decorate([
     __metadata("design:type", Array)
 ], EntryGraph.prototype, "excludedEntryTypes", void 0);
 __decorate([
-    i$3('#entry-graph'),
+    i$4('#entry-graph'),
     __metadata("design:type", HTMLElement)
 ], EntryGraph.prototype, "entryGraph", void 0);
 __decorate([
@@ -86130,11 +85861,11 @@ __decorate([
     __metadata("design:type", Object)
 ], EntryGraph.prototype, "_entryTypes", void 0);
 __decorate([
-    i$3('#visible-entries-button'),
+    i$4('#visible-entries-button'),
     __metadata("design:type", Button)
 ], EntryGraph.prototype, "_visibleEntriesButton", void 0);
 __decorate([
-    i$3('#visible-entries-menu'),
+    i$4('#visible-entries-menu'),
     __metadata("design:type", Menu)
 ], EntryGraph.prototype, "_visibleEntriesMenu", void 0);
 
@@ -97102,6 +96833,13 @@ class SourceChain extends PlaygroundElement {
         return [this.activeCell];
     }
     firstUpdated() {
+        new ResizeObserver$1(() => {
+            setTimeout(() => {
+                this.cy.resize();
+                this.cy.layout({ name: 'dagre' }).run();
+                this.requestUpdate();
+            });
+        }).observe(this);
         window.addEventListener('scroll', () => {
             this.cy.resize();
         });
@@ -97209,10 +96947,9 @@ class SourceChain extends PlaygroundElement {
               `}
 
           <div
-            style=${styleMap$1({
+            style=${styleMap({
             display: this.activeCell ? '' : 'none',
         })}
-            class="fill"
             id="source-chain-graph"
           ></div>
         </div>
@@ -97224,6 +96961,8 @@ class SourceChain extends PlaygroundElement {
             sharedStyles,
             css$1 `
         :host {
+          min-height: 350px;
+          min-width: 100px;
           display: flex;
         }
         #source-chain-graph {
@@ -97242,7 +96981,7 @@ class SourceChain extends PlaygroundElement {
     }
 }
 __decorate([
-    i$3('#source-chain-graph'),
+    i$4('#source-chain-graph'),
     __metadata("design:type", HTMLElement)
 ], SourceChain.prototype, "graph", void 0);
 
@@ -97709,42 +97448,76 @@ class HolochainPlaygroundGoldenLayout extends HolochainPlaygroundContainer {
       >
         <golden-layout-register component-type="source-chain">
           <template>
-            <source-chain style="height: 100%; width: 100%;"></source-chain>
+            <div
+              style="height: 100%; width: 100%; overflow: auto; display: flex;"
+            >
+              <source-chain style="flex: 1; margin: 8px;"></source-chain>
+            </div>
           </template>
         </golden-layout-register>
         <golden-layout-register component-type="dht-cells">
           <template>
-            <dht-cells style="height: 100%; width: 100%;"></dht-cells>
+            <div
+              style="height: 100%; width: 100%; overflow: auto; display: flex;"
+            >
+              <dht-cells style="flex: 1; margin: 8px;"></dht-cells>
+            </div>
           </template>
         </golden-layout-register>
         <golden-layout-register component-type="conductor-admin">
           <template>
-            <conductor-admin style="height: 100%; width: 100%;"></conductor-admin>
+            <div
+              style="height: 100%; width: 100%; overflow: auto; display: flex;"
+            >
+              <conductor-admin style="flex: 1; margin: 8px;"></conductor-admin>
+            </div>
           </template>
         </golden-layout-register>
         <golden-layout-register component-type="call-zome-fns">
           <template>
-            <call-zome-fns style="height: 100%; width: 100%;"></call-zome-fns>
+            <div
+              style="height: 100%; width: 100%; overflow: auto; display: flex;"
+            >
+              <call-zome-fns style="flex: 1; margin: 8px;"></call-zome-fns>
+            </div>
           </template>
         </golden-layout-register>
         <golden-layout-register component-type="entry-contents">
           <template>
-            <entry-contents style="height: 100%; width: 100%;"></entry-contents>
+            <div
+              style="height: 100%; width: 100%; overflow: auto; display: flex;"
+            >
+              <entry-contents style="flex: 1; margin: 8px;"></entry-contents>
+            </div>
           </template>
         </golden-layout-register>
         <golden-layout-register component-type="entry-graph">
           <template>
-            <entry-graph style="height: 100%; width: 100%;"></entry-graph>
+            <div
+              style="height: 100%; width: 100%; overflow: auto; display: flex;"
+            >
+              <entry-graph style="flex: 1; margin: 8px;"></entry-graph>
+            </div>
           </template>
         </golden-layout-register>
         <golden-layout-register component-type="happs-manager">
           <template>
-            <happs-manager style="height: 100%; width: 100%;"></happs-manager>
+            <div
+              style="height: 100%; width: 100%; overflow: auto; display: flex;"
+            >
+              <happs-manager style="flex: 1; margin: 8px;"></happs-manager>
+            </div>
           </template>
         </golden-layout-register>
         <golden-layout-register component-type="zome-fns-results">
           <template>
-            <zome-fns-results style="height: 100%; width: 100%;"></zome-fns-results>
+            <div
+              style="height: 100%; width: 100%; overflow: auto; display: flex;"
+            >
+              <zome-fns-results
+                style="flex: 1; margin: 8px;"
+              ></zome-fns-results>
+            </div>
           </template>
         </golden-layout-register>
 

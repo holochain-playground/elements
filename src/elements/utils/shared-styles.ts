@@ -10,6 +10,7 @@ export const sharedStyles = css`
     flex-direction: column;
   }
   .fill {
+    height: 100%;
     flex: 1;
   }
 

@@ -7,8 +7,8 @@ export declare class ConnectToNodes extends PlaygroundElement {
     getUrlFields(): TextField[];
     setConnectionValidity(element: any): void;
     updateFields(): void;
-    renderDialog(): import("lit").TemplateResult<1>;
-    render(): import("lit").TemplateResult<1>;
+    renderDialog(): import("lit-html").TemplateResult<1>;
+    render(): import("lit-html").TemplateResult<1>;
     static get scopedElements(): {
         'mwc-button': typeof Button;
         'mwc-dialog': typeof Dialog;

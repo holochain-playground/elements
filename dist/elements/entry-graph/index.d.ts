@@ -1,12 +1,5 @@
-import { Checkbox } from '@scoped-elements/material-web';
-import { IconButton } from '@scoped-elements/material-web';
-import { Formfield } from '@scoped-elements/material-web';
-import { Card } from '@scoped-elements/material-web';
+import { Checkbox, IconButton, Formfield, Card, Menu, Button, Icon, ListItem } from '@scoped-elements/material-web';
 import { HelpButton } from '../helpers/help-button';
-import { Menu } from '@scoped-elements/material-web';
-import { Button } from '@scoped-elements/material-web';
-import { Icon } from '@scoped-elements/material-web';
-import { ListItem } from '@scoped-elements/material-web';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CellObserver } from '../../base/cell-observer';
 import { CellsController } from '../../base/cells-controller';
@@ -34,9 +27,9 @@ export declare class EntryGraph extends PlaygroundElement implements CellObserve
     updated(changedValues: any): void;
     updatedGraph(): any;
     static get styles(): import("lit").CSSResult[];
-    renderHelp(): import("lit").TemplateResult<1>;
-    renderFilter(): import("lit").TemplateResult<1>;
-    render(): import("lit").TemplateResult<1>;
+    renderHelp(): import("lit-html").TemplateResult<1>;
+    renderFilter(): import("lit-html").TemplateResult<1>;
+    render(): import("lit-html").TemplateResult<1>;
     static get scopedElements(): {
         'mwc-checkbox': typeof Checkbox;
         'mwc-formfield': typeof Formfield;

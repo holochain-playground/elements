@@ -31,8 +31,8 @@ export declare class CellTasks extends PlaygroundElement implements CellObserver
     networkRequestError(networkRequest: NetworkRequestInfo<any, any>, error: any): Promise<void>;
     sortTasks(tasks: Array<[string, number]>): [string, number][];
     showTasks(): boolean;
-    renderListItem(icon: string, primary: string, secondary: string, color?: string): import("lit").TemplateResult<1>;
-    render(): import("lit").TemplateResult<1>;
+    renderListItem(icon: string, primary: string, secondary: string, color?: string): import("lit-html").TemplateResult<1>;
+    render(): import("lit-html").TemplateResult<1>;
     static get styles(): import("lit").CSSResult[];
     static get scopedElements(): {
         'mwc-card': typeof Card;
