@@ -75,11 +75,13 @@ export class HolochainPlaygroundContainer extends ScopedElementsMixin(
   }
 
   static get styles() {
-    return css`
-      :host {
-        display: contents;
-      }
-    `;
+    return [
+      css`
+        :host {
+          display: contents;
+        }
+      `,
+    ];
   }
 
   update(changedValues: PropertyValues) {

@@ -3,21 +3,25 @@ import { state, property, query } from 'lit/decorators.js';
 
 import cytoscape from 'cytoscape';
 
-import { Checkbox } from '@scoped-elements/material-web';
-import { IconButton } from '@scoped-elements/material-web';
-import { Formfield } from '@scoped-elements/material-web';
-import { Card } from '@scoped-elements/material-web';
+import {
+  Checkbox,
+  IconButton,
+  Formfield,
+  Card,
+  Menu,
+  Button,
+  Icon,
+  ListItem,
+} from '@scoped-elements/material-web';
+import ResizeObserver from 'resize-observer-polyfill';
+import cola from 'cytoscape-cola';
 
 import { allEntries } from './processors';
 import { selectAllCells, selectCell } from '../../base/selectors';
 import { sharedStyles } from '../utils/shared-styles';
 import { isEqual } from 'lodash-es';
 import { HelpButton } from '../helpers/help-button';
-import { Menu } from '@scoped-elements/material-web';
-import { Button } from '@scoped-elements/material-web';
-import { Icon } from '@scoped-elements/material-web';
-import { ListItem } from '@scoped-elements/material-web';
-import cola from 'cytoscape-cola';
+
 import { graphStyles } from './graph';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CellObserver } from '../../base/cell-observer';
@@ -85,6 +89,13 @@ export class EntryGraph extends PlaygroundElement implements CellObserver {
   }
 
   firstUpdated() {
+    new ResizeObserver(() => {
+      setTimeout(() => {
+        this.cy.resize();
+        if (this.layout) this.layout.run();
+        this.requestUpdate();
+      });
+    }).observe(this);
     window.addEventListener('scroll', () => {
       this.cy.resize();
     });
@@ -165,6 +176,8 @@ export class EntryGraph extends PlaygroundElement implements CellObserver {
       css`
         :host {
           display: flex;
+          min-height: 300px;
+          min-width: 300px;
         }
       `,
     ];
@@ -192,7 +205,7 @@ export class EntryGraph extends PlaygroundElement implements CellObserver {
   renderFilter() {
     return html` <div
       class="row"
-      style="align-items: center; justify-content: start; position: relative;"
+      style="align-items: center; justify-content: start;"
     >
       <mwc-formfield label="Show Entry Contents" style="margin-right: 16px">
         <mwc-checkbox
@@ -221,48 +234,50 @@ export class EntryGraph extends PlaygroundElement implements CellObserver {
 
       <span class="vertical-divider"></span>
 
-      <mwc-button
-        label="Visible entries"
-        style="--mdc-theme-primary: rgba(0,0,0,0.7); margin-left: 16px;"
-        icon="arrow_drop_down"
-        id="visible-entries-button"
-        trailingIcon
-        @click=${() => this._visibleEntriesMenu.show()}
-      ></mwc-button>
-      <mwc-menu
-        corner="BOTTOM_END"
-        multi
-        activatable
-        id="visible-entries-menu"
-        .anchor=${this._visibleEntriesButton}
-        @selected=${(e) => {
-          const includedEntryTypes = [...e.detail.index];
-          this.excludedEntryTypes = this._entryTypes.filter(
-            (type, index) => !includedEntryTypes.includes(index)
-          );
-        }}
-      >
-        ${this._entryTypes.map(
-          (type) => html`
-            <mwc-list-item
-              graphic="icon"
-              .selected=${!this.excludedEntryTypes.includes(type)}
-              .activated=${!this.excludedEntryTypes.includes(type)}
-            >
-              ${!this.excludedEntryTypes.includes(type)
-                ? html` <mwc-icon slot="graphic">check</mwc-icon> `
-                : html``}
-              ${type}
-            </mwc-list-item>
-          `
-        )}
-      </mwc-menu>
+      <div class="row" style="position: relative;">
+        <mwc-button
+          label="Visible entries"
+          style="--mdc-theme-primary: rgba(0,0,0,0.7); margin-left: 16px;"
+          icon="arrow_drop_down"
+          id="visible-entries-button"
+          trailingIcon
+          @click=${() => this._visibleEntriesMenu.show()}
+        ></mwc-button>
+        <mwc-menu
+          corner="BOTTOM_RIGHT"
+          multi
+          activatable
+          id="visible-entries-menu"
+          .anchor=${this._visibleEntriesButton}
+          @selected=${(e) => {
+            const includedEntryTypes = [...e.detail.index];
+            this.excludedEntryTypes = this._entryTypes.filter(
+              (type, index) => !includedEntryTypes.includes(index)
+            );
+          }}
+        >
+          ${this._entryTypes.map(
+            (type) => html`
+              <mwc-list-item
+                graphic="icon"
+                .selected=${!this.excludedEntryTypes.includes(type)}
+                .activated=${!this.excludedEntryTypes.includes(type)}
+              >
+                ${!this.excludedEntryTypes.includes(type)
+                  ? html` <mwc-icon slot="graphic">check</mwc-icon> `
+                  : html``}
+                ${type}
+              </mwc-list-item>
+            `
+          )}
+        </mwc-menu>
+      </div>
     </div>`;
   }
 
   render() {
     return html`
-      <mwc-card class="block-card">
+      <mwc-card class="block-card" style="position: relative;">
         <div class="column fill" style="margin: 16px;">
           <span class="block-title row"
             >Entry

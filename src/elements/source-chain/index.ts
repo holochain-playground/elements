@@ -7,6 +7,7 @@ import dagre from 'cytoscape-dagre';
 
 import { isEqual } from 'lodash-es';
 import { Cell } from '@holochain-playground/core';
+import ResizeObserver from 'resize-observer-polyfill';
 
 import { sourceChainNodes } from './processors';
 import { sharedStyles } from '../utils/shared-styles';
@@ -44,6 +45,13 @@ export class SourceChain extends PlaygroundElement implements CellObserver {
   }
 
   firstUpdated() {
+    new ResizeObserver(() => {
+      setTimeout(() => {
+        this.cy.resize();
+        this.cy.layout({ name: 'dagre' }).run();
+        this.requestUpdate();
+      });
+    }).observe(this);
     window.addEventListener('scroll', () => {
       this.cy.resize();
     });
@@ -171,7 +179,6 @@ export class SourceChain extends PlaygroundElement implements CellObserver {
             style=${styleMap({
               display: this.activeCell ? '' : 'none',
             })}
-            class="fill"
             id="source-chain-graph"
           ></div>
         </div>
@@ -184,6 +191,8 @@ export class SourceChain extends PlaygroundElement implements CellObserver {
       sharedStyles,
       css`
         :host {
+          min-height: 350px;
+          min-width: 100px;
           display: flex;
         }
         #source-chain-graph {

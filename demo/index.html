@@ -7,20 +7,28 @@
         background: #fafafa;
         font-family: Arial, Helvetica, sans-serif;
       }
-      html,body {
+      html,
+      body {
         height: 100%;
         width: 100%;
         margin: 0;
         display: flex;
       }
     </style>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <holochain-playground-golden-layout>
       <holochain-playground-golden-layout-menu>
       </holochain-playground-golden-layout-menu>
-      <golden-layout-root style="flex: 1;">
+      <golden-layout-root style="flex: 1">
         <golden-layout-row>
+          <golden-layout-component
+            component-type="dht-cells"
+          ></golden-layout-component>
           <golden-layout-component
             component-type="source-chain"
           ></golden-layout-component>
