@@ -1,7 +1,6 @@
 import {
   CellId,
   AgentPubKeyB64,
-
   Dictionary,
   DHTOp,
   CapSecret,
@@ -197,7 +196,9 @@ export class Cell {
     return query_dht_ops(this._state.integratedDHTOps, since, until, dht_arc);
   }
 
-  public handle_fetch_op_hash_data(op_hashes: Array<DhtOpHashB64>): Dictionary<DHTOp> {
+  public handle_fetch_op_hash_data(
+    op_hashes: Array<DhtOpHashB64>
+  ): Dictionary<DHTOp> {
     const result: Dictionary<DHTOp> = {};
     for (const opHash of op_hashes) {
       const value = this._state.integratedDHTOps[opHash];
@@ -241,7 +242,10 @@ export class Cell {
       }
 
       // TODO: fix for when sharding is implemented
-      if (this.p2p.shouldWeHold(getDHTOpBasis(validatedOp.op))) {
+      if (
+        !hasDhtOpBeenProcessed(this._state, dhtOpHash) &&
+        this.p2p.shouldWeHold(getDHTOpBasis(validatedOp.op))
+      ) {
         dhtOpsToProcess[dhtOpHash] = validatedOp.op;
       }
     }
@@ -323,9 +327,10 @@ export class Cell {
         this.conductor.badAgent.counterfeitDnas[this.cellId[0]] &&
         this.conductor.badAgent.counterfeitDnas[this.cellId[0]][this.cellId[1]]
       ) {
-        dna = this.conductor.badAgent.counterfeitDnas[this.cellId[0]][
-          this.cellId[1]
-        ];
+        dna =
+          this.conductor.badAgent.counterfeitDnas[this.cellId[0]][
+            this.cellId[1]
+          ];
       }
     }
 

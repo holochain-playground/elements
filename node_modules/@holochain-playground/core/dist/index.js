@@ -2878,7 +2878,8 @@ class Cell {
                     putValidationReceipt(dhtOpHash, receipt)(this._state);
                 }
                 // TODO: fix for when sharding is implemented
-                if (this.p2p.shouldWeHold(getDHTOpBasis(validatedOp.op))) {
+                if (!hasDhtOpBeenProcessed(this._state, dhtOpHash) &&
+                    this.p2p.shouldWeHold(getDHTOpBasis(validatedOp.op))) {
                     dhtOpsToProcess[dhtOpHash] = validatedOp.op;
                 }
             }
@@ -2942,7 +2943,8 @@ class Cell {
             badAgentConfig = this.conductor.badAgent.config;
             if (this.conductor.badAgent.counterfeitDnas[this.cellId[0]] &&
                 this.conductor.badAgent.counterfeitDnas[this.cellId[0]][this.cellId[1]]) {
-                dna = this.conductor.badAgent.counterfeitDnas[this.cellId[0]][this.cellId[1]];
+                dna =
+                    this.conductor.badAgent.counterfeitDnas[this.cellId[0]][this.cellId[1]];
             }
         }
         return {
