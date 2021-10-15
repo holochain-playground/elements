@@ -26,12 +26,23 @@
       </holochain-playground-golden-layout-menu>
       <golden-layout-root style="flex: 1">
         <golden-layout-row>
-          <golden-layout-component
-            component-type="dht-cells"
-          ></golden-layout-component>
-          <golden-layout-component
-            component-type="source-chain"
-          ></golden-layout-component>
+          <golden-layout-column>
+            <golden-layout-component
+              component-type="dht-cells"
+            ></golden-layout-component>
+            <golden-layout-component
+              component-type="call-zome-fns"
+            ></golden-layout-component>
+          </golden-layout-column>
+          <golden-layout-column>
+            <golden-layout-component
+              component-type="entry-graph"
+            ></golden-layout-component>
+
+            <golden-layout-component
+              component-type="entry-contents"
+            ></golden-layout-component>
+          </golden-layout-column>
         </golden-layout-row>
       </golden-layout-root>
     </holochain-playground-golden-layout>
@@ -60,6 +71,7 @@
       import {
         GoldenLayoutRoot,
         GoldenLayoutRow,
+        GoldenLayoutColumn,
         GoldenLayoutComponent,
       } from '@scoped-elements/golden-layout';
 
@@ -73,6 +85,7 @@
       );
       customElements.define('golden-layout-root', GoldenLayoutRoot);
       customElements.define('golden-layout-row', GoldenLayoutRow);
+      customElements.define('golden-layout-column', GoldenLayoutColumn);
       customElements.define('golden-layout-component', GoldenLayoutComponent);
       customElements.define('run-steps', RunSteps);
       customElements.define('dht-cells', DhtCells);
