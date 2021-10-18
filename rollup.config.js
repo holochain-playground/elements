@@ -9,8 +9,8 @@ const pkg = require('./package.json');
 export const plugins = [
   replace({
     'customElements.define(JsonViewer.is, JsonViewer);': '',
-    'customElements.define(GridElement.is, GridElement);': '',
-    'customElements.define(GridColumnElement.is, GridColumnElement);': '',
+    'customElements.define(GridColumn.is, GridColumn);': '',
+    'customElements.define(Grid.is, Grid);': '',
   }),
   json(),
   typescript(),

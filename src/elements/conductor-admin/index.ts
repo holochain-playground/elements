@@ -18,15 +18,14 @@ import { Button } from '@scoped-elements/material-web';
 import { HelpButton } from '../helpers/help-button';
 import { adminApi } from './admin-api';
 import { CallFns } from '../helpers/call-functions';
-import { GridElement } from '@vaadin/vaadin-grid';
-import { GridColumnElement } from '@vaadin/vaadin-grid/vaadin-grid-column';
+import { Grid, GridColumn  } from '@vaadin/grid';
 import { JsonViewer } from '@power-elements/json-viewer';
 
 export class ConductorAdmin extends PlaygroundElement {
   @state()
   private _selectedTabIndex: number = 0;
 
-  private _grid = createRef<GridElement>();
+  private _grid = createRef<Grid>();
 
   get activeConductor(): Conductor | undefined {
     return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors)
@@ -79,11 +78,11 @@ export class ConductorAdmin extends PlaygroundElement {
   updated(changedValues: PropertyValues) {
     super.updated(changedValues);
     if (this._grid.value) {
-      this._grid.value.render();
+      this._grid.value.requestContentUpdate();
     }
   }
 
-  setupGrid(grid: GridElement, conductor: Conductor) {
+  setupGrid(grid: Grid, conductor: Conductor) {
     if (!grid) return;
 
     setTimeout(() => {
@@ -107,7 +106,7 @@ export class ConductorAdmin extends PlaygroundElement {
       };
       const dnaColumn = this.shadowRoot.querySelector(
         '#dna-column'
-      ) as GridColumnElement;
+      ) as GridColumn;
       dnaColumn.renderer = (root: any, column, model) => {
         const cell = (model.item as any) as Cell;
         root.innerHTML = `<copyable-hash hash="${cell.dnaHash}"></copyable-hash>`;
@@ -115,7 +114,7 @@ export class ConductorAdmin extends PlaygroundElement {
       };
       const agentPubKeyColumn = this.shadowRoot.querySelector(
         '#agent-pub-key-column'
-      ) as GridColumnElement;
+      ) as GridColumn;
       agentPubKeyColumn.renderer = (root: any, column, model) => {
         const cell = (model.item as any) as Cell;
         root.innerHTML = `<copyable-hash hash="${cell.agentPubKey}"></copyable-hash>`;
@@ -124,7 +123,7 @@ export class ConductorAdmin extends PlaygroundElement {
 
       const detailsToggleColumn = this.shadowRoot.querySelector(
         '#details'
-      ) as GridColumnElement;
+      ) as GridColumn;
       detailsToggleColumn.renderer = function (root: any, column, model) {
         if (!root.firstElementChild) {
           root.innerHTML = '<mwc-button label="Details"></mwc-button>';
@@ -142,7 +141,7 @@ export class ConductorAdmin extends PlaygroundElement {
       };
       const selectColumn = this.shadowRoot.querySelector(
         '#select'
-      ) as GridColumnElement;
+      ) as GridColumn;
       selectColumn.renderer = (root: any, column, model) => {
         const cell = (model.item as any) as Cell;
 
@@ -172,7 +171,7 @@ export class ConductorAdmin extends PlaygroundElement {
       <vaadin-grid
         .items=${items}
         ${ref(this._grid)}
-        ${ref((el) => this.setupGrid(el as GridElement, conductor))}
+        ${ref((el) => this.setupGrid(el as Grid, conductor))}
       >
         <vaadin-grid-column
           path="dna"
@@ -266,8 +265,8 @@ export class ConductorAdmin extends PlaygroundElement {
       'copyable-hash': CopyableHash,
       'call-functions': CallFns,
       'mwc-tab': Tab,
-      'vaadin-grid': GridElement,
-      'vaadin-grid-column': GridColumnElement,
+      'vaadin-grid': Grid,
+      'vaadin-grid-column': GridColumn,
       'mwc-tab-bar': TabBar,
       'mwc-list': List,
       'json-viewer': JsonViewer,

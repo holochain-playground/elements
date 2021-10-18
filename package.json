@@ -25,7 +25,7 @@
     "@power-elements/json-viewer": "^2.1.1",
     "@scoped-elements/golden-layout": "0.0.2",
     "@scoped-elements/material-web": "^0.0.13",
-    "@vaadin/vaadin-grid": "^5.7.12",
+    "@vaadin/grid": "^22.0.0-alpha10",
     "cytoscape": "^3.17.0",
     "cytoscape-cola": "^2.3.0",
     "cytoscape-dagre": "^2.2.2",
