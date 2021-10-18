@@ -11,8 +11,7 @@ import { CopyableHash } from '../helpers/copyable-hash';
 import { Button } from '@scoped-elements/material-web';
 import { HelpButton } from '../helpers/help-button';
 import { CallFns } from '../helpers/call-functions';
-import { GridElement } from '@vaadin/vaadin-grid';
-import { GridColumnElement } from '@vaadin/vaadin-grid/vaadin-grid-column';
+import { Grid, GridColumn } from '@vaadin/grid';
 import { JsonViewer } from '@power-elements/json-viewer';
 export declare class ConductorAdmin extends PlaygroundElement {
     private _selectedTabIndex;
@@ -20,7 +19,7 @@ export declare class ConductorAdmin extends PlaygroundElement {
     get activeConductor(): Conductor | undefined;
     renderHelp(): import("lit-html").TemplateResult<1>;
     updated(changedValues: PropertyValues): void;
-    setupGrid(grid: GridElement, conductor: Conductor): void;
+    setupGrid(grid: Grid, conductor: Conductor): void;
     renderCells(conductor: Conductor): import("lit-html").TemplateResult<1>;
     renderAdminAPI(conductor: Conductor): import("lit-html").TemplateResult<1>;
     renderContent(): import("lit-html").TemplateResult<1>;
@@ -30,8 +29,8 @@ export declare class ConductorAdmin extends PlaygroundElement {
         'copyable-hash': typeof CopyableHash;
         'call-functions': typeof CallFns;
         'mwc-tab': typeof Tab;
-        'vaadin-grid': typeof GridElement;
-        'vaadin-grid-column': typeof GridColumnElement;
+        'vaadin-grid': typeof Grid;
+        'vaadin-grid-column': typeof GridColumn;
         'mwc-tab-bar': typeof TabBar;
         'mwc-list': typeof List;
         'json-viewer': typeof JsonViewer;
