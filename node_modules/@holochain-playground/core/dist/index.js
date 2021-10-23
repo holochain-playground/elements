@@ -1649,6 +1649,7 @@ const validation_receipt = (workspace) => __awaiter(void 0, void 0, void 0, func
             workspace.p2p.syncNeighbors();
         }
         integratedValue.send_receipt = false;
+        putDhtOpToIntegrated(dhtOpHash, integratedValue)(workspace.state);
     }
     return {
         result: undefined,

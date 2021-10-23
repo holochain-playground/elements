@@ -45,7 +45,7 @@ export const validation_receipt = async (
 
     integratedValue.send_receipt = false;
 
-    putDhtOpToIntegrated(dhtOpHash, integratedValue);
+    putDhtOpToIntegrated(dhtOpHash, integratedValue)(workspace.state);
   }
 
   return {
