@@ -1942,6 +1942,7 @@ const app_validation = (workspace) => __awaiter(void 0, void 0, void 0, function
         }
         if (!outcome.resolved) {
             validationLimboValue.status = ValidationLimboStatus.AwaitingAppDeps;
+            putValidationLimboValue(dhtOpHash, validationLimboValue)(workspace.state);
         }
         else {
             const value = {
@@ -2156,8 +2157,7 @@ function run_agent_validation_callback(workspace, elements) {
         const create_agent_element = elements[2];
         const fnsToCall = ['validate_create_agent'];
         const zomes_to_invoke = yield get_zomes_to_invoke(create_agent_element, workspace);
-        const membrane_proof = elements[1].signed_header.header
-            .content.membrane_proof;
+        const membrane_proof = elements[1].signed_header.header.content.membrane_proof;
         return invoke_validation_fns(zomes_to_invoke, fnsToCall, {
             element: elements[2],
             membrane_proof,

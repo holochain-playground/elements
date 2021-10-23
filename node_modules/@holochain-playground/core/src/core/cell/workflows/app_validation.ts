@@ -82,7 +82,7 @@ export const app_validation = async (
     }
     if (!outcome.resolved) {
       validationLimboValue.status = ValidationLimboStatus.AwaitingAppDeps;
-      putValidationLimboValue(dhtOpHash, validationLimboValue);
+      putValidationLimboValue(dhtOpHash, validationLimboValue)(workspace.state);
     } else {
       const value: IntegrationLimboValue = {
         op: validationLimboValue.op,
@@ -404,8 +404,9 @@ export async function run_agent_validation_callback(
     workspace
   );
 
-  const membrane_proof = (elements[1].signed_header.header
-    .content as AgentValidationPkg).membrane_proof;
+  const membrane_proof = (
+    elements[1].signed_header.header.content as AgentValidationPkg
+  ).membrane_proof;
 
   return invoke_validation_fns(
     zomes_to_invoke as SimulatedZome[],
