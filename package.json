@@ -24,7 +24,7 @@
     "@open-wc/scoped-elements": "^2.0.0-next.4",
     "@power-elements/json-viewer": "^2.1.1",
     "@scoped-elements/golden-layout": "0.0.2",
-    "@scoped-elements/material-web": "^0.0.13",
+    "@scoped-elements/material-web": "^0.0.14",
     "@vaadin/grid": "^22.0.0-alpha10",
     "cytoscape": "^3.17.0",
     "cytoscape-cola": "^2.3.0",
