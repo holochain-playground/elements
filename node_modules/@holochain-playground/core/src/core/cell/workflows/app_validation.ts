@@ -53,7 +53,7 @@ import { Cascade } from '../cascade/cascade';
 export const app_validation = async (
   workspace: Workspace
 ): Promise<WorkflowReturn<void>> => {
-  let integrateDhtOps = false;
+  let workComplete = true;
 
   const pendingDhtOps = getValidationLimboDhtOps(workspace.state, [
     ValidationLimboStatus.SysValidated,
@@ -81,6 +81,8 @@ export const app_validation = async (
       );
     }
     if (!outcome.resolved) {
+      workComplete = false;
+
       validationLimboValue.status = ValidationLimboStatus.AwaitingAppDeps;
       putValidationLimboValue(dhtOpHash, validationLimboValue)(workspace.state);
     } else {
@@ -92,14 +94,16 @@ export const app_validation = async (
         send_receipt: outcome.valid ? validationLimboValue.send_receipt : true, // If value is invalid we always need to make a receipt
       };
       putIntegrationLimboValue(dhtOpHash, value)(workspace.state);
-
-      integrateDhtOps = true;
     }
   }
 
+  let triggers = [integrate_dht_ops_task()];
+
+  if (!workComplete) triggers.push(app_validation_task());
+
   return {
     result: undefined,
-    triggers: integrateDhtOps ? [integrate_dht_ops_task()] : [],
+    triggers,
   };
 };
 

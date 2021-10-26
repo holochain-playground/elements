@@ -6,7 +6,7 @@ describe('Bad Agent', () => {
   it(`bad agent cheats and gets booted out of the network`, async function () {
     this.timeout(0);
 
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 3; i++) {
       const conductors = await createConductors(10, [], demoHapp());
 
       await sleep(100);
@@ -64,7 +64,7 @@ describe('Bad Agent', () => {
       });
       expect(result).to.be.ok;
 
-      await sleep(12000);
+      await sleep(6000);
 
       const honestCells = conductors
         .map(c => c.getAllCells()[0])

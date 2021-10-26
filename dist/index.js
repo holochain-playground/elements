@@ -17654,6 +17654,11 @@ __decorate([
 ], PlaygroundElement.prototype, "conductorsUrls", void 0);
 
 const sharedStyles = css$1 `
+  :host {
+    display: flex;
+    flex: 1;
+  }
+
   .row {
     display: flex;
     flex-direction: row;

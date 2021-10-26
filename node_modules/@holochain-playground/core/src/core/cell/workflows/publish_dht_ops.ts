@@ -8,6 +8,7 @@ import { Workflow, WorkflowReturn, WorkflowType, Workspace } from './workflows';
 export const publish_dht_ops = async (
   workspace: Workspace
 ): Promise<WorkflowReturn<void>> => {
+  let workCompleted = true;
   const dhtOps = getNonPublishedDhtOps(workspace.state);
 
   const dhtOpsByBasis: Dictionary<Dictionary<DHTOp>> = {};
@@ -23,22 +24,31 @@ export const publish_dht_ops = async (
 
   const promises = Object.entries(dhtOpsByBasis).map(
     async ([basis, dhtOps]) => {
-      // Publish the operations
-      await workspace.p2p.publish(basis, dhtOps);
+      try {
+        // Publish the operations
+        await workspace.p2p.publish(basis, dhtOps);
 
-      for (const dhtOpHash of Object.keys(dhtOps)) {
-        workspace.state.authoredDHTOps[
-          dhtOpHash
-        ].last_publish_time = Date.now();
+        for (const dhtOpHash of Object.keys(dhtOps)) {
+          workspace.state.authoredDHTOps[dhtOpHash].last_publish_time =
+            Date.now();
+        }
+      } catch (e) {
+        workCompleted = false;
       }
     }
   );
 
   await Promise.all(promises);
 
+  const triggers = [];
+
+  if (!workCompleted) {
+    triggers.push(publish_dht_ops_task());
+  }
+
   return {
     result: undefined,
-    triggers: [],
+    triggers,
   };
 };
 

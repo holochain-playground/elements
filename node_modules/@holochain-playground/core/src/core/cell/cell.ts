@@ -37,6 +37,7 @@ import {
   run_agent_validation_callback,
 } from './workflows/app_validation';
 import { getSourceChainElements } from './source-chain/get';
+import { publish_dht_ops_task } from './workflows/publish_dht_ops';
 
 export type CellSignal = 'after-workflow-executed' | 'before-workflow-executed';
 export type CellSignalListener = (payload: any) => void;
@@ -55,6 +56,10 @@ export class Cell {
 
   constructor(public _state: CellState, public conductor: Conductor) {
     // Let genesis be run before actually joining
+
+    setTimeout(() => {
+      setInterval(() => this._runWorkflow(publish_dht_ops_task()), 60000);
+    }, 60000);
   }
 
   get cellId(): CellId {
@@ -292,7 +297,6 @@ export class Cell {
     const workflowsToRun = pendingWorkflows.map(triggeredWorkflowFromType);
 
     const promises = Object.values(workflowsToRun).map(async w => {
-      if (!this._triggers[w.type]) console.log(w);
       this._triggers[w.type].triggered = false;
       this._triggers[w.type].running = true;
       await this._runWorkflow(w);

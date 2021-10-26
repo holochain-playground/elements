@@ -1,6 +1,11 @@
 import { css } from 'lit';
 
 export const sharedStyles = css`
+  :host {
+    display: flex;
+    flex: 1;
+  }
+
   .row {
     display: flex;
     flex-direction: row;

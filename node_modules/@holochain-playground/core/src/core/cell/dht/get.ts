@@ -30,6 +30,7 @@ import {
   ValidationLimboValue,
   IntegrationLimboValue,
   IntegratedDhtOpsValue,
+  ValidationStatus,
 } from '../state';
 
 export function getValidationLimboDhtOps(

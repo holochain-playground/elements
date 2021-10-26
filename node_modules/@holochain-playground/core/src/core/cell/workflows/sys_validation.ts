@@ -37,6 +37,8 @@ import { Cascade } from '../cascade/cascade';
 export const sys_validation = async (
   worskpace: Workspace
 ): Promise<WorkflowReturn<void>> => {
+  let workComplete = true;
+
   const pendingDhtOps = getValidationLimboDhtOps(worskpace.state, [
     ValidationLimboStatus.Pending,
     ValidationLimboStatus.AwaitingSysDeps,

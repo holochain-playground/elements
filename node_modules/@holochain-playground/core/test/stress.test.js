@@ -6,7 +6,7 @@ describe('Stress tests links', () => {
   it('create multiple links', async function () {
     this.timeout(0);
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 5; i++) {
       await oneRound();
     }
 

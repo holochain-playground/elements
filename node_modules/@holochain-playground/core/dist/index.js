@@ -1667,6 +1667,7 @@ function validation_receipt_task() {
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/integrate_dht_ops_workflow.rs
 const integrate_dht_ops = (worskpace) => __awaiter(void 0, void 0, void 0, function* () {
     const opsToIntegrate = pullAllIntegrationLimboDhtOps(worskpace.state);
+    let workComplete = Object.keys(opsToIntegrate).length === 0;
     for (const dhtOpHash of Object.keys(opsToIntegrate)) {
         const integrationLimboValue = opsToIntegrate[dhtOpHash];
         const dhtOp = integrationLimboValue.op;
@@ -1681,13 +1682,18 @@ const integrate_dht_ops = (worskpace) => __awaiter(void 0, void 0, void 0, funct
             op: dhtOp,
             validation_status: integrationLimboValue.validation_status,
             when_integrated: Date.now(),
-            send_receipt: integrationLimboValue.send_receipt
+            send_receipt: integrationLimboValue.send_receipt,
         };
         putDhtOpToIntegrated(dhtOpHash, value)(worskpace.state);
     }
+    const triggers = [];
+    if (!workComplete) {
+        triggers.push(integrate_dht_ops_task());
+        triggers.push(validation_receipt_task());
+    }
     return {
         result: undefined,
-        triggers: [validation_receipt_task()],
+        triggers,
     };
 });
 function integrate_dht_ops_task() {
@@ -1928,7 +1934,7 @@ function buildZomeFunctionContext(workspace, zome_index) {
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/app_validation_workflow.rs
 const app_validation = (workspace) => __awaiter(void 0, void 0, void 0, function* () {
-    let integrateDhtOps = false;
+    let workComplete = true;
     const pendingDhtOps = getValidationLimboDhtOps(workspace.state, [
         ValidationLimboStatus.SysValidated,
         ValidationLimboStatus.AwaitingAppDeps,
@@ -1942,6 +1948,7 @@ const app_validation = (workspace) => __awaiter(void 0, void 0, void 0, function
             outcome = yield validate_op(validationLimboValue.op, validationLimboValue.from_agent, workspace);
         }
         if (!outcome.resolved) {
+            workComplete = false;
             validationLimboValue.status = ValidationLimboStatus.AwaitingAppDeps;
             putValidationLimboValue(dhtOpHash, validationLimboValue)(workspace.state);
         }
@@ -1954,12 +1961,14 @@ const app_validation = (workspace) => __awaiter(void 0, void 0, void 0, function
                 send_receipt: outcome.valid ? validationLimboValue.send_receipt : true, // If value is invalid we always need to make a receipt
             };
             putIntegrationLimboValue(dhtOpHash, value)(workspace.state);
-            integrateDhtOps = true;
         }
     }
+    let triggers = [integrate_dht_ops_task()];
+    if (!workComplete)
+        triggers.push(app_validation_task());
     return {
         result: undefined,
-        triggers: integrateDhtOps ? [integrate_dht_ops_task()] : [],
+        triggers,
     };
 });
 function app_validation_task(agent = false) {
@@ -2236,6 +2245,7 @@ function unpackValidateFnsComponents(fnsComponents) {
 
 // From https://github.com/holochain/holochain/blob/develop/crates/holochain/src/core/workflow/publish_dht_ops_workflow.rs
 const publish_dht_ops = (workspace) => __awaiter(void 0, void 0, void 0, function* () {
+    let workCompleted = true;
     const dhtOps = getNonPublishedDhtOps(workspace.state);
     const dhtOpsByBasis = {};
     for (const dhtOpHash of Object.keys(dhtOps)) {
@@ -2246,16 +2256,26 @@ const publish_dht_ops = (workspace) => __awaiter(void 0, void 0, void 0, functio
         dhtOpsByBasis[basis][dhtOpHash] = dhtOp;
     }
     const promises = Object.entries(dhtOpsByBasis).map(([basis, dhtOps]) => __awaiter(void 0, void 0, void 0, function* () {
-        // Publish the operations
-        yield workspace.p2p.publish(basis, dhtOps);
-        for (const dhtOpHash of Object.keys(dhtOps)) {
-            workspace.state.authoredDHTOps[dhtOpHash].last_publish_time = Date.now();
+        try {
+            // Publish the operations
+            yield workspace.p2p.publish(basis, dhtOps);
+            for (const dhtOpHash of Object.keys(dhtOps)) {
+                workspace.state.authoredDHTOps[dhtOpHash].last_publish_time =
+                    Date.now();
+            }
+        }
+        catch (e) {
+            workCompleted = false;
         }
     }));
     yield Promise.all(promises);
+    const triggers = [];
+    if (!workCompleted) {
+        triggers.push(publish_dht_ops_task());
+    }
     return {
         result: undefined,
-        triggers: [],
+        triggers,
     };
 });
 function publish_dht_ops_task() {
@@ -2742,6 +2762,7 @@ class MiddlewareExecutor {
 
 class Cell {
     constructor(_state, conductor) {
+        // Let genesis be run before actually joining
         this._state = _state;
         this.conductor = conductor;
         this._triggers = {
@@ -2753,7 +2774,9 @@ class Cell {
             [WorkflowType.VALIDATION_RECEIPT]: { running: false, triggered: true },
         };
         this.workflowExecutor = new MiddlewareExecutor();
-        // Let genesis be run before actually joining
+        setTimeout(() => {
+            setInterval(() => this._runWorkflow(publish_dht_ops_task()), 60000);
+        }, 60000);
     }
     get cellId() {
         return [this._state.dnaHash, this._state.agentPubKey];
@@ -2918,8 +2941,6 @@ class Cell {
                 .map(([type, t]) => type);
             const workflowsToRun = pendingWorkflows.map(triggeredWorkflowFromType);
             const promises = Object.values(workflowsToRun).map((w) => __awaiter(this, void 0, void 0, function* () {
-                if (!this._triggers[w.type])
-                    console.log(w);
                 this._triggers[w.type].triggered = false;
                 this._triggers[w.type].running = true;
                 yield this._runWorkflow(w);
@@ -3602,11 +3623,12 @@ const demoEntriesZome = {
                     resolved: false,
                     depsHashes: [update.original_header_address],
                 };
-            if (originalHeader.signed_header.header.content.author !== updateAuthor)
+            if (originalHeader.signed_header.header.content.author !== updateAuthor) {
                 return {
                     valid: false,
                     resolved: true,
                 };
+            }
             return { valid: true, resolved: true };
         }),
     },

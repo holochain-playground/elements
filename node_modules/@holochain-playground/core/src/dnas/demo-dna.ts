@@ -74,11 +74,12 @@ export const demoEntriesZome: SimulatedZome = {
           depsHashes: [update.original_header_address],
         };
 
-      if (originalHeader.signed_header.header.content.author !== updateAuthor)
+      if (originalHeader.signed_header.header.content.author !== updateAuthor) {
         return {
           valid: false,
           resolved: true,
         };
+      }
 
       return { valid: true, resolved: true };
     },

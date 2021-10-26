@@ -13,6 +13,7 @@ export const integrate_dht_ops = async (
   worskpace: Workspace
 ): Promise<WorkflowReturn<void>> => {
   const opsToIntegrate = pullAllIntegrationLimboDhtOps(worskpace.state);
+  let workComplete = Object.keys(opsToIntegrate).length === 0;
 
   for (const dhtOpHash of Object.keys(opsToIntegrate)) {
     const integrationLimboValue = opsToIntegrate[dhtOpHash];
@@ -32,14 +33,21 @@ export const integrate_dht_ops = async (
       op: dhtOp,
       validation_status: integrationLimboValue.validation_status,
       when_integrated: Date.now(),
-      send_receipt: integrationLimboValue.send_receipt
+      send_receipt: integrationLimboValue.send_receipt,
     };
 
     putDhtOpToIntegrated(dhtOpHash, value)(worskpace.state);
   }
+  const triggers = [];
+
+  if (!workComplete) {
+    triggers.push(integrate_dht_ops_task());
+    triggers.push(validation_receipt_task());
+  }
+
   return {
     result: undefined,
-    triggers: [validation_receipt_task()],
+    triggers,
   };
 };
 
