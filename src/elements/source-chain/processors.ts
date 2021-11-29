@@ -3,18 +3,22 @@ import {
   Entry,
   NewEntryHeader,
   SignedHeaderHashed,
-} from '@holochain-open-dev/core-types';
-import { Cell, getEntryTypeString } from '@holochain-playground/core';
+} from '@holochain/conductor-api';
+import { Element, serializeHash } from '@holochain-open-dev/core-types';
+import { getEntryTypeString } from '@holochain-playground/core';
 
-export function sourceChainNodes(cell: Cell) {
-  if (!cell) return [];
+import { SimulatedCellStore } from '../../store/simulated-playground-store';
+import { CellStore } from '../../store/base';
 
+export function sourceChainNodes(
+  cellStore: CellStore<any>,
+  elements: Element[]
+) {
   const nodes = [];
-  const state = cell._state;
 
-  const headersHashes = state.sourceChain;
-  for (const headerHash of headersHashes) {
-    const header: SignedHeaderHashed = state.CAS[headerHash];
+  for (const element of elements) {
+    const header: SignedHeaderHashed = element.signed_header;
+    const headerHash = serializeHash(header.header.hash);
 
     nodes.push({
       data: {
@@ -38,21 +42,25 @@ export function sourceChainNodes(cell: Cell) {
     }
   }
 
-  for (const headerHash of headersHashes) {
-    const strHeaderHash = headerHash;
-    const header: SignedHeaderHashed = state.CAS[strHeaderHash];
+  for (const element of elements) {
+    const header: SignedHeaderHashed = element.signed_header;
+    const headerHash = serializeHash(header.header.hash);
 
-    if ((header.header.content as NewEntryHeader).entry_hash) {
+    if (element.entry) {
       const newEntryHeader = header.header.content as NewEntryHeader;
       const entryHash = newEntryHeader.entry_hash;
-      const entryNodeId = `${strHeaderHash}:${entryHash}`;
+      const entryNodeId = `${headerHash}:${entryHash}`;
 
-      const entry: Entry = state.CAS[entryHash];
+      const entry: Entry = element.entry;
 
-      const entryType: string = getEntryTypeString(
-        cell,
-        newEntryHeader.entry_type
-      );
+      let entryType: string | undefined;
+
+      if (cellStore instanceof SimulatedCellStore) {
+        entryType = getEntryTypeString(
+          cellStore.dna,
+          newEntryHeader.entry_type
+        );
+      }
 
       nodes.push({
         data: {
@@ -64,8 +72,8 @@ export function sourceChainNodes(cell: Cell) {
       });
       nodes.push({
         data: {
-          id: `${strHeaderHash}->${entryNodeId}`,
-          source: strHeaderHash,
+          id: `${headerHash}->${entryNodeId}`,
+          source: headerHash,
           target: entryNodeId,
         },
         classes: ['embedded-reference'],

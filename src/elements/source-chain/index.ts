@@ -1,137 +1,55 @@
 import { html, PropertyValues, css } from 'lit';
 import { styleMap } from 'lit/directives/style-map.js';
-import { query } from 'lit/decorators.js';
+import { StoreSubscriber } from 'lit-svelte-stores';
+import { CytoscapeDagre } from '@scoped-elements/cytoscape';
 
-import cytoscape from 'cytoscape';
-import dagre from 'cytoscape-dagre';
-
-import { isEqual } from 'lodash-es';
-import { Cell } from '@holochain-playground/core';
-import ResizeObserver from 'resize-observer-polyfill';
+import { Card } from '@scoped-elements/material-web';
+import { serializeHash } from '@holochain-open-dev/core-types';
 
 import { sourceChainNodes } from './processors';
 import { sharedStyles } from '../utils/shared-styles';
 
 import { HelpButton } from '../helpers/help-button';
-import { selectCell } from '../../base/selectors';
 import { PlaygroundElement } from '../../base/playground-element';
-import { Card } from '@scoped-elements/material-web';
 import { graphStyles } from './graph';
-import { CellObserver } from '../../base/cell-observer';
-import { CellsController } from '../../base/cells-controller';
 import { CopyableHash } from '../helpers/copyable-hash';
-
-cytoscape.use(dagre); // register extension
+import { activeCellStore } from '../../store/derivations';
+import { PlaygroundMode } from '../../store/mode';
 
 /**
  * @element source-chain
  */
-export class SourceChain extends PlaygroundElement implements CellObserver {
-  @query('#source-chain-graph')
-  private graph: HTMLElement;
+export class SourceChain<
+  T extends PlaygroundMode
+> extends PlaygroundElement<T> {
+  _activeAgentPubKey = new StoreSubscriber(
+    this,
+    () => this.store.activeAgentPubKey
+  );
+  _activeHash = new StoreSubscriber(this, () => this.store.activeDhtHash);
+  _activeCell = new StoreSubscriber(this, () => activeCellStore(this.store));
+  _sourceChain = new StoreSubscriber(
+    this,
+    () => this._activeCell.value?.sourceChain
+  );
 
-  private cy: cytoscape.Core;
-
-  private nodes: any[] = [];
-
-  _cellsController = new CellsController(this);
-
-  get activeCell(): Cell | undefined {
-    return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors);
+  get elements() {
+    if (!this._activeCell.value || !this._sourceChain.value) return [];
+    return sourceChainNodes(this._activeCell.value, this._sourceChain.value);
   }
 
-  observedCells() {
-    return [this.activeCell];
+  get selectedNodesIds() {
+    if (!this._activeHash.value) return [];
+    else return [serializeHash(this._activeHash.value)];
   }
 
-  firstUpdated() {
-    new ResizeObserver(() => {
-      setTimeout(() => {
-        this.cy.resize();
-        this.cy.layout({ name: 'dagre' }).run();
-        this.requestUpdate();
-      });
-    }).observe(this);
-    window.addEventListener('scroll', () => {
-      this.cy.resize();
-    });
-
-    this.cy = cytoscape({
-      container: this.graph,
-      layout: {
-        name: 'dagre',
-      },
+  get cytoscapeOptions() {
+    return {
       autoungrabify: true,
       userZoomingEnabled: true,
       userPanningEnabled: true,
       style: graphStyles,
-    });
-    this.cy.on('tap', 'node', (event) => {
-      // Node id is <HEADER_HASH>:<ENTRY_HASH>
-      let activeHash = event.target.id();
-      if (activeHash.includes(':')) {
-        activeHash = activeHash.split(':')[1];
-      }
-      this.updatePlayground({
-        activeHash,
-      });
-    });
-
-    let rendered = false;
-    this.cy.on('render', () => {
-      if (this.cy.width() !== 0) {
-        if (!rendered) {
-          rendered = true;
-          // This is needed to render the nodes after the graph itself
-          // has resized properly so it computes the positions appriopriately
-          setTimeout(() => {
-            this.setupGraph();
-          });
-        }
-      }
-    });
-
-    this.requestUpdate();
-  }
-
-  setupGraph() {
-    this.cy.remove('node');
-    this.cy.add(this.nodes);
-
-    const tipNodes = this.nodes.slice(0, 7);
-
-    this.cy.fit(tipNodes);
-    this.cy.center(tipNodes);
-    this.cy.resize();
-
-    this.cy.layout({ name: 'dagre' }).run();
-  }
-
-  updated(changedValues: PropertyValues) {
-    super.updated(changedValues);
-
-    const nodes = sourceChainNodes(this.activeCell);
-
-    if (!isEqual(nodes, this.nodes)) {
-      this.nodes = nodes;
-      this.setupGraph();
-    }
-
-    if (changedValues.has('activeHash')) {
-      this.cy.filter('node').removeClass('selected');
-
-      const nodeElements = this.cy.nodes();
-
-      for (const nodeElement of nodeElements) {
-        const nodeId = nodeElement.id();
-        if (
-          nodeId === this.activeHash ||
-          nodeId.includes(`:${this.activeHash}`)
-        ) {
-          nodeElement.addClass('selected');
-        }
-      }
-    }
+    };
   }
 
   renderHelp() {
@@ -154,12 +72,12 @@ export class SourceChain extends PlaygroundElement implements CellObserver {
       <mwc-card class="block-card">
         <div class="column fill">
           <span class="block-title row" style="margin: 16px;"
-            >Source-Chain${this.activeAgentPubKey
+            >Source-Chain${this._activeAgentPubKey.value
               ? html`
                   <span class="placeholder row">
                     , for Agent
                     <copyable-hash
-                      .hash=${this.activeAgentPubKey}
+                      .hash=${this._activeAgentPubKey.value}
                       style="margin-left: 8px;"
                     ></copyable-hash>
                   </span>
@@ -167,7 +85,7 @@ export class SourceChain extends PlaygroundElement implements CellObserver {
               : html``}</span
           >
           ${this.renderHelp()}
-          ${this.activeCell
+          ${this._activeCell.value
             ? html``
             : html`
                 <div style="flex: 1;" class="center-content placeholder">
@@ -175,12 +93,21 @@ export class SourceChain extends PlaygroundElement implements CellObserver {
                 </div>
               `}
 
-          <div
+          <cytoscape-dagre
+            .elements=${this.elements}
+            .selectedNodesIds=${this.selectedNodesIds}
+            .options=${this.cytoscapeOptions}
+            @node-selected=${(e) => {
+              let activeHash = e.detail.id();
+              if (activeHash.includes(':')) {
+                activeHash = activeHash.split(':')[1];
+              }
+              this.store.activeDhtHash.set(activeHash);
+            }}
             style=${styleMap({
-              display: this.activeCell ? '' : 'none',
+              display: this._activeCell.value ? '' : 'none',
             })}
-            id="source-chain-graph"
-          ></div>
+          ></cytoscape-dagre>
         </div>
       </mwc-card>
     `;
@@ -207,6 +134,7 @@ export class SourceChain extends PlaygroundElement implements CellObserver {
     return {
       'mwc-card': Card,
       'copyable-hash': CopyableHash,
+      'cytoscape-dagre': CytoscapeDagre,
       'help-button': HelpButton,
     };
   }

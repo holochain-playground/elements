@@ -14,14 +14,5 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ {
     browser: true,
     mainFields: ['browser', 'module', 'main'],
   },
-  plugins: [
-    typescript(),
-    commonjs({
-      include: [
-        'node_modules/cytoscape/**/*',
-        'node_modules/cytoscape-dagre/**/*',
-        'node_modules/cytoscape-cola/**/*',
-      ],
-    }),
-  ],
+  plugins: [typescript(), commonjs()],
 };

@@ -12,9 +12,10 @@ import { EntryGraph } from '../elements/entry-graph';
 import { HappsManager } from '../elements/happs-manager';
 import { SourceChain } from '../elements/source-chain';
 import { ZomeFnsResults } from '../elements/zome-fns-results';
-import { HolochainPlaygroundContainer } from '../base/holochain-playground-container';
+import { PlaygroundContainer } from '../base/playground-container';
+import { SimulatedPlaygroundContainer } from '../base/simulated-playground-container';
 
-export class HolochainPlaygroundGoldenLayout extends HolochainPlaygroundContainer {
+export class HolochainPlaygroundGoldenLayout extends SimulatedPlaygroundContainer {
   render() {
     return html`
       <golden-layout
@@ -111,7 +112,7 @@ export class HolochainPlaygroundGoldenLayout extends HolochainPlaygroundContaine
 
   static get scopedElements() {
     return {
-      ...HolochainPlaygroundContainer.scopedElements,
+      ...SimulatedPlaygroundContainer.scopedElements,
       'golden-layout': GoldenLayout,
       'golden-layout-register': GoldenLayoutRegister,
     };

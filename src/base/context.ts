@@ -4,9 +4,17 @@ import {
   SimulatedDnaSlot,
   SimulatedHappBundle,
 } from '@holochain-playground/core';
-import { AgentPubKeyB64, AnyDhtHashB64, Dictionary, DnaHashB64 } from '@holochain-open-dev/core-types';
+import {
+  AgentPubKeyB64,
+  AnyDhtHashB64,
+  Dictionary,
+  DnaHashB64,
+} from '@holochain-open-dev/core-types';
+import { Context, createContext } from '@lit-labs/context';
+import { PlaygroundStore } from '../store/base';
+import { PlaygroundMode } from '../store/mode';
 
-export interface PlaygroundContext {
+export interface PlaygroundContextOld {
   activeDna: DnaHashB64;
   activeAgentPubKey: AgentPubKeyB64 | undefined;
   activeHash: AnyDhtHashB64 | undefined;
@@ -15,6 +23,14 @@ export interface PlaygroundContext {
   happs: Dictionary<LightHappBundle>; // Indexed by happId
   dnas: Dictionary<SimulatedDna>; // Indexed by dna hash
 }
+
+export type PlaygroundContext<T extends PlaygroundMode> = Context<
+  PlaygroundStore<T>
+>;
+
+export const playgroundContext: PlaygroundContext<any> = createContext(
+  'holochain-playground'
+);
 
 export interface LightDnaSlot {
   dnaHash: DnaHashB64;
@@ -27,7 +43,7 @@ export interface LightHappBundle {
 }
 
 export function buildHappBundle(
-  context: PlaygroundContext,
+  context: PlaygroundContextOld,
   happId: string
 ): SimulatedHappBundle {
   const slots: Dictionary<SimulatedDnaSlot> = {};

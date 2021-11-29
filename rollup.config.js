@@ -6,37 +6,30 @@ import replace from '@rollup/plugin-replace';
 
 const pkg = require('./package.json');
 
-export const plugins = [
-  replace({
-    'customElements.define(JsonViewer.is, JsonViewer);': '',
-    'customElements.define(GridColumn.is, GridColumn);': '',
-    'customElements.define(Grid.is, Grid);': '',
-  }),
-  json(),
-  typescript(),
-  resolve({
-    preferBuiltins: false,
-    browser: true,
-    mainFields: ['browser', 'module', 'main'],
-  }),
-  commonjs({
-    include: /node_modules/,
-  }),
-];
-
 export default {
   input: `src/index.ts`,
   output: { dir: 'dist', format: 'es', sourcemap: true },
   external: [
     ...Object.keys(pkg.dependencies).filter(
-      (key) =>
-        !key.includes('cytoscape') &&
-        !key.includes('json-viewer') &&
-        !key.includes('@vaadin')
+      (key) => !key.includes('json-viewer') && !key.includes('@vaadin')
     ),
     'lit/directives/style-map.js',
     'lit/directives/class-map.js',
     'lodash-es',
   ],
-  plugins,
+  plugins: [
+    replace({
+      'customElements.define(JsonViewer.is, JsonViewer);': '',
+      'customElements.define(GridColumn.is, GridColumn);': '',
+      'customElements.define(Grid.is, Grid);': '',
+    }),
+    json(),
+    typescript(),
+    resolve({
+      preferBuiltins: false,
+      browser: true,
+      mainFields: ['browser', 'module', 'main'],
+    }),
+    commonjs(),
+  ],
 };

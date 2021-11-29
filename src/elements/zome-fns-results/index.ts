@@ -20,11 +20,9 @@ import { ExpandableLine } from '../helpers/expandable-line';
 import { JsonViewer } from '@power-elements/json-viewer';
 import { Icon } from '@scoped-elements/material-web';
 import { CopyableHash } from '../helpers/copyable-hash';
-import { CellObserver } from '../../base/cell-observer';
 import { PlaygroundElement } from '../../base/playground-element';
-import { CellsController } from '../../base/cells-controller';
 
-export class ZomeFnsResults extends PlaygroundElement implements CellObserver {
+export class ZomeFnsResults extends PlaygroundElement {
   @property({ type: Boolean, attribute: 'hide-agent-pub-key' })
   hideAgentPubKey = false;
 
@@ -34,7 +32,7 @@ export class ZomeFnsResults extends PlaygroundElement implements CellObserver {
   // Results segmented by dnaHash/agentPubKey/timestamp
   private _results: Dictionary<Dictionary<Dictionary<ZomeFunctionResult>>> = {};
 
-  _cellsController = new CellsController(this);
+  _cells = new CellsController(this);
 
   get activeCell(): Cell {
     return selectCell(

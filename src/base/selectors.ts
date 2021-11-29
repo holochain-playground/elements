@@ -1,7 +1,14 @@
 import {
-  AgentPubKeyB64,
   SignedHeaderHashed,
   NewEntryHeader,
+  DnaHash,
+  AnyDhtHash,
+  AgentPubKey,
+  HeaderHash,
+} from '@holochain/conductor-api';
+
+import {
+  AgentPubKeyB64,
   DnaHashB64,
   AnyDhtHashB64,
   HeaderHashB64,
@@ -13,14 +20,15 @@ import {
   isHoldingElement,
   getHashType,
   HashType,
+  HoloHashMap,
 } from '@holochain-playground/core';
 import { cloneDeep } from 'lodash';
 
-export function selectCells(dna: DnaHashB64, conductor: Conductor): Cell[] {
+export function selectCells(dna: DnaHash, conductor: Conductor): Cell[] {
   return conductor.getCells(dna);
 }
 
-export function selectAllCells(dna: DnaHashB64, conductors: Conductor[]): Cell[] {
+export function selectAllCells(dna: DnaHash, conductors: Conductor[]): Cell[] {
   const cells = conductors.map((c) => selectCells(dna, c));
   return [].concat(...cells);
 }
@@ -35,14 +43,14 @@ export function selectGlobalDHTOpsCount(cells: Cell[]): number {
   return dhtOps;
 }
 
-export function selectHoldingCells(hash: AnyDhtHashB64, cells: Cell[]): Cell[] {
+export function selectHoldingCells(hash: AnyDhtHash, cells: Cell[]): Cell[] {
   if (getHashType(hash) === HashType.ENTRY)
     return cells.filter((cell) => isHoldingEntry(cell._state, hash));
   return cells.filter((cell) => isHoldingElement(cell._state, hash));
 }
 
 export function selectConductorByAgent(
-  agentPubKey: AgentPubKeyB64,
+  agentPubKey: AgentPubKey,
   conductors: Conductor[]
 ): Conductor | undefined {
   return conductors.find((conductor) =>
@@ -51,8 +59,8 @@ export function selectConductorByAgent(
 }
 
 export function selectCell(
-  dnaHash: DnaHashB64,
-  agentPubKey: AgentPubKeyB64,
+  dnaHash: DnaHash,
+  agentPubKey: AgentPubKey,
   conductors: Conductor[]
 ): Cell | undefined {
   for (const conductor of conductors) {
@@ -78,11 +86,11 @@ export function selectUniqueDHTOpsCount(cells: Cell[]): number {
   return Object.keys(globalDHTOps).length;
 }
 
-export function selectFromCAS(hash: AnyDhtHashB64, cells: Cell[]): any {
+export function selectFromCAS(hash: AnyDhtHash, cells: Cell[]): any {
   if (!hash) return undefined;
 
   for (const cell of cells) {
-    const entry = cell._state.CAS[hash];
+    const entry = cell._state.CAS.get(hash);
     if (entry) {
       return cloneDeep(entry);
     }
@@ -90,7 +98,7 @@ export function selectFromCAS(hash: AnyDhtHashB64, cells: Cell[]): any {
   return undefined;
 }
 
-export function selectHeaderEntry(headerHash: HeaderHashB64, cells: Cell[]): any {
+export function selectHeaderEntry(headerHash: HeaderHash, cells: Cell[]): any {
   const header: SignedHeaderHashed<NewEntryHeader> = selectFromCAS(
     headerHash,
     cells
@@ -112,15 +120,15 @@ export function selectMedianHoldingDHTOps(cells: Cell[]): number {
   return holdingDHTOps.sort((a, b) => a - b)[medianIndex];
 }
 
-export function selectAllDNAs(conductors: Conductor[]): DnaHashB64[] {
-  const dnas = {};
+export function selectAllDNAs(conductors: Conductor[]): DnaHash[] {
+  const dnas = new HoloHashMap<boolean>();
 
   for (const conductor of conductors) {
     for (const cell of conductor.getAllCells()) {
-      dnas[cell.dnaHash] = true;
+      dnas.put(cell.dnaHash, true);
     }
   }
-  return Object.keys(dnas);
+  return dnas.keys();
 }
 
 export function selectRedundancyFactor(cell: Cell): number {

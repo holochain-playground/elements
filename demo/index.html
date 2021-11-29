@@ -62,6 +62,7 @@
         EntryContents,
         RunSteps,
         HappsManager,
+        conductorStore
       } from '../dist';
       import {
         GetStrategy,
@@ -97,6 +98,8 @@
       customElements.define('entry-contents', EntryContents);
       customElements.define('conductor-admin', ConductorAdmin);
       customElements.define('happs-manager', HappsManager);
+
+      conductorStore('ws://localhost:22112').then(d => d.subscribe(a => console.log(a)))
     </script>
   </body>
 </html>
