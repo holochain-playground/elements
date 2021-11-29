@@ -5,7 +5,8 @@ export function pollingStore<T>(
   pollingRequest: (currentState: T) => Promise<T>
 ): Readable<T> {
   const store = readable(startValue, (set) => {
-    let value: T;
+    console.log('aqui')
+    let value: T = startValue;
 
     const interval = setInterval(async () => {
       value = await pollingRequest(value);

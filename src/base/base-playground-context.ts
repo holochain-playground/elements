@@ -11,10 +11,10 @@ import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { ContextProvider } from '@lit-labs/context';
 
 import { PlaygroundContext, playgroundContext } from './context';
-import { PlaygroundStore } from '../store/base';
+import { PlaygroundStore } from '../store/playground-store';
 import { PlaygroundMode } from '../store/mode';
 
-export abstract class PlaygroundContainer<
+export abstract class BasePlaygroundContext<
   T extends PlaygroundMode
 > extends ScopedElementsMixin(LitElement) {
   @query('#snackbar')
@@ -26,19 +26,17 @@ export abstract class PlaygroundContainer<
   /** Context variables */
   abstract buildStore(): Promise<PlaygroundStore<T>>;
 
-  _playgroundStoreContext: ContextProvider<PlaygroundContext<T>>;
+  _playgroundStoreContext: ContextProvider<
+    PlaygroundContext<T>
+  > = new ContextProvider(this, playgroundContext, undefined);
 
   async firstUpdated() {
     const store = await this.buildStore();
 
-    this._playgroundStoreContext = new ContextProvider(
-      this,
-      playgroundContext,
-      store
-    );
+    this._playgroundStoreContext.setValue(store);
 
     this.dispatchEvent(
-      new CustomEvent('ready', {
+      new CustomEvent('playground-ready', {
         bubbles: true,
         composed: true,
         detail: { store },
@@ -66,7 +64,7 @@ export abstract class PlaygroundContainer<
   render() {
     return html`
       ${this.renderSnackbar()}
-      ${this._playgroundStoreContext
+      ${this._playgroundStoreContext.value
         ? html` <mwc-circular-progress></mwc-circular-progress>`
         : html` <slot></slot> `}
     `;

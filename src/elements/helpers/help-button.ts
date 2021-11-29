@@ -1,11 +1,9 @@
 import { property, query } from 'lit/decorators.js';
-import { html } from 'lit';
-import { Button } from '@scoped-elements/material-web';
-import { Dialog } from '@scoped-elements/material-web';
-import { IconButton } from '@scoped-elements/material-web';
-import { PlaygroundElement } from '../../base/playground-element';
+import { html, LitElement } from 'lit';
+import { Button, Dialog, IconButton } from '@scoped-elements/material-web';
+import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 
-export class HelpButton extends PlaygroundElement {
+export class HelpButton extends ScopedElementsMixin(LitElement) {
   @property({ type: String })
   heading: string;
 

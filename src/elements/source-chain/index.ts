@@ -4,7 +4,7 @@ import { StoreSubscriber } from 'lit-svelte-stores';
 import { CytoscapeDagre } from '@scoped-elements/cytoscape';
 
 import { Card } from '@scoped-elements/material-web';
-import { serializeHash } from '@holochain-open-dev/core-types';
+import { deserializeHash, serializeHash } from '@holochain-open-dev/core-types';
 
 import { sourceChainNodes } from './processors';
 import { sharedStyles } from '../utils/shared-styles';
@@ -13,21 +13,19 @@ import { HelpButton } from '../helpers/help-button';
 import { PlaygroundElement } from '../../base/playground-element';
 import { graphStyles } from './graph';
 import { CopyableHash } from '../helpers/copyable-hash';
-import { activeCellStore } from '../../store/derivations';
-import { PlaygroundMode } from '../../store/mode';
 
 /**
  * @element source-chain
  */
-export class SourceChain<
-  T extends PlaygroundMode
-> extends PlaygroundElement<T> {
+export class SourceChain extends PlaygroundElement<any> {
   _activeAgentPubKey = new StoreSubscriber(
     this,
-    () => this.store.activeAgentPubKey
+    () => this.store?.activeAgentPubKey
   );
-  _activeHash = new StoreSubscriber(this, () => this.store.activeDhtHash);
-  _activeCell = new StoreSubscriber(this, () => activeCellStore(this.store));
+  _activeHash = new StoreSubscriber(this, () => this.store?.activeDhtHash);
+  _activeCell = new StoreSubscriber(this, () =>
+    this.store ? this.store.activeCell() : undefined
+  );
   _sourceChain = new StoreSubscriber(
     this,
     () => this._activeCell.value?.sourceChain
@@ -72,7 +70,8 @@ export class SourceChain<
       <mwc-card class="block-card">
         <div class="column fill">
           <span class="block-title row" style="margin: 16px;"
-            >Source-Chain${this._activeAgentPubKey.value
+            >Source
+            Chain${this._activeAgentPubKey.value
               ? html`
                   <span class="placeholder row">
                     , for Agent
@@ -102,10 +101,11 @@ export class SourceChain<
               if (activeHash.includes(':')) {
                 activeHash = activeHash.split(':')[1];
               }
-              this.store.activeDhtHash.set(activeHash);
+              this.store.activeDhtHash.set(deserializeHash(activeHash));
             }}
             style=${styleMap({
               display: this._activeCell.value ? '' : 'none',
+              flex: '1',
             })}
           ></cytoscape-dagre>
         </div>

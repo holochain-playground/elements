@@ -11,7 +11,7 @@ import {
   DnaHashB64,
 } from '@holochain-open-dev/core-types';
 import { Context, createContext } from '@lit-labs/context';
-import { PlaygroundStore } from '../store/base';
+import { PlaygroundStore } from '../store/playground-store';
 import { PlaygroundMode } from '../store/mode';
 
 export interface PlaygroundContextOld {
@@ -29,7 +29,7 @@ export type PlaygroundContext<T extends PlaygroundMode> = Context<
 >;
 
 export const playgroundContext: PlaygroundContext<any> = createContext(
-  'holochain-playground'
+  'holochain-playground/store'
 );
 
 export interface LightDnaSlot {

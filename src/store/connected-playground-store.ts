@@ -16,19 +16,19 @@ import merge from 'lodash-es/merge';
 import isEqual from 'lodash-es/isEqual';
 import { CellMap, HoloHashMap } from '@holochain-playground/core';
 
-import { CellStore, ConductorStore, PlaygroundStore } from './base';
+import { CellStore, ConductorStore, PlaygroundStore } from './playground-store';
 import { pollingStore } from './polling-store';
 import { PlaygroundMode } from './mode';
 import { cellChanges } from './utils';
 
 export class ConnectedCellStore extends CellStore<PlaygroundMode.Connected> {
-  #state: Readable<FullStateDump | undefined>;
+  _state: Readable<FullStateDump | undefined>;
 
   sourceChain: Readable<Element[]>;
 
   constructor(adminWs: AdminWebsocket, cellId: CellId) {
     super();
-    this.#state = pollingStore(undefined, async (currentState) => {
+    this._state = pollingStore(undefined, async (currentState) => {
       const fullState = await adminWs.dumpFullState({
         cell_id: cellId,
         dht_ops_cursor: currentState
@@ -44,8 +44,8 @@ export class ConnectedCellStore extends CellStore<PlaygroundMode.Connected> {
       };
     });
 
-    this.sourceChain = derived(this.#state, (s) =>
-      s.source_chain_dump.elements.map((e) => ({
+    this.sourceChain = derived(this._state, (s) =>
+      s && s.source_chain_dump.elements.map((e) => ({
         signed_header: {
           header: {
             content: e.header,

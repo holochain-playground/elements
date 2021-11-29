@@ -21,39 +21,19 @@
     />
   </head>
   <body>
-    <holochain-playground-golden-layout>
-      <holochain-playground-golden-layout-menu>
-      </holochain-playground-golden-layout-menu>
-      <golden-layout-root style="flex: 1">
-        <golden-layout-row>
-          <golden-layout-column>
-            <golden-layout-component
-              component-type="dht-cells"
-            ></golden-layout-component>
-            <golden-layout-component
-              component-type="call-zome-fns"
-            ></golden-layout-component>
-          </golden-layout-column>
-          <golden-layout-column>
-            <golden-layout-component
-              component-type="entry-graph"
-            ></golden-layout-component>
-
-            <golden-layout-component
-              component-type="entry-contents"
-            ></golden-layout-component>
-          </golden-layout-column>
-        </golden-layout-row>
-      </golden-layout-root>
-    </holochain-playground-golden-layout>
+    <connected-playground-context id="context" style="flex: 1;">
+      <source-chain style="flex: 1;"></source-chain>
+    </connected-playground-context>
 
     <script type="module">
       import { html, render } from 'lit';
+      import { get } from 'svelte/store';
       import {
+        SourceChain,
+        ConnectedPlaygroundContext /* 
         HolochainPlaygroundGoldenLayout,
         HolochainPlaygroundGoldenLayoutMenu,
         CallZomeFns,
-        SourceChain,
         SelectActiveDna,
         ConductorAdmin,
         DhtCells,
@@ -62,24 +42,24 @@
         EntryContents,
         RunSteps,
         HappsManager,
-        conductorStore
+        conductorStore */,
       } from '../dist';
       import {
         GetStrategy,
         WorkflowType,
         NetworkRequestType,
-      } from '@holochain-playground/core';
+      } from '@holochain-playground/core'; /* 
       import {
         GoldenLayoutRoot,
         GoldenLayoutRow,
         GoldenLayoutColumn,
         GoldenLayoutComponent,
-      } from '@scoped-elements/golden-layout';
+      } from '@scoped-elements/golden-layout'; */
 
       customElements.define(
-        'holochain-playground-golden-layout',
-        HolochainPlaygroundGoldenLayout
-      );
+        'connected-playground-context',
+        ConnectedPlaygroundContext
+      ); /* 
       customElements.define(
         'holochain-playground-golden-layout-menu',
         HolochainPlaygroundGoldenLayoutMenu
@@ -92,14 +72,32 @@
       customElements.define('dht-cells', DhtCells);
       customElements.define('select-active-dna', SelectActiveDna);
       customElements.define('call-zome-fns', CallZomeFns);
-      customElements.define('source-chain', SourceChain);
       customElements.define('entry-graph', EntryGraph);
       customElements.define('zome-fns-results', ZomeFnsResults);
       customElements.define('entry-contents', EntryContents);
       customElements.define('conductor-admin', ConductorAdmin);
       customElements.define('happs-manager', HappsManager);
+      */
+      customElements.define('source-chain', SourceChain);
 
-      conductorStore('ws://localhost:22112').then(d => d.subscribe(a => console.log(a)))
+      const context = document.getElementById('context');
+
+      context.urls = ['ws://localhost:45259'];
+      context.addEventListener('playground-ready', (e) => {
+        const store = e.detail.store;
+        store.conductors.subscribe(
+          (c) => {
+            console.log(c);
+            c &&
+            c[0].cells.subscribe((cells) => {
+              if (cells.entries().length > 0) {
+                store.activeAgentPubKey.set(cells.entries()[0][0][1]);
+                store.activeDna.set(cells.entries()[0][0][0]);
+              }
+            })
+          }
+        );
+      });
     </script>
   </body>
 </html>

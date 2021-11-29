@@ -1,8 +1,10 @@
 import { Element } from '@holochain-open-dev/core-types';
 import { CellMap } from '@holochain-playground/core';
 import { AgentPubKey, AnyDhtHash, DnaHash } from '@holochain/conductor-api';
-import { get, Readable, writable, Writable } from 'svelte/store';
+import { derived, get, Readable, writable, Writable } from 'svelte/store';
+
 import { PlaygroundMode } from './mode';
+import { unnest } from './unnest';
 
 export abstract class CellStore<T extends PlaygroundMode> {
   type: T;
@@ -34,11 +36,10 @@ export abstract class PlaygroundStore<T extends PlaygroundMode> {
         this.activeDhtHash.set(undefined);
         const currentConductors = get(this.conductors);
 
+        const activePubKey = get(this.activeAgentPubKey);
         if (
-          !currentConductors.find((c) => {
-            const cells = get(c.cells);
-            cells.has([v, get(this.activeAgentPubKey)]);
-          })
+          activePubKey &&
+          !currentConductors.find((c) => get(c.cells).has([v, activePubKey]))
         ) {
           this.activeAgentPubKey.set(undefined);
         }
@@ -46,5 +47,31 @@ export abstract class PlaygroundStore<T extends PlaygroundMode> {
         set(v);
       },
     };
+  }
+
+  activeCell(): Readable<CellStore<T> | undefined> {
+    return derived(
+      [this.activeDna, this.activeAgentPubKey, this.allCells()],
+      ([dnaHash, agentPubKey, cellMap]) => {
+        if (!dnaHash || !agentPubKey) return undefined;
+
+        return cellMap.get([dnaHash, agentPubKey]);
+      }
+    );
+  }
+
+  allCells(): Readable<CellMap<CellStore<T>>> {
+    return unnest(this.conductors, (conductors) =>
+      derived(
+        conductors.map((c) => c.cells),
+        (cellMaps) =>
+          cellMaps.reduce((acc, next) => {
+            for (const [cellId, store] of next.entries()) {
+              acc.put(cellId, store);
+            }
+            return acc;
+          }, new CellMap())
+      )
+    );
   }
 }

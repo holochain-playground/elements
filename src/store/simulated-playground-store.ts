@@ -13,11 +13,11 @@ import { CellId } from '@holochain/conductor-api';
 import { get, readable, Readable, writable, Writable } from 'svelte/store';
 
 import { PlaygroundMode } from './mode';
-import { CellStore, ConductorStore, PlaygroundStore } from './base';
+import { CellStore, ConductorStore, PlaygroundStore } from './playground-store';
 import { cellChanges } from './utils';
 
 export class SimulatedCellStore extends CellStore<PlaygroundMode.Simulated> {
-  sourceChain: Writable<Element[]>;
+  sourceChain: Writable<Element[]> = writable([]);
 
   constructor(protected cell: Cell) {
     super();
@@ -29,7 +29,7 @@ export class SimulatedCellStore extends CellStore<PlaygroundMode.Simulated> {
   }
 
   update() {
-    const state = this.cell.getState();
+    const state = this.cell._state;
 
     this.sourceChain.set(selectSourceChain(state));
   }
@@ -40,9 +40,10 @@ export class SimulatedConductorStore extends ConductorStore<PlaygroundMode.Simul
 
   constructor(conductor: Conductor) {
     super();
-    this.cells = readable(this.buildStores(conductor, new CellMap()), (set) => {
-      let cellMap = new CellMap<SimulatedCellStore>();
 
+    let cellMap = this.buildStores(conductor, new CellMap());
+
+    this.cells = readable(cellMap, (set) => {
       conductor.addSignalHandler((signal) => {
         if (signal === ConductorSignalType.CellsChanged) {
           cellMap = this.buildStores(conductor, cellMap);
@@ -79,6 +80,7 @@ export class SimulatedPlaygroundStore extends PlaygroundStore<PlaygroundMode.Sim
     this.conductors = writable(
       initialConductors.map((c) => new SimulatedConductorStore(c))
     );
+    this.activeDna.set(initialConductors[0].cells.cellIds()[0][0]);
   }
 
   static async create(

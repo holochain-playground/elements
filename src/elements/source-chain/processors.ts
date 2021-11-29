@@ -8,14 +8,14 @@ import { Element, serializeHash } from '@holochain-open-dev/core-types';
 import { getEntryTypeString } from '@holochain-playground/core';
 
 import { SimulatedCellStore } from '../../store/simulated-playground-store';
-import { CellStore } from '../../store/base';
+import { CellStore } from '../../store/playground-store';
 
 export function sourceChainNodes(
   cellStore: CellStore<any>,
   elements: Element[]
 ) {
   const nodes = [];
-
+  
   for (const element of elements) {
     const header: SignedHeaderHashed = element.signed_header;
     const headerHash = serializeHash(header.header.hash);
@@ -30,7 +30,7 @@ export function sourceChainNodes(
     });
 
     if ((header.header.content as Create).prev_header) {
-      const previousHeaderHash = (header.header.content as Create).prev_header;
+      const previousHeaderHash = serializeHash((header.header.content as Create).prev_header);
       nodes.push({
         data: {
           id: `${headerHash}->${previousHeaderHash}`,
@@ -48,7 +48,7 @@ export function sourceChainNodes(
 
     if (element.entry) {
       const newEntryHeader = header.header.content as NewEntryHeader;
-      const entryHash = newEntryHeader.entry_hash;
+      const entryHash = serializeHash(newEntryHeader.entry_hash);
       const entryNodeId = `${headerHash}:${entryHash}`;
 
       const entry: Entry = element.entry;
@@ -60,6 +60,8 @@ export function sourceChainNodes(
           cellStore.dna,
           newEntryHeader.entry_type
         );
+      } else {
+        entryType = 'Entry'
       }
 
       nodes.push({
