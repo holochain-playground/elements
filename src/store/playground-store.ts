@@ -1,6 +1,12 @@
 import { Element } from '@holochain-open-dev/core-types';
-import { CellMap } from '@holochain-playground/core';
-import { AgentPubKey, AnyDhtHash, DnaHash } from '@holochain/conductor-api';
+import { CellMap, HoloHashMap } from '@holochain-playground/core';
+import {
+  AgentPubKey,
+  AnyDhtHash,
+  DhtOp,
+  DnaHash,
+} from '@holochain/conductor-api';
+import isEqual from 'lodash-es/isEqual';
 import { derived, get, Readable, writable, Writable } from 'svelte/store';
 
 import { PlaygroundMode } from './mode';
@@ -9,6 +15,8 @@ import { unnest } from './unnest';
 export abstract class CellStore<T extends PlaygroundMode> {
   type: T;
   abstract sourceChain: Readable<Element[]>;
+  abstract peers: Readable<AgentPubKey[]>;
+  abstract dhtShard: Readable<Array<DhtOp>>;
 }
 
 export abstract class ConductorStore<T extends PlaygroundMode> {
@@ -72,6 +80,22 @@ export abstract class PlaygroundStore<T extends PlaygroundMode> {
             return acc;
           }, new CellMap())
       )
+    );
+  }
+
+  cellsForActiveDna(): Readable<CellMap<CellStore<T>>> {
+    return derived(
+      [this.activeDna, this.allCells()],
+      ([activeDna, allCells]) => {
+        const map = new CellMap<CellStore<T>>();
+
+        for (const [cellId, value] of allCells.entries()) {
+          if (isEqual(activeDna, cellId[0])) {
+            map.put(cellId, value);
+          }
+        }
+        return map;
+      }
     );
   }
 }

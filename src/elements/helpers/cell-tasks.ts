@@ -13,21 +13,20 @@ import { styleMap } from 'lit-html/directives/style-map.js';
 import { property, state } from 'lit/decorators.js';
 
 import { Subject } from 'rxjs';
-import { Card } from '@scoped-elements/material-web';
-import { Icon } from '@scoped-elements/material-web';
-import { LinearProgress } from '@scoped-elements/material-web';
-import { List } from '@scoped-elements/material-web';
-import { ListItem } from '@scoped-elements/material-web';
-import { CellObserver } from '../../base/cell-observer';
-import { CellsController } from '../../base/cells-controller';
+import {
+  Card,
+  Icon,
+  LinearProgress,
+  List,
+  ListItem,
+} from '@scoped-elements/material-web';
+
 import { PlaygroundElement } from '../../base/playground-element';
 import { sharedStyles } from '../utils/shared-styles';
+import { SimulatedPlaygroundStore } from '../../store/simulated-playground-store';
 
-export class CellTasks extends PlaygroundElement implements CellObserver {
+export class CellTasks extends PlaygroundElement<SimulatedPlaygroundStore> {
   /** Public properties */
-
-  @property({ type: Object })
-  cell!: Cell;
 
   @property({ type: Array })
   workflowsToDisplay: WorkflowType[] = [
@@ -52,9 +51,6 @@ export class CellTasks extends PlaygroundElement implements CellObserver {
   @property({ type: Boolean })
   stepByStep: boolean = false;
 
-  _onPause: boolean = false;
-  _resumeObservable!: Subject<any>;
-
   /** Private properties */
 
   @state()
@@ -72,12 +68,6 @@ export class CellTasks extends PlaygroundElement implements CellObserver {
     networkRequest: NetworkRequestInfo<any, any>;
     error: any;
   }> = [];
-
-  private _cellsController = new CellsController(this);
-
-  observedCells() {
-    return [this.cell];
-  }
 
   async beforeWorkflow(cell: Cell, task: Workflow<any, any>) {
     if (!this.workflowsToDisplay.includes(task.type as WorkflowType)) return;
@@ -100,23 +90,8 @@ export class CellTasks extends PlaygroundElement implements CellObserver {
     this.requestUpdate();
 
     if (this.stepByStep) {
-      this.dispatchEvent(
-        new CustomEvent('execution-paused', {
-          detail: { paused: true },
-          composed: true,
-          bubbles: true,
-        })
-      );
-      await new Promise((resolve) =>
-        this._resumeObservable.subscribe(() => resolve(null))
-      );
-      this.dispatchEvent(
-        new CustomEvent('execution-paused', {
-          detail: { paused: false },
-          composed: true,
-          bubbles: true,
-        })
-      );
+      this.store.paused.pause();
+      await this.store.paused.awaitResume();
     } else {
       await sleep(this.workflowDelay);
     }
@@ -132,23 +107,8 @@ export class CellTasks extends PlaygroundElement implements CellObserver {
         this.requestUpdate();
 
         if (this.stepByStep) {
-          this.dispatchEvent(
-            new CustomEvent('execution-paused', {
-              detail: { paused: true },
-              composed: true,
-              bubbles: true,
-            })
-          );
-          await new Promise((resolve) =>
-            this._resumeObservable.subscribe(() => resolve(null))
-          );
-          this.dispatchEvent(
-            new CustomEvent('execution-paused', {
-              detail: { paused: false },
-              composed: true,
-              bubbles: true,
-            })
-          );
+          this.store.paused.pause();
+          await this.store.paused.awaitResume();
         } else {
           await sleep(this.workflowDelay);
         }
@@ -182,23 +142,8 @@ export class CellTasks extends PlaygroundElement implements CellObserver {
       this.requestUpdate();
 
       if (this.stepByStep) {
-        this.dispatchEvent(
-          new CustomEvent('execution-paused', {
-            detail: { paused: true },
-            composed: true,
-            bubbles: true,
-          })
-        );
-        await new Promise((resolve) =>
-          this._resumeObservable.subscribe(() => resolve(null))
-        );
-        this.dispatchEvent(
-          new CustomEvent('execution-paused', {
-            detail: { paused: false },
-            composed: true,
-            bubbles: true,
-          })
-        );
+        this.store.paused.pause();
+        await this.store.paused.awaitResume();
       } else {
         await sleep(this.workflowDelay);
       }
@@ -223,23 +168,8 @@ export class CellTasks extends PlaygroundElement implements CellObserver {
       this.requestUpdate();
 
       if (this.stepByStep) {
-        this.dispatchEvent(
-          new CustomEvent('execution-paused', {
-            detail: { paused: true },
-            composed: true,
-            bubbles: true,
-          })
-        );
-        await new Promise((resolve) =>
-          this._resumeObservable.subscribe(() => resolve(null))
-        );
-        this.dispatchEvent(
-          new CustomEvent('execution-paused', {
-            detail: { paused: false },
-            composed: true,
-            bubbles: true,
-          })
-        );
+        this.store.paused.pause();
+        await this.store.paused.awaitResume();
       } else {
         await sleep(this.workflowDelay);
       }

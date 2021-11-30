@@ -1,21 +1,28 @@
-import { html, css } from 'lit';
+import { html, css, PropertyValues } from 'lit';
 import { state, query, property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { classMap } from 'lit/directives/class-map.js';
-import ResizeObserver from 'resize-observer-polyfill';
 
-import cytoscape from 'cytoscape';
-import { MenuSurface } from '@scoped-elements/material-web';
-import { Button } from '@scoped-elements/material-web';
-import { DHTOp, Dictionary } from '@holochain-open-dev/core-types';
+import {
+  deserializeHash,
+  Dictionary,
+  serializeHash,
+} from '@holochain-open-dev/core-types';
+import { CellId, DhtOp } from '@holochain/conductor-api';
 import {
   sleep,
   NetworkRequestType,
   WorkflowType,
   PublishRequestInfo,
   NetworkRequestInfo,
+  BadAgent,
+  CellMap,
+  HoloHashMap,
 } from '@holochain-playground/core';
+import { StoreSubscriber } from 'lit-svelte-stores';
 import {
+  Button,
+  MenuSurface,
   Card,
   Slider,
   Switch,
@@ -25,19 +32,29 @@ import {
   Menu,
   ListItem,
 } from '@scoped-elements/material-web';
+import { CytoscapeCircle } from '@scoped-elements/cytoscape';
+import { uniq } from 'lodash-es';
 
 import { CellTasks } from '../helpers/cell-tasks';
 import { HelpButton } from '../helpers/help-button';
-import { CellsController } from '../../base/cells-controller';
 import { selectAllCells, selectHoldingCells } from '../../base/selectors';
 import { sharedStyles } from '../utils/shared-styles';
-import { dhtCellsNodes, neighborsEdges } from './processors';
-import { graphStyles, layoutConfig } from './graph';
-import { Subject } from 'rxjs';
-import { uniq } from 'lodash-es';
+import {
+  dhtCellsNodes,
+  allPeersEdges,
+  simulatedNeighbors,
+  isHoldingElement,
+  isHoldingEntry,
+} from './processors';
+import { cytoscapeOptions, graphStyles, layoutConfig } from './graph';
 import { PlaygroundElement } from '../../base/playground-element';
-import { CellObserver } from '../../base/cell-observer';
 import { CopyableHash } from '../helpers/copyable-hash';
+import { PlaygroundMode } from '../../store/mode';
+import {
+  SimulatedCellStore,
+  SimulatedPlaygroundStore,
+} from '../../store/simulated-playground-store';
+import { mapDerive } from '../../store/utils';
 
 const MIN_ANIMATION_DELAY = 1;
 const MAX_ANIMATION_DELAY = 7;
@@ -45,7 +62,7 @@ const MAX_ANIMATION_DELAY = 7;
 /**
  * @element dht-cells
  */
-export class DhtCells extends PlaygroundElement implements CellObserver {
+export class DhtCells extends PlaygroundElement {
   @property({ type: Number })
   animationDelay: number = 2;
 
@@ -74,9 +91,6 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
   @property({ type: Boolean, attribute: 'show-zome-fn-success' })
   showZomeFnSuccess = false;
 
-  @query('#graph')
-  private _graph: any;
-
   @query('#active-workflows-button')
   private _activeWorkflowsButton: Button;
   @query('#active-workflows-menu')
@@ -86,105 +100,117 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
   private _networkRequestsButton: Button;
   @query('#network-requests-menu')
   private _networkRequestsMenu: Menu;
+  @query('#graph')
+  private _graph: CytoscapeCircle;
 
-  private _cy;
-  private _layout;
-  private _resumeObservable = new Subject();
-
-  @state()
-  private _onPause = false;
-
-  private cellsController = new CellsController(this);
-
-  observedCells() {
-    return selectAllCells(this.activeDna, this.conductors);
-  }
-
-  async firstUpdated() {
-    window.addEventListener('scroll', () => {
-      this._cy.resize();
-      this.requestUpdate();
-    });
-
-    new ResizeObserver(() => {
-      setTimeout(() => {
-        this._cy.resize();
-        if (this._layout) this._layout.run();
-        this.requestUpdate();
-      });
-    }).observe(this);
-
-    this._cy = cytoscape({
-      container: this._graph,
-      boxSelectionEnabled: false,
-      autoungrabify: true,
-      userPanningEnabled: false,
-      userZoomingEnabled: false,
-      layout: layoutConfig,
-      style: graphStyles,
-    });
-
-    this._cy.on('tap', 'node', (evt) => {
-      this.updatePlayground({
-        activeAgentPubKey: evt.target.id(),
-      });
-    });
-
-    let rendered = false;
-    this._cy.on('render', () => {
-      if (this._cy.width() !== 0) {
-        if (!rendered) {
-          rendered = true;
-          // This is needed to render the nodes after the graph itself
-          // has resized properly so it computes the positions appriopriately
-          setTimeout(() => {
-            this.setupGraphNodes();
-          });
-        }
-      }
-    });
-  }
+  _paused = new StoreSubscriber(this, () =>
+    this.store instanceof SimulatedPlaygroundStore
+      ? this.store?.paused
+      : undefined
+  );
+  _activeDna = new StoreSubscriber(this, () => this.store?.activeDna);
+  _activeDhtHash = new StoreSubscriber(this, () => this.store?.activeDhtHash);
+  _activeAgentPubKey = new StoreSubscriber(
+    this,
+    () => this.store?.activeAgentPubKey
+  );
+  _cellsForActiveDna = new StoreSubscriber(this, () =>
+    this.store?.cellsForActiveDna()
+  );
+  _badAgents = new StoreSubscriber(
+    this,
+    () =>
+      this.store instanceof SimulatedPlaygroundStore &&
+      this._cellsForActiveDna.value &&
+      mapDerive(
+        this._cellsForActiveDna.value,
+        (cellStore: SimulatedCellStore) => cellStore.conductorStore.badAgent
+      )
+  );
+  _dhtShard = new StoreSubscriber(
+    this,
+    () =>
+      this._cellsForActiveDna.value &&
+      mapDerive(this._cellsForActiveDna.value, (store) => store.dhtShard)
+  );
+  _peers = new StoreSubscriber(
+    this,
+    () =>
+      this._cellsForActiveDna.value &&
+      mapDerive(this._cellsForActiveDna.value, (store) => store.peers)
+  );
+  _farPeers = new StoreSubscriber(
+    this,
+    () =>
+      this.store instanceof SimulatedPlaygroundStore &&
+      this._cellsForActiveDna.value &&
+      mapDerive(
+        this._cellsForActiveDna.value,
+        (store: SimulatedCellStore) => store.farPeers
+      )
+  );
+  _recognizedBadActors = new StoreSubscriber(
+    this,
+    () =>
+      this.store instanceof SimulatedPlaygroundStore &&
+      this._cellsForActiveDna.value &&
+      mapDerive(
+        this._cellsForActiveDna.value,
+        (store: SimulatedCellStore) => store.badAgents
+      )
+  );
 
   highlightNodesWithEntry() {
-    const allCells = selectAllCells(this.activeDna, this.conductors);
+    this._cellsForActiveDna.value?.cellIds().forEach(([_, agentPubKey]) => {
+      this._graph.cy
+        .getElementById(serializeHash(agentPubKey))
+        .removeClass('highlighted');
+    });
 
-    allCells.forEach((cell) =>
-      this._cy.getElementById(cell.agentPubKey).removeClass('highlighted')
-    );
+    if (this._activeDhtHash.value) {
+      const holdingCells = this._dhtShard.value.filter(
+        (dhtShard) =>
+          isHoldingEntry(dhtShard, this._activeDhtHash.value) ||
+          isHoldingElement(dhtShard, this._activeDhtHash.value)
+      );
 
-    if (this.activeHash) {
-      const holdingCells = selectHoldingCells(this.activeHash, allCells);
-
-      for (const cell of holdingCells) {
-        this._cy.getElementById(cell.agentPubKey).addClass('highlighted');
+      for (const [_, agentPubKey] of holdingCells.cellIds()) {
+        this._graph.cy
+          .getElementById(serializeHash(agentPubKey))
+          .addClass('highlighted');
       }
     }
   }
 
   async beforeNetworkRequest(networkRequest: NetworkRequestInfo<any, any>) {
+    const store = this.store as SimulatedPlaygroundStore;
     this.requestUpdate();
 
     if (!this.networkRequestsToDisplay.includes(networkRequest.type)) return;
     if (networkRequest.toAgent === networkRequest.fromAgent) return;
 
-    const fromNode = this._cy.getElementById(networkRequest.fromAgent);
+    const fromNode = this._graph.cy.getElementById(
+      serializeHash(networkRequest.fromAgent)
+    );
     if (!fromNode.position()) return;
-    const toNode = this._cy.getElementById(networkRequest.toAgent);
+    const toNode = this._graph.cy.getElementById(
+      serializeHash(networkRequest.toAgent)
+    );
 
     const fromPosition = fromNode.position();
     const toPosition = toNode.position();
 
     let label = networkRequest.type;
     if (networkRequest.type === NetworkRequestType.PUBLISH_REQUEST) {
-      const dhtOps: Dictionary<DHTOp> = (networkRequest as PublishRequestInfo)
+      const dhtOps: HoloHashMap<DhtOp> = (networkRequest as PublishRequestInfo)
         .details.dhtOps;
 
-      const types = Object.values(dhtOps).map((dhtOp) => dhtOp.type);
+      const types = dhtOps.values().map((dhtOp) => dhtOp.type);
 
       label = `Publish: ${uniq(types).join(', ')}`;
     }
 
-    const el = this._cy.add([
+    const el = this._graph.cy.add([
       {
         group: 'nodes',
         data: {
@@ -192,7 +218,7 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
           label,
         },
         position: { x: fromPosition.x + 1, y: fromPosition.y + 1 },
-        classes: ['network-request'],
+        classes: 'network-request',
       },
     ]);
 
@@ -209,11 +235,9 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
 
       await sleep(delay / 2);
 
-      this._onPause = true;
-      await new Promise((resolve) =>
-        this._resumeObservable.subscribe(() => resolve(null))
-      );
-      this._onPause = false;
+      store.paused.pause();
+
+      await store.paused.awaitResume();
 
       el.animate({
         position: toPosition,
@@ -229,82 +253,65 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
 
       await sleep(delay);
     }
-    this._cy.remove(el);
+    this._graph.cy.remove(el);
   }
 
-  onCellsChanged() {
-    this.setupGraphNodes();
-  }
-
-  setupGraphNodes() {
-    if (!this._cy) return;
-
-    const observedCells = this.cellsController.observedCells;
-
-    const nodes = dhtCellsNodes(observedCells);
-
-    if (this._layout) this._layout.stop();
-    this._cy.remove('node');
-    this._cy.remove('edge');
-
-    this._cy.add(nodes);
-    const neighbors = neighborsEdges(observedCells);
-    this._cy.add(neighbors);
-
-    this._layout = this._cy.elements().makeLayout(layoutConfig);
-    this._layout.run();
-
-    this._cy.fit(nodes, nodes.length < 3 ? 170 : 0);
-    this._cy.center();
-  }
-
-  _neighborEdges = [];
-
-  updated(changedValues) {
+  updated(changedValues: PropertyValues) {
     super.updated(changedValues);
-
-    const neighbors = neighborsEdges(this.cellsController.observedCells);
-    if (
-      this._neighborEdges.length != neighbors.length &&
-      this._cy.nodes().length > 0
-    ) {
-      this._neighborEdges = neighbors;
-      this._cy.remove('edge');
-      this._cy.add(neighbors);
-    }
-
-    this.cellsController.observedCells.forEach((cell) =>
-      this._cy.getElementById(cell.agentPubKey).removeClass('selected')
-    );
-    this._cy.getElementById(this.activeAgentPubKey).addClass('selected');
 
     this.highlightNodesWithEntry();
 
-    if (changedValues.has('_onPause')) {
-      this._cy
-        .style()
-        .selector('.cell')
-        .style({
-          opacity: this._onPause ? 0.4 : 1,
-        });
+    (this._graph?.cy?.style() as any)?.selector('.cell').style({
+      opacity: this._paused.value ? 0.4 : 1,
+    });
+  }
+
+  get elements() {
+    if (!this._cellsForActiveDna.value) return [];
+
+    const nodes = dhtCellsNodes(
+      this._cellsForActiveDna.value,
+      this._badAgents.value
+    );
+
+    let edges = [];
+
+    if (this._peers.value) {
+      if (this.store instanceof SimulatedPlaygroundStore) {
+        edges = simulatedNeighbors(
+          this._peers.value,
+          this._farPeers.value,
+          this._recognizedBadActors.value
+        );
+      } else {
+        edges = allPeersEdges(this._peers.value);
+      }
     }
+
+    return [...nodes, ...edges];
   }
 
   renderTimeController() {
-    if (this.hideTimeController) return html``;
+    if (
+      this.hideTimeController ||
+      !(this.store instanceof SimulatedPlaygroundStore)
+    )
+      return html``;
+
+    const store: SimulatedPlaygroundStore = this.store;
 
     return html`
       <div class="row center-content">
         ${this.stepByStep
           ? html`
               <mwc-icon-button
-                .disabled=${!this._onPause}
+                .disabled=${!this._paused.value}
                 icon="play_arrow"
                 style=${styleMap({
-                  'background-color': this._onPause ? '#dbdbdb' : 'white',
+                  'background-color': this._paused.value ? '#dbdbdb' : 'white',
                   'border-radius': '50%',
                 })}
-                @click=${() => this._resumeObservable.next()}
+                @click=${() => store.paused.resume()}
               ></mwc-icon-button>
             `
           : html`
@@ -331,10 +338,10 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
           <mwc-switch
             id="step-by-step-switch"
             .checked=${this.stepByStep}
-            @change=${(e) => {
+            @change="${(e) => {
               this.stepByStep = e.target.checked;
-              if (this._onPause) this._resumeObservable.next();
-            }}
+              if (this._paused.value) store.paused.resume();
+            }}}"
           ></mwc-switch>
         </mwc-formfield>
       </div>
@@ -343,14 +350,14 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
 
   renderHelp() {
     return html`
-      <holochain-playground-help-button heading="DHT Cells" class="block-help">
+      <help-button heading="DHT Cells" class="block-help">
         <span>
           This is a visual interactive representation of a holochain
           <a
             href="https://developer.holochain.org/docs/concepts/4_public_data_on_the_dht/"
             target="_blank"
-            >DHT</a
-          >, with ${this.conductors.length} nodes.
+            >Dht</a
+          >, with ${this._cellsForActiveDna.value?.cellIds().length} nodes.
           <br />
           <br />
           In the DHT, all nodes have a <strong>public and private key</strong>.
@@ -366,31 +373,34 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
           more connected with the nodes that are closest to their ID, and less
           connected with the nodes that are far.
         </span>
-      </holochain-playground-help-button>
+      </help-button>
     `;
   }
 
   renderTasksTooltips() {
-    if (!this._cy || !this.cellsController.observedCells) return html``;
+    if (!(this.store instanceof SimulatedPlaygroundStore)) return html``;
 
-    const nodes = this._cy.nodes();
+    const nodes = this._graph.cy.nodes();
     const cellsWithPosition = nodes.map((node) => {
       const agentPubKey = node.id();
-      const cell = this.cellsController.observedCells.find(
-        (cell) => cell.agentPubKey === agentPubKey
-      );
+
+      const cellStore = this._cellsForActiveDna.value.get([
+        this._activeDna.value,
+        deserializeHash(agentPubKey),
+      ]) as SimulatedCellStore;
+      const cell = cellStore.cell;
 
       return { cell, position: node.renderedPosition() };
     });
 
     return html`${cellsWithPosition.map(({ cell, position }) => {
-      const leftSide = this._cy.width() / 2 > position.x;
-      const upSide = this._cy.height() / 2 > position.y;
+      const leftSide = this._graph.cy.width() / 2 > position.x;
+      const upSide = this._graph.cy.height() / 2 > position.y;
 
       const finalX = position.x + (leftSide ? -250 : 50);
       const finalY = position.y + (upSide ? -50 : 50);
 
-      return html`<holochain-playground-cell-tasks
+      return html`<cell-tasks
         .workflowsToDisplay=${this.workflowsToDisplay}
         .workflowDelay=${this.animationDelay * 1000}
         .cell=${cell}
@@ -402,15 +412,14 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
         })}
         .stepByStep=${this.stepByStep}
         .showZomeFnSuccess=${this.showZomeFnSuccess}
-        ._onPause=${this._onPause}
-        ._resumeObservable=${this._resumeObservable}
-        @execution-paused=${(e) => (this._onPause = e.detail.paused)}
       >
-      </holochain-playground-cell-tasks>`;
+      </cell-tasks>`;
     })}`;
   }
 
   renderBottomToolbar() {
+    if (!(this.store instanceof SimulatedPlaygroundStore)) return html``;
+
     const workflowsNames = Object.values(WorkflowType);
     const networkRequestNames = Object.values(NetworkRequestType);
     return html`
@@ -512,25 +521,31 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
         ${this.renderHelp()} ${this.renderTasksTooltips()}
         <div class="column fill">
           <span class="block-title row" style="margin: 16px;"
-            >DHT Cells
-            ${this.activeDna
+            >Dht Cells
+            ${this._activeDna.value
               ? html`
                   <span class="placeholder row">
                     , for Dna
                     <copyable-hash
-                      .hash=${this.activeDna}
+                      .hash=${this._activeDna.value}
                       style="margin-left: 8px;"
                     ></copyable-hash>
                   </span>
                 `
               : html``}
           </span>
-          <div
+          <cytoscape-circle
             id="graph"
             class="fill ${classMap({
-              paused: this._onPause,
+              paused: this._paused.value,
             })}"
-          ></div>
+            .elements=${this.elements}
+            .options=${cytoscapeOptions}
+            .circleOptions=${layoutConfig}
+            @node-selected=${(e) =>
+              this.store.activeAgentPubKey.set(deserializeHash(e.detail.id()))}
+            .selectedNodesIds=${[this._activeAgentPubKey.value]}
+          ></cytoscape-circle>
           ${this.renderBottomToolbar()}
         </div>
       </mwc-card>
@@ -567,8 +582,9 @@ export class DhtCells extends PlaygroundElement implements CellObserver {
       'mwc-formfield': Formfield,
       'mwc-icon-button': IconButton,
       'copyable-hash': CopyableHash,
-      'holochain-playground-help-button': HelpButton,
-      'holochain-playground-cell-tasks': CellTasks,
+      'cytoscape-circle': CytoscapeCircle,
+      'help-button': HelpButton,
+      'cell-tasks': CellTasks,
     };
   }
 }

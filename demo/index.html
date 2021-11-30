@@ -22,6 +22,7 @@
   </head>
   <body>
     <connected-playground-context id="context" style="flex: 1;">
+      <dht-cells style="flex: 1;"></dht-cells>
       <source-chain style="flex: 1;"></source-chain>
     </connected-playground-context>
 
@@ -30,13 +31,13 @@
       import { get } from 'svelte/store';
       import {
         SourceChain,
+        DhtCells,
         ConnectedPlaygroundContext /* 
         HolochainPlaygroundGoldenLayout,
         HolochainPlaygroundGoldenLayoutMenu,
         CallZomeFns,
         SelectActiveDna,
         ConductorAdmin,
-        DhtCells,
         ZomeFnsResults,
         EntryGraph,
         EntryContents,
@@ -56,6 +57,7 @@
         GoldenLayoutComponent,
       } from '@scoped-elements/golden-layout'; */
 
+      customElements.define('dht-cells', DhtCells);
       customElements.define(
         'connected-playground-context',
         ConnectedPlaygroundContext
@@ -69,7 +71,6 @@
       customElements.define('golden-layout-column', GoldenLayoutColumn);
       customElements.define('golden-layout-component', GoldenLayoutComponent);
       customElements.define('run-steps', RunSteps);
-      customElements.define('dht-cells', DhtCells);
       customElements.define('select-active-dna', SelectActiveDna);
       customElements.define('call-zome-fns', CallZomeFns);
       customElements.define('entry-graph', EntryGraph);
@@ -82,7 +83,7 @@
 
       const context = document.getElementById('context');
 
-      context.urls = ['ws://localhost:45259'];
+      context.urls = ['ws://localhost:46747'];
       context.addEventListener('playground-ready', (e) => {
         const store = e.detail.store;
         store.conductors.subscribe(

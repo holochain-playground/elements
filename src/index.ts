@@ -8,7 +8,6 @@ export * from './base/selectors';
 export * from './elements/call-zome-fns';
 export * from './elements/zome-fns-results';
 export * from './elements/conductor-admin';
-export * from './elements/dht-cells';
 export * from './elements/dht-shard';
 export * from './elements/dht-stats';
 export * from './elements/run-steps';
@@ -16,6 +15,7 @@ export * from './elements/entry-contents';
 export * from './elements/entry-graph';
 export * from './elements/select-active-dna';
 export * from './elements/happs-manager'; */
+export * from './elements/dht-cells';
 export * from './elements/source-chain';
 
 export * from './elements/helpers/call-functions';

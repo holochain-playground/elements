@@ -15,7 +15,7 @@ export function sourceChainNodes(
   elements: Element[]
 ) {
   const nodes = [];
-  
+
   for (const element of elements) {
     const header: SignedHeaderHashed = element.signed_header;
     const headerHash = serializeHash(header.header.hash);
@@ -30,7 +30,9 @@ export function sourceChainNodes(
     });
 
     if ((header.header.content as Create).prev_header) {
-      const previousHeaderHash = serializeHash((header.header.content as Create).prev_header);
+      const previousHeaderHash = serializeHash(
+        (header.header.content as Create).prev_header
+      );
       nodes.push({
         data: {
           id: `${headerHash}->${previousHeaderHash}`,
@@ -61,7 +63,7 @@ export function sourceChainNodes(
           newEntryHeader.entry_type
         );
       } else {
-        entryType = 'Entry'
+        entryType = 'Entry';
       }
 
       nodes.push({

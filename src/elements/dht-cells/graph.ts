@@ -1,5 +1,4 @@
 export const layoutConfig = {
-  name: 'circle',
   startAngle: (4 / 2) * Math.PI,
   ready: (e) => {
     e.cy.resize();
@@ -51,5 +50,12 @@ export const graphStyles = `
     background-color: grey;
     border-width: 0px;
   }
-
 `;
+
+export const cytoscapeOptions = {
+  boxSelectionEnabled: false,
+  autoungrabify: true,
+  userPanningEnabled: false,
+  userZoomingEnabled: false,
+  style: graphStyles,
+};

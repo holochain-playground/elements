@@ -17,7 +17,7 @@ import { CopyableHash } from '../helpers/copyable-hash';
 /**
  * @element source-chain
  */
-export class SourceChain extends PlaygroundElement<any> {
+export class SourceChain extends PlaygroundElement {
   _activeAgentPubKey = new StoreSubscriber(
     this,
     () => this.store?.activeAgentPubKey

@@ -8,11 +8,11 @@ import { PlaygroundStore } from '../store/playground-store';
 import { PlaygroundMode } from '../store/mode';
 
 export class PlaygroundElement<
-  T extends PlaygroundMode
+  T extends PlaygroundStore<any> = PlaygroundStore<any>
 > extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: playgroundContext, multiple: true })
   @state()
-  store: PlaygroundStore<T>;
+  store: T;
 
   showMessage(message: string) {
     this.dispatchEvent(

@@ -11,6 +11,8 @@ import {
   FullStateDump,
   CellId,
   AdminWebsocket,
+  AgentPubKey,
+  DhtOp,
 } from '@holochain/conductor-api';
 import merge from 'lodash-es/merge';
 import isEqual from 'lodash-es/isEqual';
@@ -25,6 +27,8 @@ export class ConnectedCellStore extends CellStore<PlaygroundMode.Connected> {
   _state: Readable<FullStateDump | undefined>;
 
   sourceChain: Readable<Element[]>;
+  peers: Readable<AgentPubKey[]>;
+  dhtShard: Readable<Array<DhtOp>>;
 
   constructor(adminWs: AdminWebsocket, cellId: CellId) {
     super();
@@ -45,16 +49,24 @@ export class ConnectedCellStore extends CellStore<PlaygroundMode.Connected> {
     });
 
     this.sourceChain = derived(this._state, (s) =>
-      s && s.source_chain_dump.elements.map((e) => ({
-        signed_header: {
-          header: {
-            content: e.header,
-            hash: e.header_address,
-          },
-          signature: e.signature,
-        },
-        entry: e.entry,
-      }))
+      s
+        ? s.source_chain_dump.elements.map((e) => ({
+            signed_header: {
+              header: {
+                content: e.header,
+                hash: e.header_address,
+              },
+              signature: e.signature,
+            },
+            entry: e.entry,
+          }))
+        : []
+    );
+    this.peers = derived(this._state, (s) =>
+      s ? s.peer_dump.peers.map((peerDump) => peerDump.kitsune_agent) : []
+    );
+    this.dhtShard = derived(this._state, (s) =>
+      s ? s.integration_dump.integrated : []
     );
   }
 }
