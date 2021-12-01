@@ -1,22 +1,16 @@
 import { html, css, PropertyValues } from 'lit';
-import { state, query, property } from 'lit/decorators.js';
+import { query, property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import {
-  deserializeHash,
-  Dictionary,
-  serializeHash,
-} from '@holochain-open-dev/core-types';
-import { CellId, DhtOp } from '@holochain/conductor-api';
+import { deserializeHash, serializeHash } from '@holochain-open-dev/core-types';
+import { DhtOp } from '@holochain/conductor-api';
 import {
   sleep,
   NetworkRequestType,
   WorkflowType,
   PublishRequestInfo,
   NetworkRequestInfo,
-  BadAgent,
-  CellMap,
   HoloHashMap,
 } from '@holochain-playground/core';
 import { StoreSubscriber } from 'lit-svelte-stores';
@@ -37,7 +31,6 @@ import { uniq } from 'lodash-es';
 
 import { CellTasks } from '../helpers/cell-tasks';
 import { HelpButton } from '../helpers/help-button';
-import { selectAllCells, selectHoldingCells } from '../../base/selectors';
 import { sharedStyles } from '../utils/shared-styles';
 import {
   dhtCellsNodes,
@@ -46,7 +39,7 @@ import {
   isHoldingElement,
   isHoldingEntry,
 } from './processors';
-import { cytoscapeOptions, graphStyles, layoutConfig } from './graph';
+import { cytoscapeOptions, layoutConfig } from './graph';
 import { PlaygroundElement } from '../../base/playground-element';
 import { CopyableHash } from '../helpers/copyable-hash';
 import { PlaygroundMode } from '../../store/mode';
@@ -55,6 +48,7 @@ import {
   SimulatedPlaygroundStore,
 } from '../../store/simulated-playground-store';
 import { mapDerive } from '../../store/utils';
+import { MiddlewareController } from '../../base/middleware-controller';
 
 const MIN_ANIMATION_DELAY = 1;
 const MAX_ANIMATION_DELAY = 7;
@@ -159,6 +153,7 @@ export class DhtCells extends PlaygroundElement {
         (store: SimulatedCellStore) => store.badAgents
       )
   );
+  _middlewares: MiddlewareController;
 
   highlightNodesWithEntry() {
     this._cellsForActiveDna.value?.cellIds().forEach(([_, agentPubKey]) => {
@@ -264,6 +259,23 @@ export class DhtCells extends PlaygroundElement {
     (this._graph?.cy?.style() as any)?.selector('.cell').style({
       opacity: this._paused.value ? 0.4 : 1,
     });
+
+    if (
+      changedValues.has('store') &&
+      !this._middlewares &&
+      this.store.type === PlaygroundMode.Simulated
+    ) {
+      this._middlewares = new MiddlewareController(
+        this,
+        () =>
+          this._cellsForActiveDna.value.map((s: SimulatedCellStore) => s.cell),
+        {
+          networkRequests: {
+            before: (n) => this.beforeNetworkRequest(n),
+          },
+        }
+      );
+    }
   }
 
   get elements() {
@@ -378,7 +390,8 @@ export class DhtCells extends PlaygroundElement {
   }
 
   renderTasksTooltips() {
-    if (!(this.store instanceof SimulatedPlaygroundStore)) return html``;
+    if (!(this.store instanceof SimulatedPlaygroundStore) || !this._graph)
+      return html``;
 
     const nodes = this._graph.cy.nodes();
     const cellsWithPosition = nodes.map((node) => {
@@ -515,6 +528,11 @@ export class DhtCells extends PlaygroundElement {
     `;
   }
 
+  get selectedNodesIds() {
+    if (!this._activeAgentPubKey.value) return [];
+    return [serializeHash(this._activeAgentPubKey.value)];
+  }
+
   render() {
     return html`
       <mwc-card class="block-card" style="position: relative;">
@@ -544,7 +562,7 @@ export class DhtCells extends PlaygroundElement {
             .circleOptions=${layoutConfig}
             @node-selected=${(e) =>
               this.store.activeAgentPubKey.set(deserializeHash(e.detail.id()))}
-            .selectedNodesIds=${[this._activeAgentPubKey.value]}
+            .selectedNodesIds=${this.selectedNodesIds}
           ></cytoscape-circle>
           ${this.renderBottomToolbar()}
         </div>

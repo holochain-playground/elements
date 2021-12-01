@@ -21,10 +21,9 @@
     />
   </head>
   <body>
-    <connected-playground-context id="context" style="flex: 1;">
-      <dht-cells style="flex: 1;"></dht-cells>
-      <source-chain style="flex: 1;"></source-chain>
-    </connected-playground-context>
+    <simulated-playground-context id="context" style="flex: 1">
+      <dht-cells style="flex: 1"></dht-cells>
+    </simulated-playground-context>
 
     <script type="module">
       import { html, render } from 'lit';
@@ -32,7 +31,9 @@
       import {
         SourceChain,
         DhtCells,
-        ConnectedPlaygroundContext /* 
+        ConnectedPlaygroundContext,
+        SimulatedPlaygroundContext
+        /*
         HolochainPlaygroundGoldenLayout,
         HolochainPlaygroundGoldenLayoutMenu,
         CallZomeFns,
@@ -43,13 +44,13 @@
         EntryContents,
         RunSteps,
         HappsManager,
-        conductorStore */,
+        conductorStore */
       } from '../dist';
       import {
         GetStrategy,
         WorkflowType,
         NetworkRequestType,
-      } from '@holochain-playground/core'; /* 
+      } from '@holochain-playground/core'; /*
       import {
         GoldenLayoutRoot,
         GoldenLayoutRow,
@@ -59,9 +60,13 @@
 
       customElements.define('dht-cells', DhtCells);
       customElements.define(
+        'simulated-playground-context',
+        SimulatedPlaygroundContext
+      );
+      customElements.define(
         'connected-playground-context',
         ConnectedPlaygroundContext
-      ); /* 
+      ); /*
       customElements.define(
         'holochain-playground-golden-layout-menu',
         HolochainPlaygroundGoldenLayoutMenu
@@ -83,21 +88,19 @@
 
       const context = document.getElementById('context');
 
-      context.urls = ['ws://localhost:46747'];
+      // context.urls = ['ws://localhost:46747'];
       context.addEventListener('playground-ready', (e) => {
         const store = e.detail.store;
-        store.conductors.subscribe(
-          (c) => {
-            console.log(c);
-            c &&
+        store.conductors.subscribe((c) => {
+          console.log(c);
+          c &&
             c[0].cells.subscribe((cells) => {
               if (cells.entries().length > 0) {
                 store.activeAgentPubKey.set(cells.entries()[0][0][1]);
                 store.activeDna.set(cells.entries()[0][0][0]);
               }
-            })
-          }
-        );
+            });
+        });
       });
     </script>
   </body>

@@ -7,12 +7,14 @@ import {
   workflowPriority,
   CallZomeFnWorkflow,
   NetworkRequestInfo,
+  CellMap,
 } from '@holochain-playground/core';
 import { css, html } from 'lit';
 import { styleMap } from 'lit-html/directives/style-map.js';
 import { property, state } from 'lit/decorators.js';
+import { CellId } from '@holochain/conductor-api';
+import { StoreSubscriber } from 'lit-svelte-stores';
 
-import { Subject } from 'rxjs';
 import {
   Card,
   Icon,
@@ -23,10 +25,17 @@ import {
 
 import { PlaygroundElement } from '../../base/playground-element';
 import { sharedStyles } from '../utils/shared-styles';
-import { SimulatedPlaygroundStore } from '../../store/simulated-playground-store';
+import {
+  SimulatedCellStore,
+  SimulatedPlaygroundStore,
+} from '../../store/simulated-playground-store';
+import { MiddlewareController } from '../../base/middleware-controller';
 
 export class CellTasks extends PlaygroundElement<SimulatedPlaygroundStore> {
   /** Public properties */
+
+  @property()
+  cell: Cell;
 
   @property({ type: Array })
   workflowsToDisplay: WorkflowType[] = [
@@ -69,7 +78,19 @@ export class CellTasks extends PlaygroundElement<SimulatedPlaygroundStore> {
     error: any;
   }> = [];
 
-  async beforeWorkflow(cell: Cell, task: Workflow<any, any>) {
+  _middlewares = new MiddlewareController(this, () => this.cell, {
+    workflow: {
+      before: (p) => this.beforeWorkflow(p),
+      success: (p, s) => this.workflowSuccess(p, s),
+      error: (p, e) => this.workflowError(p, e),
+    },
+    networkRequests: {
+      error: (n, e) => this.networkRequestError(n, e),
+    },
+  });
+
+  async beforeWorkflow(task: Workflow<any, any>) {
+    const cell = this.cell;
     if (!this.workflowsToDisplay.includes(task.type as WorkflowType)) return;
 
     if (
@@ -97,7 +118,7 @@ export class CellTasks extends PlaygroundElement<SimulatedPlaygroundStore> {
     }
   }
 
-  async workflowSuccess(cell: Cell, task: Workflow<any, any>, result: any) {
+  async workflowSuccess(task: Workflow<any, any>, result: any) {
     if (task.type === WorkflowType.CALL_ZOME) {
       this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
 
@@ -123,7 +144,7 @@ export class CellTasks extends PlaygroundElement<SimulatedPlaygroundStore> {
     this.requestUpdate();
   }
 
-  async workflowError(cell: Cell, task: Workflow<any, any>, error: any) {
+  async workflowError(task: Workflow<any, any>, error: any) {
     if (task.type === WorkflowType.CALL_ZOME) {
       this._callZomeTasks = this._callZomeTasks.filter((t) => t !== task);
     } else if (this._runningTasks[task.type]) {
@@ -158,6 +179,7 @@ export class CellTasks extends PlaygroundElement<SimulatedPlaygroundStore> {
     networkRequest: NetworkRequestInfo<any, any>,
     error: any
   ) {
+    console.error(error);
     if (!this.hideErrors) {
       const errorInfo = {
         networkRequest,

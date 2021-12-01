@@ -3,6 +3,7 @@ import { CellMap, HoloHashMap } from '@holochain-playground/core';
 import {
   AgentPubKey,
   AnyDhtHash,
+  CellId,
   DhtOp,
   DnaHash,
 } from '@holochain/conductor-api';
@@ -55,6 +56,10 @@ export abstract class PlaygroundStore<T extends PlaygroundMode> {
         set(v);
       },
     };
+  }
+
+  cell(cellId: CellId): Readable<CellStore<T> | undefined> {
+    return derived(this.allCells(), (cells) => cells.get(cellId));
   }
 
   activeCell(): Readable<CellStore<T> | undefined> {

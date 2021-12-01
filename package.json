@@ -41,7 +41,6 @@
     "lit-svelte-stores": "^0.1.4",
     "lodash-es": "^4.17.21",
     "resize-observer-polyfill": "^1.5.1",
-    "rxjs": "^6.6.3",
     "svelte": "^3.44.1"
   },
   "devDependencies": {
