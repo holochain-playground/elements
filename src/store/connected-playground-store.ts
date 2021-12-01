@@ -13,6 +13,8 @@ import {
   AdminWebsocket,
   AgentPubKey,
   DhtOp,
+  AnyDhtHash,
+  NewEntryHeader,
 } from '@holochain/conductor-api';
 import merge from 'lodash-es/merge';
 import isEqual from 'lodash-es/isEqual';
@@ -69,6 +71,8 @@ export class ConnectedCellStore extends CellStore<PlaygroundMode.Connected> {
       s ? s.integration_dump.integrated : []
     );
   }
+
+
 }
 
 export class ConnectedConductorStore extends ConductorStore<PlaygroundMode.Connected> {

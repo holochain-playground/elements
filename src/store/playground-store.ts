@@ -5,19 +5,62 @@ import {
   AnyDhtHash,
   CellId,
   DhtOp,
+  DhtOpType,
   DnaHash,
+  NewEntryHeader,
 } from '@holochain/conductor-api';
 import isEqual from 'lodash-es/isEqual';
 import { derived, get, Readable, writable, Writable } from 'svelte/store';
 
 import { PlaygroundMode } from './mode';
 import { unnest } from './unnest';
+import { mapDerive } from './utils';
 
 export abstract class CellStore<T extends PlaygroundMode> {
   type: T;
   abstract sourceChain: Readable<Element[]>;
   abstract peers: Readable<AgentPubKey[]>;
   abstract dhtShard: Readable<Array<DhtOp>>;
+
+  get(hash: AnyDhtHash): any {
+    return derived(
+      [this.sourceChain, this.dhtShard],
+      ([sourceChain, dhtShard]) => {
+        for (const element of sourceChain) {
+          const headerHashed = element.signed_header.header;
+          if (isEqual(headerHashed.hash, hash)) {
+            return element.signed_header;
+          }
+          if (
+            (headerHashed.content as NewEntryHeader).entry_hash &&
+            isEqual((headerHashed.content as NewEntryHeader).entry_hash, hash)
+          ) {
+            return element.entry;
+          }
+        }
+
+        for (const op of dhtShard) {
+          const headerHashed = op.header.header;
+
+          if (isEqual(headerHashed.hash, hash)) {
+            return op.header;
+          }
+
+          if (
+            (headerHashed.content as NewEntryHeader).entry_hash &&
+            isEqual((headerHashed.content as NewEntryHeader).entry_hash, hash)
+          ) {
+            if (op.type === DhtOpType.StoreEntry) {
+              return op.entry;
+            } else if (op.type === DhtOpType.StoreElement) {
+              return op.maybe_entry;
+            }
+          }
+        }
+        return undefined;
+      }
+    );
+  }
 }
 
 export abstract class ConductorStore<T extends PlaygroundMode> {
@@ -86,6 +129,25 @@ export abstract class PlaygroundStore<T extends PlaygroundMode> {
           }, new CellMap())
       )
     );
+  }
+
+  activeContent(): Readable<any | undefined> {
+    const contentMap = unnest(
+      derived(
+        [this.cellsForActiveDna(), this.activeDhtHash],
+        ([cellMap, activeHash]) => mapDerive(cellMap, (c) => c.get(activeHash))
+      ),
+      (i) => i
+    );
+
+    return derived(contentMap, (map) => {
+      for (const a of map.values()) {
+        if (a) {
+          return a;
+        }
+      }
+      return undefined;
+    });
   }
 
   cellsForActiveDna(): Readable<CellMap<CellStore<T>>> {

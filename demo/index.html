@@ -23,6 +23,8 @@
   <body>
     <simulated-playground-context id="context" style="flex: 1">
       <dht-cells style="flex: 1"></dht-cells>
+      <source-chain style="flex: 1"></source-chain>
+      <entry-contents style="flex: 1"></entry-contents>
     </simulated-playground-context>
 
     <script type="module">
@@ -32,7 +34,9 @@
         SourceChain,
         DhtCells,
         ConnectedPlaygroundContext,
-        SimulatedPlaygroundContext
+        SimulatedPlaygroundContext,
+        EntryContents,
+
         /*
         HolochainPlaygroundGoldenLayout,
         HolochainPlaygroundGoldenLayoutMenu,
@@ -41,7 +45,6 @@
         ConductorAdmin,
         ZomeFnsResults,
         EntryGraph,
-        EntryContents,
         RunSteps,
         HappsManager,
         conductorStore */
@@ -80,11 +83,11 @@
       customElements.define('call-zome-fns', CallZomeFns);
       customElements.define('entry-graph', EntryGraph);
       customElements.define('zome-fns-results', ZomeFnsResults);
-      customElements.define('entry-contents', EntryContents);
       customElements.define('conductor-admin', ConductorAdmin);
       customElements.define('happs-manager', HappsManager);
       */
       customElements.define('source-chain', SourceChain);
+      customElements.define('entry-contents', EntryContents);
 
       const context = document.getElementById('context');
 
