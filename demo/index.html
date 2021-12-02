@@ -21,11 +21,11 @@
     />
   </head>
   <body>
-    <simulated-playground-context id="context" style="flex: 1">
+    <connected-playground-context id="context" style="flex: 1">
       <dht-cells style="flex: 1"></dht-cells>
-      <source-chain style="flex: 1"></source-chain>
+      <dht-entries style="flex: 1"></dht-entries>
       <entry-contents style="flex: 1"></entry-contents>
-    </simulated-playground-context>
+    </connected-playground-context>
 
     <script type="module">
       import { html, render } from 'lit';
@@ -36,6 +36,7 @@
         ConnectedPlaygroundContext,
         SimulatedPlaygroundContext,
         EntryContents,
+        DhtEntries,
 
         /*
         HolochainPlaygroundGoldenLayout,
@@ -44,7 +45,6 @@
         SelectActiveDna,
         ConductorAdmin,
         ZomeFnsResults,
-        EntryGraph,
         RunSteps,
         HappsManager,
         conductorStore */
@@ -81,17 +81,17 @@
       customElements.define('run-steps', RunSteps);
       customElements.define('select-active-dna', SelectActiveDna);
       customElements.define('call-zome-fns', CallZomeFns);
-      customElements.define('entry-graph', EntryGraph);
       customElements.define('zome-fns-results', ZomeFnsResults);
       customElements.define('conductor-admin', ConductorAdmin);
       customElements.define('happs-manager', HappsManager);
       */
+      customElements.define('dht-entries', DhtEntries);
       customElements.define('source-chain', SourceChain);
       customElements.define('entry-contents', EntryContents);
 
       const context = document.getElementById('context');
 
-      // context.urls = ['ws://localhost:46747'];
+      context.urls = ['ws://localhost:38023'];
       context.addEventListener('playground-ready', (e) => {
         const store = e.detail.store;
         store.conductors.subscribe((c) => {

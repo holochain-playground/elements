@@ -1,5 +1,5 @@
 import { Element } from '@holochain-open-dev/core-types';
-import { CellMap, HoloHashMap } from '@holochain-playground/core';
+import { CellMap, HashType, hash } from '@holochain-playground/core';
 import {
   AgentPubKey,
   AnyDhtHash,
@@ -7,6 +7,9 @@ import {
   DhtOp,
   DhtOpType,
   DnaHash,
+  getDhtOpEntry,
+  getDhtOpHeader,
+  getDhtOpType,
   NewEntryHeader,
 } from '@holochain/conductor-api';
 import isEqual from 'lodash-es/isEqual';
@@ -22,38 +25,44 @@ export abstract class CellStore<T extends PlaygroundMode> {
   abstract peers: Readable<AgentPubKey[]>;
   abstract dhtShard: Readable<Array<DhtOp>>;
 
-  get(hash: AnyDhtHash): any {
+  get(dhtHash: AnyDhtHash): any {
     return derived(
       [this.sourceChain, this.dhtShard],
       ([sourceChain, dhtShard]) => {
         for (const element of sourceChain) {
           const headerHashed = element.signed_header.header;
-          if (isEqual(headerHashed.hash, hash)) {
+          if (isEqual(headerHashed.hash, dhtHash)) {
             return element.signed_header;
           }
           if (
             (headerHashed.content as NewEntryHeader).entry_hash &&
-            isEqual((headerHashed.content as NewEntryHeader).entry_hash, hash)
+            isEqual(
+              (headerHashed.content as NewEntryHeader).entry_hash,
+              dhtHash
+            )
           ) {
             return element.entry;
           }
         }
 
         for (const op of dhtShard) {
-          const headerHashed = op.header.header;
+          const header = getDhtOpHeader(op);
+          const headerHash = hash(header, HashType.HEADER);
 
-          if (isEqual(headerHashed.hash, hash)) {
-            return op.header;
+          if (isEqual(headerHash, dhtHash)) {
+            return header;
           }
 
           if (
-            (headerHashed.content as NewEntryHeader).entry_hash &&
-            isEqual((headerHashed.content as NewEntryHeader).entry_hash, hash)
+            (header as NewEntryHeader).entry_hash &&
+            isEqual((header as NewEntryHeader).entry_hash, dhtHash)
           ) {
-            if (op.type === DhtOpType.StoreEntry) {
-              return op.entry;
-            } else if (op.type === DhtOpType.StoreElement) {
-              return op.maybe_entry;
+            const type = getDhtOpType(op);
+            if (
+              type === DhtOpType.StoreEntry ||
+              type === DhtOpType.StoreElement
+            ) {
+              return getDhtOpEntry(op);
             }
           }
         }
@@ -72,19 +81,18 @@ export abstract class ConductorStore<T extends PlaygroundMode> {
 export abstract class PlaygroundStore<T extends PlaygroundMode> {
   type: T;
 
-  activeDna: Writable<DnaHash | undefined>;
+  activeDna: Writable<DnaHash | undefined> = writable(undefined);
   activeAgentPubKey: Writable<AgentPubKey | undefined> = writable(undefined);
   activeDhtHash: Writable<AnyDhtHash | undefined> = writable(undefined);
 
   abstract conductors: Readable<Array<ConductorStore<T>>>;
 
   constructor() {
-    const { set, subscribe, update } = writable(undefined);
+    let currentvalue = undefined;
+    this.activeDna.subscribe((v: DnaHash) => {
+      if (!isEqual(v, currentvalue)) {
+        currentvalue = v;
 
-    this.activeDna = {
-      subscribe,
-      update,
-      set: (v: DnaHash) => {
         this.activeDhtHash.set(undefined);
         const currentConductors = get(this.conductors);
 
@@ -95,10 +103,8 @@ export abstract class PlaygroundStore<T extends PlaygroundMode> {
         ) {
           this.activeAgentPubKey.set(undefined);
         }
-
-        set(v);
-      },
-    };
+      }
+    });
   }
 
   cell(cellId: CellId): Readable<CellStore<T> | undefined> {
@@ -163,6 +169,15 @@ export abstract class PlaygroundStore<T extends PlaygroundMode> {
         }
         return map;
       }
+    );
+  }
+
+  dhtForActiveDna(): Readable<CellMap<DhtOp[]>> {
+    return unnest(
+      derived(this.cellsForActiveDna(), (cellMap) =>
+        mapDerive(cellMap, (cellStore) => cellStore.dhtShard)
+      ),
+      (i) => i
     );
   }
 }

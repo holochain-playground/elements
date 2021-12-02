@@ -4,7 +4,7 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { classMap } from 'lit/directives/class-map.js';
 
 import { deserializeHash, serializeHash } from '@holochain-open-dev/core-types';
-import { DhtOp } from '@holochain/conductor-api';
+import { DhtOp, getDhtOpType } from '@holochain/conductor-api';
 import {
   sleep,
   NetworkRequestType,
@@ -200,7 +200,7 @@ export class DhtCells extends PlaygroundElement {
       const dhtOps: HoloHashMap<DhtOp> = (networkRequest as PublishRequestInfo)
         .details.dhtOps;
 
-      const types = dhtOps.values().map((dhtOp) => dhtOp.type);
+      const types = dhtOps.values().map((dhtOp) => getDhtOpType(dhtOp));
 
       label = `Publish: ${uniq(types).join(', ')}`;
     }

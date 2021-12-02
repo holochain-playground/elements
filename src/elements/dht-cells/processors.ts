@@ -3,6 +3,8 @@ import {
   BadAgent,
   Cell,
   CellMap,
+  hash,
+  HashType,
   HoloHashMap,
   location,
 } from '@holochain-playground/core';
@@ -12,7 +14,10 @@ import {
   DhtOp,
   DhtOpType,
   EntryHash,
+  getDhtOpHeader,
+  getDhtOpType,
   HeaderHash,
+  NewEntryHeader,
 } from '@holochain/conductor-api';
 import isEqual from 'lodash-es/isEqual';
 import { CellStore } from '../../store/playground-store';
@@ -127,8 +132,8 @@ function doTheyHaveBeef(
 export function isHoldingEntry(dhtShard: DhtOp[], entryHash: EntryHash) {
   for (const dhtOp of dhtShard) {
     if (
-      dhtOp.type === DhtOpType.StoreEntry &&
-      isEqual(entryHash, dhtOp.header.header.content.entry_hash)
+      getDhtOpType(dhtOp) === DhtOpType.StoreEntry &&
+      isEqual(entryHash, (getDhtOpHeader(dhtOp) as NewEntryHeader).entry_hash)
     ) {
       return true;
     }
@@ -139,9 +144,10 @@ export function isHoldingEntry(dhtShard: DhtOp[], entryHash: EntryHash) {
 
 export function isHoldingElement(dhtShard: DhtOp[], headerHash: HeaderHash) {
   for (const dhtOp of dhtShard) {
+    const dhtOpheaderHash = hash(getDhtOpHeader(dhtOp), HashType.HEADER);
     if (
-      dhtOp.type === DhtOpType.StoreElement &&
-      isEqual(headerHash, dhtOp.header.header.hash)
+      getDhtOpType(dhtOp) === DhtOpType.StoreElement &&
+      isEqual(dhtOpheaderHash, headerHash)
     ) {
       return true;
     }
