@@ -2,21 +2,31 @@ import { html, css } from 'lit';
 import { state, property } from 'lit/decorators.js';
 import { classMap } from 'lit/directives/class-map.js';
 
-import { PlaygroundElement } from '../../base/playground-element';
-import { ListItem } from '@scoped-elements/material-web';
-import { Card } from '@scoped-elements/material-web';
+import { StoreSubscriber } from 'lit-svelte-stores';
+import { CellMap } from '@holochain-playground/core';
+import {
+  ListItem,
+  Card,
+  List,
+  Button,
+  CircularProgress,
+} from '@scoped-elements/material-web';
+
 import { sharedStyles } from '../utils/shared-styles';
-import { List } from '@scoped-elements/material-web';
-import { Button } from '@scoped-elements/material-web';
-import { CircularProgress } from '@scoped-elements/material-web';
-import { selectAllCells } from '../../base/selectors';
+import { PlaygroundElement } from '../../base/playground-element';
+import {
+  SimulatedCellStore,
+  SimulatedPlaygroundStore,
+} from '../../store/simulated-playground-store';
 
 export interface Step {
   title: (context: PlaygroundElement) => string;
   run: (context: PlaygroundElement) => Promise<void>;
 }
 
-export class RunSteps extends PlaygroundElement {
+export class RunSteps extends PlaygroundElement<SimulatedPlaygroundStore> {
+  _cells = new StoreSubscriber(this, () => this.store?.cellsForActiveDna());
+
   @property({ type: Array })
   steps!: Array<Step>;
 
@@ -41,7 +51,11 @@ export class RunSteps extends PlaygroundElement {
 
   async awaitNetworkConsistency() {
     return new Promise((resolve) => {
-      const cells = selectAllCells(this.activeDna, this.conductors);
+      const cellsStores = this._cells.value as CellMap<SimulatedCellStore>;
+
+      if (!cellsStores) resolve(null);
+
+      const cells = cellsStores.values().map((c) => c.cell);
 
       const checkConsistency = (consistencyCheckCount = 0) => {
         for (const cell of cells) {
@@ -61,7 +75,7 @@ export class RunSteps extends PlaygroundElement {
   }
 
   renderContent() {
-    if (!this.conductors || this.conductors.length === 0)
+    if (!this._cells.value || this._cells.value.cellIds().length === 0)
       return html`<div class="fill center-content">
         <mwc-circular-progress></mwc-circular-progress>
       </div>`;
@@ -95,7 +109,7 @@ export class RunSteps extends PlaygroundElement {
             <mwc-button
               .label=${this._running ? 'RUNNING...' : 'RUN'}
               raised
-              .disabled=${this._running || !this.conductors}
+              .disabled=${this._running || !this._cells.value}
               @click=${() => this.runSteps()}
             ></mwc-button>
           </div>
