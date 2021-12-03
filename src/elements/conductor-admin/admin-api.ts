@@ -1,17 +1,20 @@
-import { Conductor, SimulatedHappBundle } from '@holochain-playground/core';
+import { Dictionary } from '@holochain-open-dev/core-types';
+import { SimulatedHappBundle } from '@holochain-playground/core';
 import { html } from 'lit';
-import { buildHappBundle } from '../../base/context';
+
 import { PlaygroundElement } from '../../base/playground-element';
+import { SimulatedConductorStore } from '../../store/simulated-playground-store';
 import { CallableFn } from '../helpers/call-functions';
 
 export function adminApi(
   element: PlaygroundElement,
-  conductor: Conductor
+  allHapps: Dictionary<SimulatedHappBundle>,
+  conductorStore: SimulatedConductorStore
 ): CallableFn[] {
-  const installedAppIds = Object.keys(conductor.installedHapps);
+  const installedAppIds = Object.keys(conductorStore.conductor.installedHapps);
 
-  const allHapps = Object.keys(element.happs).filter(
-    (key) => !conductor.installedHapps[key]
+  const nonInstalledHapps = Object.keys(allHapps).filter(
+    (key) => !installedAppIds.includes(key)
   );
 
   return [
@@ -23,7 +26,7 @@ export function adminApi(
           field: 'custom',
           required: true,
           render(args, setValue) {
-            if (allHapps.length === 0)
+            if (nonInstalledHapps.length === 0)
               return html`<span class="placeholder"
                 >There are no hApps that you don't have installed</span
               >`;
@@ -33,9 +36,9 @@ export function adminApi(
               required
               label="Select Happ to Install"
               .value=${args['hAppId']}
-              @selected=${(e) => setValue(allHapps[e.detail.index])}
+              @selected=${(e) => setValue(nonInstalledHapps[e.detail.index])}
             >
-              ${allHapps.map(
+              ${nonInstalledHapps.map(
                 (appId) =>
                   html`<mwc-list-item .value=${appId}>${appId}</mwc-list-item>`
               )}
@@ -57,23 +60,23 @@ export function adminApi(
               </div>`;
 
             const membraneProofs = args['membraneProofs'] || {};
-            const happ = element.happs[args['hAppId']];
+            const happ: SimulatedHappBundle = allHapps[args['hAppId']];
 
             return html` <div class="column">
-              <span>Membrane Proofs</span>${Object.entries(happ.slots)
-                .filter(([_, slot]) => !slot.deferred)
+              <span>Membrane Proofs</span>${Object.entries(happ.roles)
+                .filter(([_, dna]) => !dna.deferred)
                 .map(
-                  ([slotNick, dnaSlot]) => html`<mwc-textfield
+                  ([cellRole, dna]) => html`<mwc-textfield
                     style="margin-top: 12px;"
                     outlined
-                    .label=${slotNick}
+                    .label=${cellRole}
                     .value=${(args['membraneProofs'] &&
-                      args['membraneProofs'][slotNick]) ||
+                      args['membraneProofs'][cellRole]) ||
                     ''}
                     @input=${(e) =>
                       setValue({
                         ...membraneProofs,
-                        [slotNick]: e.target.value,
+                        [cellRole]: e.target.value,
                       })}
                   >
                   </mwc-textfield>`
@@ -83,9 +86,12 @@ export function adminApi(
         },
       ],
       call: async (args) => {
-        const happ = buildHappBundle(element, args['hAppId']);
+        const happ = args['hAppId'];
 
-        await conductor.installHapp(happ, args['membraneProofs'] || {});
+        await conductorStore.conductor.installHapp(
+          happ,
+          args['membraneProofs'] || {}
+        );
       },
     },
     {
@@ -112,20 +118,23 @@ export function adminApi(
           },
         },
         {
-          name: 'slotNick',
+          name: 'cellRole',
           field: 'custom',
           required: true,
           render(args, setValue) {
-            const slotNicks = args.installedAppId
-              ? Object.keys(conductor.installedHapps[args.installedAppId].slots)
+            const cellRoles = args.installedAppId
+              ? Object.keys(
+                  conductorStore.conductor.installedHapps[args.installedAppId]
+                    .roles
+                )
               : [];
             return html`<mwc-select
               outlined
-              label="Select DNA Slot"
-              .value=${args['slotNick']}
-              @selected=${(e) => setValue(slotNicks[e.detail.index])}
+              label="Select DNA Role"
+              .value=${args['cellRole']}
+              @selected=${(e) => setValue(cellRoles[e.detail.index])}
             >
-              ${slotNicks.map(
+              ${cellRoles.map(
                 (nick) =>
                   html`<mwc-list-item .value=${nick}>${nick}</mwc-list-item>`
               )}
@@ -139,21 +148,20 @@ export function adminApi(
           render(args, setValue) {
             const properties = args['properties'] || {};
 
-            const propertyNames = args['slotNick']
+            const propertyNames = args['cellRole']
               ? Object.keys(
-                  conductor.registeredDnas[
-                    conductor.installedHapps[args.installedAppId].slots[
-                      args.slotNick
-                    ].base_cell_id[0]
-                  ].properties
+                  conductorStore.conductor.registeredDnas.get(
+                    conductorStore.conductor.installedHapps[args.installedAppId]
+                      .roles[args.cellRole].base_cell_id[0]
+                  ).properties
                 )
               : [];
             return html`<div class="column">
               <span>Properties</span>
-              ${args['slotNick']
+              ${args['cellRole']
                 ? propertyNames.length === 0
                   ? html`<span style="margin-top: 4px;" class="placeholder"
-                      >This DNA has no properties</span
+                      >This Dna has no properties</span
                     >`
                   : html`
                       ${propertyNames.map(
@@ -171,7 +179,7 @@ export function adminApi(
                       )}
                     `
                 : html`<span style="margin-top: 4px;" class="placeholder"
-                    >Select a slot</span
+                    >Select a Dna role</span
                   >`}
             </div>`;
           },
@@ -180,18 +188,16 @@ export function adminApi(
       ],
       call: async (args) => {
         try {
-          const cell = await conductor.cloneCell(
+          const cell = await conductorStore.conductor.cloneCell(
             args.installedAppId,
-            args.slotNick,
+            args.cellRole,
             args.uid,
             args.properties,
             args.membraneProof
           );
 
-          element.updatePlayground({
-            activeDna: cell.dnaHash,
-            activeAgentPubKey: cell.agentPubKey,
-          });
+          element.store.activeDna.set(cell.dnaHash);
+          element.store.activeAgentPubKey.set(cell.agentPubKey);
         } catch (e) {
           element.showMessage(`Error: ${e.message}`);
         }

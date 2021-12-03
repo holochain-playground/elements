@@ -10,16 +10,9 @@ import {
   SimulatedDna,
   BadAgent,
 } from '@holochain-playground/core';
-import { Element } from '@holochain-open-dev/core-types';
+import { Dictionary, Element } from '@holochain-open-dev/core-types';
 import { AgentPubKey, CellId, DhtOp } from '@holochain/conductor-api';
-import {
-  derived,
-  get,
-  readable,
-  Readable,
-  writable,
-  Writable,
-} from 'svelte/store';
+import { readable, Readable, writable, Writable } from 'svelte/store';
 
 import { PlaygroundMode } from './mode';
 import { CellStore, ConductorStore, PlaygroundStore } from './playground-store';
@@ -34,10 +27,10 @@ export class SimulatedCellStore extends CellStore<PlaygroundMode.Simulated> {
   farPeers: Writable<AgentPubKey[]> = writable([]);
 
   constructor(
-    public cell: Cell,
-    public conductorStore: SimulatedConductorStore
+    public conductorStore: SimulatedConductorStore,
+    public cell: Cell
   ) {
-    super();
+    super(conductorStore);
     cell.workflowExecutor.success(async () => this.update());
   }
 
@@ -65,7 +58,7 @@ export class SimulatedConductorStore extends ConductorStore<PlaygroundMode.Simul
   cells: Readable<CellMap<SimulatedCellStore>>;
   badAgent: Readable<BadAgent>;
 
-  constructor(protected conductor: Conductor) {
+  constructor(public conductor: Conductor) {
     super();
 
     let cellMap = this.buildStores(conductor, new CellMap());
@@ -97,7 +90,7 @@ export class SimulatedConductorStore extends ConductorStore<PlaygroundMode.Simul
     for (const cellId of cellsToAdd) {
       currentCells.put(
         cellId,
-        new SimulatedCellStore(conductor.getCell(cellId), this)
+        new SimulatedCellStore(this, conductor.getCell(cellId))
       );
     }
     for (const cellId of cellsToRemove) {
@@ -131,14 +124,19 @@ export function pauseStore() {
 
 export class SimulatedPlaygroundStore extends PlaygroundStore<PlaygroundMode.Simulated> {
   conductors: Writable<Array<SimulatedConductorStore>>;
+  happs: Writable<Dictionary<SimulatedHappBundle>>;
 
   paused = pauseStore();
 
-  private constructor(initialConductors: Conductor[]) {
+  private constructor(
+    initialConductors: Conductor[],
+    initialHapp: SimulatedHappBundle
+  ) {
     super();
     this.conductors = writable(
       initialConductors.map((c) => new SimulatedConductorStore(c))
     );
+    this.happs = writable({ [initialHapp.name]: initialHapp });
     this.activeDna.set(initialConductors[0].cells.cellIds()[0][0]);
   }
 
@@ -152,6 +150,6 @@ export class SimulatedPlaygroundStore extends PlaygroundStore<PlaygroundMode.Sim
       simulatedHapp
     );
 
-    return new SimulatedPlaygroundStore(initialConductors);
+    return new SimulatedPlaygroundStore(initialConductors, simulatedHapp);
   }
 }

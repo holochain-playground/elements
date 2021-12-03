@@ -7,8 +7,8 @@ import { sharedStyles } from '../utils/shared-styles';
 import { serializeHash } from '@holochain-open-dev/core-types';
 
 export class CopyableHash extends ScopedElementsMixin(LitElement) {
-  @property({ type: String })
-  hash!: Uint8Array;
+  @property()
+  hash!: Uint8Array | string;
 
   @property({ type: Number })
   sliceLength: number = 8;
@@ -17,7 +17,7 @@ export class CopyableHash extends ScopedElementsMixin(LitElement) {
   _copyNotification: Snackbar;
 
   get strHash() {
-    return serializeHash(this.hash);
+    return typeof this.hash === 'string' ? this.hash : serializeHash(this.hash);
   }
 
   async copyHash() {

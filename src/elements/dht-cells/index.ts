@@ -3,6 +3,8 @@ import { query, property } from 'lit/decorators.js';
 import { styleMap } from 'lit/directives/style-map.js';
 import { classMap } from 'lit/directives/class-map.js';
 
+import { NodeSingular } from 'cytoscape';
+
 import { deserializeHash, serializeHash } from '@holochain-open-dev/core-types';
 import { DhtOp, getDhtOpType } from '@holochain/conductor-api';
 import {
@@ -263,7 +265,8 @@ export class DhtCells extends PlaygroundElement {
     if (
       changedValues.has('store') &&
       !this._middlewares &&
-      this.store.type === PlaygroundMode.Simulated
+      this.store &&
+      this.store instanceof SimulatedPlaygroundStore
     ) {
       this._middlewares = new MiddlewareController(
         this,
@@ -393,7 +396,16 @@ export class DhtCells extends PlaygroundElement {
     if (!(this.store instanceof SimulatedPlaygroundStore) || !this._graph)
       return html``;
 
-    const nodes = this._graph.cy.nodes();
+    // Get the nodes but filter out the temporal network request ones
+    const nodes = this._graph.cy.nodes().filter((node) => {
+      if (!node.data().networkRequest) return false;
+
+      const agentPubKey = node.id();
+      return this._cellsForActiveDna.value.has([
+        this._activeDna.value,
+        deserializeHash(agentPubKey),
+      ]);
+    });
     const cellsWithPosition = nodes.map((node) => {
       const agentPubKey = node.id();
 
@@ -401,9 +413,10 @@ export class DhtCells extends PlaygroundElement {
         this._activeDna.value,
         deserializeHash(agentPubKey),
       ]) as SimulatedCellStore;
+
       const cell = cellStore.cell;
 
-      return { cell, position: node.renderedPosition() };
+      return { cell, position: (node as NodeSingular).renderedPosition() };
     });
 
     return html`${cellsWithPosition.map(({ cell, position }) => {

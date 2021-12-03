@@ -32,8 +32,12 @@ export class ConnectedCellStore extends CellStore<PlaygroundMode.Connected> {
   peers: Readable<AgentPubKey[]>;
   dhtShard: Readable<Array<DhtOp>>;
 
-  constructor(adminWs: AdminWebsocket, cellId: CellId) {
-    super();
+  constructor(
+    conductorStore: ConnectedConductorStore,
+    public cellId: CellId,
+    adminWs: AdminWebsocket
+  ) {
+    super(conductorStore);
     this._state = pollingStore(undefined, async (currentState) => {
       const fullState = await adminWs.dumpFullState({
         cell_id: cellId,
@@ -71,8 +75,6 @@ export class ConnectedCellStore extends CellStore<PlaygroundMode.Connected> {
       s ? s.integration_dump.integrated : []
     );
   }
-
-
 }
 
 export class ConnectedConductorStore extends ConductorStore<PlaygroundMode.Connected> {
@@ -92,7 +94,10 @@ export class ConnectedConductorStore extends ConductorStore<PlaygroundMode.Conne
         );
 
         for (const cellId of cellsToAdd) {
-          currentCells.put(cellId, new ConnectedCellStore(adminWs, cellId));
+          currentCells.put(
+            cellId,
+            new ConnectedCellStore(this, cellId, adminWs)
+          );
         }
 
         for (const cellId of cellsToRemove) {
@@ -104,6 +109,10 @@ export class ConnectedConductorStore extends ConductorStore<PlaygroundMode.Conne
         return currentCells;
       }
     );
+  }
+
+  get url() {
+    return this.adminWs.client.socket.url;
   }
 }
 

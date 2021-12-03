@@ -21,11 +21,11 @@
     />
   </head>
   <body>
-    <connected-playground-context id="context" style="flex: 1">
+    <simulated-playground-context id="context" style="flex: 1">
       <dht-cells style="flex: 1"></dht-cells>
-      <dht-entries style="flex: 1"></dht-entries>
+      <conductor-admin style="flex: 1"></conductor-admin>
       <entry-contents style="flex: 1"></entry-contents>
-    </connected-playground-context>
+    </simulated-playground-context>
 
     <script type="module">
       import { html, render } from 'lit';
@@ -37,13 +37,13 @@
         SimulatedPlaygroundContext,
         EntryContents,
         DhtEntries,
+        ConductorAdmin,
 
         /*
         HolochainPlaygroundGoldenLayout,
         HolochainPlaygroundGoldenLayoutMenu,
         CallZomeFns,
         SelectActiveDna,
-        ConductorAdmin,
         ZomeFnsResults,
         RunSteps,
         HappsManager,
@@ -82,9 +82,9 @@
       customElements.define('select-active-dna', SelectActiveDna);
       customElements.define('call-zome-fns', CallZomeFns);
       customElements.define('zome-fns-results', ZomeFnsResults);
-      customElements.define('conductor-admin', ConductorAdmin);
       customElements.define('happs-manager', HappsManager);
       */
+      customElements.define('conductor-admin', ConductorAdmin);
       customElements.define('dht-entries', DhtEntries);
       customElements.define('source-chain', SourceChain);
       customElements.define('entry-contents', EntryContents);
@@ -95,7 +95,6 @@
       context.addEventListener('playground-ready', (e) => {
         const store = e.detail.store;
         store.conductors.subscribe((c) => {
-          console.log(c);
           c &&
             c[0].cells.subscribe((cells) => {
               if (cells.entries().length > 0) {

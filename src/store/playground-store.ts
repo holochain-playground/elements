@@ -20,10 +20,12 @@ import { unnest } from './unnest';
 import { mapDerive } from './utils';
 
 export abstract class CellStore<T extends PlaygroundMode> {
-  type: T;
   abstract sourceChain: Readable<Element[]>;
   abstract peers: Readable<AgentPubKey[]>;
   abstract dhtShard: Readable<Array<DhtOp>>;
+  abstract cellId: CellId;
+
+  constructor(public conductorStore: ConductorStore<T>) {}
 
   get(dhtHash: AnyDhtHash): any {
     return derived(
@@ -73,14 +75,10 @@ export abstract class CellStore<T extends PlaygroundMode> {
 }
 
 export abstract class ConductorStore<T extends PlaygroundMode> {
-  type: T;
-
   abstract cells: Readable<CellMap<CellStore<T>>>;
 }
 
 export abstract class PlaygroundStore<T extends PlaygroundMode> {
-  type: T;
-
   activeDna: Writable<DnaHash | undefined> = writable(undefined);
   activeAgentPubKey: Writable<AgentPubKey | undefined> = writable(undefined);
   activeDhtHash: Writable<AnyDhtHash | undefined> = writable(undefined);
@@ -119,6 +117,12 @@ export abstract class PlaygroundStore<T extends PlaygroundMode> {
 
         return cellMap.get([dnaHash, agentPubKey]);
       }
+    );
+  }
+
+  allDnas(): Readable<DnaHash[]> {
+    return derived(this.allCells(), (cellMap) =>
+      cellMap.cellIds().map((cellId) => cellId[0])
     );
   }
 

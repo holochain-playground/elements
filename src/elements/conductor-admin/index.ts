@@ -2,34 +2,64 @@ import { html, css, PropertyValues } from 'lit';
 import { state } from 'lit/decorators.js';
 import { ref, createRef } from 'lit/directives/ref.js';
 
-import { sharedStyles } from '../utils/shared-styles';
-
-import { Card } from '@scoped-elements/material-web';
-import { IconButton } from '@scoped-elements/material-web';
-import { Tab } from '@scoped-elements/material-web';
-import { TabBar } from '@scoped-elements/material-web';
-import { PlaygroundElement } from '../../base/playground-element';
+import {
+  Card,
+  IconButton,
+  Tab,
+  TabBar,
+  List,
+  ListItem,
+  Button,
+} from '@scoped-elements/material-web';
 import { Cell, Conductor } from '@holochain-playground/core';
+import { Grid, GridColumn } from '@vaadin/grid';
+import { JsonViewer } from '@power-elements/json-viewer';
+
+import { sharedStyles } from '../utils/shared-styles';
+import { PlaygroundElement } from '../../base/playground-element';
 import { selectCell } from '../../base/selectors';
-import { List } from '@scoped-elements/material-web';
-import { ListItem } from '@scoped-elements/material-web';
 import { CopyableHash } from '../helpers/copyable-hash';
-import { Button } from '@scoped-elements/material-web';
 import { HelpButton } from '../helpers/help-button';
 import { adminApi } from './admin-api';
 import { CallFns } from '../helpers/call-functions';
-import { Grid, GridColumn  } from '@vaadin/grid';
-import { JsonViewer } from '@power-elements/json-viewer';
+import { StoreSubscriber } from 'lit-svelte-stores';
+import { derived } from 'svelte/store';
+import { serializeHash } from '@holochain-open-dev/core-types';
+import { CellStore, ConductorStore } from '../../store/playground-store';
+import isEqual from 'lodash-es/isEqual';
+import { PlaygroundMode } from '../../store/mode';
+import { ConnectedConductorStore } from '../../store/connected-playground-store';
+import {
+  SimulatedCellStore,
+  SimulatedConductorStore,
+  SimulatedPlaygroundStore,
+} from '../../store/simulated-playground-store';
 
 export class ConductorAdmin extends PlaygroundElement {
+  _activeAgentPubKey = new StoreSubscriber(
+    this,
+    () => this.store?.activeAgentPubKey
+  );
+  _activeDna = new StoreSubscriber(this, () => this.store?.activeDna);
+  _activeConductor = new StoreSubscriber(this, () =>
+    derived(this.store?.activeCell(), (c) => c?.conductorStore)
+  );
+  _happs = new StoreSubscriber(
+    this,
+    () => (this.store as SimulatedPlaygroundStore)?.happs
+  );
+  _cellsForActiveConductor = new StoreSubscriber(
+    this,
+    () => this._activeConductor.value?.cells
+  );
+
   @state()
   private _selectedTabIndex: number = 0;
 
   private _grid = createRef<Grid>();
 
-  get activeConductor(): Conductor | undefined {
-    return selectCell(this.activeDna, this.activeAgentPubKey, this.conductors)
-      ?.conductor;
+  get isSimulated() {
+    return this.store && this.store instanceof SimulatedPlaygroundStore;
   }
 
   renderHelp() {
@@ -40,36 +70,10 @@ export class ConductorAdmin extends PlaygroundElement {
         class="block-help"
       >
         <span>
-          You've selected the node or conductor with Agent ID
-          ${this.activeAgentPubKey}. Here you can see its internal state:
-          <ul>
-            <li>
-              <strong>Source Chain</strong>: entries that this node has
-              committed. Here you can see in grey the
-              <a
-                href="https://developer.holochain.org/docs/concepts/3_private_data/"
-                target="_blank"
-                >headers
-              </a>
-              of the entries, and in colors the entries themselves. When you
-              select an entry, the other nodes that are holding the entry DHT
-              will be hightlighted in the DHT.
-            </li>
-            <br />
-            <li>
-              <strong>DHT Shard</strong>: slice of the DHT that this node is
-              holding. You can see the list of all the entries that this node is
-              holding indexed by their hash, and metadata associated to those
-              entries.
-            </li>
-            <br />
-            <li>
-              <strong>Commit Entries</strong>: here you can actually create
-              entries yourself. They will be created on behalf of this node. Try
-              it! You can create an entry and see where it lands on the DHT, and
-              go to the DHT Shard of those nodes and check it's there.
-            </li>
-          </ul>
+          You've selected the conductor with Agent ID
+          ${serializeHash(this._activeAgentPubKey.value)}. Here you can see all
+          the cells that it's running, as well as execute admin functions for
+          it.
         </span>
       </help-button>
     `;
@@ -82,81 +86,91 @@ export class ConductorAdmin extends PlaygroundElement {
     }
   }
 
-  setupGrid(grid: Grid, conductor: Conductor) {
+  setupGrid(grid: Grid) {
     if (!grid) return;
 
     setTimeout(() => {
-      grid.rowDetailsRenderer = function (root, grid, model) {
-        if (!root.firstElementChild) {
-          const cell = (model.item as any) as Cell;
-          root.innerHTML = `
-          <div class="column" style="padding: 8px; padding-top: 0">
-            <span>uid: "${cell.getSimulatedDna().uid}"</span>
-            <div class="row">
-              <span>Properties:</span>
-              <json-viewer style="margin-left: 8px">  
-                <script type="application/json">
-                  ${JSON.stringify(cell.getSimulatedDna().properties)}
-                </script> 
-              </json-viewer>
-            </div>
-          </div>
-          `;
-        }
-      };
       const dnaColumn = this.shadowRoot.querySelector(
         '#dna-column'
       ) as GridColumn;
       dnaColumn.renderer = (root: any, column, model) => {
-        const cell = (model.item as any) as Cell;
-        root.innerHTML = `<copyable-hash hash="${cell.dnaHash}"></copyable-hash>`;
+        const cell = (model.item as any) as CellStore<any>;
+        root.innerHTML = `<copyable-hash hash="${serializeHash(
+          cell.cellId[0]
+        )}"></copyable-hash>`;
         root.item = model.item;
       };
       const agentPubKeyColumn = this.shadowRoot.querySelector(
         '#agent-pub-key-column'
       ) as GridColumn;
       agentPubKeyColumn.renderer = (root: any, column, model) => {
-        const cell = (model.item as any) as Cell;
-        root.innerHTML = `<copyable-hash hash="${cell.agentPubKey}"></copyable-hash>`;
+        const cell = (model.item as any) as CellStore<any>;
+        root.innerHTML = `<copyable-hash hash="${serializeHash(
+          cell.cellId[1]
+        )}"></copyable-hash>`;
         root.item = model.item;
       };
 
-      const detailsToggleColumn = this.shadowRoot.querySelector(
-        '#details'
-      ) as GridColumn;
-      detailsToggleColumn.renderer = function (root: any, column, model) {
-        if (!root.firstElementChild) {
-          root.innerHTML = '<mwc-button label="Details"></mwc-button>';
-          let opened = false;
-          root.firstElementChild.addEventListener('click', function (e: any) {
-            if (!opened) {
-              grid.openItemDetails(root.item);
-            } else {
-              grid.closeItemDetails(root.item);
+      if (this.isSimulated) {
+        grid.rowDetailsRenderer = function (root, grid, model) {
+          if (!root.firstElementChild) {
+            const cell = (model.item as any) as CellStore<any>;
+
+            if (cell instanceof SimulatedCellStore) {
+              root.innerHTML = `
+            <div class="column" style="padding: 8px; padding-top: 0">
+            <span>uid: "${cell.dna.uid}"</span>
+            <div class="row">
+            <span>Properties:</span>
+            <json-viewer style="margin-left: 8px">  
+            <script type="application/json">
+            ${JSON.stringify(cell.dna.properties)}
+            </script> 
+            </json-viewer>
+            </div>
+            </div>
+            `;
             }
-            opened = !opened;
-          });
-        }
-        root.item = model.item;
-      };
+          }
+        };
+
+        const detailsToggleColumn = this.shadowRoot.querySelector(
+          '#details'
+        ) as GridColumn;
+        detailsToggleColumn.renderer = function (root: any, column, model) {
+          if (!root.firstElementChild) {
+            root.innerHTML = '<mwc-button label="Details"></mwc-button>';
+            let opened = false;
+            root.firstElementChild.addEventListener('click', function (e: any) {
+              if (!opened) {
+                grid.openItemDetails(root.item);
+              } else {
+                grid.closeItemDetails(root.item);
+              }
+              opened = !opened;
+            });
+          }
+          root.item = model.item;
+        };
+      }
+
       const selectColumn = this.shadowRoot.querySelector(
         '#select'
       ) as GridColumn;
       selectColumn.renderer = (root: any, column, model) => {
-        const cell = (model.item as any) as Cell;
+        const cell = (model.item as any) as CellStore<any>;
 
         const isSelected =
-          this.activeDna === cell.dnaHash &&
-          this.activeAgentPubKey === cell.agentPubKey;
+          isEqual(this._activeDna.value, cell.cellId[0]) &&
+          isEqual(this._activeAgentPubKey.value, cell.cellId[1]);
         root.innerHTML = `<mwc-button label="Select" ${
           isSelected ? 'disabled' : ''
         }></mwc-button>`;
         root.firstElementChild.addEventListener('click', (e: any) => {
-          const cell = (model.item as any) as Cell;
-          this.updatePlayground({
-            activeAgentPubKey: cell.agentPubKey,
-            activeDna: cell.dnaHash,
-          });
+          const cell = (model.item as any) as CellStore<any>;
+
+          this.store.activeDna.set(cell.cellId[0]);
+          this.store.activeAgentPubKey.set(cell.cellId[1]);
         });
 
         root.item = model.item;
@@ -164,39 +178,66 @@ export class ConductorAdmin extends PlaygroundElement {
     });
   }
 
-  renderCells(conductor: Conductor) {
-    const items = conductor.getAllCells();
+  renderCells() {
+    const cells = this._cellsForActiveConductor.value;
+    if (!cells) return html``;
+
+    const items = cells.values();
 
     return html`
-      <vaadin-grid
-        .items=${items}
-        ${ref(this._grid)}
-        ${ref((el) => this.setupGrid(el as Grid, conductor))}
-      >
-        <vaadin-grid-column
-          path="dna"
-          header="Dna"
-          id="dna-column"
-        ></vaadin-grid-column>
-        <vaadin-grid-column
-          id="agent-pub-key-column"
-          path="agentPubKey"
-          header="Agent Pub Key"
-        ></vaadin-grid-column>
-        <vaadin-grid-column flex-grow="0" id="details"></vaadin-grid-column>
-        <vaadin-grid-column flex-grow="0" id="select"></vaadin-grid-column>
-      </vaadin-grid>
+      <div class="column fill">
+        <vaadin-grid
+          .items=${items}
+          ${ref(this._grid)}
+          ${ref((el) => this.setupGrid(el as Grid))}
+        >
+          <vaadin-grid-column
+            path="dna"
+            header="Dna"
+            id="dna-column"
+          ></vaadin-grid-column>
+          <vaadin-grid-column
+            id="agent-pub-key-column"
+            path="agentPubKey"
+            header="Agent Pub Key"
+          ></vaadin-grid-column>
+          ${this.isSimulated
+            ? html`
+                <vaadin-grid-column
+                  flex-grow="0"
+                  id="details"
+                ></vaadin-grid-column>
+              `
+            : html``}
+          <vaadin-grid-column flex-grow="0" id="select"></vaadin-grid-column>
+        </vaadin-grid>
+      </div>
     `;
   }
 
-  renderAdminAPI(conductor: Conductor) {
-    const adminApiFns = adminApi(this, conductor);
+  renderAdminAPI() {
+    if (!this.isSimulated)
+      return html`<div class="column fill center-content">
+        <span class="placeholder" style="margin: 16px;"
+          >Calling a connected admin conductor interface is not yet
+          available.</span
+        >
+      </div>`;
+    const conductor = this._activeConductor.value;
 
-    return html`<call-functions .callableFns=${adminApiFns}></call-functions>`;
+    const adminApiFns = adminApi(
+      this,
+      this._happs.value,
+      conductor as SimulatedConductorStore
+    );
+
+    return html` <div class="column fill">
+      <call-functions .callableFns=${adminApiFns}></call-functions>
+    </div>`;
   }
 
   renderContent() {
-    if (!this.activeConductor)
+    if (!this._activeConductor.value)
       return html`
         <div class="column fill center-content">
           <span class="placeholder"
@@ -205,6 +246,8 @@ export class ConductorAdmin extends PlaygroundElement {
         </div>
       `;
     return html`
+      ${this.renderHelp()}
+
       <div class="column fill">
         <mwc-tab-bar
           @MDCTabBar:activated=${(e) =>
@@ -214,27 +257,30 @@ export class ConductorAdmin extends PlaygroundElement {
           <mwc-tab label="Cells"></mwc-tab>
           <mwc-tab label="Admin API"></mwc-tab>
         </mwc-tab-bar>
-        <div class="column fill">
-          ${this._selectedTabIndex === 0
-            ? this.renderCells(this.activeConductor)
-            : this.renderAdminAPI(this.activeConductor)}
-        </div>
+        ${this._selectedTabIndex === 0
+          ? this.renderCells()
+          : this.renderAdminAPI()}
       </div>
     `;
+  }
+
+  renderName() {
+    if (this.isSimulated)
+      return (this._activeConductor.value as SimulatedConductorStore).name;
+    return (this._activeConductor.value as ConnectedConductorStore).url;
   }
 
   render() {
     return html`
       <mwc-card class="block-card">
-        ${this.renderHelp()}
         <div class="column fill">
           <div class="row" style="padding: 16px">
             <div class="column" style="flex: 1;">
               <span class="title"
                 >Conductor
-                Admin${this.activeConductor
+                Admin${this._activeConductor.value
                   ? html`<span class="placeholder"
-                      >, for ${this.activeConductor.name}</span
+                      >, for ${this.renderName()}</span
                     >`
                   : html``}</span
               >

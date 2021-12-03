@@ -2,13 +2,16 @@ import { Dictionary } from '@holochain-open-dev/core-types';
 import { property } from 'lit/decorators.js';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { css, LitElement, html, PropertyValues, TemplateResult } from 'lit';
-import { isEqual } from 'lodash';
-import { Button } from '@scoped-elements/material-web';
-import { Drawer } from '@scoped-elements/material-web';
-import { List } from '@scoped-elements/material-web';
-import { ListItem } from '@scoped-elements/material-web';
-import { Select } from '@scoped-elements/material-web';
-import { TextField } from '@scoped-elements/material-web';
+import isEqual from 'lodash-es/isEqual';
+import {
+  Button,
+  Drawer,
+  List,
+  ListItem,
+  Select,
+  TextField,
+} from '@scoped-elements/material-web';
+
 import { sharedStyles } from '../utils/shared-styles';
 
 export type CallableFnArgument = { name: string; required?: boolean } & (
